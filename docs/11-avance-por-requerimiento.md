@@ -44,7 +44,7 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RF-07 Adjuntar documentos | prototipo | Sin Storage real |
 | RF-08 Requisitos | prototipo | |
 | RF-09 Publicar validado | prototipo | Validación solo en cliente; RNF-29 exige servidor |
-| RF-10 Cierre automático | pendiente | Requiere `pg_cron` |
+| RF-10 Cierre automático | servidor | Job `cerrar-convocatorias-vencidas` programado en `pg_cron`, diario 05:00 UTC (sesión 003). Falta ver una ejecución real |
 
 ### 4.3 Búsqueda y descubrimiento
 
@@ -121,12 +121,12 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RF-36 Planes administrables por rol | prototipo | |
 | RF-37 Trial de empresa | prototipo | Dato de ejemplo incoherente: `consultor-5` tiene trial |
 | RF-38 Activación manual | prototipo | |
-| RF-39 Job de vencimientos | pendiente | Requiere `pg_cron` |
+| RF-39 Job de vencimientos | servidor | Job `vencer-suscripciones` programado en `pg_cron` (sesión 003). Falta ver una ejecución real |
 | RF-40 Verificación en acciones restringidas | prototipo | |
 | RF-41 Vista del suscriptor | prototipo | |
 | RF-42 Tablero admin de suscripciones | prototipo | |
 | RF-48 Un crédito por generación exitosa | prototipo | |
-| RF-49 Reinicio mensual del cupo | pendiente | Requiere `pg_cron` |
+| RF-49 Reinicio mensual del cupo | servidor | Job `reiniciar-creditos-ia` programado en `pg_cron` (sesión 003). Falta ver una ejecución real |
 | RF-50 Bloquear sin cupo | prototipo | |
 | RF-51 Paquetes adicionales | prototipo | |
 | RF-52 Registrar consumo con tokens y costo | pendiente | `EstadisticasIA` no guarda tokens ni costo |
@@ -162,9 +162,9 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 |---|---|---|
 | RF-76 Revocación automática en cascada | pendiente | Sprint 5 |
 | RF-77 Validar cupo de la empresa dueña | pendiente | Sprint 4 |
-| RF-78 Vigencia verificada en servidor | pendiente | Sprint 2 |
+| RF-78 Vigencia verificada en servidor | pendiente | La política de insert de `postulaciones` ya exige convocatoria publicada y vigente (probado, sesión 003). Faltan los endpoints de postular y generar: Sprint 2 |
 | RF-79 Traza de lectura | pendiente | Sprint 5 |
-| RF-80 Contacto por pareja empresa-consultor | prototipo | El perfil cruza solo los encargos de la empresa de la sesión (sesión 002). Falta RLS: Sprint 5 |
+| RF-80 Contacto por pareja empresa-consultor | prototipo | El perfil cruza solo los encargos de la empresa de la sesión (sesión 002). **RLS lista (sesión 003):** permisos por columna + `contacto_consultor()`, activa = `pendiente`/`en_curso`; prueba cruzada E1/E2 pasada. El prototipo aún cuenta `completado`/`calificado` como activa. Falta el endpoint |
 
 ### 4.13 Usabilidad de los flujos *(v6)*
 
@@ -182,7 +182,7 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 |---|---|---|---|
 | RNF-01 Autenticación y acceso | pendiente | 1 | |
 | RNF-02 Cifrado | pendiente | 1 | Lo da Supabase + Vercel |
-| RNF-03 Aislamiento de datos | prototipo | 1 | Prueba cruzada empresa-1 / empresa-4 pasada en los 4 listados y por URL directa, **sobre mocks**. Falta repetirla contra Supabase |
+| RNF-03 Aislamiento de datos | prototipo | 1 | Prueba cruzada empresa-1 / empresa-4 pasada en los 4 listados y por URL directa, **sobre mocks**. **RLS probada en Supabase (sesión 003):** 2 empresas y 2 consultores no se ven entre sí en proyectos, postulaciones, documentos ni encargos. Falta repetirla a través de los endpoints |
 | RNF-04 Rendimiento del catálogo | pendiente | 2 | |
 | RNF-05 Rendimiento de sugerencias | pendiente | 3 | |
 | RNF-06 Documentos | pendiente | 2 | |
@@ -196,7 +196,7 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RNF-14 Catálogos administrables | prototipo | 4 | RF-82 ya lo respeta |
 | RNF-15 Portabilidad | — | — | Atributo de diseño |
 | RNF-16 Datos personales | pendiente | 1 | URLs firmadas de 15 min |
-| RNF-17 Integridad del rating | prototipo | 5 | |
+| RNF-17 Integridad del rating | prototipo | 5 | RLS y trigger listos (sesión 003): segunda calificación rechazada, edición sin efecto, rating recalculado |
 | RNF-18 Archivos de perfil | pendiente | 1 | |
 | RNF-19 Rendimiento del directorio | pendiente | 5 | |
 | RNF-20 Enforcement en servidor | pendiente | 1–5 | Transversal |
@@ -204,10 +204,10 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RNF-22 Independencia del proveedor de IA | pendiente | 4 | |
 | RNF-23 Veracidad del contenido | prototipo | 4 | El principio está bien implementado |
 | RNF-24 Transparencia del uso de IA | pendiente | 4 | |
-| RNF-25 Cobertura de RLS | pendiente | 1 | |
+| RNF-25 Cobertura de RLS | servidor | 1 | 26 tablas, todas con RLS y ≥1 política (95 en total), comprobado por consulta al catálogo (sesión 003). La lectura cruzada con 2 cuentas cubre las tablas de usuario, no aún las 26 una por una |
 | RNF-26 Credenciales elevadas | pendiente | 1 | |
 | RNF-27 Límite de tasa | pendiente | 5 | |
-| RNF-28 MFA de administradores | prototipo | 1 | Guarda con condición invertida |
+| RNF-28 MFA de administradores | prototipo | 1 | Guarda con condición invertida. En RLS, el administrador sin `aal2` no tiene ningún privilegio (probado, sesión 003). Falta el enrolamiento en Auth |
 | RNF-29 Validación del enlace | prototipo | 2 | Solo en cliente |
 | RNF-30 Autorización por rol | pendiente | 1 | **Causa raíz de la auditoría** |
 | RNF-31 Inyección en el TDR | pendiente | 4 | |
@@ -226,14 +226,14 @@ Las 30 reglas están documentadas; estas son las que todavía no se hacen cumpli
 | RN-01 Publicación con datos mínimos | prototipo (cliente) | 2 |
 | RN-02 Cerrada sale de catálogo y sugerencias | prototipo | 2 |
 | RN-03 No postular ni generar sobre cerradas | prototipo (solo UI) | 2 |
-| RN-17 Un crédito por generación exitosa | prototipo | 4 |
+| RN-17 Un crédito por generación exitosa | prototipo | 4 — RLS impide crear documentos y tocar el contador de ajustes o los créditos desde el cliente (sesión 003) |
 | RN-18 Reinicio mensual, sin acumular | pendiente | 4 |
 | RN-23 Saneamiento del TDR | pendiente | 4 |
-| RN-24 RLS desde el Sprint 0 | pendiente | 1 |
+| RN-24 RLS desde el Sprint 0 | servidor | 1 — cada tabla nació con su política en la misma migración (sesión 003) |
 | RN-26 Contacto solo en `en_curso` | prototipo | 5 |
-| RN-27 Autorización derivada | pendiente | 5 |
+| RN-27 Autorización derivada | pendiente | 5 — política derivada (autorización ∧ encargo `en_curso`) lista y probada en RLS (sesión 003); faltan los endpoints de compartir y revocar |
 | RN-28 Sin cupo propio del consultor | prototipo | 4 — el crédito se resuelve por el propietario del documento, sin respaldo al consultor |
 | RN-29 Suspender cancela encargos | prototipo | 5 |
-| **RN-30 Propiedad explícita del dato** | prototipo | **1** — columnas y filtro en `lib/store.ts`/`lib/hooks.ts`; faltan migración y RLS |
+| **RN-30 Propiedad explícita del dato** | prototipo | **1** — columnas y filtro en `lib/store.ts`/`lib/hooks.ts`; migración y RLS hechas y probadas (sesión 003); falta que la aplicación lea de Supabase |
 
 ---
