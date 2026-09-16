@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { categoriaPorId } from "@/lib/mock-data";
-import { useAccesoSuscripcion } from "@/lib/hooks";
+import { useAccesoSuscripcion, useProyectosPropios } from "@/lib/hooks";
 import {
   diasRestantes,
   formatCOP,
@@ -41,7 +41,7 @@ export default function DetalleConvocatoriaPage({
   const { id } = use(params);
   const router = useRouter();
   const convocatoria = useAppStore((s) => s.convocatorias.find((c) => c.id === id));
-  const proyectos = useAppStore((s) => s.proyectos);
+  const proyectos = useProyectosPropios();
   const crearPostulacion = useAppStore((s) => s.crearPostulacion);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [proyectoSel, setProyectoSel] = useState<string>("");

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ClipboardList, Star, X, User, Mail, Target, Compass, Ban } from "lucide-react";
 import { useAppStore } from "@/lib/store";
+import { useEncargosPropios, useProyectosPropios } from "@/lib/hooks";
 import {
   formatFecha,
   ESTADO_ENCARGO_LABEL,
@@ -20,8 +21,8 @@ import { RatingStars } from "@/components/RatingStars";
 const CONTACTO_VISIBLE = new Set(["en_curso", "completado", "calificado"]);
 
 export default function EncargosPage() {
-  const encargos = useAppStore((s) => s.encargos);
-  const proyectos = useAppStore((s) => s.proyectos);
+  const encargos = useEncargosPropios();
+  const proyectos = useProyectosPropios();
   const consultores = useAppStore((s) => s.consultores);
   const convocatorias = useAppStore((s) => s.convocatorias);
   const calificaciones = useAppStore((s) => s.calificaciones);

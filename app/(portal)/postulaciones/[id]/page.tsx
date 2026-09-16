@@ -18,7 +18,7 @@ import {
 import { useAppStore } from "@/lib/store";
 import type { EstadoPostulacion } from "@/lib/types";
 import { documentoParaProyectoConv, ESTADO_DOCUMENTO_LABEL, ESTADO_DOCUMENTO_ESTILO } from "@/lib/documentos";
-import { useAccesoSuscripcion } from "@/lib/hooks";
+import { useAccesoSuscripcion, usePostulacionesPropias, useProyectosPropios, useDocumentosPropios } from "@/lib/hooks";
 import {
   formatCOP,
   formatFecha,
@@ -35,19 +35,17 @@ import { SolicitarConsultorModal } from "@/components/SolicitarConsultorModal";
 export default function DetallePostulacionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
-  const postulacion = useAppStore((s) => s.postulaciones.find((p) => p.id === id));
+  const postulacion = usePostulacionesPropias().find((p) => p.id === id);
   const convocatoria = useAppStore((s) =>
     postulacion ? s.convocatorias.find((c) => c.id === postulacion.convocatoriaId) : undefined
   );
-  const proyecto = useAppStore((s) =>
-    postulacion?.proyectoId ? s.proyectos.find((p) => p.id === postulacion.proyectoId) : undefined
-  );
-  const proyectos = useAppStore((s) => s.proyectos);
+  const proyectos = useProyectosPropios();
+  const proyecto = postulacion?.proyectoId ? proyectos.find((p) => p.id === postulacion.proyectoId) : undefined;
   const toggleChecklistItem = useAppStore((s) => s.toggleChecklistItem);
   const cambiarEstadoPostulacion = useAppStore((s) => s.cambiarEstadoPostulacion);
   const vincularProyectoAPostulacion = useAppStore((s) => s.vincularProyectoAPostulacion);
   const setProyectoParaGenerar = useAppStore((s) => s.setProyectoParaGenerar);
-  const documentos = useAppStore((s) => s.documentos);
+  const documentos = useDocumentosPropios();
   const { requerirAcceso } = useAccesoSuscripcion();
   const [proyectoParaVincular, setProyectoParaVincular] = useState("");
   const [modalConsultorAbierto, setModalConsultorAbierto] = useState(false);

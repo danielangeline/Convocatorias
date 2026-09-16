@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ClipboardList, MapPin } from "lucide-react";
 import { useAppStore } from "@/lib/store";
+import { usePostulacionesPropias, useProyectosPropios } from "@/lib/hooks";
 import { formatFecha, ESTADO_POSTULACION_LABEL, ESTADO_POSTULACION_ESTILO } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 import { ProgressBar } from "@/components/ui/ProgressBar";
@@ -10,9 +11,9 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { LinkButton } from "@/components/ui/Button";
 
 export default function PostulacionesPage() {
-  const postulaciones = useAppStore((s) => s.postulaciones);
+  const postulaciones = usePostulacionesPropias();
   const convocatorias = useAppStore((s) => s.convocatorias);
-  const proyectos = useAppStore((s) => s.proyectos);
+  const proyectos = useProyectosPropios();
 
   return (
     <div>

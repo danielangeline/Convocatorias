@@ -6,7 +6,7 @@ import { ArrowLeft, Check, X as XIcon, MapPin, Wallet, Info } from "lucide-react
 import { useAppStore } from "@/lib/store";
 import type { Convocatoria, Proyecto } from "@/lib/types";
 import { diasRestantes, formatCOP, ESTADO_CONVOCATORIA_LABEL, ESTADO_CONVOCATORIA_ESTILO } from "@/lib/utils";
-import { useAccesoSuscripcion } from "@/lib/hooks";
+import { useAccesoSuscripcion, useProyectosPropios } from "@/lib/hooks";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
@@ -77,7 +77,7 @@ function AnilloCompatibilidad({ porcentaje }: { porcentaje: number }) {
 
 export default function SugerenciasPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const proyecto = useAppStore((s) => s.proyectos.find((p) => p.id === id));
+  const proyecto = useProyectosPropios().find((p) => p.id === id);
   const convocatorias = useAppStore((s) => s.convocatorias);
   const { tieneAcceso, requerirAcceso } = useAccesoSuscripcion();
 

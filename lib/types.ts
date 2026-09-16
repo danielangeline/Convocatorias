@@ -48,6 +48,9 @@ export interface Convocatoria {
 
 export interface Proyecto {
   id: string;
+  // Propietario (RN-30): la empresa dueña. Ningún listado se sirve sin filtrar
+  // por esta columna; en Supabase es `usuario_id` y la política RLS la exige.
+  usuarioId: string;
   nombre: string;
   descripcion: string;
   montoBuscado: number;
@@ -91,6 +94,7 @@ export interface HistorialItem {
 
 export interface Postulacion {
   id: string;
+  usuarioId: string; // Propietario (RN-30) — empresa dueña de la postulación
   convocatoriaId: string;
   proyectoId: string | null;
   estado: EstadoPostulacion;
@@ -277,6 +281,9 @@ export type EstadoDocumento = "generado" | "editado" | "exportado";
 
 export interface DocumentoGenerado {
   id: string;
+  // Propietario (RN-30): la empresa dueña del proyecto, aunque edite un consultor
+  // autorizado. De aquí sale el crédito que se descuenta (RN-28).
+  usuarioId: string;
   proyectoId: string;
   convocatoriaId: string;
   titulo: string;

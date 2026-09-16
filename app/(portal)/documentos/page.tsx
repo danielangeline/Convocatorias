@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { FileText, Sparkles } from "lucide-react";
 import { useAppStore } from "@/lib/store";
+import { useDocumentosPropios, useProyectosPropios } from "@/lib/hooks";
 import { extraerPendientes, ESTADO_DOCUMENTO_LABEL, ESTADO_DOCUMENTO_ESTILO } from "@/lib/documentos";
 import { formatFecha } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
@@ -10,8 +11,8 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { LinkButton } from "@/components/ui/Button";
 
 export default function DocumentosPage() {
-  const documentos = useAppStore((s) => s.documentos);
-  const proyectos = useAppStore((s) => s.proyectos);
+  const documentos = useDocumentosPropios();
+  const proyectos = useProyectosPropios();
   const convocatorias = useAppStore((s) => s.convocatorias);
 
   const ordenados = [...documentos].sort((a, b) => (a.fechaActualizacion < b.fechaActualizacion ? 1 : -1));

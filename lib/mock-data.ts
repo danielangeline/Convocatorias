@@ -415,6 +415,7 @@ export function convocatoriaPorId(id: string): Convocatoria | undefined {
 export const proyectos: Proyecto[] = [
   {
     id: "proy-1",
+    usuarioId: "empresa-1",
     nombre: "EcoEmpaques Andinos",
     descripcion:
       "Desarrollo de empaques biodegradables a partir de fibra de fique para reemplazar plásticos de un solo uso en la industria alimentaria colombiana.",
@@ -444,6 +445,7 @@ export const proyectos: Proyecto[] = [
   },
   {
     id: "proy-2",
+    usuarioId: "empresa-1",
     nombre: "AgroDatos Cauca",
     descripcion:
       "Plataforma de analítica de datos y monitoreo climático para pequeños caficultores del Cauca, orientada a mejorar el rendimiento y la trazabilidad del cultivo.",
@@ -465,6 +467,7 @@ export const proyectos: Proyecto[] = [
   },
   {
     id: "proy-3",
+    usuarioId: "empresa-1",
     nombre: "TurismoVivo Caribe",
     descripcion:
       "Aplicación móvil de turismo comunitario sostenible que conecta viajeros con experiencias operadas por comunidades locales en el Caribe colombiano.",
@@ -476,6 +479,33 @@ export const proyectos: Proyecto[] = [
       "Las comunidades del Caribe colombiano que ofrecen experiencias de turismo comunitario tienen baja visibilidad frente a operadores turísticos tradicionales, lo que limita sus ingresos.",
     objetivoGeneral:
       "Conectar a comunidades del Caribe colombiano con viajeros interesados en turismo comunitario sostenible mediante una aplicación móvil.",
+  },
+  // RN-30: proyectos de otras empresas, para que la prueba cruzada de
+  // aislamiento (RNF-03) tenga algo que no debería verse desde empresa-1.
+  {
+    id: "proy-4",
+    usuarioId: "empresa-4",
+    nombre: "Secado Solar de Café de la Sierra",
+    descripcion:
+      "Reemplazo de los secadores a gas por marquesinas de secado solar y aprovechamiento de la pulpa de café como abono para las fincas proveedoras.",
+    montoBuscado: 80_000_000,
+    ubicacion: "Valle del Cauca",
+    categorias: ["tp-sostenibilidad", "sec-agro", "te-mipyme"],
+    problema:
+      "El secado del grano con gas encarece el proceso y la pulpa de café se desecha sin aprovechamiento, lo que contamina las quebradas cercanas a las fincas.",
+    objetivoGeneral:
+      "Reducir el consumo de gas en el secado y aprovechar la pulpa de café como abono orgánico en la cadena de proveedores.",
+    duracionMeses: 10,
+  },
+  {
+    id: "proy-5",
+    usuarioId: "empresa-2",
+    nombre: "Línea de Muebles con Madera Recuperada",
+    descripcion:
+      "Fabricación de muebles de oficina a partir de estibas y retales de madera recuperados de la industria local.",
+    montoBuscado: 110_000_000,
+    ubicacion: "Cauca",
+    categorias: ["tp-sostenibilidad", "sec-manufactura", "te-mipyme"],
   },
 ];
 
@@ -490,6 +520,7 @@ export function proyectoPorId(id: string): Proyecto | undefined {
 export const postulaciones: Postulacion[] = [
   {
     id: "post-1",
+    usuarioId: "empresa-1",
     convocatoriaId: "conv-3",
     proyectoId: "proy-2",
     estado: "en_evaluacion",
@@ -508,6 +539,7 @@ export const postulaciones: Postulacion[] = [
   },
   {
     id: "post-2",
+    usuarioId: "empresa-1",
     convocatoriaId: "conv-1",
     proyectoId: "proy-1",
     estado: "presentada",
@@ -525,6 +557,7 @@ export const postulaciones: Postulacion[] = [
   },
   {
     id: "post-3",
+    usuarioId: "empresa-1",
     convocatoriaId: "conv-7",
     proyectoId: "proy-3",
     estado: "en_preparacion",
@@ -539,6 +572,7 @@ export const postulaciones: Postulacion[] = [
   },
   {
     id: "post-4",
+    usuarioId: "empresa-1",
     convocatoriaId: "conv-10",
     proyectoId: "proy-1",
     estado: "rechazada",
@@ -552,6 +586,21 @@ export const postulaciones: Postulacion[] = [
       { id: "hist-4-2", estadoAnterior: "en_preparacion", estadoNuevo: "presentada", fecha: desdeHoy(-167) },
       { id: "hist-4-3", estadoAnterior: "presentada", estadoNuevo: "en_evaluacion", fecha: desdeHoy(-124) },
       { id: "hist-4-4", estadoAnterior: "en_evaluacion", estadoNuevo: "rechazada", fecha: desdeHoy(-55) },
+    ],
+  },
+  {
+    id: "post-5",
+    usuarioId: "empresa-4",
+    convocatoriaId: "conv-4",
+    proyectoId: "proy-4",
+    estado: "en_preparacion",
+    checklist: [
+      { id: "chk-5-1", descripcion: "Diagnóstico ambiental o de economía circular de la empresa", obligatorio: true, completado: false },
+      { id: "chk-5-2", descripcion: "Domicilio en Antioquia, Valle del Cauca o Cundinamarca", obligatorio: true, completado: true },
+      { id: "chk-5-3", descripcion: "Certificado de existencia y representación legal", obligatorio: true, completado: true },
+    ],
+    historial: [
+      { id: "hist-5-1", estadoAnterior: null, estadoNuevo: "en_preparacion", fecha: desdeHoy(-3) },
     ],
   },
 ];
@@ -1100,6 +1149,7 @@ export function promptVersionActiva(): PromptVersion {
 export const documentos: DocumentoGenerado[] = [
   {
     id: "doc-1",
+    usuarioId: "empresa-1",
     proyectoId: "proy-2",
     convocatoriaId: "conv-3",
     titulo: 'AgroDatos Cauca — Propuesta para la convocatoria "Aldea: Escala tu Negocio de Base Tecnológica" de iNNpulsa Colombia',
@@ -1169,6 +1219,46 @@ export const documentos: DocumentoGenerado[] = [
         id: "experiencia-organizacion",
         titulo: "Experiencia de la organización",
         contenido: "[COMPLETAR: la experiencia previa de la empresa u organización ejecutora]",
+      },
+    ],
+  },
+  {
+    id: "doc-2",
+    usuarioId: "empresa-4",
+    proyectoId: "proy-4",
+    convocatoriaId: "conv-4",
+    titulo: 'Secado Solar de Café de la Sierra — Propuesta para la convocatoria "Fondo de Economía Circular para Pymes" de Cooperación Alemana GIZ',
+    version: 1,
+    estado: "generado",
+    promptVersionId: "prompt-v2",
+    ajustesGratisUsados: 0,
+    fechaCreacion: desdeHoy(-2),
+    fechaActualizacion: desdeHoy(-2),
+    compartidoConConsultorId: null,
+    ultimaEdicionPor: null,
+    secciones: [
+      {
+        id: "titulo",
+        titulo: "Título",
+        contenido:
+          'Secado Solar de Café de la Sierra — Propuesta para la convocatoria "Fondo de Economía Circular para Pymes" de Cooperación Alemana GIZ',
+      },
+      {
+        id: "problema-justificacion",
+        titulo: "Problema y justificación",
+        contenido:
+          "El secado del grano con gas encarece el proceso y la pulpa de café se desecha sin aprovechamiento, lo que contamina las quebradas cercanas a las fincas.",
+      },
+      {
+        id: "objetivos",
+        titulo: "Objetivos",
+        contenido:
+          "Objetivo general: reducir el consumo de gas en el secado y aprovechar la pulpa de café como abono orgánico en la cadena de proveedores.\n\nObjetivos específicos: [COMPLETAR: los objetivos específicos del proyecto]",
+      },
+      {
+        id: "poblacion-beneficiaria",
+        titulo: "Población beneficiaria",
+        contenido: "[COMPLETAR: la población que se beneficia del proyecto]",
       },
     ],
   },

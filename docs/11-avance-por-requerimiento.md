@@ -164,7 +164,7 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RF-77 Validar cupo de la empresa dueña | pendiente | Sprint 4 |
 | RF-78 Vigencia verificada en servidor | pendiente | Sprint 2 |
 | RF-79 Traza de lectura | pendiente | Sprint 5 |
-| RF-80 Contacto por pareja empresa-consultor | pendiente | Sprint 5 |
+| RF-80 Contacto por pareja empresa-consultor | prototipo | El perfil cruza solo los encargos de la empresa de la sesión (sesión 002). Falta RLS: Sprint 5 |
 
 ### 4.13 Usabilidad de los flujos *(v6)*
 
@@ -182,7 +182,7 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 |---|---|---|---|
 | RNF-01 Autenticación y acceso | pendiente | 1 | |
 | RNF-02 Cifrado | pendiente | 1 | Lo da Supabase + Vercel |
-| RNF-03 Aislamiento de datos | pendiente | 1 | Depende de RN-30 |
+| RNF-03 Aislamiento de datos | prototipo | 1 | Prueba cruzada empresa-1 / empresa-4 pasada en los 4 listados y por URL directa, **sobre mocks**. Falta repetirla contra Supabase |
 | RNF-04 Rendimiento del catálogo | pendiente | 2 | |
 | RNF-05 Rendimiento de sugerencias | pendiente | 3 | |
 | RNF-06 Documentos | pendiente | 2 | |
@@ -232,8 +232,8 @@ Las 30 reglas están documentadas; estas son las que todavía no se hacen cumpli
 | RN-24 RLS desde el Sprint 0 | pendiente | 1 |
 | RN-26 Contacto solo en `en_curso` | prototipo | 5 |
 | RN-27 Autorización derivada | pendiente | 5 |
-| RN-28 Sin cupo propio del consultor | prototipo | 4 |
+| RN-28 Sin cupo propio del consultor | prototipo | 4 — el crédito se resuelve por el propietario del documento, sin respaldo al consultor |
 | RN-29 Suspender cancela encargos | prototipo | 5 |
-| **RN-30 Propiedad explícita del dato** | pendiente | **1** |
+| **RN-30 Propiedad explícita del dato** | prototipo | **1** — columnas y filtro en `lib/store.ts`/`lib/hooks.ts`; faltan migración y RLS |
 
 ---

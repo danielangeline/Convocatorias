@@ -23,7 +23,7 @@ import {
 import { useAppStore } from "@/lib/store";
 import { categoriaPorId } from "@/lib/mock-data";
 import type { RedSocialTipo, TipoAyudaEncargo } from "@/lib/types";
-import { useAccesoSuscripcion } from "@/lib/hooks";
+import { useAccesoSuscripcion, useEncargosPropios, useProyectosPropios, usePostulacionesPropias } from "@/lib/hooks";
 import { diasRestantes, cn } from "@/lib/utils";
 import { RatingStars } from "@/components/RatingStars";
 import { Chip } from "@/components/ui/Chip";
@@ -48,9 +48,9 @@ export default function PerfilConsultorPage({ params }: { params: Promise<{ id: 
   const solicitud = useAppStore((s) => s.solicitudConsultorEnCurso);
   const iniciarSolicitudConsultor = useAppStore((s) => s.iniciarSolicitudConsultor);
   const crearEncargoDesdeDirectorio = useAppStore((s) => s.crearEncargoDesdeDirectorio);
-  const todosLosEncargos = useAppStore((s) => s.encargos);
-  const proyectos = useAppStore((s) => s.proyectos);
-  const postulaciones = useAppStore((s) => s.postulaciones);
+  const todosLosEncargos = useEncargosPropios();
+  const proyectos = useProyectosPropios();
+  const postulaciones = usePostulacionesPropias();
   const convocatorias = useAppStore((s) => s.convocatorias);
   const { requerirAcceso } = useAccesoSuscripcion();
 

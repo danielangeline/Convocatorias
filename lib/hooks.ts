@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { useAppStore } from "./store";
 import { usuarioIdDeModo, consultorIdDeModo, rolDeModo } from "./session";
 import { agregarMeses, diasRestantesHasta } from "./utils";
@@ -61,4 +62,41 @@ export function useConsultorActual() {
   const consultorId = consultorIdDeModo(modoDemo);
   const consultor = consultorId ? consultores.find((c) => c.id === consultorId) : undefined;
   return { consultorId, consultor };
+}
+
+/**
+ * Listados del portal Empresa filtrados por el propietario de la sesión
+ * (RN-30, RNF-03). Los listados y fichas del portal Empresa leen de aquí,
+ * no de `s.proyectos`, `s.postulaciones`, `s.documentos` ni `s.encargos`.
+ * La excepción es la ficha de documento, compartida con el consultor
+ * autorizado, que aplica su propia guarda de propietario.
+ * Al conectar Supabase el filtro lo aplica el endpoint y lo respalda RLS.
+ */
+export function usePropietarioSesion() {
+  const modoDemo = useAppStore((s) => s.modoDemo);
+  return usuarioIdDeModo(modoDemo);
+}
+
+export function useProyectosPropios() {
+  const usuarioId = usePropietarioSesion();
+  const proyectos = useAppStore((s) => s.proyectos);
+  return useMemo(() => proyectos.filter((p) => p.usuarioId === usuarioId), [proyectos, usuarioId]);
+}
+
+export function usePostulacionesPropias() {
+  const usuarioId = usePropietarioSesion();
+  const postulaciones = useAppStore((s) => s.postulaciones);
+  return useMemo(() => postulaciones.filter((p) => p.usuarioId === usuarioId), [postulaciones, usuarioId]);
+}
+
+export function useDocumentosPropios() {
+  const usuarioId = usePropietarioSesion();
+  const documentos = useAppStore((s) => s.documentos);
+  return useMemo(() => documentos.filter((d) => d.usuarioId === usuarioId), [documentos, usuarioId]);
+}
+
+export function useEncargosPropios() {
+  const usuarioId = usePropietarioSesion();
+  const encargos = useAppStore((s) => s.encargos);
+  return useMemo(() => encargos.filter((e) => e.empresaId === usuarioId), [encargos, usuarioId]);
 }

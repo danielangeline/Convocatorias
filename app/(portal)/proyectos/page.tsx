@@ -8,7 +8,7 @@ import { useAppStore } from "@/lib/store";
 import { categoriaPorId } from "@/lib/mock-data";
 import type { Proyecto } from "@/lib/types";
 import { formatCOP } from "@/lib/utils";
-import { useAccesoSuscripcion } from "@/lib/hooks";
+import { useAccesoSuscripcion, useProyectosPropios } from "@/lib/hooks";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -18,7 +18,7 @@ import { ProyectoFormModal } from "@/components/ProyectoFormModal";
 
 export default function ProyectosPage() {
   const router = useRouter();
-  const proyectos = useAppStore((s) => s.proyectos);
+  const proyectos = useProyectosPropios();
   const eliminarProyecto = useAppStore((s) => s.eliminarProyecto);
   const { requerirAcceso } = useAccesoSuscripcion();
 

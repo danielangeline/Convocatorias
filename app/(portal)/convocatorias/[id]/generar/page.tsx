@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { categoriaPorId } from "@/lib/mock-data";
-import { useAccesoSuscripcion, useCreditos } from "@/lib/hooks";
+import { useAccesoSuscripcion, useCreditos, useProyectosPropios } from "@/lib/hooks";
 import { calcularCompletitud } from "@/lib/proyectos";
 import { cn } from "@/lib/utils";
 import { CompletitudBadge } from "@/components/CompletitudProyecto";
@@ -31,7 +31,7 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
   const { id } = use(params);
   const router = useRouter();
   const convocatoria = useAppStore((s) => s.convocatorias.find((c) => c.id === id));
-  const proyectos = useAppStore((s) => s.proyectos);
+  const proyectos = useProyectosPropios();
   const proyectoParaGenerar = useAppStore((s) => s.proyectoParaGenerar);
   const limpiarProyectoParaGenerar = useAppStore((s) => s.limpiarProyectoParaGenerar);
   const crearDocumento = useAppStore((s) => s.crearDocumento);

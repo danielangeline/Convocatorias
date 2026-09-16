@@ -150,9 +150,8 @@ app/admin/             → Panel Administrador: fuentes, convocatorias, categor�
                           consultores/revision, encargos, planes, plantillas, suscripciones
 components/            → Componentes compartidos (Navbar, cards, modales, badges)
 components/ui/         → Primitivas de UI (Button, Chip, Badge, ProgressBar, EmptyState)
-lib/types.ts           → Todos los tipos. Siguen el esquema de docs/05-modelo-de-datos.md
-                          SALVO las columnas de propietario (RN-30), que faltan en
-                          Proyecto, Postulacion y DocumentoGenerado — Sprint 1
+lib/types.ts           → Todos los tipos. Siguen el esquema de docs/05-modelo-de-datos.md,
+                          incluidas las columnas de propietario (RN-30)
 lib/mock-data.ts       → Datos semilla (reemplazar por Supabase en la fase de backend)
 lib/store.ts           → Estado global con Zustand: toda la lógica de negocio del
                           prototipo vive aquí (crear proyecto, generar documento,
@@ -160,6 +159,8 @@ lib/store.ts           → Estado global con Zustand: toda la lógica de negocio
 lib/documentos.ts       → Composición del documento generado y aplicación de ajustes de IA
 lib/proyectos.ts        → Cálculo del indicador de completitud del proyecto (RF-46)
 lib/planes.ts           → Beneficios de cada plan derivados del dato del plan (RF-82)
+lib/hooks.ts            → Sesión simulada, créditos y listados filtrados por propietario
+                          (useProyectosPropios, etc. — RN-30): el portal Empresa lee de aquí
 lib/session.ts          → Simulador de sesión/rol: **no hay auth real todavía**.
                           `ModoDemo` (empresa_trial, empresa_vencida, empresa_sin_creditos,
                           consultor_aprobado, consultor_revision, admin) sustituye a

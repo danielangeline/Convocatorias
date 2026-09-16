@@ -23,6 +23,7 @@ import {
 } from "./mock-data";
 import { componerDocumento, aplicarAjusteTexto, postulacionParaProyectoConv } from "./documentos";
 import { transicionPermitida } from "./utils";
+import { usuarioIdDeModo } from "./session";
 import type {
   Calificacion,
   Categoria,
@@ -55,6 +56,14 @@ let contador = 1000;
 function nuevoId(prefijo: string): string {
   contador += 1;
   return `${prefijo}-${contador}`;
+}
+
+/**
+ * Propietario de la sesión simulada (RN-30). Al conectar Supabase lo sustituye
+ * auth.uid(), y estas comprobaciones pasan a la API route y a la política RLS.
+ */
+function usuarioSesion(modo: ModoDemo): string {
+  return usuarioIdDeModo(modo);
 }
 
 function hoyIso(): string {
@@ -148,8 +157,8 @@ interface AppState {
   activarVersionPrompt: (id: string) => void;
 
   // Proyectos
-  agregarProyecto: (p: Omit<Proyecto, "id">) => Proyecto;
-  actualizarProyecto: (id: string, p: Omit<Proyecto, "id">) => void;
+  agregarProyecto: (p: Omit<Proyecto, "id" | "usuarioId">) => Proyecto;
+  actualizarProyecto: (id: string, p: Omit<Proyecto, "id" | "usuarioId">) => void;
   eliminarProyecto: (id: string) => void;
 
   // Postulaciones
@@ -319,18 +328,24 @@ export const useAppStore = create<AppState>((set, get) => ({
     });
   },
 
+  // RN-30: el propietario lo fija la sesión, nunca el formulario, y solo el
+  // dueño edita o elimina.
   agregarProyecto: (p) => {
-    const nuevo: Proyecto = { ...p, id: nuevoId("proy") };
+    const nuevo: Proyecto = { ...p, id: nuevoId("proy"), usuarioId: usuarioSesion(get().modoDemo) };
     set((s) => ({ proyectos: [...s.proyectos, nuevo] }));
     return nuevo;
   },
   actualizarProyecto: (id, p) => {
+    const usuarioId = usuarioSesion(get().modoDemo);
     set((s) => ({
-      proyectos: s.proyectos.map((pr) => (pr.id === id ? { ...pr, ...p } : pr)),
+      proyectos: s.proyectos.map((pr) =>
+        pr.id === id && pr.usuarioId === usuarioId ? { ...pr, ...p, usuarioId: pr.usuarioId } : pr
+      ),
     }));
   },
   eliminarProyecto: (id) => {
-    set((s) => ({ proyectos: s.proyectos.filter((p) => p.id !== id) }));
+    const usuarioId = usuarioSesion(get().modoDemo);
+    set((s) => ({ proyectos: s.proyectos.filter((p) => !(p.id === id && p.usuarioId === usuarioId)) }));
   },
 
   crearPostulacion: (convocatoriaId, proyectoId) => {
@@ -343,6 +358,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     }));
     const nueva: Postulacion = {
       id: nuevoId("post"),
+      usuarioId: usuarioSesion(get().modoDemo),
       convocatoriaId,
       proyectoId,
       estado: "en_preparacion",
@@ -356,9 +372,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   toggleChecklistItem: (postulacionId, itemId) => {
+    const usuarioId = usuarioSesion(get().modoDemo);
     set((s) => ({
       postulaciones: s.postulaciones.map((p) =>
-        p.id === postulacionId
+        p.id === postulacionId && p.usuarioId === usuarioId
           ? {
               ...p,
               checklist: p.checklist.map((item) =>
@@ -371,9 +388,10 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   cambiarEstadoPostulacion: (postulacionId, nuevoEstado) => {
+    const usuarioId = usuarioSesion(get().modoDemo);
     set((s) => ({
       postulaciones: s.postulaciones.map((p) => {
-        if (p.id !== postulacionId || p.estado === nuevoEstado) return p;
+        if (p.id !== postulacionId || p.usuarioId !== usuarioId || p.estado === nuevoEstado) return p;
         // RF-83: la transición se valida aquí, no solo en el selector. Al
         // conectar el backend esta comprobación se traslada a la API route.
         if (!transicionPermitida(p.estado, nuevoEstado)) return p;
@@ -395,8 +413,14 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   vincularProyectoAPostulacion: (postulacionId, proyectoId) => {
+    const usuarioId = usuarioSesion(get().modoDemo);
+    // RN-30: solo se vincula un proyecto propio a una postulación propia.
+    const proyectoPropio = get().proyectos.some((pr) => pr.id === proyectoId && pr.usuarioId === usuarioId);
+    if (!proyectoPropio) return;
     set((s) => ({
-      postulaciones: s.postulaciones.map((p) => (p.id === postulacionId ? { ...p, proyectoId } : p)),
+      postulaciones: s.postulaciones.map((p) =>
+        p.id === postulacionId && p.usuarioId === usuarioId ? { ...p, proyectoId } : p
+      ),
     }));
   },
 
@@ -448,7 +472,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     const nuevo: Encargo = {
       id: nuevoId("encargo"),
       proyectoId: solicitud.proyectoId,
-      empresaId: "empresa-1",
+      empresaId: usuarioSesion(get().modoDemo),
       consultorId: null,
       tituloTarea: solicitud.tituloTarea,
       descripcionTarea: solicitud.descripcionTarea,
@@ -473,7 +497,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     const nuevo: Encargo = {
       id: nuevoId("encargo"),
       proyectoId: solicitud.proyectoId,
-      empresaId: "empresa-1",
+      empresaId: usuarioSesion(get().modoDemo),
       consultorId,
       tituloTarea: solicitud.tituloTarea,
       descripcionTarea: solicitud.descripcionTarea,
@@ -781,6 +805,8 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     const nuevo: DocumentoGenerado = {
       id: nuevoId("doc"),
+      // RN-30/RN-28: el dueño es la empresa del proyecto, no quien dispara la acción.
+      usuarioId: proyecto?.usuarioId ?? usuarioSesion(get().modoDemo),
       proyectoId,
       convocatoriaId,
       titulo,

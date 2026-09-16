@@ -62,7 +62,11 @@ export default function DocumentoPage({ params }: { params: Promise<{ id: string
   const [instruccion, setInstruccion] = useState("");
   const [ajustando, setAjustando] = useState(false);
 
-  if (!documento || !proyecto || !convocatoria) {
+  // RN-30: una empresa solo abre documentos propios; uno ajeno se trata como
+  // inexistente para no confirmar que el identificador existe.
+  const ajenoAEmpresa = rol === "empresa" && documento?.usuarioId !== usuarioId;
+
+  if (!documento || !proyecto || !convocatoria || ajenoAEmpresa) {
     return (
       <div className="py-20 text-center">
         <p className="text-ink-soft">No encontramos este documento.</p>
@@ -99,9 +103,10 @@ export default function DocumentoPage({ params }: { params: Promise<{ id: string
   const consultorDelEncargo = encargoRelacionado?.consultorId
     ? consultores.find((c) => c.id === encargoRelacionado.consultorId)
     : undefined;
-  // Cuando el ajuste lo pide el consultor, el crédito sale del cupo de la
-  // empresa dueña, nunca del propio del consultor (RN-28).
-  const usuarioIdCredito = esConsultor ? encargoRelacionado?.empresaId ?? usuarioId : usuarioId;
+  // El crédito sale siempre del cupo de la empresa dueña del documento, también
+  // cuando el ajuste lo pide el consultor: se resuelve por el propietario del
+  // documento, sin respaldo que cargue el consumo a quien dispara la acción (RN-28, RN-30).
+  const usuarioIdCredito = documento.usuarioId;
 
   const pendientes = extraerPendientes(documento.secciones);
   const postulacion = postulacionParaProyectoConv(documento.proyectoId, documento.convocatoriaId, postulaciones);
