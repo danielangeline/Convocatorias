@@ -11,7 +11,7 @@ Especificación funcional y técnica del MVP **v6** (septiembre 2026). Es la fue
 | [`02-requerimientos-funcionales.md`](02-requerimientos-funcionales.md) | RF-01 a RF-83 con prioridad MoSCoW y trazabilidad al caso de uso | Para saber qué debe hacer exactamente el sistema |
 | [`03-requerimientos-no-funcionales.md`](03-requerimientos-no-funcionales.md) | RNF-01 a RNF-34 con criterio de verificación, y las 30 reglas de negocio | Seguridad, rendimiento, veracidad de la IA, validaciones |
 | [`04-arquitectura.md`](04-arquitectura.md) | Cinco capas, rutas de los tres portales, servicios y endpoints, decisión de plataforma | Al crear rutas, endpoints o middlewares |
-| [`05-modelo-de-datos.md`](05-modelo-de-datos.md) | Las 24 tablas con sus columnas y restricciones, índices, políticas RLS, SQL de compatibilidad, jobs de pg_cron | Al tipar datos, crear migraciones o consultas |
+| [`05-modelo-de-datos.md`](05-modelo-de-datos.md) | Las 26 tablas con sus columnas y restricciones, índices, políticas RLS, SQL de compatibilidad, jobs de pg_cron | Al tipar datos, crear migraciones o consultas |
 | [`06-procesos-de-negocio.md`](06-procesos-de-negocio.md) | Procesos core (no se tercerizan) y no core | Decisiones de priorización |
 | [`07-modelo-de-negocio.md`](07-modelo-de-negocio.md) | Planes, precios en COP, créditos de IA (solo planes de empresa), benchmark y análisis competitivo | Pantallas de suscripción y cupos |
 | [`08-roadmap.md`](08-roadmap.md) | Scrum, cronograma de 18 semanas con hitos, y las fases E1–E10 posteriores al MVP | Planeación y para no construir cosas de fases futuras |

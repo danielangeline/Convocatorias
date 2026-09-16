@@ -149,7 +149,7 @@ Requerimientos derivados de la auditoría de implementación. Traducen a comport
 | RF-77 | Validar el cupo de la **empresa dueña** del documento antes de aplicar cualquier ajuste con IA solicitado por un consultor autorizado; sin cupo disponible se rechaza sin consumir crédito y sin modificar el documento, con un mensaje dirigido al consultor que le indique que debe avisar a la empresa (RN-28, RNF-20) | CU-34 | Must |
 | RF-78 | Verificar **en el servidor** que la convocatoria esté `publicada` y vigente antes de generar un documento o crear una postulación sobre ella; la restricción no puede depender de deshabilitar el botón en la interfaz, del mismo modo que RF-72 protege la exportación (RN-03, RNF-20) | CU-11, 33 | Must |
 | RF-79 | Registrar cada **acceso de lectura** de un consultor a un documento autorizado, no solo las ediciones, de modo que tras revocar la autorización pueda reconstruirse qué consultó mientras estuvo activa (RNF-11) | CU-34 | Should |
-| RF-80 | Revelar sitio web, redes sociales y hoja de vida de un consultor únicamente cuando exista una solicitud activa **entre ese consultor y la empresa autenticada**; la existencia de solicitudes de otras empresas no habilita la visibilidad (RN-12, RNF-16) | CU-21 | Must |
+| RF-80 | Revelar sitio web, redes sociales y hoja de vida de un consultor únicamente cuando exista una solicitud activa **entre ese consultor y la empresa autenticada**; la existencia de solicitudes de otras empresas no habilita la visibilidad. **Una solicitud es activa mientras su encargo está `pendiente` o `en_curso`**; al completarse, calificarse, rechazarse o cancelarse, los datos vuelven a ocultarse (RN-12, RNF-16) *(precisado en v6, sesión 003)* | CU-21 | Must |
 
 ### 4.13 Usabilidad de los flujos *(nuevo v6)*
 

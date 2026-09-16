@@ -1,4 +1,4 @@
-# Modelo de datos (24 tablas)
+# Modelo de datos (26 tablas)
 
 > Parte de la especificación del MVP **v6** · Plataforma de Gestión de Convocatorias.
 > Índice general en `docs/README.md`. Contexto rápido en `CLAUDE.md`.
@@ -7,7 +7,7 @@
 
 ## 9. Modelo de datos
 
-**24 tablas**: 21 de la v3 + 3 del módulo de IA, más columnas nuevas en proyectos, planes y suscripciones. La extensión de seguridad v5 (§9.9, §9.10) agrega la tabla `eventos_seguridad`, una columna en `perfiles` y documenta la política RLS que faltaba para las 21 tablas base.
+**26 tablas**: 12 base de la v2 (incluida `perfiles`), 10 del módulo de consultores y suscripciones de la v3, 3 del módulo de IA y `eventos_seguridad` de la extensión de seguridad v5, más columnas nuevas en proyectos, planes, suscripciones y perfiles. *Hasta la sesión 003 el documento decía "24 tablas": la cifra no contaba `perfiles` ni `eventos_seguridad`; el conjunto de tablas no cambió.*
 
 ### 9.1 Diagrama entidad–relación (módulo de IA y su conexión)
 
@@ -108,7 +108,7 @@ erDiagram
 
 | Tabla | Política |
 |---|---|
-| documentos_generados | Todas las operaciones solo si `usuario_id = auth.uid()` (la empresa dueña, incluida la exportación). **El consultor con `compartido_con_consultor_id = auth.uid()` puede leer y actualizar `contenido`/`pendientes`/`ajustes_usados`, nunca `estado = exportado` ni disparar la exportación** (RN-22, RN-27, RF-71/72, *ampliado en v5*); admin puede leer para soporte |
+| documentos_generados | La empresa dueña (`usuario_id = auth.uid()`) lee y edita `titulo`, `contenido` y `pendientes`. **El consultor con `compartido_con_consultor_id = auth.uid()` y encargo `en_curso` sobre ese proyecto puede leer y editar `contenido`/`pendientes`, nunca exportar** (RN-22, RN-27, RF-71/72, *ampliado en v5*). **Crear el documento, `ajustes_usados`, `estado`, `version`, `plantilla_id` y la autorización del consultor los escribe solo el servidor** al generar, ajustar, exportar, compartir o revocar: si el cliente pudiera escribir el contador de ajustes, podría ponerlo en 0 y saltarse RN-17 *(precisado en v6, sesión 003)*; admin puede leer para soporte |
 | consumos_ia | Solo lectura del propio usuario; escritura desde el servidor; admin lee todo |
 
 ### 9.6 Cálculo del porcentaje de compatibilidad (RF-16)
@@ -250,6 +250,17 @@ Hasta v4 solo estaba documentada la política de las tablas nuevas del módulo d
 | calificaciones | Lectura pública (componen el rating); escritura solo por la empresa dueña del encargo calificado, una única vez, inmutable (RN-09, RNF-17) |
 | planes | Lectura pública; escritura exclusiva del administrador |
 | suscripciones, pagos_suscripcion | Cada suscriptor lee solo las propias; el administrador lee y escribe todas (RNF-20) |
+
+### 9.11 Cómo se aplican las políticas *(nuevo v6, sesión 003)*
+
+Decisiones de mecanismo tomadas al escribir las migraciones (`supabase/migrations/`). No cambian qué puede ver cada rol; fijan cómo se garantiza.
+
+1. **Mínimo privilegio en escritura.** Lo que §9.5 y §9.10 no conceden expresamente al usuario lo escribe solo el servidor (API routes con `service_role`, RNF-26, o jobs de `pg_cron`): encargos y sus avances, calificaciones fuera de la inserción única, consumos de IA, eventos de seguridad, suscripciones y pagos. Esas tablas tienen política de lectura, sin política de escritura para `authenticated`.
+2. **Columnas protegidas en filas editables.** Donde el usuario puede editar su propia fila, un trigger rechaza el cambio de las columnas que no le corresponden: en `perfiles`, `rol` y `mfa_habilitado`; en `consultor_perfiles`, `estado_perfil`, `motivo_rechazo`, `es_equipo_interno`, `revisado_por`/`revisado_at`, `rating_promedio` y `total_encargos_completados`; en `proyectos` y `postulaciones`, el propietario; en `documentos_generados`, todo salvo `titulo` (solo dueño), `contenido` y `pendientes`. El `service_role` no queda sujeto a estos triggers.
+3. **Administrador = rol + MFA verificado.** Toda política que concede algo al administrador exige además `aal2` en el JWT de la sesión (RNF-28, RN-24). Un administrador sin segundo factor verificado se trata como un usuario sin privilegios.
+4. **Contacto del consultor por columna.** RLS filtra filas, no columnas. `sitio_web` y `cv_path` quedan sin permiso de lectura directa para `anon` y `authenticated`, y se leen con la función `public.contacto_consultor(consultor_id)`, que los devuelve solo al propio consultor, al administrador o a la empresa con solicitud activa con él (RF-80). `consultor_redes` sigue la misma condición con RLS por fila.
+5. **Solicitud activa** (RF-80) = existe un encargo de la pareja (empresa de la sesión, consultor) en estado `pendiente` o `en_curso`.
+6. **Acceso derivado del consultor a documentos** (RN-27): la política no se fía de `compartido_con_consultor_id` sola; exige además un encargo `en_curso` de ese consultor sobre el proyecto del documento, evaluado en cada consulta.
 
 ---
 

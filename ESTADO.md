@@ -36,7 +36,7 @@ Nada. Sesión cerrada limpiamente.
 Por orden, porque cada uno desbloquea al siguiente:
 
 1. ~~Columnas de propietario (RN-30) sobre mocks~~ — hecho en la sesión 002 (estado `prototipo`).
-2. **← Empezar aquí.** **Proyecto Supabase y migraciones** de las 24 tablas, cada una con su política RLS en el mismo commit (RNF-25, RN-24). El esquema está en `docs/05-modelo-de-datos.md §9.1–9.10`.
+2. **← Empezar aquí.** **Proyecto Supabase y migraciones** de las 26 tablas, cada una con su política RLS en el mismo commit (RNF-25, RN-24). El esquema está en `docs/05-modelo-de-datos.md §9.1–9.10`.
 3. **Supabase Auth con los tres roles**, reemplazando `lib/session.ts` y el `ModoDemo`.
 4. **`requireRole()` en toda ruta y endpoint** (RNF-30) — corrige de paso la condición invertida de `components/GuardaMFA.tsx:26`.
 

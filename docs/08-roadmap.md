@@ -21,7 +21,7 @@ Product Owner (fundador/socio) · Scrum Master (líder técnico) · 2 desarrolla
 
 | Sprint | Semanas | Contenido | Hito |
 |---|---|---|---|
-| 0 | 1–2 | Setup Vercel + Supabase, esquema completo (24 tablas), RLS, auth con 3 roles, CI/CD | H0: entorno y modelo desplegados |
+| 0 | 1–2 | Setup Vercel + Supabase, esquema completo (26 tablas), RLS, auth con 3 roles, CI/CD | H0: entorno y modelo desplegados |
 | 1 | 3–4 | Panel admin de convocatorias: fuentes, carga, categorías, documentos, requisitos, publicación validada | H1: 20 convocatorias reales publicadas |
 | 2 | 5–6 | Catálogo público: búsqueda, filtros, chips sugeridos, ficha de detalle, indicadores de la landing | H2: catálogo navegable con prueba social |
 | 3 | 7–8 | Proyectos enriquecidos con completitud + sugerencias con % de compatibilidad | H3: los dos caminos de búsqueda operando |

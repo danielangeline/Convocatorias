@@ -10,7 +10,7 @@
 >
 > **Pendiente de incorporar:** la **plantilla de instrucción (prompt) propia** con la que se genera el documento. El diseño la trata como configuración administrable y versionada (RF-63, tabla `plantillas_generacion`), de modo que se cargue y se ajuste sin desplegar código.
 >
-> **Adenda v5 (auditoría de seguridad + marketplace de consultores):** cobertura de RLS completa en las 24 tablas, MFA obligatorio para administradores, límite de tasa, saneamiento del TDR contra inyección de prompt, contexto de proyecto/convocatoria adjunto automáticamente al solicitar un consultor con tipo de ayuda explícito ("convocatoria específica" vs. "buscar convocatoria"), redes/sitio web del consultor condicionados a solicitud activa, y correo de contacto revelado solo al aceptar el encargo. Ver `CU-38..40`, `RF-64..70`, `RNF-25..28`, `RN-23..26`.
+> **Adenda v5 (auditoría de seguridad + marketplace de consultores):** cobertura de RLS completa en las 26 tablas, MFA obligatorio para administradores, límite de tasa, saneamiento del TDR contra inyección de prompt, contexto de proyecto/convocatoria adjunto automáticamente al solicitar un consultor con tipo de ayuda explícito ("convocatoria específica" vs. "buscar convocatoria"), redes/sitio web del consultor condicionados a solicitud activa, y correo de contacto revelado solo al aceptar el encargo. Ver `CU-38..40`, `RF-64..70`, `RNF-25..28`, `RN-23..26`.
 
 ---
 
@@ -591,7 +591,7 @@ Requerimientos derivados de la auditoría de implementación. Traducen a comport
 | RF-77 | Validar el cupo de la **empresa dueña** del documento antes de aplicar cualquier ajuste con IA solicitado por un consultor autorizado; sin cupo disponible se rechaza sin consumir crédito y sin modificar el documento, con un mensaje dirigido al consultor que le indique que debe avisar a la empresa (RN-28, RNF-20) | CU-34 | Must |
 | RF-78 | Verificar **en el servidor** que la convocatoria esté `publicada` y vigente antes de generar un documento o crear una postulación sobre ella; la restricción no puede depender de deshabilitar el botón en la interfaz, del mismo modo que RF-72 protege la exportación (RN-03, RNF-20) | CU-11, 33 | Must |
 | RF-79 | Registrar cada **acceso de lectura** de un consultor a un documento autorizado, no solo las ediciones, de modo que tras revocar la autorización pueda reconstruirse qué consultó mientras estuvo activa (RNF-11) | CU-34 | Should |
-| RF-80 | Revelar sitio web, redes sociales y hoja de vida de un consultor únicamente cuando exista una solicitud activa **entre ese consultor y la empresa autenticada**; la existencia de solicitudes de otras empresas no habilita la visibilidad (RN-12, RNF-16) | CU-21 | Must |
+| RF-80 | Revelar sitio web, redes sociales y hoja de vida de un consultor únicamente cuando exista una solicitud activa **entre ese consultor y la empresa autenticada**; la existencia de solicitudes de otras empresas no habilita la visibilidad. **Una solicitud es activa mientras su encargo está `pendiente` o `en_curso`**; al completarse, calificarse, rechazarse o cancelarse, los datos vuelven a ocultarse (RN-12, RNF-16) *(precisado en v6, sesión 003)* | CU-21 | Must |
 
 ### 4.13 Usabilidad de los flujos *(nuevo v6)*
 
@@ -616,7 +616,7 @@ Requerimientos derivados de la auditoría de interfaz. Cada uno corrige un punto
 | RNF-01 | Autenticación y acceso | Contraseñas con hash seguro; funciones administrativas inaccesibles para otros roles incluso vía API | Empresa/consultor a endpoints admin → 403 |
 | RNF-02 | Cifrado | HTTPS/TLS en tránsito; archivos cifrados en reposo | Escaneo TLS y de buckets |
 | RNF-03 | Aislamiento de datos | Cada empresa ve solo sus proyectos, postulaciones, encargos **y documentos generados**; cada consultor solo sus encargos. Perfiles aprobados visibles salvo la hoja de vida. **Ningún endpoint de listado devuelve registros de otro propietario, ni siquiera parcialmente (RN-30)** *(criterio precisado en v6)* | Prueba cruzada entre 2 empresas y 2 consultores, **ejecutada listado por listado** (`/proyectos`, `/postulaciones`, `/documentos`, `/encargos`): cada cuenta ve exclusivamente lo propio |
-| RNF-25 | **Cobertura de RLS** | Row Level Security habilitado y con política explícita en las 24 tablas sin excepción; ninguna tabla nueva se despliega sin su política escrita y probada *(nuevo v5)* | Revisión de esquema: cada tabla tiene ≥1 política activa; lectura cruzada por tabla entre 2 cuentas → denegada |
+| RNF-25 | **Cobertura de RLS** | Row Level Security habilitado y con política explícita en las 26 tablas sin excepción; ninguna tabla nueva se despliega sin su política escrita y probada *(nuevo v5)* | Revisión de esquema: cada tabla tiene ≥1 política activa; lectura cruzada por tabla entre 2 cuentas → denegada |
 | RNF-26 | **Gobierno de credenciales elevadas** | La `service_role key` de Supabase solo se referencia en código de servidor (API routes, jobs de `pg_cron`); nunca en el bundle del cliente ni en variables `NEXT_PUBLIC_*` *(nuevo v5)* | Búsqueda de la key en el bundle compilado del cliente → 0 resultados |
 | RNF-27 | **Límite de tasa** | Los endpoints de la capa de aplicación —en especial la generación con IA— aplican límite de tasa por usuario e IP, independiente del cupo de créditos. **Si el almacén que lo sostiene no responde, rige RNF-33: se rechaza, no se permite** *(ampliado en v6)* | Ráfaga de requests por encima del límite → 429 antes de agotar el cupo real |
 | RNF-28 | **Autenticación reforzada de administradores** | Toda cuenta con rol administrador exige verificación en dos pasos (MFA/TOTP) para iniciar sesión; no se completa el login admin sin un segundo factor activo *(nuevo v5)* | Login admin sin MFA configurado → flujo obligatorio de activación antes de continuar |
@@ -781,7 +781,7 @@ flowchart TB
         CL["Claude API · redacción del documento base"]
     end
     subgraph DATOS["CAPA DE DATOS — Supabase"]
-        DB["PostgreSQL + RLS · 24 tablas"]
+        DB["PostgreSQL + RLS · 26 tablas"]
         ST["Storage · 3 buckets"]
         CR["pg_cron · 3 jobs"]
     end
@@ -838,7 +838,7 @@ Cada ruta declara los roles que admite (RNF-30). El rol se verifica en el servid
 
 ### 8.4 Capa de datos
 
-24 tablas con RLS **habilitado y con política explícita en todas, sin excepción** (RNF-25 — ver `docs/05-modelo-de-datos.md` §9.10 para las tablas base y §9.5 para las del módulo de IA) · Storage con 3 buckets (`documentos-convocatorias`, `fotos-consultores`, `hojas-de-vida` privado, URLs firmadas de máximo 15 min — RNF-16) · **pg_cron con 3 jobs diarios**: cierre de convocatorias, vencimiento de suscripciones con gracia y **reinicio mensual de créditos** · triggers para el rating del consultor.
+26 tablas con RLS **habilitado y con política explícita en todas, sin excepción** (RNF-25 — ver `docs/05-modelo-de-datos.md` §9.10 para las tablas base y §9.5 para las del módulo de IA) · Storage con 3 buckets (`documentos-convocatorias`, `fotos-consultores`, `hojas-de-vida` privado, URLs firmadas de máximo 15 min — RNF-16) · **pg_cron con 3 jobs diarios**: cierre de convocatorias, vencimiento de suscripciones con gracia y **reinicio mensual de créditos** · triggers para el rating del consultor.
 
 La `service_role key` de Supabase —que puede saltarse RLS— se usa **únicamente** dentro de las API routes de servidor y los jobs de `pg_cron`; nunca se referencia en código de cliente ni en variables `NEXT_PUBLIC_*` (RNF-26). El límite de tasa (RNF-27) se implementa en un almacén rápido fuera de Postgres (p. ej. Upstash Redis o Vercel Edge Config); solo el bloqueo confirmado se persiste en `eventos_seguridad` para auditoría. **Si ese almacén no responde, la operación protegida se rechaza en lugar de permitirse (fail-closed, RNF-33)**: un control de seguridad que depende de un servicio externo no puede volverse opcional cuando el servicio cae.
 
@@ -848,7 +848,7 @@ Toda tabla con datos de usuario lleva su columna de propietario y ningún listad
 
 ## 9. Modelo de datos
 
-**24 tablas**: 21 de la v3 + 3 del módulo de IA, más columnas nuevas en proyectos, planes y suscripciones. La extensión de seguridad v5 (§9.9, §9.10) agrega la tabla `eventos_seguridad`, una columna en `perfiles` y documenta la política RLS que faltaba para las 21 tablas base.
+**26 tablas**: 21 de la v3 + 3 del módulo de IA, más columnas nuevas en proyectos, planes y suscripciones. La extensión de seguridad v5 (§9.9, §9.10) agrega la tabla `eventos_seguridad`, una columna en `perfiles` y documenta la política RLS que faltaba para las 21 tablas base.
 
 ### 9.1 Diagrama entidad–relación (módulo de IA y su conexión)
 
@@ -949,7 +949,7 @@ erDiagram
 
 | Tabla | Política |
 |---|---|
-| documentos_generados | Todas las operaciones solo si `usuario_id = auth.uid()` (la empresa dueña, incluida la exportación). **El consultor con `compartido_con_consultor_id = auth.uid()` puede leer y actualizar `contenido`/`pendientes`/`ajustes_usados`, nunca `estado = exportado` ni disparar la exportación** (RN-22, RN-27, RF-71/72, *ampliado en v5*); admin puede leer para soporte |
+| documentos_generados | La empresa dueña (`usuario_id = auth.uid()`) lee y edita `titulo`, `contenido` y `pendientes`. **El consultor con `compartido_con_consultor_id = auth.uid()` y encargo `en_curso` sobre ese proyecto puede leer y editar `contenido`/`pendientes`, nunca exportar** (RN-22, RN-27, RF-71/72, *ampliado en v5*). **Crear el documento, `ajustes_usados`, `estado`, `version`, `plantilla_id` y la autorización del consultor los escribe solo el servidor** al generar, ajustar, exportar, compartir o revocar: si el cliente pudiera escribir el contador de ajustes, podría ponerlo en 0 y saltarse RN-17 *(precisado en v6, sesión 003)*; admin puede leer para soporte |
 | consumos_ia | Solo lectura del propio usuario; escritura desde el servidor; admin lee todo |
 
 ### 9.6 Cálculo del porcentaje de compatibilidad (RF-16)
@@ -1092,6 +1092,17 @@ Hasta v4 solo estaba documentada la política de las tablas nuevas del módulo d
 | planes | Lectura pública; escritura exclusiva del administrador |
 | suscripciones, pagos_suscripcion | Cada suscriptor lee solo las propias; el administrador lee y escribe todas (RNF-20) |
 
+### 9.11 Cómo se aplican las políticas *(nuevo v6, sesión 003)*
+
+Decisiones de mecanismo tomadas al escribir las migraciones (`supabase/migrations/`). No cambian qué puede ver cada rol; fijan cómo se garantiza.
+
+1. **Mínimo privilegio en escritura.** Lo que §9.5 y §9.10 no conceden expresamente al usuario lo escribe solo el servidor (API routes con `service_role`, RNF-26, o jobs de `pg_cron`): encargos y sus avances, calificaciones fuera de la inserción única, consumos de IA, eventos de seguridad, suscripciones y pagos. Esas tablas tienen política de lectura, sin política de escritura para `authenticated`.
+2. **Columnas protegidas en filas editables.** Donde el usuario puede editar su propia fila, un trigger rechaza el cambio de las columnas que no le corresponden: en `perfiles`, `rol` y `mfa_habilitado`; en `consultor_perfiles`, `estado_perfil`, `motivo_rechazo`, `es_equipo_interno`, `revisado_por`/`revisado_at`, `rating_promedio` y `total_encargos_completados`; en `proyectos` y `postulaciones`, el propietario; en `documentos_generados`, todo salvo `titulo` (solo dueño), `contenido` y `pendientes`. El `service_role` no queda sujeto a estos triggers.
+3. **Administrador = rol + MFA verificado.** Toda política que concede algo al administrador exige además `aal2` en el JWT de la sesión (RNF-28, RN-24). Un administrador sin segundo factor verificado se trata como un usuario sin privilegios.
+4. **Contacto del consultor por columna.** RLS filtra filas, no columnas. `sitio_web` y `cv_path` quedan sin permiso de lectura directa para `anon` y `authenticated`, y se leen con la función `public.contacto_consultor(consultor_id)`, que los devuelve solo al propio consultor, al administrador o a la empresa con solicitud activa con él (RF-80). `consultor_redes` sigue la misma condición con RLS por fila.
+5. **Solicitud activa** (RF-80) = existe un encargo de la pareja (empresa de la sesión, consultor) en estado `pendiente` o `en_curso`.
+6. **Acceso derivado del consultor a documentos** (RN-27): la política no se fía de `compartido_con_consultor_id` sola; exige además un encargo `en_curso` de ese consultor sobre el proyecto del documento, evaluado en cada consulta.
+
 ---
 
 ## 10. Modelo de negocio: planes, precios y créditos
@@ -1139,7 +1150,7 @@ Product Owner (fundador/socio) · Scrum Master (líder técnico) · 2 desarrolla
 
 | Sprint | Semanas | Contenido | Hito |
 |---|---|---|---|
-| 0 | 1–2 | Setup Vercel + Supabase, esquema completo (24 tablas), RLS, auth con 3 roles, CI/CD | H0: entorno y modelo desplegados |
+| 0 | 1–2 | Setup Vercel + Supabase, esquema completo (26 tablas), RLS, auth con 3 roles, CI/CD | H0: entorno y modelo desplegados |
 | 1 | 3–4 | Panel admin de convocatorias: fuentes, carga, categorías, documentos, requisitos, publicación validada | H1: 20 convocatorias reales publicadas |
 | 2 | 5–6 | Catálogo público: búsqueda, filtros, chips sugeridos, ficha de detalle, indicadores de la landing | H2: catálogo navegable con prueba social |
 | 3 | 7–8 | Proyectos enriquecidos con completitud + sugerencias con % de compatibilidad | H3: los dos caminos de búsqueda operando |
