@@ -30,8 +30,8 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 
 | RF | Estado | Nota |
 |---|---|---|
-| RF-01 Registro con rol y trial | prototipo | `ModoDemo` sustituye al registro real |
-| RF-02 Restringir funciones administrativas | pendiente | Hoy `/admin` es alcanzable desde cualquier rol |
+| RF-01 Registro con rol y trial | servidor | Sesión 004: `/registro` con Supabase Auth y confirmación de correo; el trigger `al_registrar_cuenta` crea perfil y trial o perfil de consultor. Probado vía la API de Auth; falta el recorrido completo por el formulario con un correo real |
+| RF-02 Restringir funciones administrativas | pendiente | Sesión 004: la autenticación es real y todo portal exige sesión en el servidor, y RLS niega privilegios al no administrador. Pero `/admin` aún se abre con otro rol autenticado: entra con `requireRole()` (RNF-30) |
 | RF-03 Recuperación de contraseña | pendiente | — |
 
 ### 4.2 Fuentes y convocatorias (administrador)
@@ -119,7 +119,7 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RF | Estado | Nota |
 |---|---|---|
 | RF-36 Planes administrables por rol | prototipo | |
-| RF-37 Trial de empresa | prototipo | Dato de ejemplo incoherente: `consultor-5` tiene trial |
+| RF-37 Trial de empresa | servidor | Sesión 004: **7 días** (antes 14) con 3 créditos, desde el plan `es_trial` y creado por el trigger de registro; único por cuenta por índice. El consumo de los créditos sigue en `lib/store.ts` |
 | RF-38 Activación manual | prototipo | |
 | RF-39 Job de vencimientos | servidor | Job `vencer-suscripciones` programado en `pg_cron` (sesión 003). Falta ver una ejecución real |
 | RF-40 Verificación en acciones restringidas | prototipo | |
@@ -151,8 +151,8 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 
 | RF | Estado | Nota |
 |---|---|---|
-| RF-64 MFA para administradores | prototipo | La guarda tiene la condición invertida |
-| RF-65 Registrar eventos de seguridad | prototipo | |
+| RF-64 MFA para administradores | servidor | Sesión 004: `/mfa` con TOTP real (enrolar o verificar); el layout de `/admin` redirige toda sesión de administrador sin `aal2`, y RLS no da privilegios sin `aal2`. `GuardaMFA` eliminado |
+| RF-65 Registrar eventos de seguridad | prototipo | Sesión 004: `login_fallido`, `mfa_activado` y `mfa_fallido` ya se escriben en `eventos_seguridad` con `service_role`. Faltan `acceso_denegado` (RNF-30) y `limite_tasa` (RNF-27), y el panel sigue leyendo el mock |
 | RF-66 Límite de tasa | pendiente | |
 | RF-67 Liberar bloqueo | prototipo | |
 
@@ -207,7 +207,7 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RNF-25 Cobertura de RLS | servidor | 1 | 26 tablas, todas con RLS y ≥1 política (95 en total), comprobado por consulta al catálogo (sesión 003). La lectura cruzada con 2 cuentas cubre las tablas de usuario, no aún las 26 una por una |
 | RNF-26 Credenciales elevadas | pendiente | 1 | |
 | RNF-27 Límite de tasa | pendiente | 5 | |
-| RNF-28 MFA de administradores | prototipo | 1 | Guarda con condición invertida. En RLS, el administrador sin `aal2` no tiene ningún privilegio (probado, sesión 003). Falta el enrolamiento en Auth |
+| RNF-28 MFA de administradores | servidor | 1 | Sesión 004: enrolamiento TOTP en Supabase Auth y redirección a `/mfa` en el servidor. Probado por código: admin en `aal1` sin privilegios; tras verificar el TOTP, `aal2` y lectura de todo. Falta probar la pantalla en el navegador |
 | RNF-29 Validación del enlace | prototipo | 2 | Solo en cliente |
 | RNF-30 Autorización por rol | pendiente | 1 | **Causa raíz de la auditoría** |
 | RNF-31 Inyección en el TDR | pendiente | 4 | |
@@ -229,6 +229,8 @@ Las 30 reglas están documentadas; estas son las que todavía no se hacen cumpli
 | RN-17 Un crédito por generación exitosa | prototipo | 4 — RLS impide crear documentos y tocar el contador de ajustes o los créditos desde el cliente (sesión 003) |
 | RN-18 Reinicio mensual, sin acumular | pendiente | 4 |
 | RN-23 Saneamiento del TDR | pendiente | 4 |
+| RN-06 Rol admin solo manual | servidor | 1 — el trigger de registro convierte cualquier rol distinto de `consultor` en `empresa`, y el perfil no deja cambiar el rol desde el cliente (sesión 004) |
+| RN-11 Un trial por cuenta de empresa | servidor | 1 — índice único parcial y trigger de registro; el consultor nace sin suscripción (sesión 004) |
 | RN-24 RLS desde el Sprint 0 | servidor | 1 — cada tabla nació con su política en la misma migración (sesión 003) |
 | RN-26 Contacto solo en `en_curso` | prototipo | 5 |
 | RN-27 Autorización derivada | pendiente | 5 — política derivada (autorización ∧ encargo `en_curso`) lista y probada en RLS (sesión 003); faltan los endpoints de compartir y revocar |
