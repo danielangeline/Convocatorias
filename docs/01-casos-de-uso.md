@@ -140,7 +140,7 @@
 
 | Campo | Contenido |
 |---|---|
-| **Flujo principal** | 1. Registro con correo y contraseña eligiendo rol **empresa** o **consultor**. 2. Empresa → acceso inmediato + trial de 14 días con 3 créditos de IA. Consultor → estado "perfil incompleto". 3. Login y recuperación de contraseña. El rol administrador se asigna manualmente |
+| **Flujo principal** | 1. Registro con correo y contraseña eligiendo rol **empresa** o **consultor**. 2. Empresa → acceso inmediato + trial de **7 días** *(mod. v6)* con 3 créditos de IA. Consultor → estado "perfil incompleto". 3. Login y recuperación de contraseña. El rol administrador se asigna manualmente |
 
 ### Módulo E — Perfil del consultor (Consultor)
 

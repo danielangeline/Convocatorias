@@ -33,7 +33,7 @@ Nada. Sesión cerrada limpiamente.
 
 1. ~~Columnas de propietario (RN-30) sobre mocks~~ — sesión 002.
 2. ~~Proyecto Supabase y migraciones con RLS~~ — sesión 003.
-3. **← Empezar aquí.** **Supabase Auth con los tres roles**, reemplazando `lib/session.ts` y el `ModoDemo`. Incluye el trigger que crea `perfiles` al registrarse (el rol nace como `empresa` o `consultor`, nunca `administrador` — RN-06), el trial de 14 días con 3 créditos (RF-37) y el enrolamiento MFA del admin (RNF-28). Las migraciones se escriben en `supabase/migrations/` y se aplican con `npx supabase db push --linked`; tras cada cambio de esquema, correr `npx supabase db query --linked -f supabase/tests/rls_aislamiento.sql`.
+3. **← Empezar aquí.** **Supabase Auth con los tres roles**, reemplazando `lib/session.ts` y el `ModoDemo`. Incluye el trigger que crea `perfiles` al registrarse (el rol nace como `empresa` o `consultor`, nunca `administrador` — RN-06), el trial de **7 días** con 3 créditos (RF-37, reducido desde 14 en la sesión 004) y el enrolamiento MFA del admin (RNF-28). Las migraciones se escriben en `supabase/migrations/` y se aplican con `npx supabase db push --linked`; tras cada cambio de esquema, correr `npx supabase db query --linked -f supabase/tests/rls_aislamiento.sql`.
 4. **`requireRole()` en toda ruta y endpoint** (RNF-30) — corrige de paso la condición invertida de `components/GuardaMFA.tsx:26`.
 
 **Hito 1 (día 6):** un consultor recibe 403 en `/admin` y en `/convocatorias/[id]/generar`; dos empresas no ven nada la una de la otra en los cuatro listados. Probado, no supuesto. *La mitad RLS de este hito ya está probada; falta la de rutas y endpoints.*

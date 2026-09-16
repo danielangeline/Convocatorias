@@ -13,7 +13,7 @@
 
 | ID | Requerimiento | CU | Prioridad |
 |---|---|---|---|
-| RF-01 | Registro con elección de rol empresa o consultor; el administrador se asigna manualmente. El registro de empresa inicia el trial de 14 días con 3 créditos | CU-14 | Must |
+| RF-01 | Registro con elección de rol empresa o consultor; el administrador se asigna manualmente. El registro de empresa inicia el trial de **7 días** con 3 créditos *(mod. v6)* | CU-14 | Must |
 | RF-02 | Autenticar y restringir las funciones administrativas al rol administrador | CU-14 | Must |
 | RF-03 | Recuperación de contraseña por correo | CU-14 | Should |
 
@@ -102,7 +102,7 @@
 | ID | Requerimiento | CU | Prioridad |
 |---|---|---|---|
 | RF-36 | Planes administrables por rol con precio mensual, anual **y créditos de IA mensuales**, sin despliegue *(mod. v4)* | CU-31 | Must |
-| RF-37 | Trial automático de 14 días con 3 créditos al registrarse una empresa, único por cuenta; consultores sin trial | CU-28 | Must |
+| RF-37 | Trial automático de **7 días** con 3 créditos al registrarse una empresa, único por cuenta; consultores sin trial *(mod. v6)* | CU-28 | Must |
 | RF-38 | Activación, renovación y suspensión manual por el administrador, con el modelo preparado para pasarela sin cambios de esquema | CU-28, 31 | Must |
 | RF-39 | Job diario de vencimientos con periodo de gracia de 5 días | CU-29, 32 | Must |
 | RF-40 | Verificación de suscripción en cada acción restringida, incluida la generación con IA | CU-32 | Must |

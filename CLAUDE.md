@@ -48,7 +48,7 @@ Dos reglas que se rompen con facilidad:
 
 | Rol | Qué hace | Acceso |
 |---|---|---|
-| **Empresa** | Busca convocatorias, registra proyectos, genera documentos con IA, postula, contrata consultores | Registro libre + trial 14 días con 3 créditos |
+| **Empresa** | Busca convocatorias, registra proyectos, genera documentos con IA, postula, contrata consultores | Registro libre + trial 7 días con 3 créditos |
 | **Consultor** | Perfil con portafolio/CV/redes, recibe y ejecuta encargos, recibe calificaciones. **No genera documentos ni tiene cupo propio de IA** (RN-28) | Requiere **aprobación de un administrador** antes de operar |
 | **Administrador** | Fuentes, convocatorias, requisitos, aprobación de consultores, planes y créditos, plantilla del prompt, seguridad y auditoría | Asignación manual del rol + **MFA obligatorio** (RNF-28) |
 

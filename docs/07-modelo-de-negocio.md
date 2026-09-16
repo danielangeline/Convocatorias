@@ -22,7 +22,7 @@
 
 | Plan | Rol | Mensual | Anual | Créditos IA/mes | Incluye |
 |---|---|---|---|---|---|
-| **Trial** | Empresa | Gratis 14 días | — | 3 | Todo el producto |
+| **Trial** | Empresa | Gratis 7 días *(mod. v6)* | — | 3 | Todo el producto |
 | **Empresa Esencial** | Empresa | COP $89.000 | COP $890.000 (2 meses gratis) | 10 | Catálogo, sugerencias, postulaciones, encargos |
 | **Empresa Pro** | Empresa | COP $189.000 | COP $1.890.000 | 30 | Lo anterior + soporte prioritario y más usuarios |
 | **Consultor** | Consultor | COP $69.000 | COP $690.000 | — | Perfil en directorio, recepción de encargos, acceso a los documentos que la empresa le autorice (RF-71) |

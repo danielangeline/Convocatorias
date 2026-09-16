@@ -94,7 +94,7 @@
 | RN-08 | Un consultor aparece en el directorio solo si: perfil aprobado + no suspendido + suscripción activa |
 | RN-09 | Una calificación por encargo completado, emitida solo por la empresa de ese encargo, inmutable |
 | RN-10 | Consultor con suscripción vencida termina sus encargos en curso pero no recibe nuevos |
-| RN-11 | Trial de 14 días con 3 créditos, único por cuenta de empresa; el consultor paga desde su aprobación; los administradores no pagan |
+| RN-11 | Trial de **7 días** *(mod. v6)* con 3 créditos, único por cuenta de empresa; el consultor paga desde su aprobación; los administradores no pagan |
 | RN-12 | La hoja de vida, **el sitio web y las redes sociales** solo son visibles para administradores y para **la empresa que tiene la solicitud activa con ese consultor** — la visibilidad es por pareja empresa-consultor, nunca global: que otra empresa tenga una solicitud abierta no habilita a las demás. Sin solicitud propia, la empresa solo ve descripción, especialidades, portafolio (sin links de contacto) y rating *(ampliado en v5; precisado en v6)* |
 | RN-13 | Todo rechazo de perfil lleva motivo obligatorio; reenvíos sin límite |
 | RN-14 | El pago del servicio de consultoría se acuerda entre empresa y consultor fuera de la plataforma; los ingresos vienen de las suscripciones |

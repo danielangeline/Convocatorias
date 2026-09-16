@@ -63,7 +63,7 @@ insert into public.perfiles (id, nombre, rol) values
   ('00000000-0000-0000-0000-0000000000ad', 'Admin', 'administrador');
 
 insert into public.suscripciones (usuario_id, modalidad, estado, fecha_inicio, fecha_vencimiento) values
-  ('00000000-0000-0000-0000-0000000000e1', 'trial', 'trial', current_date, current_date + 14),
+  ('00000000-0000-0000-0000-0000000000e1', 'trial', 'trial', current_date, current_date + 7),
   ('00000000-0000-0000-0000-0000000000e2', 'trial', 'vencida', current_date - 40, current_date - 26);
 
 insert into public.convocatorias (id, nombre, entidad_convocante, fecha_cierre, estado, url_postulacion) values
