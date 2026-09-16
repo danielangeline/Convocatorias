@@ -44,7 +44,7 @@ Por orden, porque cada uno desbloquea al siguiente:
 
 ## Infraestructura que ya existe
 
-- **Repositorio oficial (desde el 16-sep): `https://github.com/danielangeline/Convocatorias`**, remoto `origin`. El anterior, `DanielBohorquezP/Convocatorias`, queda como remoto `anterior` y ya no recibe pushes. **Pendiente:** la cuenta autenticada en la máquina (DanielBohorquezP) no tiene permiso de escritura en el nuevo, y Vercel sigue conectado al anterior.
+- **Repositorio oficial (desde el 16-sep): `https://github.com/danielangeline/Convocatorias`**, remoto `origin`. El anterior, `DanielBohorquezP/Convocatorias`, queda como remoto `anterior` y ya no recibe pushes. La cuenta de la máquina (DanielBohorquezP) es colaboradora y ya subió `main`, `auditoria-v6` y `sprint-1`. **Pendiente:** Vercel sigue conectado al repositorio anterior, así que producción no se actualiza hasta reconectarlo.
 - **Vercel está conectado al repositorio.** Cada push a `main` despliega a producción y cada push a otra rama crea una vista previa. El entregable "CI/CD en Vercel" del Sprint 1 **ya está cubierto**; solo faltará cargar ahí las variables de entorno de Supabase.
 - **Producción:** `https://convocatorias-gamma.vercel.app`. Es la única URL que siempre sirve lo último.
 - Las URLs con código (`convocatorias-xxxxxxxx-danielbohorquezps-projects.vercel.app`) apuntan a un despliegue fijo y **están protegidas con el inicio de sesión de Vercel**: no sirven para verificar desde fuera.
