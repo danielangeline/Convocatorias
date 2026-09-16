@@ -13,7 +13,7 @@
 
 ## Dónde vamos
 
-La especificación está cerrada en **v6** y el prototipo implementa el modelo completo en la interfaz, con datos simulados. **No hay backend.** El Sprint 1 arrancó: el paso 1 del día 1 (propiedad del dato, RN-30) está hecho sobre mocks; el paso 2 espera las claves de Supabase.
+La especificación está cerrada en **v6** y el prototipo implementa el modelo completo en la interfaz, con datos simulados. **No hay backend.** El Sprint 1 arrancó: el paso 1 del día 1 (propiedad del dato, RN-30) está hecho sobre mocks; el paso 2 ya está desbloqueado: Supabase y `.env.local` existen.
 
 Dos auditorías cerraron esta etapa —una de implementación y otra de interfaz— y produjeron 14 requerimientos nuevos (RF-76..83, RNF-30..34, RN-30). Los de usabilidad ya están implementados; los de seguridad están escritos y **pendientes de construir**.
 
@@ -36,7 +36,7 @@ Nada. Sesión cerrada limpiamente.
 Por orden, porque cada uno desbloquea al siguiente:
 
 1. ~~Columnas de propietario (RN-30) sobre mocks~~ — hecho en la sesión 002 (estado `prototipo`).
-2. **Proyecto Supabase y migraciones** de las 24 tablas, cada una con su política RLS en el mismo commit (RNF-25, RN-24). El esquema está en `docs/05-modelo-de-datos.md §9.1–9.10`.
+2. **← Empezar aquí.** **Proyecto Supabase y migraciones** de las 24 tablas, cada una con su política RLS en el mismo commit (RNF-25, RN-24). El esquema está en `docs/05-modelo-de-datos.md §9.1–9.10`.
 3. **Supabase Auth con los tres roles**, reemplazando `lib/session.ts` y el `ModoDemo`.
 4. **`requireRole()` en toda ruta y endpoint** (RNF-30) — corrige de paso la condición invertida de `components/GuardaMFA.tsx:26`.
 
@@ -52,16 +52,13 @@ Por orden, porque cada uno desbloquea al siguiente:
 
 ## Bloqueos
 
-**Para el paso 2 — es lo que bloquea ahora mismo.** Al abrir la sesión 002 seguía sin existir `.env.local`. El agente no puede crear cuentas ni escribir claves, así que esto lo hace el Product Owner:
+**Ninguno para el paso 2.** El proyecto de Supabase existe (`lqrqhehwqyphtdzplxhv`) y `.env.local` tiene las tres variables; las dos claves respondieron 200 contra la API (sesión 002). El archivo está excluido de git por `.env*`.
 
-1. Crear el proyecto en [supabase.com](https://supabase.com) (región recomendada: la más cercana a Colombia, `us-east-1`).
-2. Crear en la raíz del repositorio un archivo `.env.local` con la URL del proyecto y las dos claves:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY` — **nunca** con prefijo `NEXT_PUBLIC_`: esta clave se salta RLS y solo puede vivir en el servidor (RNF-26).
-3. Cargar las mismas tres variables en Vercel → *Settings* → *Environment Variables*.
+Pendientes del Product Owner que no bloquean el trabajo local:
 
-Las claves no se pegan en el chat. El agente solo necesita que existan; el código las lee del entorno.
+1. **Rotar `SUPABASE_SERVICE_ROLE_KEY`**: se pegó en el chat de la sesión 002. Rotarla en Supabase → *Project Settings → API Keys* y reemplazarla en `.env.local` y en Vercel.
+2. **Terminar de cargar las variables en Vercel**: las `NEXT_PUBLIC_` como *Config* en Production, Preview y Development; la de servicio como *Secret* en Production y Preview.
+3. **Reconectar Vercel** al repositorio `danielangeline/Convocatorias` (ver "Infraestructura").
 
 ## Decisiones abiertas
 
