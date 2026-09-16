@@ -1,5 +1,5 @@
 -- =============================================================================
--- Prueba cruzada de RLS (RNF-03, RNF-25, RNF-16, RN-17, RN-25, RN-27, RNF-28)
+-- Prueba cruzada de RLS y del registro (RF-01, RF-37, RN-06, RN-11, RNF-03, RNF-25, RNF-16, RN-17, RN-25, RN-27, RNF-28)
 --
 -- Corre dentro de una transacción que termina en ROLLBACK: no deja datos.
 --   npx supabase db query --local -f supabase/tests/rls_aislamiento.sql
@@ -48,23 +48,42 @@ grant execute on all functions in schema pg_temp to anon, authenticated;
 -- Datos (como postgres, sin RLS)
 -- ---------------------------------------------------------------------------
 
-insert into auth.users (id, email) values
-  ('00000000-0000-0000-0000-0000000000e1', 'e1@prueba.co'),
-  ('00000000-0000-0000-0000-0000000000e2', 'e2@prueba.co'),
-  ('00000000-0000-0000-0000-0000000000c1', 'c1@prueba.co'),
-  ('00000000-0000-0000-0000-0000000000c2', 'c2@prueba.co'),
-  ('00000000-0000-0000-0000-0000000000ad', 'ad@prueba.co');
+-- Las cuentas nacen por el trigger de registro (RF-01, RF-37, RN-06, RN-11).
+insert into auth.users (id, email, raw_user_meta_data) values
+  ('00000000-0000-0000-0000-0000000000e1', 'e1@prueba.co', '{"rol": "empresa", "nombre": "Empresa uno", "nombre_empresa": "Uno SAS"}'),
+  ('00000000-0000-0000-0000-0000000000e2', 'e2@prueba.co', '{"nombre": "Empresa dos"}'),
+  ('00000000-0000-0000-0000-0000000000c1', 'c1@prueba.co', '{"rol": "consultor", "nombre": "Consultora uno"}'),
+  ('00000000-0000-0000-0000-0000000000c2', 'c2@prueba.co', '{"rol": "consultor", "nombre": "Consultor dos"}'),
+  ('00000000-0000-0000-0000-0000000000ad', 'ad@prueba.co', '{"rol": "administrador", "nombre": "Admin"}');
 
-insert into public.perfiles (id, nombre, rol) values
-  ('00000000-0000-0000-0000-0000000000e1', 'Empresa uno', 'empresa'),
-  ('00000000-0000-0000-0000-0000000000e2', 'Empresa dos', 'empresa'),
-  ('00000000-0000-0000-0000-0000000000c1', 'Consultora uno', 'consultor'),
-  ('00000000-0000-0000-0000-0000000000c2', 'Consultor dos', 'consultor'),
-  ('00000000-0000-0000-0000-0000000000ad', 'Admin', 'administrador');
+select pg_temp.ok((select count(*) from public.planes where es_trial and activo and dias_trial = 7 and creditos_ia_mensuales = 3) = 1,
+  'Registro: existe un único plan trial activo de 7 días y 3 créditos (RF-37)');
+select pg_temp.ok((select rol from public.perfiles where id = '00000000-0000-0000-0000-0000000000e1') = 'empresa'
+  and (select nombre_empresa from public.perfiles where id = '00000000-0000-0000-0000-0000000000e1') = 'Uno SAS',
+  'Registro: la empresa nace con su perfil y nombre de empresa');
+select pg_temp.ok((select rol from public.perfiles where id = '00000000-0000-0000-0000-0000000000e2') = 'empresa',
+  'Registro: sin rol en los metadatos nace empresa');
+select pg_temp.ok((select rol from public.perfiles where id = '00000000-0000-0000-0000-0000000000ad') = 'empresa',
+  'Registro: pedir rol administrador produce empresa (RN-06)');
+select pg_temp.ok((select count(*) from public.suscripciones s join public.planes p on p.id = s.plan_id
+                   where s.usuario_id = '00000000-0000-0000-0000-0000000000e1' and s.modalidad = 'trial' and s.estado = 'trial'
+                     and p.es_trial and s.fecha_vencimiento = current_date + 7) = 1,
+  'Registro: la empresa recibe el trial de 7 días contra el plan trial (RF-37)');
+select pg_temp.ok((select count(*) from public.suscripciones where usuario_id = '00000000-0000-0000-0000-0000000000c1') = 0,
+  'Registro: el consultor no recibe trial (RN-11)');
+select pg_temp.ok((select estado_perfil from public.consultor_perfiles where id = '00000000-0000-0000-0000-0000000000c1') = 'incompleto',
+  'Registro: el consultor nace con perfil incompleto (CU-14)');
+select pg_temp.rechaza($$insert into public.suscripciones (usuario_id, plan_id, modalidad, estado, fecha_vencimiento)
+  select '00000000-0000-0000-0000-0000000000e1', id, 'trial', 'trial', current_date + 7 from public.planes where es_trial$$,
+  'Un segundo trial para la misma cuenta (RN-11)');
+select pg_temp.rechaza($$insert into public.planes (nombre, rol, precio_mensual, precio_anual, es_trial, dias_trial) values ('Otro trial', 'empresa', 0, 0, true, 30)$$,
+  'Un segundo plan trial');
 
-insert into public.suscripciones (usuario_id, modalidad, estado, fecha_inicio, fecha_vencimiento) values
-  ('00000000-0000-0000-0000-0000000000e1', 'trial', 'trial', current_date, current_date + 7),
-  ('00000000-0000-0000-0000-0000000000e2', 'trial', 'vencida', current_date - 40, current_date - 26);
+-- Ajustes de los datos de prueba (como postgres, que es lo que haría el servidor).
+update public.perfiles set rol = 'administrador' where id = '00000000-0000-0000-0000-0000000000ad';
+delete from public.suscripciones where usuario_id = '00000000-0000-0000-0000-0000000000ad';
+update public.suscripciones set estado = 'vencida', fecha_inicio = current_date - 40, fecha_vencimiento = current_date - 33
+where usuario_id = '00000000-0000-0000-0000-0000000000e2';
 
 insert into public.convocatorias (id, nombre, entidad_convocante, fecha_cierre, estado, url_postulacion) values
   ('00000000-0000-0000-0000-00000000c001', 'Vigente', 'MinCiencias', current_date + 30, 'publicada', 'https://minciencias.gov.co/x'),
@@ -75,9 +94,10 @@ insert into public.requisitos_convocatoria (convocatoria_id, descripcion, tipo, 
   ('00000000-0000-0000-0000-00000000c001', 'RUT', 'documento', 1),
   ('00000000-0000-0000-0000-00000000c001', 'Cámara de comercio', 'documento', 2);
 
-insert into public.consultor_perfiles (id, nombre_profesional, estado_perfil, sitio_web, cv_path) values
-  ('00000000-0000-0000-0000-0000000000c1', 'Consultora uno', 'aprobado', 'https://uno.co', 'cv/c1.pdf'),
-  ('00000000-0000-0000-0000-0000000000c2', 'Consultor dos', 'en_revision', 'https://dos.co', 'cv/c2.pdf');
+update public.consultor_perfiles set estado_perfil = 'aprobado', sitio_web = 'https://uno.co', cv_path = 'cv/c1.pdf'
+where id = '00000000-0000-0000-0000-0000000000c1';
+update public.consultor_perfiles set estado_perfil = 'en_revision', sitio_web = 'https://dos.co', cv_path = 'cv/c2.pdf'
+where id = '00000000-0000-0000-0000-0000000000c2';
 
 insert into public.consultor_redes (consultor_id, tipo, url) values
   ('00000000-0000-0000-0000-0000000000c1', 'linkedin', 'https://linkedin.com/in/uno');

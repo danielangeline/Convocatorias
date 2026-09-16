@@ -53,6 +53,15 @@ flowchart TB
 
 Cada ruta declara los roles que admite (RNF-30). El rol se verifica en el servidor mediante `requireRole(...)`; ocultar un enlace de navegación no constituye autorización.
 
+**Identidad** *(nuevo v6, sesión 004)* — Supabase Auth con correo y contraseña. Un `proxy.ts` refresca la sesión en cada petición; cada layout de portal vuelve a leer el usuario en el servidor y redirige a `/login` si no hay sesión. Registro, inicio de sesión y cierre son *Server Actions*; el login fallido se escribe en `eventos_seguridad` (RF-65).
+
+| Ruta | Pantalla | Rol | CU |
+|---|---|---|---|
+| `/registro` | Registro con elección de rol **empresa** o **consultor**; exige confirmar el correo antes de entrar | pública | CU-14 |
+| `/login` | Inicio de sesión; lleva al inicio del rol (`/convocatorias`, `/consultor/perfil` o `/admin`) | pública | CU-14 |
+| `/auth/confirmar` | Destino del enlace de confirmación de correo (intercambia el código por la sesión) | pública | CU-14 |
+| `/mfa` | Enrolamiento TOTP (código QR) o verificación del segundo factor; toda sesión de administrador sin `aal2` termina aquí | administrador | CU-38 |
+
 **Portal Empresa** (navbar: Convocatorias · Mis proyectos · Mis documentos · Mis postulaciones · Consultores · Mi suscripción). **Rol admitido: `empresa`** en todas las rutas del grupo, salvo `/` que es pública:
 
 | Ruta | Pantalla | Rol | CU |
@@ -87,7 +96,7 @@ Cada ruta declara los roles que admite (RNF-30). El rol se verifica en el servid
 | Encargos y Calificaciones | `POST /api/encargos` (incluye `tipoAyuda` + `convocatoriaId?` — adjunta contexto automáticamente, RF-68/69) · `.../responder` (revela `correoContacto` de la contraparte al aceptar, RF-70) · `.../avances` · `.../completar` · `.../calificar` · `POST /api/admin/encargos/[id]/asignar` (revela `correoContacto` al asignar) | RN-09, RN-10, RN-25, RN-26 |
 | Suscripciones, Créditos y Acceso | `GET /api/planes` · `GET /api/suscripcion` (incluye cupo) · `POST /api/admin/suscripciones/activar` · `POST /api/admin/suscripciones/[id]/creditos` · middlewares `requireSubscription()` y **`requireCredits()`** | RN-11, RN-16, RN-17, RN-18 |
 | **Generación Documental IA** | `POST /api/documentos/generar` (proyectoId + convocatoriaId — **verifica en el servidor que la convocatoria siga `publicada` y vigente antes de actuar, RF-78**) · `GET/PATCH /api/documentos/[id]` · `POST /api/documentos/[id]/ajustar` (**valida el cupo de la empresa dueña antes de aplicar, también cuando lo pide el consultor — RF-77; sin cupo, 402/403 sin modificar el documento**) · `POST /api/documentos/[id]/compartir` / `.../revocar` (autoriza o quita al consultor — solo el dueño, solo con encargo `en_curso`, RF-71). **El acceso se evalúa como (autorización ∧ encargo `en_curso`) en cada petición, no como permiso almacenado (RN-27), y se revoca en cascada al cerrarse el encargo, suspenderse el perfil o vencer la suscripción (RF-76)** · `GET /api/documentos/[id]/exportar` (devuelve .docx — **403 si quien llama no es el dueño**, RF-72) · `GET/POST /api/admin/plantillas` | RN-17, RN-19..22, 27, 28, RNF-23 |
-| **Seguridad y auditoría** *(nuevo v5)* | Enrolamiento y verificación de MFA vía Supabase Auth (`/auth/mfa/enroll`, `/auth/mfa/verify`) · `GET /api/admin/eventos-seguridad?filtros` · `POST /api/admin/eventos-seguridad/[id]/liberar` · middlewares `requireRole()` (toda ruta y endpoint — RNF-30), `requireMFA()` (toda ruta `/admin`) y `requireRateLimit()` (endpoints públicos y de generación con IA; **fail-closed si su almacén no responde — RNF-33**) | RNF-25..28, RN-23, RN-24 |
+| **Seguridad y auditoría** *(nuevo v5)* | Enrolamiento y verificación de MFA vía Supabase Auth (`mfa.enroll`, `mfa.challengeAndVerify`) en `/mfa`; al verificar, una *Server Action* comprueba `aal2` en la sesión y solo entonces marca `perfiles.mfa_habilitado` y escribe `mfa_activado` con `service_role` (un fallo escribe `mfa_fallido`) · `GET /api/admin/eventos-seguridad?filtros` · `POST /api/admin/eventos-seguridad/[id]/liberar` · middlewares `requireRole()` (toda ruta y endpoint — RNF-30), `requireMFA()` (toda ruta `/admin`) y `requireRateLimit()` (endpoints públicos y de generación con IA; **fail-closed si su almacén no responde — RNF-33**) | RNF-25..28, RN-23, RN-24 |
 
 **Flujo interno del servicio de generación:** valida suscripción y cupo → **verifica límite de tasa (RNF-27)** → arma el contexto (proyecto + convocatoria + requisitos + texto del TDR **saneado de instrucciones incrustadas**, con tope de tamaño — RN-23) → invoca Claude API con instrucciones de veracidad y estructura → parsea el resultado y extrae los pendientes → guarda el documento y registra el consumo → descuenta el crédito. Si algo falla antes del guardado, **no se descuenta**. El .docx se genera bajo demanda desde el contenido guardado, sin ocupar un cuarto bucket.
 
