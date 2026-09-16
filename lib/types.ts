@@ -239,6 +239,8 @@ export interface Plan {
   precioMensual: number;
   precioAnual: number;
   creditosIaMensuales: number;
+  // Plan del trial (RF-37): no aparece en el comparador.
+  esTrial?: boolean;
 }
 
 export type ModalidadSuscripcion = "trial" | "mensual" | "anual";
@@ -339,13 +341,25 @@ export interface EventoSeguridad {
 }
 
 // ---------------------------------------------------------------------------
-// Simulador de modo demo (roles/estados de sesión, sin autenticación real)
+// Sesión (Supabase Auth — RF-01, RF-02, RN-06, RNF-28)
 // ---------------------------------------------------------------------------
 
-export type ModoDemo =
-  | "empresa_trial"
-  | "empresa_vencida"
-  | "empresa_sin_creditos"
-  | "consultor_aprobado"
-  | "consultor_revision"
-  | "admin";
+export type RolUsuario = "empresa" | "consultor" | "administrador";
+
+export interface SesionUsuario {
+  usuarioId: string; // auth.uid()
+  correo: string;
+  nombre: string;
+  nombreEmpresa: string | null;
+  rol: RolUsuario;
+  // Nivel de autenticación de la sesión: aal2 = segundo factor verificado.
+  aal: "aal1" | "aal2";
+}
+
+/** Lo que el servidor lee de Supabase para la sesión y entrega al cliente. */
+export interface DatosSesion {
+  sesion: SesionUsuario;
+  suscripcion: Suscripcion | null;
+  plan: Plan | null;
+  consultor: PerfilConsultor | null;
+}

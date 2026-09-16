@@ -34,10 +34,10 @@ export default function LandingPage() {
             </span>
           </div>
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            <LinkButton href="/convocatorias" variant="ghost" size="sm" className="whitespace-nowrap">
+            <LinkButton href="/login" variant="ghost" size="sm" className="whitespace-nowrap">
               Iniciar sesión
             </LinkButton>
-            <LinkButton href="/convocatorias" variant="primary" size="sm" className="whitespace-nowrap">
+            <LinkButton href="/registro" variant="primary" size="sm" className="whitespace-nowrap">
               Crear cuenta<span className="hidden sm:inline"> gratis</span>
             </LinkButton>
           </div>
@@ -62,7 +62,7 @@ export default function LandingPage() {
               <LinkButton href="/convocatorias" variant="primary" size="lg">
                 Explorar convocatorias <ArrowRight className="h-4 w-4" />
               </LinkButton>
-              <LinkButton href="/convocatorias" variant="outline-gold" size="lg">
+              <LinkButton href="/registro" variant="outline-gold" size="lg">
                 Crear cuenta
               </LinkButton>
             </div>
@@ -162,16 +162,16 @@ export default function LandingPage() {
             para empresas como la tuya.
           </p>
           <div className="mt-2 flex flex-wrap justify-center gap-3">
-            <LinkButton href="/convocatorias" variant="outline-gold" size="lg">
+            <LinkButton href="/registro" variant="outline-gold" size="lg">
               Crear cuenta gratis
             </LinkButton>
             <LinkButton
-              href="/convocatorias"
+              href="/login"
               variant="ghost"
               size="lg"
               className="text-white hover:bg-white/10"
             >
-              Ver convocatorias sin registrarme
+              Ya tengo cuenta
             </LinkButton>
           </div>
         </div>

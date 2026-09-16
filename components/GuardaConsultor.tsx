@@ -17,8 +17,8 @@ export function GuardaConsultor({ children }: { children: React.ReactNode }) {
     return (
       <EmptyState
         icon={Lock}
-        titulo="Activa el modo consultor"
-        descripcion="Esta sección pertenece al portal de consultores. Cambia el selector de modo demo a 'Consultor aprobado' o 'Consultor en revisión' para verla."
+        titulo="Esta sección es para consultores"
+        descripcion="Esta sección pertenece al portal de consultores y tu cuenta no tiene un perfil de consultor."
       />
     );
   }

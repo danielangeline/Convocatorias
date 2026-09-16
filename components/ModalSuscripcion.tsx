@@ -19,7 +19,7 @@ export function ModalSuscripcion() {
 
   if (!abierto) return null;
 
-  const planesRol = planes.filter((p) => p.rol === (rol === "consultor" ? "consultor" : "empresa"));
+  const planesRol = planes.filter((p) => p.rol === (rol === "consultor" ? "consultor" : "empresa") && !p.esTrial);
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-primary-950/50 p-4">

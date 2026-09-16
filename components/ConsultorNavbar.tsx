@@ -2,10 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, HardHat } from "lucide-react";
+import { HardHat } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useConsultorActual } from "@/lib/hooks";
-import { SelectorModoDemo } from "./SelectorModoDemo";
+import { MenuUsuario } from "./MenuUsuario";
 
 const enlaces = [
   { href: "/consultor/perfil", label: "Mi perfil" },
@@ -16,7 +15,6 @@ const enlaces = [
 
 export function ConsultorNavbar() {
   const pathname = usePathname();
-  const { consultor } = useConsultorActual();
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-white/90 backdrop-blur">
@@ -52,18 +50,7 @@ export function ConsultorNavbar() {
 
         <div className="flex shrink-0 items-center gap-2.5">
           {/* El consultor no tiene cupo propio de IA (RN-28): no hay contador que mostrar. */}
-          <SelectorModoDemo />
-          <Link
-            href="/admin"
-            className="hidden items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-semibold text-ink-faint hover:text-primary-800 xl:flex"
-          >
-            <LayoutGrid className="h-3.5 w-3.5" /> Panel admin
-          </Link>
-          <img
-            src={consultor?.fotoUrl ?? "https://ui-avatars.com/api/?name=Consultor"}
-            alt=""
-            className="hidden h-9 w-9 shrink-0 rounded-full ring-1 ring-line sm:block"
-          />
+          <MenuUsuario tono="brick" />
         </div>
       </div>
     </header>

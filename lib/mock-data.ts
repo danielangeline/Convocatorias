@@ -981,7 +981,7 @@ export function encargoPorId(id: string): Encargo | undefined {
 // ---------------------------------------------------------------------------
 
 export const planes: Plan[] = [
-  { id: "plan-trial", nombre: "Trial", rol: "empresa", precioMensual: 0, precioAnual: 0, creditosIaMensuales: 3 },
+  { id: "plan-trial", nombre: "Trial", rol: "empresa", precioMensual: 0, precioAnual: 0, creditosIaMensuales: 3, esTrial: true },
   { id: "plan-empresa-esencial", nombre: "Empresa Esencial", rol: "empresa", precioMensual: 89_000, precioAnual: 890_000, creditosIaMensuales: 10 },
   { id: "plan-empresa-pro", nombre: "Empresa Pro", rol: "empresa", precioMensual: 189_000, precioAnual: 1_890_000, creditosIaMensuales: 30 },
   { id: "plan-consultor", nombre: "Consultor", rol: "consultor", precioMensual: 69_000, precioAnual: 690_000, creditosIaMensuales: 0 },

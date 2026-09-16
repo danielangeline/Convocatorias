@@ -23,7 +23,6 @@ import {
 } from "./mock-data";
 import { componerDocumento, aplicarAjusteTexto, postulacionParaProyectoConv } from "./documentos";
 import { transicionPermitida } from "./utils";
-import { usuarioIdDeModo } from "./session";
 import type {
   Calificacion,
   Categoria,
@@ -38,8 +37,8 @@ import type {
   EventoSeguridad,
   Fuente,
   ItemPortafolio,
+  DatosSesion,
   ModalidadSuscripcion,
-  ModoDemo,
   Pago,
   PerfilConsultor,
   Plan,
@@ -59,11 +58,12 @@ function nuevoId(prefijo: string): string {
 }
 
 /**
- * Propietario de la sesión simulada (RN-30). Al conectar Supabase lo sustituye
- * auth.uid(), y estas comprobaciones pasan a la API route y a la política RLS.
+ * Propietario de la sesión (RN-30): el auth.uid() real de Supabase Auth. Las
+ * comprobaciones que lo usan aquí pasan a la API route y a la política RLS
+ * cuando cada entidad se conecte a la base.
  */
-function usuarioSesion(modo: ModoDemo): string {
-  return usuarioIdDeModo(modo);
+function usuarioSesion(sesion: DatosSesion["sesion"] | null): string {
+  return sesion?.usuarioId ?? "";
 }
 
 function hoyIso(): string {
@@ -107,13 +107,11 @@ interface AppState {
   estadisticasIA: EstadisticasIA;
   eventosSeguridad: EventoSeguridad[];
 
-  // Simulador de modo demo
-  modoDemo: ModoDemo;
-  setModoDemo: (modo: ModoDemo) => void;
+  // Sesión real de Supabase Auth, entregada por el layout del servidor
+  sesion: DatosSesion["sesion"] | null;
+  hidratarSesion: (datos: DatosSesion) => void;
 
   // Seguridad y auditoría (CU-38..40, RNF-25..28, nuevo v5)
-  mfaVerificado: boolean;
-  verificarMFA: () => void;
   liberarBloqueoSeguridad: (eventoId: string) => void;
 
   // Modal de suscripción
@@ -237,32 +235,33 @@ export const useAppStore = create<AppState>((set, get) => ({
   estadisticasIA: estadisticasIAIniciales,
   eventosSeguridad: eventosSeguridadIniciales,
 
-  modoDemo: "empresa_trial",
-  setModoDemo: (modo) => set({ modoDemo: modo }),
+  sesion: null,
+  // Mientras las demás entidades sigan en datos de ejemplo, la suscripción, el
+  // plan y el perfil de consultor reales se integran a esas listas para que el
+  // resto de la interfaz los encuentre por el id de la sesión.
+  hidratarSesion: (datos) => {
+    set((s) => {
+      let planes = s.planes;
+      if (datos.plan) {
+        const real = datos.plan;
+        planes = [...planes.filter((p) => p.id !== real.id), real];
+      }
+      const suscripciones = datos.suscripcion
+        ? [...s.suscripciones.filter((x) => x.id !== datos.suscripcion!.id), datos.suscripcion]
+        : s.suscripciones;
+      // El perfil de consultor se agrega una vez: las ediciones locales se conservan.
+      const consultores =
+        datos.consultor && !s.consultores.some((c) => c.id === datos.consultor!.id)
+          ? [...s.consultores, datos.consultor]
+          : s.consultores;
+      return { sesion: datos.sesion, planes, suscripciones, consultores };
+    });
+  },
 
   // -------------------------------------------------------------------------
   // Seguridad y auditoría (CU-38..40, RNF-25..28)
   // -------------------------------------------------------------------------
 
-  mfaVerificado: false,
-  verificarMFA: () => {
-    set((s) => ({
-      mfaVerificado: true,
-      eventosSeguridad: [
-        {
-          id: nuevoId("evt"),
-          tipo: "mfa_activado",
-          usuarioNombre: "admin-1",
-          ip: "192.168.1.20",
-          ruta: "/admin/seguridad",
-          detalle: "Verificación en dos pasos activada correctamente.",
-          bloqueadoHasta: null,
-          fecha: new Date().toISOString(),
-        },
-        ...s.eventosSeguridad,
-      ],
-    }));
-  },
   liberarBloqueoSeguridad: (eventoId) => {
     set((s) => ({
       eventosSeguridad: s.eventosSeguridad.map((e) =>
@@ -331,12 +330,12 @@ export const useAppStore = create<AppState>((set, get) => ({
   // RN-30: el propietario lo fija la sesión, nunca el formulario, y solo el
   // dueño edita o elimina.
   agregarProyecto: (p) => {
-    const nuevo: Proyecto = { ...p, id: nuevoId("proy"), usuarioId: usuarioSesion(get().modoDemo) };
+    const nuevo: Proyecto = { ...p, id: nuevoId("proy"), usuarioId: usuarioSesion(get().sesion) };
     set((s) => ({ proyectos: [...s.proyectos, nuevo] }));
     return nuevo;
   },
   actualizarProyecto: (id, p) => {
-    const usuarioId = usuarioSesion(get().modoDemo);
+    const usuarioId = usuarioSesion(get().sesion);
     set((s) => ({
       proyectos: s.proyectos.map((pr) =>
         pr.id === id && pr.usuarioId === usuarioId ? { ...pr, ...p, usuarioId: pr.usuarioId } : pr
@@ -344,7 +343,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     }));
   },
   eliminarProyecto: (id) => {
-    const usuarioId = usuarioSesion(get().modoDemo);
+    const usuarioId = usuarioSesion(get().sesion);
     set((s) => ({ proyectos: s.proyectos.filter((p) => !(p.id === id && p.usuarioId === usuarioId)) }));
   },
 
@@ -358,7 +357,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     }));
     const nueva: Postulacion = {
       id: nuevoId("post"),
-      usuarioId: usuarioSesion(get().modoDemo),
+      usuarioId: usuarioSesion(get().sesion),
       convocatoriaId,
       proyectoId,
       estado: "en_preparacion",
@@ -372,7 +371,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   toggleChecklistItem: (postulacionId, itemId) => {
-    const usuarioId = usuarioSesion(get().modoDemo);
+    const usuarioId = usuarioSesion(get().sesion);
     set((s) => ({
       postulaciones: s.postulaciones.map((p) =>
         p.id === postulacionId && p.usuarioId === usuarioId
@@ -388,7 +387,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   cambiarEstadoPostulacion: (postulacionId, nuevoEstado) => {
-    const usuarioId = usuarioSesion(get().modoDemo);
+    const usuarioId = usuarioSesion(get().sesion);
     set((s) => ({
       postulaciones: s.postulaciones.map((p) => {
         if (p.id !== postulacionId || p.usuarioId !== usuarioId || p.estado === nuevoEstado) return p;
@@ -413,7 +412,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   vincularProyectoAPostulacion: (postulacionId, proyectoId) => {
-    const usuarioId = usuarioSesion(get().modoDemo);
+    const usuarioId = usuarioSesion(get().sesion);
     // RN-30: solo se vincula un proyecto propio a una postulación propia.
     const proyectoPropio = get().proyectos.some((pr) => pr.id === proyectoId && pr.usuarioId === usuarioId);
     if (!proyectoPropio) return;
@@ -472,7 +471,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     const nuevo: Encargo = {
       id: nuevoId("encargo"),
       proyectoId: solicitud.proyectoId,
-      empresaId: usuarioSesion(get().modoDemo),
+      empresaId: usuarioSesion(get().sesion),
       consultorId: null,
       tituloTarea: solicitud.tituloTarea,
       descripcionTarea: solicitud.descripcionTarea,
@@ -497,7 +496,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     const nuevo: Encargo = {
       id: nuevoId("encargo"),
       proyectoId: solicitud.proyectoId,
-      empresaId: usuarioSesion(get().modoDemo),
+      empresaId: usuarioSesion(get().sesion),
       consultorId,
       tituloTarea: solicitud.tituloTarea,
       descripcionTarea: solicitud.descripcionTarea,
@@ -806,7 +805,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     const nuevo: DocumentoGenerado = {
       id: nuevoId("doc"),
       // RN-30/RN-28: el dueño es la empresa del proyecto, no quien dispara la acción.
-      usuarioId: proyecto?.usuarioId ?? usuarioSesion(get().modoDemo),
+      usuarioId: proyecto?.usuarioId ?? usuarioSesion(get().sesion),
       proyectoId,
       convocatoriaId,
       titulo,

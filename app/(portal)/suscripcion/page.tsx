@@ -26,7 +26,8 @@ export default function SuscripcionEmpresaPage() {
   const [modalidad, setModalidad] = useState<ModalidadSuscripcion>("mensual");
 
   const planActual = suscripcion ? planes.find((p) => p.id === suscripcion.planId) : undefined;
-  const planesEmpresa = planes.filter((p) => p.rol === "empresa");
+  // El plan trial no se compra: queda fuera del comparador (docs/05 §9.2).
+  const planesEmpresa = planes.filter((p) => p.rol === "empresa" && !p.esTrial);
   const historialPagos = suscripcion
     ? pagos.filter((p) => p.suscripcionId === suscripcion.id).sort((a, b) => (a.fecha < b.fecha ? 1 : -1))
     : [];

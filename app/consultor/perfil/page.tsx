@@ -59,8 +59,8 @@ export default function PerfilConsultorEditorPage() {
     return (
       <EmptyState
         icon={AlertCircle}
-        titulo="Activa el modo consultor"
-        descripcion="Cambia el selector de modo demo a 'Consultor aprobado' o 'Consultor en revisión' para editar un perfil."
+        titulo="Esta sección es para consultores"
+        descripcion="Tu cuenta no tiene un perfil de consultor. Si te registraste como empresa, usa el portal de empresa."
       />
     );
   }

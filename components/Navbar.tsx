@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid, Building2 } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { SelectorModoDemo } from "./SelectorModoDemo";
+import { MenuUsuario } from "./MenuUsuario";
 import { IndicadorCreditos } from "./IndicadorCreditos";
 
 const enlaces = [
@@ -56,16 +56,7 @@ export function Navbar() {
 
         <div className="flex shrink-0 items-center gap-2.5">
           <IndicadorCreditos href="/suscripcion" />
-          <SelectorModoDemo />
-          <Link
-            href="/admin"
-            className="hidden items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-semibold text-ink-faint hover:text-primary-800 xl:flex"
-          >
-            <LayoutGrid className="h-3.5 w-3.5" /> Panel admin
-          </Link>
-          <div className="hidden h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gold-50 font-display text-sm font-bold text-gold-700 ring-1 ring-gold-100 sm:flex">
-            EA
-          </div>
+          <MenuUsuario tono="gold" />
         </div>
       </div>
 

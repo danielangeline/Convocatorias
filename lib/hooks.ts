@@ -2,26 +2,25 @@
 
 import { useMemo } from "react";
 import { useAppStore } from "./store";
-import { usuarioIdDeModo, consultorIdDeModo, rolDeModo } from "./session";
 import { agregarMeses, diasRestantesHasta } from "./utils";
 
 const ESTADOS_CON_ACCESO = new Set(["trial", "activa", "en_gracia"]);
 
 /**
- * Resuelve si el usuario simulado actual (según el modo demo) tiene una
- * suscripción vigente. Si no encuentra una suscripción para el usuario
- * (p. ej. el administrador) se asume acceso libre: la restricción solo
- * aplica quien tiene una suscripción registrada y está vencida/suspendida.
+ * Resuelve si el usuario de la sesión tiene una suscripción vigente. Si no
+ * encuentra una suscripción para el usuario (p. ej. el administrador o un
+ * consultor sin plan) se asume acceso libre: la restricción solo aplica a
+ * quien tiene una suscripción registrada y está vencida/suspendida.
  */
 export function useAccesoSuscripcion() {
-  const modoDemo = useAppStore((s) => s.modoDemo);
+  const sesion = useAppStore((s) => s.sesion);
   const suscripciones = useAppStore((s) => s.suscripciones);
   const abrirModalSuscripcion = useAppStore((s) => s.abrirModalSuscripcion);
 
-  const usuarioId = usuarioIdDeModo(modoDemo);
-  const rol = rolDeModo(modoDemo);
+  const usuarioId = sesion?.usuarioId ?? "";
+  const rol = sesion?.rol ?? null;
   const suscripcion = suscripciones.find((s) => s.usuarioId === usuarioId);
-  const tieneAcceso = rol === "admin" || !suscripcion || ESTADOS_CON_ACCESO.has(suscripcion.estado);
+  const tieneAcceso = rol === "administrador" || !suscripcion || ESTADOS_CON_ACCESO.has(suscripcion.estado);
   const diasRestantes = suscripcion ? diasRestantesHasta(suscripcion.fechaVencimiento) : null;
 
   function requerirAcceso(motivo?: string): boolean {
@@ -34,16 +33,15 @@ export function useAccesoSuscripcion() {
 }
 
 /**
- * Créditos de IA disponibles para el usuario simulado actual, según su
+ * Créditos de IA disponibles para el usuario de la sesión, según su
  * suscripción vigente (incluidos del plan + extras comprados - usados en el
  * ciclo actual). Si no hay suscripción registrada, no hay créditos.
  */
 export function useCreditos() {
-  const modoDemo = useAppStore((s) => s.modoDemo);
+  const usuarioId = usePropietarioSesion();
   const suscripciones = useAppStore((s) => s.suscripciones);
   const planes = useAppStore((s) => s.planes);
 
-  const usuarioId = usuarioIdDeModo(modoDemo);
   const suscripcion = suscripciones.find((s) => s.usuarioId === usuarioId);
   const plan = suscripcion ? planes.find((p) => p.id === suscripcion.planId) : undefined;
 
@@ -57,9 +55,10 @@ export function useCreditos() {
 }
 
 export function useConsultorActual() {
-  const modoDemo = useAppStore((s) => s.modoDemo);
+  const sesion = useAppStore((s) => s.sesion);
   const consultores = useAppStore((s) => s.consultores);
-  const consultorId = consultorIdDeModo(modoDemo);
+  // El perfil de consultor comparte id con el perfil de usuario.
+  const consultorId = sesion?.rol === "consultor" ? sesion.usuarioId : null;
   const consultor = consultorId ? consultores.find((c) => c.id === consultorId) : undefined;
   return { consultorId, consultor };
 }
@@ -73,8 +72,7 @@ export function useConsultorActual() {
  * Al conectar Supabase el filtro lo aplica el endpoint y lo respalda RLS.
  */
 export function usePropietarioSesion() {
-  const modoDemo = useAppStore((s) => s.modoDemo);
-  return usuarioIdDeModo(modoDemo);
+  return useAppStore((s) => s.sesion?.usuarioId ?? "");
 }
 
 export function useProyectosPropios() {

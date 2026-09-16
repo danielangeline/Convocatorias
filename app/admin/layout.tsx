@@ -1,21 +1,29 @@
+import { redirect } from "next/navigation";
 import { AdminSidebar } from "@/components/AdminSidebar";
-import { SelectorModoDemo } from "@/components/SelectorModoDemo";
-import { GuardaMFA } from "@/components/GuardaMFA";
+import { MenuUsuario } from "@/components/MenuUsuario";
+import { SincronizarSesion } from "@/components/SincronizarSesion";
+import { exigirSesion } from "@/lib/auth";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+// Ninguna sesión administrativa opera sin segundo factor verificado (RNF-28,
+// RF-64): un administrador en aal1 va a /mfa. Se comprueba en el servidor en
+// cada petición; la RLS además niega todo privilegio sin aal2.
+// La restricción por rol del grupo llega con requireRole() (RNF-30).
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const datos = await exigirSesion();
+  if (datos.sesion.rol === "administrador" && datos.sesion.aal !== "aal2") redirect("/mfa");
+
   return (
-    <GuardaMFA>
-      <div className="flex min-h-screen min-w-[1024px] bg-primary-50/40">
-        <AdminSidebar />
-        <div className="flex-1 overflow-x-auto">
-          <header className="flex justify-end border-b border-line bg-white px-8 py-3">
-            <SelectorModoDemo />
-          </header>
-          <main className="px-8 py-8">
-            <div className="mx-auto max-w-6xl">{children}</div>
-          </main>
-        </div>
+    <div className="flex min-h-screen min-w-[1024px] bg-primary-50/40">
+      <SincronizarSesion datos={datos} />
+      <AdminSidebar />
+      <div className="flex-1 overflow-x-auto">
+        <header className="flex justify-end border-b border-line bg-white px-8 py-3">
+          <MenuUsuario tono="primary" />
+        </header>
+        <main className="px-8 py-8">
+          <div className="mx-auto max-w-6xl">{children}</div>
+        </main>
       </div>
-    </GuardaMFA>
+    </div>
   );
 }
