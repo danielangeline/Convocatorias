@@ -41,6 +41,7 @@ Dos reglas que se rompen con facilidad:
 8. **Ninguna tabla se despliega sin RLS con política explícita, y ninguna sesión administrativa opera sin MFA verificado.** Ambos son requisitos de diseño desde el Sprint 0, no revisiones posteriores. (RN-24, RNF-25, RNF-28)
 9. **Toda entidad de usuario declara su propietario y ningún listado se sirve sin filtrar por él** (RN-30), y **toda ruta y endpoint declara los roles que admite** (RNF-30). Ocultar un botón no es autorizar: el control vive en el servidor. También son requisitos de Sprint 0.
 10. **El consultor no tiene cupo propio de créditos de IA.** No genera documentos; los ajustes que pide sobre un documento autorizado los paga siempre la empresa dueña, y no existe caso de respaldo que cargue el consumo a quien dispara la acción. (RN-28)
+11. **El rol administrador solo lo otorga el Propietario, por invitación, y el panel no existe para nadie más.** Ningún registro ni dato enviado por el usuario produce un administrador; hay un único Propietario, designado fuera de la aplicación; la cuenta de administrador es dedicada. `/admin`, `/mfa` y `/api/admin` responden 404 a quien no es administrador. (RN-06, RN-31, RN-32, RF-85, RF-86)
 
 ---
 
@@ -48,13 +49,16 @@ Dos reglas que se rompen con facilidad:
 
 | Rol | Qué hace | Acceso |
 |---|---|---|
-| **Empresa** | Busca convocatorias, registra proyectos, genera documentos con IA, postula, contrata consultores | Registro libre + trial 7 días con 3 créditos |
+| **Empresa** (o entidad) | Busca convocatorias, registra proyectos, genera documentos con IA, postula, contrata consultores | Registro libre + trial 7 días con 3 créditos |
 | **Consultor** | Perfil con portafolio/CV/redes, recibe y ejecuta encargos, recibe calificaciones. **No genera documentos ni tiene cupo propio de IA** (RN-28) | Requiere **aprobación de un administrador** antes de operar |
-| **Administrador** | Fuentes, convocatorias, requisitos, aprobación de consultores, planes y créditos, plantilla del prompt, seguridad y auditoría | Asignación manual del rol + **MFA obligatorio** (RNF-28) |
+| **Administrador** | Fuentes, convocatorias, requisitos, aprobación de consultores, planes y créditos, plantilla del prompt, seguridad y auditoría | **Solo por invitación del Propietario** (RN-06, RN-31) con cuenta dedicada + **MFA obligatorio** (RNF-28). El panel es invisible (404) para todos los demás (RF-85) |
 
 ## Flujos centrales
 
 ```
+ENTRADA       dos puertas: "Soy empresa o entidad" / "Soy consultor" → registro fija el rol ·
+              login lleva al portal del rol (sin opción de administrador en ninguna pantalla pública)
+ADMINS        Propietario → invita por correo → la persona define contraseña + MFA → panel · revocar
 CATÁLOGO      buscar/filtrar → ficha → [Postular] o [Generar documento con IA]
 SUGERENCIAS   proyecto registrado → cruce de atributos → % de compatibilidad + desglose
 GENERACIÓN    convocatoria → elegir proyecto → generar (1 crédito) → editar → exportar .docx

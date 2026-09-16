@@ -136,11 +136,14 @@
 
 ### Módulo D — Cuenta
 
-#### CU-14 · Registrarse / iniciar sesión
+#### CU-14 · Registrarse / iniciar sesión *(mod. v6)*
 
 | Campo | Contenido |
 |---|---|
-| **Flujo principal** | 1. Registro con correo y contraseña eligiendo rol **empresa** o **consultor**. 2. Empresa → acceso inmediato + trial de **7 días** *(mod. v6)* con 3 créditos de IA. Consultor → estado "perfil incompleto". 3. Login y recuperación de contraseña. El rol administrador se asigna manualmente |
+| **Actor** | Visitante (futura empresa o entidad, o consultor) |
+| **Flujo principal** | 1. La entrada (landing, registro e inicio de sesión) muestra **dos puertas: "Soy empresa o entidad" y "Soy consultor"**. Ninguna pantalla pública ofrece el rol administrador (RF-84, RF-85). 2. **Registro:** elige la puerta, escribe correo y contraseña y confirma su correo; la puerta fija el rol de la cuenta. 3. Empresa → portal Empresa con trial de **7 días** y 3 créditos de IA. Consultor → portal Consultor con perfil "incompleto". 4. **Inicio de sesión:** correo y contraseña desde cualquiera de las dos puertas; la cuenta entra siempre al portal de su rol. 5. Recuperación de contraseña |
+| **Flujos alternos** | 2a. El correo ya tiene cuenta → no se crea otra; se ofrece iniciar sesión. 4a. La puerta elegida no coincide con el rol de la cuenta → se le lleva a su portal real con el aviso "Tu cuenta es de empresa" / "Tu cuenta es de consultor". 4b. La cuenta es de administrador → pasa directo a la verificación en dos pasos (CU-38), sin ningún aviso que delate la existencia del panel |
+| **Postcondiciones** | Cada cuenta tiene un único rol, fijado al registrarse. Este caso de uso **nunca** produce un administrador: ese rol solo nace de CU-41 (RN-06, RN-32) |
 
 ### Módulo E — Perfil del consultor (Consultor)
 
@@ -148,7 +151,7 @@
 
 | Campo | Contenido |
 |---|---|
-| **Flujo principal** | 1. Se registra con rol consultor. 2. Se crea la cuenta y el perfil vacío. 3. Solo accede a la edición de su perfil hasta ser aprobado |
+| **Flujo principal** | 1. Se registra por la puerta **"Soy consultor"** (CU-14) *(mod. v6)*. 2. Se crea la cuenta y el perfil vacío. 3. Solo accede a la edición de su perfil hasta ser aprobado |
 
 #### CU-16 · Crear y editar perfil de consultor
 
@@ -329,7 +332,7 @@
 |---|---|
 | **Actor** | Administrador de Contenido |
 | **Descripción** | Configura un segundo factor (TOTP) para su propia cuenta; requisito obligatorio para operar con rol administrador |
-| **Precondiciones** | Cuenta con rol administrador ya creada |
+| **Precondiciones** | Cuenta de administrador creada por invitación del Propietario (CU-41) y activada (CU-42) *(mod. v6)* |
 | **Flujo principal** | 1. Al iniciar sesión sin MFA activo, el sistema bloquea el acceso a las funciones administrativas y ofrece "Activar verificación en dos pasos". 2. Escanea el código QR con una app autenticadora. 3. Confirma con un código de 6 dígitos. 4. El sistema marca `mfa_habilitado = true` en su perfil y permite continuar |
 | **Flujos alternos** | 3a. Código incorrecto → reintenta. 4a. Pérdida del segundo factor → recuperación asistida por soporte, fuera de la interfaz |
 | **Postcondiciones** | La cuenta no puede volver a operar funciones administrativas sin el segundo factor verificado en cada inicio de sesión (RNF-28) |
@@ -355,6 +358,30 @@
 | **Flujo principal** | 1. Ve la lista de bloqueos activos con motivo, usuario/IP y expiración. 2. Selecciona uno. 3. "Liberar ahora" (pone `bloqueado_hasta` en el pasado) o lo deja expirar solo |
 | **Postcondiciones** | Bloqueo liberado y registrado en el evento correspondiente |
 
+### Módulo K — Gestión de administradores (Propietario) *(nuevo v6)*
+
+#### CU-41 · Gestionar administradores
+
+| Campo | Contenido |
+|---|---|
+| **Actor** | Propietario de la plataforma |
+| **Descripción** | Otorga y retira el acceso al panel administrativo. Es la **única** vía por la que una persona llega a ser administrador |
+| **Precondiciones** | Sesión del Propietario con segundo factor verificado (CU-38) |
+| **Flujo principal** | 1. Abre "Administradores" en el panel: ve los administradores activos, los revocados y las invitaciones pendientes, con quién hizo cada cosa y cuándo. 2. "Invitar administrador": escribe nombre y correo. 3. El sistema comprueba que el correo no tenga ya una cuenta (RN-32), registra la invitación con vencimiento a las 72 horas y envía el enlace. 4. Para retirar un acceso, elige un administrador → "Revocar acceso" → confirma. 5. El sistema le quita todo privilegio desde la siguiente petición, cierra sus sesiones y bloquea la cuenta (RF-87) |
+| **Flujos alternos** | 3a. El correo ya tiene cuenta de empresa o consultor → se rechaza: el administrador usa una cuenta dedicada. 3b. Ya hay una invitación pendiente para ese correo → se ofrece reenviarla o cancelarla. 4a. Intenta revocarse a sí mismo → no se permite (RN-31) |
+| **Postcondiciones** | Cada invitación, cancelación y revocación queda en `eventos_seguridad` con el Propietario que la hizo (RF-65) |
+| **Nota** | Para cualquier otro usuario —incluido un administrador que no es Propietario— esta sección responde 404 (RF-85, RF-86). El Propietario se designa fuera de la aplicación (RN-31) |
+
+#### CU-42 · Activar la cuenta de administrador invitada
+
+| Campo | Contenido |
+|---|---|
+| **Actor** | Persona invitada |
+| **Precondiciones** | Invitación pendiente y vigente (CU-41) |
+| **Flujo principal** | 1. Abre el enlace del correo. 2. Define su contraseña. 3. Activa el segundo factor (CU-38). 4. Entra al panel administrativo |
+| **Flujos alternos** | 1a. Invitación vencida, cancelada o ya usada → mensaje genérico de enlace no válido; debe pedir una nueva al Propietario |
+| **Postcondiciones** | Cuenta con rol administrador, sin portal de empresa ni de consultor y sin suscripción (RN-32). La invitación queda marcada como aceptada |
+
 ### Relaciones y dependencias
 
 - CU-03 **incluido en** CU-02 · CU-05 **exige** CU-02+03+04 · CU-11 **incluye** el checklist desde CU-04.
@@ -362,7 +389,8 @@
 - CU-33 **depende de** CU-09 (contenido del proyecto), CU-03 y CU-04 (contexto de la convocatoria) y CU-35 (cupo). CU-34 **extiende** CU-33.
 - CU-19 **nace dentro de** CU-09; CU-22 y CU-23 son **caminos alternos**; CU-24 solo sobre encargos completados.
 - CU-25 es **precondición** de CU-20. CU-32 y CU-35 son **precondiciones transversales** de CU-10, CU-11, CU-18, CU-19, CU-20 y CU-33.
-- **CU-38 (MFA activo) es precondición transversal de todo caso de uso del Administrador** (CU-01..05, CU-25..27, CU-31, CU-37, CU-39, CU-40): sin segundo factor verificado no hay acceso a funciones administrativas (RNF-28).
+- **CU-41 es la única puerta de entrada al rol administrador** *(nuevo v6)*: CU-42 la completa y CU-38 es su último paso. CU-14 nunca produce administradores (RN-06, RN-31, RN-32).
+- **CU-38 (MFA activo) es precondición transversal de todo caso de uso del Administrador** (CU-01..05, CU-25..27, CU-31, CU-37, CU-39, CU-40, **CU-41**): sin segundo factor verificado no hay acceso a funciones administrativas (RNF-28).
 - **CU-19 adjunta contexto (RF-68/69) que CU-22, CU-23, CU-26 y CU-18 heredan** — ninguno de esos cuatro vuelve a pedir esa información. El correo de contacto (RF-70) se revela en el mismo punto en los tres caminos de aceptación: CU-22 (directorio), CU-26 (asignación interna) — nunca antes de `en_curso` (RN-26).
 - **CU-20/CU-21 son también un punto de entrada del flujo de solicitud, no solo un destino de CU-19** *(RF-74, nuevo v5)*: desde el directorio o la ficha del consultor la empresa elige proyecto o postulación en el propio perfil y confirma — el resultado es el mismo encargo `pendiente` vía `directorio` que produce CU-22 al llegar desde CU-19 → CU-20.
 - **CU-34 (compartir con el consultor) es independiente de CU-22/CU-23/CU-26**: el encargo `en_curso` es precondición necesaria pero no suficiente — sin la autorización explícita de RF-71, el consultor no ve el documento aunque el encargo esté activo (RN-22, RN-27).

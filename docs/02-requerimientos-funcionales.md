@@ -1,4 +1,4 @@
-# Requerimientos funcionales (RF-01 a RF-83)
+# Requerimientos funcionales (RF-01 a RF-87)
 
 > Parte de la especificación del MVP **v6** · Plataforma de Gestión de Convocatorias.
 > Índice general en `docs/README.md`. Contexto rápido en `CLAUDE.md`.
@@ -13,9 +13,11 @@
 
 | ID | Requerimiento | CU | Prioridad |
 |---|---|---|---|
-| RF-01 | Registro con elección de rol empresa o consultor; el administrador se asigna manualmente. El registro de empresa inicia el trial de **7 días** con 3 créditos *(mod. v6)* | CU-14 | Must |
-| RF-02 | Autenticar y restringir las funciones administrativas al rol administrador | CU-14 | Must |
+| RF-01 | Registro con elección entre **empresa o entidad** y **consultor**; la elección fija el rol de la cuenta. Ninguna pantalla pública ofrece el rol administrador, que solo se obtiene por invitación del Propietario (RF-86). El registro de empresa inicia el trial de **7 días** con 3 créditos *(mod. v6)* | CU-14 | Must |
+| RF-02 | Autenticar y restringir las funciones administrativas al rol administrador; **para cualquier otro usuario, autenticado o no, el panel no existe** (RF-85) *(mod. v6)* | CU-14 | Must |
 | RF-03 | Recuperación de contraseña por correo | CU-14 | Should |
+| RF-84 | La entrada —landing, registro e inicio de sesión— presenta **dos puertas: "Soy empresa o entidad" y "Soy consultor"**. En el registro la puerta fija el rol. En el inicio de sesión solo orienta: la cuenta entra siempre al portal de su rol y, si la puerta no coincide, se le informa y se le lleva al correcto. Una cuenta de administrador no recibe ese aviso y pasa directo a la verificación en dos pasos *(nuevo v6)* | CU-14 | Must |
+| RF-85 | El panel administrativo es **invisible para quien no es administrador**: toda ruta `/admin/*`, la verificación `/mfa` y todo endpoint `/api/admin/*` responden **404, indistinguible de una ruta inexistente**, a visitantes, empresas y consultores. Ningún portal, correo ni página pública enlaza al panel, y sus páginas llevan `noindex`. El intento se registra igualmente como `acceso_denegado` (RF-65) *(nuevo v6)* | CU-14, 41 | Must |
 
 ### 4.2 Fuentes y convocatorias (administrador)
 
@@ -135,9 +137,11 @@
 | ID | Requerimiento | CU | Prioridad |
 |---|---|---|---|
 | RF-64 | Exigir verificación en dos pasos (MFA/TOTP) antes de permitir que una sesión con rol administrador opere cualquier función administrativa | CU-38 | Must |
-| RF-65 | Registrar cada evento de seguridad (login fallido, acceso denegado, bloqueo por límite de tasa, activación/fallo de MFA) con tipo, usuario si aplica, IP, ruta y fecha | CU-39 | Must |
+| RF-65 | Registrar cada evento de seguridad (login fallido, acceso denegado, bloqueo por límite de tasa, activación/fallo de MFA, **invitación, cancelación y revocación de administradores** *(mod. v6)*) con tipo, usuario si aplica, IP, ruta y fecha | CU-39 | Must |
 | RF-66 | Aplicar límite de tasa por usuario e IP en los endpoints de la capa de aplicación, en especial en la generación con IA, de forma independiente al cupo de créditos | CU-40 | Must |
 | RF-67 | Permitir al administrador liberar manualmente un bloqueo por límite de tasa antes de su expiración | CU-40 | Should |
+| RF-86 | Solo el **Propietario de la plataforma** invita administradores, reenvía o cancela invitaciones y revoca accesos. La invitación va a un correo **sin cuenta previa**, vence a las 72 horas y es de un solo uso. Para cualquier otro usuario, incluido un administrador que no es Propietario, la sección y sus endpoints responden 404 (RN-06, RN-31, RN-32) *(nuevo v6)* | CU-41, 42 | Must |
+| RF-87 | Revocar un administrador surte efecto **en la siguiente petición**, sin esperar a que caduque su sesión: pierde todo privilegio en el servidor y en RLS, se cierran sus sesiones y la cuenta queda bloqueada. Su perfil se conserva para la auditoría *(nuevo v6)* | CU-41 | Must |
 
 ### 4.12 Autorización y aislamiento *(nuevo v6)*
 

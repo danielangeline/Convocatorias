@@ -10,7 +10,9 @@
 >
 > **Pendiente de incorporar:** la **plantilla de instrucción (prompt) propia** con la que se genera el documento. El diseño la trata como configuración administrable y versionada (RF-63, tabla `plantillas_generacion`), de modo que se cargue y se ajuste sin desplegar código.
 >
-> **Adenda v5 (auditoría de seguridad + marketplace de consultores):** cobertura de RLS completa en las 26 tablas, MFA obligatorio para administradores, límite de tasa, saneamiento del TDR contra inyección de prompt, contexto de proyecto/convocatoria adjunto automáticamente al solicitar un consultor con tipo de ayuda explícito ("convocatoria específica" vs. "buscar convocatoria"), redes/sitio web del consultor condicionados a solicitud activa, y correo de contacto revelado solo al aceptar el encargo. Ver `CU-38..40`, `RF-64..70`, `RNF-25..28`, `RN-23..26`.
+> **Adenda v6, sesión 005 (acceso):** entrada con dos puertas (empresa o entidad / consultor), panel administrativo invisible (404) para quien no es administrador y administradores solo por invitación de un Propietario único. Ver `CU-14`, `CU-41..42`, `RF-84..87`, `RNF-35`, `RN-06`, `RN-31..32` y `docs/05 §9.12`. *El detalle del modelo de datos de esta adenda vive en los documentos separados.*
+>
+> **Adenda v5 (auditoría de seguridad + marketplace de consultores):** cobertura de RLS completa en las 26 tablas (27 desde la v6), MFA obligatorio para administradores, límite de tasa, saneamiento del TDR contra inyección de prompt, contexto de proyecto/convocatoria adjunto automáticamente al solicitar un consultor con tipo de ayuda explícito ("convocatoria específica" vs. "buscar convocatoria"), redes/sitio web del consultor condicionados a solicitud activa, y correo de contacto revelado solo al aceptar el encargo. Ver `CU-38..40`, `RF-64..70`, `RNF-25..28`, `RN-23..26`.
 
 ---
 
@@ -61,9 +63,10 @@ Heredado de la sección 6 del alcance inicial y ahora **operativo**: el document
 
 | Actor | Descripción | Casos de uso |
 |---|---|---|
-| **Usuario Empresa / Consultora** | Suscriptor. Explora el catálogo, registra proyectos, genera documentos con IA, postula, hace seguimiento y contrata consultores | CU-07..14, CU-19..24, CU-28..30, CU-33..34 |
+| **Usuario Empresa o entidad** *(v6: entra por la puerta "Soy empresa o entidad")* | Suscriptor. Explora el catálogo, registra proyectos, genera documentos con IA, postula, hace seguimiento y contrata consultores | CU-07..14, CU-19..24, CU-28..30, CU-33..34 |
 | **Consultor** | Suscriptor. Perfil aprobado por administrador; recibe y ejecuta encargos. **No genera documentos ni dispone de cupo propio de créditos de IA**: solo interviene sobre documentos que la empresa le autorice explícitamente (CU-34, RF-71), y esos ajustes los paga la empresa dueña (RN-28) *(precisado en v6)* | CU-14..18, CU-28..30, CU-34 |
-| **Administrador de Contenido** | Fuentes y convocatorias; revisión y aprobación de consultores; asignaciones internas; planes, precios y suscripciones; **seguridad y auditoría** *(v5)* | CU-01..05, CU-25..27, CU-31, CU-37, **CU-38..40** |
+| **Administrador de Contenido** | **Solo existe por invitación del Propietario (CU-41, CU-42) y con cuenta dedicada; el panel es invisible para cualquier otro usuario** *(v6)*. Fuentes y convocatorias; revisión y aprobación de consultores; asignaciones internas; planes, precios y suscripciones; **seguridad y auditoría** *(v5)* | CU-01..05, CU-25..27, CU-31, CU-37, **CU-38..40** |
+| **Propietario de la plataforma** *(nuevo v6)* | Un único administrador designado fuera de la aplicación (RN-31). Además de todo lo del Administrador, es el único que invita administradores y revoca su acceso | CU-41, más los del Administrador |
 | **Reloj del sistema** | pg_cron: cierre de convocatorias, vencimiento de suscripciones, reinicio mensual de créditos | CU-06, CU-32, CU-35 |
 | **Servicio de IA (Claude API)** | Actor externo. Recibe el contexto de generación y devuelve el documento base | CU-33 |
 | **Pasarela de pagos** | Actor externo, fase de evolución | CU-28, CU-29 |
@@ -201,11 +204,14 @@ Heredado de la sección 6 del alcance inicial y ahora **operativo**: el document
 
 ### Módulo D — Cuenta
 
-#### CU-14 · Registrarse / iniciar sesión
+#### CU-14 · Registrarse / iniciar sesión *(mod. v6)*
 
 | Campo | Contenido |
 |---|---|
-| **Flujo principal** | 1. Registro con correo y contraseña eligiendo rol **empresa** o **consultor**. 2. Empresa → acceso inmediato + trial de **7 días** *(mod. v6)* con 3 créditos de IA. Consultor → estado "perfil incompleto". 3. Login y recuperación de contraseña. El rol administrador se asigna manualmente |
+| **Actor** | Visitante (futura empresa o entidad, o consultor) |
+| **Flujo principal** | 1. La entrada (landing, registro e inicio de sesión) muestra **dos puertas: "Soy empresa o entidad" y "Soy consultor"**. Ninguna pantalla pública ofrece el rol administrador (RF-84, RF-85). 2. **Registro:** elige la puerta, escribe correo y contraseña y confirma su correo; la puerta fija el rol de la cuenta. 3. Empresa → portal Empresa con trial de **7 días** y 3 créditos de IA. Consultor → portal Consultor con perfil "incompleto". 4. **Inicio de sesión:** correo y contraseña desde cualquiera de las dos puertas; la cuenta entra siempre al portal de su rol. 5. Recuperación de contraseña |
+| **Flujos alternos** | 2a. El correo ya tiene cuenta → no se crea otra; se ofrece iniciar sesión. 4a. La puerta elegida no coincide con el rol de la cuenta → se le lleva a su portal real con el aviso "Tu cuenta es de empresa" / "Tu cuenta es de consultor". 4b. La cuenta es de administrador → pasa directo a la verificación en dos pasos (CU-38), sin ningún aviso que delate la existencia del panel |
+| **Postcondiciones** | Cada cuenta tiene un único rol, fijado al registrarse. Este caso de uso **nunca** produce un administrador: ese rol solo nace de CU-41 (RN-06, RN-32) |
 
 ### Módulo E — Perfil del consultor (Consultor)
 
@@ -213,7 +219,7 @@ Heredado de la sección 6 del alcance inicial y ahora **operativo**: el document
 
 | Campo | Contenido |
 |---|---|
-| **Flujo principal** | 1. Se registra con rol consultor. 2. Se crea la cuenta y el perfil vacío. 3. Solo accede a la edición de su perfil hasta ser aprobado |
+| **Flujo principal** | 1. Se registra por la puerta **"Soy consultor"** (CU-14) *(mod. v6)*. 2. Se crea la cuenta y el perfil vacío. 3. Solo accede a la edición de su perfil hasta ser aprobado |
 
 #### CU-16 · Crear y editar perfil de consultor
 
@@ -394,7 +400,7 @@ Heredado de la sección 6 del alcance inicial y ahora **operativo**: el document
 |---|---|
 | **Actor** | Administrador de Contenido |
 | **Descripción** | Configura un segundo factor (TOTP) para su propia cuenta; requisito obligatorio para operar con rol administrador |
-| **Precondiciones** | Cuenta con rol administrador ya creada |
+| **Precondiciones** | Cuenta de administrador creada por invitación del Propietario (CU-41) y activada (CU-42) *(mod. v6)* |
 | **Flujo principal** | 1. Al iniciar sesión sin MFA activo, el sistema bloquea el acceso a las funciones administrativas y ofrece "Activar verificación en dos pasos". 2. Escanea el código QR con una app autenticadora. 3. Confirma con un código de 6 dígitos. 4. El sistema marca `mfa_habilitado = true` en su perfil y permite continuar |
 | **Flujos alternos** | 3a. Código incorrecto → reintenta. 4a. Pérdida del segundo factor → recuperación asistida por soporte, fuera de la interfaz |
 | **Postcondiciones** | La cuenta no puede volver a operar funciones administrativas sin el segundo factor verificado en cada inicio de sesión (RNF-28) |
@@ -420,6 +426,30 @@ Heredado de la sección 6 del alcance inicial y ahora **operativo**: el document
 | **Flujo principal** | 1. Ve la lista de bloqueos activos con motivo, usuario/IP y expiración. 2. Selecciona uno. 3. "Liberar ahora" (pone `bloqueado_hasta` en el pasado) o lo deja expirar solo |
 | **Postcondiciones** | Bloqueo liberado y registrado en el evento correspondiente |
 
+### Módulo K — Gestión de administradores (Propietario) *(nuevo v6)*
+
+#### CU-41 · Gestionar administradores
+
+| Campo | Contenido |
+|---|---|
+| **Actor** | Propietario de la plataforma |
+| **Descripción** | Otorga y retira el acceso al panel administrativo. Es la **única** vía por la que una persona llega a ser administrador |
+| **Precondiciones** | Sesión del Propietario con segundo factor verificado (CU-38) |
+| **Flujo principal** | 1. Abre "Administradores" en el panel: ve los administradores activos, los revocados y las invitaciones pendientes, con quién hizo cada cosa y cuándo. 2. "Invitar administrador": escribe nombre y correo. 3. El sistema comprueba que el correo no tenga ya una cuenta (RN-32), registra la invitación con vencimiento a las 72 horas y envía el enlace. 4. Para retirar un acceso, elige un administrador → "Revocar acceso" → confirma. 5. El sistema le quita todo privilegio desde la siguiente petición, cierra sus sesiones y bloquea la cuenta (RF-87) |
+| **Flujos alternos** | 3a. El correo ya tiene cuenta de empresa o consultor → se rechaza: el administrador usa una cuenta dedicada. 3b. Ya hay una invitación pendiente para ese correo → se ofrece reenviarla o cancelarla. 4a. Intenta revocarse a sí mismo → no se permite (RN-31) |
+| **Postcondiciones** | Cada invitación, cancelación y revocación queda en `eventos_seguridad` con el Propietario que la hizo (RF-65) |
+| **Nota** | Para cualquier otro usuario —incluido un administrador que no es Propietario— esta sección responde 404 (RF-85, RF-86). El Propietario se designa fuera de la aplicación (RN-31) |
+
+#### CU-42 · Activar la cuenta de administrador invitada
+
+| Campo | Contenido |
+|---|---|
+| **Actor** | Persona invitada |
+| **Precondiciones** | Invitación pendiente y vigente (CU-41) |
+| **Flujo principal** | 1. Abre el enlace del correo. 2. Define su contraseña. 3. Activa el segundo factor (CU-38). 4. Entra al panel administrativo |
+| **Flujos alternos** | 1a. Invitación vencida, cancelada o ya usada → mensaje genérico de enlace no válido; debe pedir una nueva al Propietario |
+| **Postcondiciones** | Cuenta con rol administrador, sin portal de empresa ni de consultor y sin suscripción (RN-32). La invitación queda marcada como aceptada |
+
 ### Relaciones y dependencias
 
 - CU-03 **incluido en** CU-02 · CU-05 **exige** CU-02+03+04 · CU-11 **incluye** el checklist desde CU-04.
@@ -428,7 +458,8 @@ Heredado de la sección 6 del alcance inicial y ahora **operativo**: el document
 - CU-19 **nace dentro de** CU-09; CU-22 y CU-23 son **caminos alternos**; CU-24 solo sobre encargos completados.
 - **CU-20/CU-21 son también un punto de entrada del flujo de solicitud, no solo un destino de CU-19** *(RF-74, nuevo v5)*: desde el directorio o la ficha del consultor la empresa elige proyecto o postulación en el propio perfil y confirma — el resultado es el mismo encargo `pendiente` vía `directorio` que produce CU-22 al llegar desde CU-19 → CU-20.
 - CU-25 es **precondición** de CU-20. CU-32 y CU-35 son **precondiciones transversales** de CU-10, CU-11, CU-18, CU-19, CU-20 y CU-33.
-- **CU-38 (MFA activo) es precondición transversal de todo caso de uso del Administrador** (CU-01..05, CU-25..27, CU-31, CU-37, CU-39, CU-40): sin segundo factor verificado no hay acceso a funciones administrativas (RNF-28).
+- **CU-41 es la única puerta de entrada al rol administrador** *(nuevo v6)*: CU-42 la completa y CU-38 es su último paso. CU-14 nunca produce administradores (RN-06, RN-31, RN-32).
+- **CU-38 (MFA activo) es precondición transversal de todo caso de uso del Administrador** (CU-01..05, CU-25..27, CU-31, CU-37, CU-39, CU-40, **CU-41**): sin segundo factor verificado no hay acceso a funciones administrativas (RNF-28).
 - **CU-19 adjunta contexto (RF-68/69) que CU-22, CU-23, CU-26 y CU-18 heredan** — ninguno de esos cuatro vuelve a pedir esa información. El correo de contacto (RF-70) se revela en el mismo punto en los tres caminos de aceptación: CU-22 (directorio), CU-26 (asignación interna) — nunca antes de `en_curso` (RN-26).
 - **CU-34 (compartir con el consultor) es independiente de CU-22/CU-23/CU-26**: el encargo `en_curso` es precondición necesaria pero no suficiente — sin la autorización explícita de RF-71, el consultor no ve el documento aunque el encargo esté activo (RN-22, RN-27).
 - **CU-33/CU-34 tienen ahora tres puntos de entrada simétricos** (RF-53, *v5*): la ficha de la convocatoria (CU-08), la ficha del proyecto (CU-09) y el detalle de la postulación (CU-13) — los tres resuelven al mismo documento del par proyecto-convocatoria, no crean copias distintas.
@@ -455,9 +486,11 @@ Heredado de la sección 6 del alcance inicial y ahora **operativo**: el document
 
 | ID | Requerimiento | CU | Prioridad |
 |---|---|---|---|
-| RF-01 | Registro con elección de rol empresa o consultor; el administrador se asigna manualmente. El registro de empresa inicia el trial de **7 días** con 3 créditos *(mod. v6)* | CU-14 | Must |
-| RF-02 | Autenticar y restringir las funciones administrativas al rol administrador | CU-14 | Must |
+| RF-01 | Registro con elección entre **empresa o entidad** y **consultor**; la elección fija el rol de la cuenta. Ninguna pantalla pública ofrece el rol administrador, que solo se obtiene por invitación del Propietario (RF-86). El registro de empresa inicia el trial de **7 días** con 3 créditos *(mod. v6)* | CU-14 | Must |
+| RF-02 | Autenticar y restringir las funciones administrativas al rol administrador; **para cualquier otro usuario, autenticado o no, el panel no existe** (RF-85) *(mod. v6)* | CU-14 | Must |
 | RF-03 | Recuperación de contraseña por correo | CU-14 | Should |
+| RF-84 | La entrada —landing, registro e inicio de sesión— presenta **dos puertas: "Soy empresa o entidad" y "Soy consultor"**. En el registro la puerta fija el rol. En el inicio de sesión solo orienta: la cuenta entra siempre al portal de su rol y, si la puerta no coincide, se le informa y se le lleva al correcto. Una cuenta de administrador no recibe ese aviso y pasa directo a la verificación en dos pasos *(nuevo v6)* | CU-14 | Must |
+| RF-85 | El panel administrativo es **invisible para quien no es administrador**: toda ruta `/admin/*`, la verificación `/mfa` y todo endpoint `/api/admin/*` responden **404, indistinguible de una ruta inexistente**, a visitantes, empresas y consultores. Ningún portal, correo ni página pública enlaza al panel, y sus páginas llevan `noindex`. El intento se registra igualmente como `acceso_denegado` (RF-65) *(nuevo v6)* | CU-14, 41 | Must |
 
 ### 4.2 Fuentes y convocatorias (administrador)
 
@@ -577,9 +610,11 @@ Heredado de la sección 6 del alcance inicial y ahora **operativo**: el document
 | ID | Requerimiento | CU | Prioridad |
 |---|---|---|---|
 | RF-64 | Exigir verificación en dos pasos (MFA/TOTP) antes de permitir que una sesión con rol administrador opere cualquier función administrativa | CU-38 | Must |
-| RF-65 | Registrar cada evento de seguridad (login fallido, acceso denegado, bloqueo por límite de tasa, activación/fallo de MFA) con tipo, usuario si aplica, IP, ruta y fecha | CU-39 | Must |
+| RF-65 | Registrar cada evento de seguridad (login fallido, acceso denegado, bloqueo por límite de tasa, activación/fallo de MFA, **invitación, cancelación y revocación de administradores** *(mod. v6)*) con tipo, usuario si aplica, IP, ruta y fecha | CU-39 | Must |
 | RF-66 | Aplicar límite de tasa por usuario e IP en los endpoints de la capa de aplicación, en especial en la generación con IA, de forma independiente al cupo de créditos | CU-40 | Must |
 | RF-67 | Permitir al administrador liberar manualmente un bloqueo por límite de tasa antes de su expiración | CU-40 | Should |
+| RF-86 | Solo el **Propietario de la plataforma** invita administradores, reenvía o cancela invitaciones y revoca accesos. La invitación va a un correo **sin cuenta previa**, vence a las 72 horas y es de un solo uso. Para cualquier otro usuario, incluido un administrador que no es Propietario, la sección y sus endpoints responden 404 (RN-06, RN-31, RN-32) *(nuevo v6)* | CU-41, 42 | Must |
+| RF-87 | Revocar un administrador surte efecto **en la siguiente petición**, sin esperar a que caduque su sesión: pierde todo privilegio en el servidor y en RLS, se cierran sus sesiones y la cuenta queda bloqueada. Su perfil se conserva para la auditoría *(nuevo v6)* | CU-41 | Must |
 
 ### 4.12 Autorización y aislamiento *(nuevo v6)*
 
@@ -616,16 +651,17 @@ Requerimientos derivados de la auditoría de interfaz. Cada uno corrige un punto
 | RNF-01 | Autenticación y acceso | Contraseñas con hash seguro; funciones administrativas inaccesibles para otros roles incluso vía API | Empresa/consultor a endpoints admin → 403 |
 | RNF-02 | Cifrado | HTTPS/TLS en tránsito; archivos cifrados en reposo | Escaneo TLS y de buckets |
 | RNF-03 | Aislamiento de datos | Cada empresa ve solo sus proyectos, postulaciones, encargos **y documentos generados**; cada consultor solo sus encargos. Perfiles aprobados visibles salvo la hoja de vida. **Ningún endpoint de listado devuelve registros de otro propietario, ni siquiera parcialmente (RN-30)** *(criterio precisado en v6)* | Prueba cruzada entre 2 empresas y 2 consultores, **ejecutada listado por listado** (`/proyectos`, `/postulaciones`, `/documentos`, `/encargos`): cada cuenta ve exclusivamente lo propio |
-| RNF-25 | **Cobertura de RLS** | Row Level Security habilitado y con política explícita en las 26 tablas sin excepción; ninguna tabla nueva se despliega sin su política escrita y probada *(nuevo v5)* | Revisión de esquema: cada tabla tiene ≥1 política activa; lectura cruzada por tabla entre 2 cuentas → denegada |
+| RNF-25 | **Cobertura de RLS** | Row Level Security habilitado y con política explícita en las 27 tablas sin excepción; ninguna tabla nueva se despliega sin su política escrita y probada *(nuevo v5)* | Revisión de esquema: cada tabla tiene ≥1 política activa; lectura cruzada por tabla entre 2 cuentas → denegada |
 | RNF-26 | **Gobierno de credenciales elevadas** | La `service_role key` de Supabase solo se referencia en código de servidor (API routes, jobs de `pg_cron`); nunca en el bundle del cliente ni en variables `NEXT_PUBLIC_*` *(nuevo v5)* | Búsqueda de la key en el bundle compilado del cliente → 0 resultados |
 | RNF-27 | **Límite de tasa** | Los endpoints de la capa de aplicación —en especial la generación con IA— aplican límite de tasa por usuario e IP, independiente del cupo de créditos. **Si el almacén que lo sostiene no responde, rige RNF-33: se rechaza, no se permite** *(ampliado en v6)* | Ráfaga de requests por encima del límite → 429 antes de agotar el cupo real |
 | RNF-28 | **Autenticación reforzada de administradores** | Toda cuenta con rol administrador exige verificación en dos pasos (MFA/TOTP) para iniciar sesión; no se completa el login admin sin un segundo factor activo *(nuevo v5)* | Login admin sin MFA configurado → flujo obligatorio de activación antes de continuar |
 | RNF-29 | **Validación del enlace oficial de postulación** | El enlace debe ser una URL `http`/`https` bien formada, verificada en el servidor antes de guardar (no solo en el cliente); se rechaza cualquier otro esquema *(nuevo v5)* | Guardar `javascript:`, una cadena inválida o un dominio malformado → rechazado con mensaje claro |
-| RNF-30 | **Autorización por rol en rutas y endpoints** | Cada ruta de portal y cada endpoint declara explícitamente los roles admitidos. El acceso con un rol distinto se rechaza con 403 y se registra como `acceso_denegado` en `eventos_seguridad`. **Ningún control de rol vive solo en la interfaz**: ocultar un enlace o deshabilitar un botón no constituye autorización. Generaliza RNF-01, que hasta ahora solo cubría las funciones administrativas *(nuevo v6)* | Matriz rol × ruta ejecutada completa. En particular: consultor → `/convocatorias/[id]/generar` y `/documentos` → 403; empresa → cualquier ruta `/admin` → 403; y el evento correspondiente presente en la bitácora |
+| RNF-30 | **Autorización por rol en rutas y endpoints** | Cada ruta de portal y cada endpoint declara explícitamente los roles admitidos. El acceso con un rol distinto se rechaza con 403 —**con 404 en el panel administrativo, RNF-35** *(mod. v6)*— y se registra como `acceso_denegado` en `eventos_seguridad`. **Ningún control de rol vive solo en la interfaz**: ocultar un enlace o deshabilitar un botón no constituye autorización. Generaliza RNF-01, que hasta ahora solo cubría las funciones administrativas *(nuevo v6)* | Matriz rol × ruta ejecutada completa. En particular: consultor → `/convocatorias/[id]/generar` y `/documentos` → 403; empresa → cualquier ruta `/admin` → 403; y el evento correspondiente presente en la bitácora |
 | RNF-31 | **Defensa ante instrucciones incrustadas en documentos de terceros** | El texto extraído del TDR y demás adjuntos se sanea antes de entrar al prompt (RN-23): se neutralizan las instrucciones dirigidas al modelo y se aplica el tope de tamaño de contexto. La técnica empleada queda documentada, no implícita *(nuevo v6)* | Corpus de al menos 10 TDR con instrucciones incrustadas conocidas (ignorar reglas previas, revelar el prompt, alterar la estructura) → ninguna ejecutada por el modelo; el documento generado conserva la estructura derivada de los requisitos |
 | RNF-32 | **Retención y eliminación de contenido** | Se declara el plazo de conservación de los documentos generados, los registros de consumo de IA y el contenido enviado al proveedor externo, más el procedimiento de eliminación a petición del titular. Complementa RNF-16 (que cubre el perfil del consultor) y RNF-24 (que informa del tratamiento pero no del plazo), conforme a la Ley 1581 de 2012 *(nuevo v6)* | Política de retención publicada en los términos; solicitud de eliminación ejecutada extremo a extremo sobre una cuenta de prueba, incluidos documentos generados y bitácora de consumos |
 | RNF-33 | **Degradación segura de los controles** | Cuando un control de seguridad depende de un servicio externo y este no responde, la operación protegida se **rechaza** (fail-closed), nunca se permite por omisión. Aplica en particular al almacén del límite de tasa de RNF-27, que vive fuera de Postgres *(nuevo v6)* | Simulacro con el almacén de límite de tasa caído → la generación con IA responde 503/429, no 200; el incidente queda registrado |
 | RNF-34 | **Lenguaje de cara al usuario** | La interfaz **no muestra identificadores internos de la especificación** (`CU-xx`, `RF-xx`, `RNF-xx`, `RN-xx`) ni nomenclatura técnica del esquema: las reglas se explican con palabras que el usuario reconoce. Los identificadores son trazabilidad del equipo y viven en la documentación y en los comentarios del código, nunca en el texto renderizado *(nuevo v6)* | Búsqueda de los patrones `CU-`, `RF-`, `RNF-` y `RN-` sobre el texto visible de las tres portales → 0 resultados |
+| RNF-35 | **Panel administrativo oculto** | Para quien no es administrador, `/admin/*`, `/mfa` y `/api/admin/*` son indistinguibles de una ruta que no existe, y ningún recurso servido a visitantes, empresas o consultores revela la ruta del panel. Las páginas del panel no se indexan *(nuevo v6)* | Para cada ruta y endpoint administrativo, comparar la respuesta a anónimo, empresa y consultor con la de una ruta inventada: mismo código 404 y misma página. Buscar `/admin` en el HTML y el JavaScript servidos a esas sesiones: 0 coincidencias. El panel no figura en el `sitemap` ni en `robots.txt` |
 
 ### 5.2 Rendimiento
 
@@ -689,7 +725,7 @@ Requerimientos derivados de la auditoría de interfaz. Cada uno corrige un punto
 | RN-03 | No se puede postular ni generar documentos sobre convocatorias cerradas o despublicadas |
 | RN-04 | El checklist se genera copiando los requisitos vigentes al postular; ediciones posteriores no alteran postulaciones en curso |
 | RN-05 | El porcentaje de compatibilidad es un cálculo determinístico de coincidencias, no una predicción de éxito ni un resultado de IA, y así se comunica; la decisión de postular es del usuario |
-| RN-06 | El rol administrador se asigna manualmente; todo registro de autoservicio nace como empresa o consultor |
+| RN-06 | El rol administrador **solo lo otorga el Propietario de la plataforma, por invitación** (CU-41). Todo registro de autoservicio nace como empresa o consultor, y ningún dato enviado por el usuario al registrarse puede producir un administrador *(mod. v6)* |
 | RN-07 | Fuentes y convocatorias no se eliminan físicamente: se desactivan o despublican |
 | RN-08 | Un consultor aparece en el directorio solo si: perfil aprobado + no suspendido + suscripción activa |
 | RN-09 | Una calificación por encargo completado, emitida solo por la empresa de ese encargo, inmutable |
@@ -714,6 +750,8 @@ Requerimientos derivados de la auditoría de interfaz. Cada uno corrige un punto
 | RN-28 | **El consultor no tiene cupo propio de créditos de IA**: su plan no incluye ninguno, porque no existe operación que pueda consumirlo (generar exige proyecto propio, que el consultor no tiene). Por eso, cuando el ajuste con IA sobre un documento lo solicita un consultor autorizado, el consumo —si aplica, a partir del cuarto ajuste (RN-17)— se descuenta **siempre** del cupo de la **empresa** dueña del documento. **Queda prohibido cualquier caso de respaldo que cargue el consumo a quien dispara la acción:** si no hay encargo `en_curso` tampoco hay acceso al documento (RN-27), luego no existe situación en la que haga falta un cupo alternativo *(nuevo v5; ampliado en v6)* |
 | RN-29 | Suspender un consultor (CU-27) cancela de inmediato sus encargos `en_curso` — pasan a `cancelado` con un motivo registrado — sin alterar el historial ni las calificaciones ya emitidas; reactivar el perfil no los revive. El vencimiento de la suscripción del consultor (RN-10, CU-18) produce el mismo efecto sobre el dato, con un disparador distinto (el job diario, CU-32, en vez de una acción del administrador). **Ambos disparadores arrastran también la revocación de las autorizaciones de documento (RF-76)** *(nuevo v5; ampliado en v6)* |
 | RN-30 | **Toda entidad de datos de usuario —proyecto, postulación, documento generado, encargo— declara su propietario como columna del esquema, y ningún endpoint de listado se sirve sin filtrar por el propietario de la sesión.** El filtrado en la capa de aplicación no sustituye a la política RLS ni al revés: se exigen los dos. Es requisito de diseño desde el Sprint 0, igual que RN-24, no una revisión posterior *(nuevo v6)* |
+| RN-31 | Existe **un único Propietario de la plataforma**. Se designa y se cambia **solo fuera de la aplicación** —consola de la base de datos con credenciales de servicio—, nunca desde una pantalla ni un endpoint. Es administrador con MFA, no puede revocarse a sí mismo y es la única cuenta que otorga o retira el rol administrador *(nuevo v6)* |
+| RN-32 | **Cuenta de administrador dedicada:** un correo que ya tiene cuenta de empresa o de consultor no puede recibir una invitación de administrador, y una cuenta de administrador no tiene portal de empresa ni de consultor, ni suscripción. Un rol por cuenta *(nuevo v6)* |
 
 ---
 
@@ -781,7 +819,7 @@ flowchart TB
         CL["Claude API · redacción del documento base"]
     end
     subgraph DATOS["CAPA DE DATOS — Supabase"]
-        DB["PostgreSQL + RLS · 26 tablas"]
+        DB["PostgreSQL + RLS · 27 tablas"]
         ST["Storage · 3 buckets"]
         CR["pg_cron · 3 jobs"]
     end
@@ -838,7 +876,7 @@ Cada ruta declara los roles que admite (RNF-30). El rol se verifica en el servid
 
 ### 8.4 Capa de datos
 
-26 tablas con RLS **habilitado y con política explícita en todas, sin excepción** (RNF-25 — ver `docs/05-modelo-de-datos.md` §9.10 para las tablas base y §9.5 para las del módulo de IA) · Storage con 3 buckets (`documentos-convocatorias`, `fotos-consultores`, `hojas-de-vida` privado, URLs firmadas de máximo 15 min — RNF-16) · **pg_cron con 3 jobs diarios**: cierre de convocatorias, vencimiento de suscripciones con gracia y **reinicio mensual de créditos** · triggers para el rating del consultor.
+27 tablas con RLS **habilitado y con política explícita en todas, sin excepción** (RNF-25 — ver `docs/05-modelo-de-datos.md` §9.10 para las tablas base y §9.5 para las del módulo de IA) · Storage con 3 buckets (`documentos-convocatorias`, `fotos-consultores`, `hojas-de-vida` privado, URLs firmadas de máximo 15 min — RNF-16) · **pg_cron con 3 jobs diarios**: cierre de convocatorias, vencimiento de suscripciones con gracia y **reinicio mensual de créditos** · triggers para el rating del consultor.
 
 La `service_role key` de Supabase —que puede saltarse RLS— se usa **únicamente** dentro de las API routes de servidor y los jobs de `pg_cron`; nunca se referencia en código de cliente ni en variables `NEXT_PUBLIC_*` (RNF-26). El límite de tasa (RNF-27) se implementa en un almacén rápido fuera de Postgres (p. ej. Upstash Redis o Vercel Edge Config); solo el bloqueo confirmado se persiste en `eventos_seguridad` para auditoría. **Si ese almacén no responde, la operación protegida se rechaza en lugar de permitirse (fail-closed, RNF-33)**: un control de seguridad que depende de un servicio externo no puede volverse opcional cuando el servicio cae.
 
@@ -1026,7 +1064,7 @@ Cierra los vacíos detectados en la auditoría de seguridad de la arquitectura: 
 | Campo | Tipo | Restricción |
 |---|---|---|
 | id | uuid | PK |
-| tipo | text | check: `login_fallido` \| `acceso_denegado` \| `limite_tasa` \| `mfa_activado` \| `mfa_fallido` |
+| tipo | text | check: `login_fallido` \| `acceso_denegado` \| `limite_tasa` \| `mfa_activado` \| `mfa_fallido` \| `admin_invitado` \| `invitacion_cancelada` \| `admin_revocado` *(los tres últimos, v6 — RF-65)* |
 | usuario_id | uuid | FK → perfiles, **nullable** (un login fallido puede no resolver a un usuario existente) |
 | ip | inet | |
 | ruta | text | endpoint o recurso afectado |
@@ -1152,7 +1190,7 @@ Product Owner (fundador/socio) · Scrum Master (líder técnico) · 2 desarrolla
 
 | Sprint | Semanas | Contenido | Hito |
 |---|---|---|---|
-| 0 | 1–2 | Setup Vercel + Supabase, esquema completo (26 tablas), RLS, auth con 3 roles, CI/CD | H0: entorno y modelo desplegados |
+| 0 | 1–2 | Setup Vercel + Supabase, esquema completo (27 tablas), RLS, auth con 3 roles, CI/CD | H0: entorno y modelo desplegados |
 | 1 | 3–4 | Panel admin de convocatorias: fuentes, carga, categorías, documentos, requisitos, publicación validada | H1: 20 convocatorias reales publicadas |
 | 2 | 5–6 | Catálogo público: búsqueda, filtros, chips sugeridos, ficha de detalle, indicadores de la landing | H2: catálogo navegable con prueba social |
 | 3 | 7–8 | Proyectos enriquecidos con completitud + sugerencias con % de compatibilidad | H3: los dos caminos de búsqueda operando |
@@ -1228,7 +1266,7 @@ Product Owner (fundador/socio) · Scrum Master (líder técnico) · 2 desarrolla
 | CU-11 Iniciar postulación *(v6: vigencia verificada en servidor)* | RF-17, 21, **78** | RN-03, 04, 19, **RNF-20** |
 | CU-12 Checklist | RF-18, 20 | — |
 | CU-13 Estados *(v5: generar/editar documento, enlace al portal, solicitar consultor; v6: grafo de transiciones y jerarquía del portal)* | RF-19, 20, 28, 53, 73, **83** | RNF-11, 12, **RN-19** |
-| CU-14 Cuenta | RF-01, 02, 03 | RNF-01, **30**, RN-06 |
+| CU-14 Cuenta *(v6: dos puertas, panel oculto)* | RF-01, 02, 03, **84, 85** | RNF-01, **30, 35**, RN-06, **32** |
 | CU-15..17 Perfil consultor | RF-22..25 | RN-13, RNF-16, 18 |
 | CU-18 Encargos (consultor) *(v5: contexto, contacto)* | RF-30, 32, **68, 69, 70** | RN-10, **29**, RN-25, RN-26, RF-40 |
 | CU-19..23 Contratación *(v5: contexto, tipo de ayuda, contacto, solicitud directa, buscador; v6: visibilidad por pareja empresa-consultor)* | RF-26, 28..31, 68, 69, 70, 74, 75, **80** | RN-08, 12, 25, 26, RNF-19, **RNF-16, 30** |
@@ -1242,9 +1280,11 @@ Product Owner (fundador/socio) · Scrum Master (líder técnico) · 2 desarrolla
 | **CU-35 Cupo de créditos** | **RF-48, 49, 50, 52** | **RN-17, 18, RNF-20, 24** |
 | **CU-36 Indicadores landing** *(v6: cifra legible en reposo)* | **RF-44** | RNF-04, **RNF-07** |
 | **CU-37 Plantilla de generación** *(v4 — ausente de la matriz hasta v6)* | **RF-63** | **RNF-14, 22, 23** |
-| **CU-38 Activar MFA** *(v5)* | **RF-64** | **RNF-28** |
+| **CU-38 Activar MFA** *(v5; v6: la cuenta nace de CU-41/42)* | **RF-64** | **RNF-28**, RN-06 |
 | **CU-39 Eventos de seguridad** *(v5)* | **RF-65** | **RNF-11, 25, 26, 27** |
 | **CU-40 Bloqueos por límite de tasa** *(v5)* | **RF-66, 67** | **RNF-27, 33** |
+| **CU-41 Gestionar administradores** *(nuevo v6)* | **RF-65, 85, 86, 87** | **RN-06, 31, 32, RNF-28, 30, 35** |
+| **CU-42 Activar cuenta de administrador invitada** *(nuevo v6)* | **RF-03, 64, 86** | **RN-32, RNF-28** |
 | **Transversal — autorización y aislamiento** *(nuevo v6)* | **RF-76..80** | **RNF-03, 11, 16, 20, 30..33, RN-12, 27, 28, 30** |
 | **Transversal — usabilidad de los flujos** *(nuevo v6)* | **RF-81, 82, 83** | **RNF-07, 08, 14, 34** |
 

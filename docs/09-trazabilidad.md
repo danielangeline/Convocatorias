@@ -22,7 +22,7 @@
 | CU-11 Iniciar postulación *(v6: vigencia verificada en servidor)* | RF-17, 21, **78** | RN-03, 04, 19, **RNF-20** |
 | CU-12 Checklist | RF-18, 20 | — |
 | CU-13 Estados *(v5: generar/editar documento, enlace al portal, solicitar consultor; v6: grafo de transiciones y jerarquía del portal)* | RF-19, 20, 28, 53, 73, **83** | RNF-11, 12, **RN-19** |
-| CU-14 Cuenta | RF-01, 02, 03 | RNF-01, **30**, RN-06 |
+| CU-14 Cuenta *(v6: dos puertas, panel oculto)* | RF-01, 02, 03, **84, 85** | RNF-01, **30, 35**, RN-06, **32** |
 | CU-15..17 Perfil consultor | RF-22..25 | RN-13, RNF-16, 18 |
 | CU-18 Encargos (consultor) *(v5: contexto, contacto)* | RF-30, 32, **68, 69, 70** | RN-10, **29**, RN-25, RN-26, RF-40 |
 | CU-19..23 Contratación *(v5: contexto, tipo de ayuda, contacto, solicitud directa, buscador; v6: visibilidad por pareja empresa-consultor)* | RF-26, 28..31, 68, 69, 70, 74, 75, **80** | RN-08, 12, 25, 26, RNF-19, **RNF-16, 30** |
@@ -36,9 +36,11 @@
 | **CU-35 Cupo de créditos** | **RF-48, 49, 50, 52** | **RN-17, 18, RNF-20, 24** |
 | **CU-36 Indicadores landing** *(v6: cifra legible en reposo)* | **RF-44** | RNF-04, **RNF-07** |
 | **CU-37 Plantilla de generación** *(v4 — ausente de la matriz hasta v6)* | **RF-63** | **RNF-14, 22, 23** |
-| **CU-38 Activar MFA** *(v5)* | **RF-64** | **RNF-28** |
+| **CU-38 Activar MFA** *(v5; v6: la cuenta nace de CU-41/42)* | **RF-64** | **RNF-28**, RN-06 |
 | **CU-39 Eventos de seguridad** *(v5)* | **RF-65** | **RNF-11, 25, 26, 27** |
 | **CU-40 Bloqueos por límite de tasa** *(v5)* | **RF-66, 67** | **RNF-27, 33** |
+| **CU-41 Gestionar administradores** *(nuevo v6)* | **RF-65, 85, 86, 87** | **RN-06, 31, 32, RNF-28, 30, 35** |
+| **CU-42 Activar cuenta de administrador invitada** *(nuevo v6)* | **RF-03, 64, 86** | **RN-32, RNF-28** |
 | **Transversal — autorización y aislamiento** *(nuevo v6)* | **RF-76..80** | **RNF-03, 11, 16, 20, 30..33, RN-12, 27, 28, 30** |
 | **Transversal — usabilidad de los flujos** *(nuevo v6)* | **RF-81, 82, 83** | **RNF-07, 08, 14, 34** |
 

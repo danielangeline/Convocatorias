@@ -32,9 +32,10 @@ Heredado de la sección 6 del alcance inicial y ahora **operativo**: el document
 
 | Actor | Descripción | Casos de uso |
 |---|---|---|
-| **Usuario Empresa / Consultora** | Suscriptor. Explora el catálogo, registra proyectos, genera documentos con IA, postula, hace seguimiento y contrata consultores | CU-07..14, CU-19..24, CU-28..30, CU-33..34 |
+| **Usuario Empresa o entidad** *(v6: entra por la puerta "Soy empresa o entidad")* | Suscriptor. Explora el catálogo, registra proyectos, genera documentos con IA, postula, hace seguimiento y contrata consultores | CU-07..14, CU-19..24, CU-28..30, CU-33..34 |
 | **Consultor** | Suscriptor. Perfil aprobado por administrador; recibe y ejecuta encargos. **No genera documentos ni dispone de cupo propio de créditos de IA**: solo interviene sobre documentos que la empresa le autorice explícitamente (CU-34, RF-71), y esos ajustes los paga la empresa dueña (RN-28) *(precisado en v6)* | CU-14..18, CU-28..30, CU-34 |
-| **Administrador de Contenido** | Fuentes y convocatorias; revisión y aprobación de consultores; asignaciones internas; planes, precios y suscripciones; **seguridad y auditoría** *(v5)* | CU-01..05, CU-25..27, CU-31, CU-37, **CU-38..40** |
+| **Administrador de Contenido** | **Solo existe por invitación del Propietario (CU-41, CU-42) y con cuenta dedicada; el panel es invisible para cualquier otro usuario** *(v6)*. Fuentes y convocatorias; revisión y aprobación de consultores; asignaciones internas; planes, precios y suscripciones; **seguridad y auditoría** *(v5)* | CU-01..05, CU-25..27, CU-31, CU-37, **CU-38..40** |
+| **Propietario de la plataforma** *(nuevo v6)* | Un único administrador designado fuera de la aplicación (RN-31). Además de todo lo del Administrador, es el único que invita administradores y revoca su acceso | CU-41, más los del Administrador |
 | **Reloj del sistema** | pg_cron: cierre de convocatorias, vencimiento de suscripciones, reinicio mensual de créditos | CU-06, CU-32, CU-35 |
 | **Servicio de IA (Claude API)** | Actor externo. Recibe el contexto de generación y devuelve el documento base | CU-33 |
 | **Pasarela de pagos** | Actor externo, fase de evolución | CU-28, CU-29 |

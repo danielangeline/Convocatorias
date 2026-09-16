@@ -5,7 +5,7 @@
 
 ---
 
-**Actualizado:** 16 de septiembre de 2026 · cierre de la sesión 004
+**Actualizado:** 16 de septiembre de 2026 · cierre de la sesión 005
 **Sprint:** 1 · día 1 de 30
 **Rama de trabajo:** `sprint-1` — sin fusionar a `main`
 
@@ -13,17 +13,18 @@
 
 ## Dónde vamos
 
-La especificación está cerrada en **v6**. **La base de datos existe en Supabase** (26 tablas con RLS, prueba cruzada pasada) y **la identidad ya es real**: registro, login, confirmación de correo y MFA del administrador con Supabase Auth. El `ModoDemo` desapareció. Lo demás —proyectos, catálogo, postulaciones, documentos, encargos— sigue en datos de ejemplo de Zustand, filtrados por el `auth.uid()` real: una cuenta nueva empieza vacía y lo que crea se pierde al recargar.
+La especificación está cerrada en **v6**. **La base de datos existe en Supabase** (26 tablas con RLS, prueba cruzada pasada; el modelo v6 ya pide 27) y **la identidad ya es real**: registro, login, confirmación de correo y MFA del administrador con Supabase Auth. El `ModoDemo` desapareció. Lo demás —proyectos, catálogo, postulaciones, documentos, encargos— sigue en datos de ejemplo de Zustand, filtrados por el `auth.uid()` real: una cuenta nueva empieza vacía y lo que crea se pierde al recargar.
 
 ## Lo último que se hizo
 
-- **El trial pasa de 14 a 7 días** (decisión del Product Owner), con 3 créditos. Cambiado primero en la especificación: RF-01, RF-37, RN-11, CU-14, docs/00, docs/07.
-- **El trial es un plan** (`planes.es_trial`, `dias_trial`): la suscripción trial ya no tiene `plan_id` nulo. Decisión del Product Owner.
-- **Paso 3 del Sprint 1 hecho.** Migración `20260916130000`: trigger `al_registrar_cuenta` sobre `auth.users` que crea perfil y trial (empresa) o perfil incompleto (consultor); pedir `administrador` produce empresa (RN-06).
-- **App:** `proxy.ts`, layouts que exigen sesión en el servidor, `/registro`, `/login`, `/auth/confirmar`, `/mfa` (TOTP), Server Actions con eventos `login_fallido` / `mfa_activado` / `mfa_fallido`.
-- **Pasan a `servidor`:** RF-01, RF-37, RF-64, RNF-28, RN-06, RN-11.
+- **Sesión 005 (solo especificación, sin código):** nuevo modelo de acceso decidido por el Product Owner.
+  - **Entrada con dos puertas**, "Soy empresa o entidad" / "Soy consultor" (RF-84). El registro fija el rol; el login solo orienta y lleva al portal real.
+  - **Panel administrativo invisible:** 404 para quien no es administrador (RF-85, RNF-35). Cambia el Hito 1: el consultor recibe 404 en `/admin`.
+  - **Administradores solo por invitación de un Propietario único,** designado desde la consola, con cuenta dedicada y revocación inmediata (CU-41, CU-42, RF-86, RF-87, RN-06, RN-31, RN-32).
+  - Modelo de datos en `docs/05 §9.12`: `perfiles.es_propietario`, `admin_revocado_at` y tabla `invitaciones_admin`. **El esquema pasa a 27 tablas.**
+- **Sesión 004:** Supabase Auth real (registro, login, confirmación de correo, MFA TOTP), trial de 7 días como plan y trigger de registro. Pasaron a `servidor` RF-01, RF-37, RF-64, RNF-28 y RN-11.
 
-Detalle en [`docs/bitacora/2026-09-16-sesion-004.md`](docs/bitacora/2026-09-16-sesion-004.md).
+Detalle en [`docs/bitacora/2026-09-16-sesion-005.md`](docs/bitacora/2026-09-16-sesion-005.md) y [`…-sesion-004.md`](docs/bitacora/2026-09-16-sesion-004.md).
 
 ## En curso
 
@@ -34,17 +35,21 @@ Nada a medias en el código. **Falta la prueba en el navegador con sesión inici
 1. ~~Columnas de propietario (RN-30) sobre mocks~~ — sesión 002.
 2. ~~Proyecto Supabase y migraciones con RLS~~ — sesión 003.
 3. ~~Supabase Auth con los tres roles, trial y MFA~~ — sesión 004.
-4. **← Empezar aquí.** **`requireRole()` en toda ruta y endpoint** (RNF-30): hoy cualquier usuario autenticado abre `/admin`, `/consultor/*` o el portal empresa. Responder 403 y escribir `acceso_denegado` (RF-65). Los layouts ya leen la sesión con `obtenerSesion()` de `lib/auth.ts`: la guarda se apoya ahí.
-5. **Storage: 3 buckets**, hoja de vida privada con URLs firmadas de 15 min (RNF-16, RNF-18).
+4. **← Empezar aquí.** **`requireRole()` en toda ruta y endpoint** (RNF-30). Hoy cualquier usuario autenticado abre `/admin`, `/consultor/*` o el portal empresa. En los portales: 403 y evento `acceso_denegado` (RF-65). **En `/admin`, `/mfa` y `/api/admin`: 404, igual que una ruta inventada, también para anónimos** (RF-85, RNF-35). Los layouts ya leen la sesión con `obtenerSesion()` de `lib/auth.ts`.
+5. **Propietario y administradores por invitación** (CU-41, CU-42, RF-86, RF-87, RN-31, RN-32). Migración de `docs/05 §9.12`: columnas en `perfiles`, tabla `invitaciones_admin` con RLS, `es_admin()` con revocación y trigger de registro que reconoce la invitación. Después, `/admin/administradores` y `/auth/definir-contrasena`. Actualizar la prueba de RLS.
+6. **Entrada con dos puertas** en landing y login, y la etiqueta "empresa o entidad" (RF-84).
+7. **Storage: 3 buckets**, hoja de vida privada con URLs firmadas de 15 min (RNF-16, RNF-18).
 
-**Hito 1 (día 6):** un consultor recibe 403 en `/admin` y en `/convocatorias/[id]/generar`; dos empresas no ven nada la una de la otra en los cuatro listados. Probado, no supuesto. *La mitad RLS está probada; la autenticación real existe; falta la de rutas y endpoints.*
+> El Sprint 1 creció (pasos 5 y 6). Si no cabe en el día 6, lo primero que se mueve es Storage (paso 7) al Sprint 2.
+
+**Hito 1 (día 6):** un consultor recibe **404** en `/admin` (como un anónimo y como una ruta inventada) y **403** en `/convocatorias/[id]/generar`; solo el Propietario crea administradores; dos empresas no ven nada la una de la otra en los cuatro listados. Probado, no supuesto. *La mitad RLS está probada; la autenticación real existe; falta la de rutas y endpoints.*
 
 ## Infraestructura que ya existe
 
 - **Repositorio oficial (desde el 16-sep): `https://github.com/danielangeline/Convocatorias`**, remoto `origin`. El anterior, `DanielBohorquezP/Convocatorias`, queda como remoto `anterior` y ya no recibe pushes. La cuenta de la máquina (DanielBohorquezP) es colaboradora y ya subió `main`, `auditoria-v6` y `sprint-1`. Vercel ya está reconectado al repositorio nuevo (confirmado por el Product Owner en la sesión 003).
 - **Vercel está conectado al repositorio.** Cada push a `main` despliega a producción y cada push a otra rama crea una vista previa. El entregable "CI/CD en Vercel" del Sprint 1 **ya está cubierto**, con las variables de Supabase ya cargadas.
 - **Supabase** (`lqrqhehwqyphtdzplxhv`): enlazado con el CLI (`npx supabase`, dependencia de desarrollo). Esquema en `supabase/migrations/`, prueba de RLS en `supabase/tests/rls_aislamiento.sql`, 3 jobs en `pg_cron`.
-- **Producción:** `https://convocatorias-gamma.vercel.app`. Es la única URL que siempre sirve lo último.
+- **Producción (desde el 16-sep, repositorio nuevo):** `https://convocatorias-neon.vercel.app`. La anterior, `convocatorias-gamma`, ya no es la de referencia. **Producción despliega `main`, que todavía tiene el prototipo con el selector de modo demo**: lo de `sprint-1` no se ve ahí hasta fusionar. Es la única URL que siempre sirve lo último.
 - Las URLs con código (`convocatorias-xxxxxxxx-danielbohorquezps-projects.vercel.app`) apuntan a un despliegue fijo y **están protegidas con el inicio de sesión de Vercel**: no sirven para verificar desde fuera.
 - `.gitignore` ya excluye `.env*`, así que las claves locales no se suben al repositorio.
 
@@ -54,11 +59,12 @@ Ninguno para seguir programando. **Sí bloquea el registro real desde Vercel** e
 
 Pendiente del Product Owner:
 
-1. **URL Configuration de Auth en Supabase** (*Authentication → URL Configuration*): *Site URL* = `https://convocatorias-gamma.vercel.app`; *Redirect URLs* = `http://localhost:3000/**`, `https://convocatorias-gamma.vercel.app/**` y `https://convocatorias-*-danielbohorquezps-projects.vercel.app/**`. Sin esto, el enlace de confirmación de correo no vuelve a `/auth/confirmar`.
-2. **Probar en el navegador con sesión** las cuentas de prueba de la sesión 004 (`empresa.s004@example.com`, `consultor.s004@example.com`, `admin.s004@example.com`; la contraseña se dio en el chat de la sesión 004, no está en el repositorio): login, navbar con iniciales y "Salir", 3 créditos en el indicador, `/suscripcion` con el trial, y el QR de `/mfa` con una app autenticadora.
-3. **SMTP propio antes de los pilotos** (p. ej. Resend): el correo por defecto de Supabase envía muy pocos mensajes por hora.
-4. **Cambiar la contraseña de la base de datos** (quedó escrita en el chat de la sesión 003).
-5. **Docker Desktop no arranca** en esta máquina: no bloquea (las migraciones se ensayan en una transacción con `ROLLBACK` contra el remoto).
+1. **URL Configuration de Auth en Supabase** (*Authentication → URL Configuration*): *Site URL* = `https://convocatorias-neon.vercel.app`; *Redirect URLs* = `http://localhost:3000/**`, `https://convocatorias-neon.vercel.app/**` y `https://convocatorias-*-danielbohorquezps-projects.vercel.app/**`. Sin esto, el enlace de confirmación de correo no vuelve a `/auth/confirmar`.
+2. **Designarte como Propietario** cuando exista la migración del paso 5: crear tu cuenta de administrador desde la consola y marcar `es_propietario` (`docs/05 §9.12`). Hasta entonces, `admin.s004@example.com` es solo de prueba.
+3. **Probar en el navegador con sesión** las cuentas de prueba de la sesión 004 (`empresa.s004@example.com`, `consultor.s004@example.com`, `admin.s004@example.com`; la contraseña se dio en el chat de la sesión 004, no está en el repositorio): login, navbar con iniciales y "Salir", 3 créditos en el indicador, `/suscripcion` con el trial, y el QR de `/mfa` con una app autenticadora.
+4. **SMTP propio antes de los pilotos** (p. ej. Resend): el correo por defecto de Supabase envía muy pocos mensajes por hora.
+5. **Cambiar la contraseña de la base de datos** (quedó escrita en el chat de la sesión 003).
+6. **Docker Desktop no arranca** en esta máquina: no bloquea (las migraciones se ensayan en una transacción con `ROLLBACK` contra el remoto).
 
 ## Decisiones abiertas
 
@@ -67,7 +73,7 @@ Esperan al Product Owner. No bloquean el Sprint 1.
 | Decisión | Contexto | Cuándo hace falta |
 |---|---|---|
 | **Precio del plan Consultor** | Quedó en COP $69.000 al retirarle el cupo de IA. `docs/07 §10.2` marca los planes como "a validar con los pilotos" | Antes de cobrar |
-| **¿El catálogo es público?** | La landing prometía "Ver convocatorias sin registrarme", pero `docs/04 §8.2` marca `/convocatorias` como solo `empresa`, y la RLS sí deja leer el catálogo publicado a `anon`. En la sesión 004 el botón pasó a "Ya tengo cuenta" | Antes de `requireRole()` (paso 4) |
+| **¿El catálogo es público?** *(sigue abierta tras la sesión 005)* | La landing prometía "Ver convocatorias sin registrarme", pero `docs/04 §8.2` marca `/convocatorias` como solo `empresa`, y la RLS sí deja leer el catálogo publicado a `anon`. En la sesión 004 el botón pasó a "Ya tengo cuenta" | Antes de `requireRole()` (paso 4) |
 | **Proveedor del límite de tasa** | RNF-27 pide un almacén fuera de Postgres (Upstash Redis o Vercel Edge Config); no está elegido | Sprint 5 |
 
 ## Hallazgos no planificados

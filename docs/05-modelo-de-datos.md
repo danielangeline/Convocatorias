@@ -1,4 +1,4 @@
-# Modelo de datos (26 tablas)
+# Modelo de datos (27 tablas)
 
 > Parte de la especificación del MVP **v6** · Plataforma de Gestión de Convocatorias.
 > Índice general en `docs/README.md`. Contexto rápido en `CLAUDE.md`.
@@ -7,7 +7,7 @@
 
 ## 9. Modelo de datos
 
-**26 tablas**: 12 base de la v2 (incluida `perfiles`), 10 del módulo de consultores y suscripciones de la v3, 3 del módulo de IA y `eventos_seguridad` de la extensión de seguridad v5, más columnas nuevas en proyectos, planes, suscripciones y perfiles. *Hasta la sesión 003 el documento decía "24 tablas": la cifra no contaba `perfiles` ni `eventos_seguridad`; el conjunto de tablas no cambió.*
+**27 tablas**: 12 base de la v2 (incluida `perfiles`), 10 del módulo de consultores y suscripciones de la v3, 3 del módulo de IA y `eventos_seguridad` de la extensión de seguridad v5, más columnas nuevas en proyectos, planes, suscripciones y perfiles. *Hasta la sesión 003 el documento decía "24 tablas": la cifra no contaba `perfiles` ni `eventos_seguridad`; el conjunto de tablas no cambió.* *(v6, sesión 005: se agrega `invitaciones_admin`, §9.12)*
 
 ### 9.1 Diagrama entidad–relación (módulo de IA y su conexión)
 
@@ -48,7 +48,7 @@ erDiagram
 **SUSCRIPCIONES** — se agregan `creditos_usados_periodo` (int), `creditos_extra` (int, paquetes adicionales que no se reinician) y `periodo_creditos_inicio` (date, ancla del reinicio mensual). *(mod. v6, sesión 004)* `plan_id` es **not null también en el trial**: la suscripción trial apunta al plan con `es_trial`, y su `fecha_vencimiento` es `fecha_inicio + dias_trial`
 
 **Registro de cuentas** *(nuevo v6, sesión 004)* — un trigger `after insert` sobre `auth.users` crea en la misma transacción:
-- la fila de `perfiles`, con el rol leído de los metadatos del registro. **Solo `consultor` produce consultor; cualquier otro valor —incluido `administrador`— produce `empresa`** (RN-06). El administrador se asigna después, manualmente, con `service_role`;
+- la fila de `perfiles`, con el rol leído de los metadatos del registro. **Solo `consultor` produce consultor; cualquier otro valor —incluido `administrador`— produce `empresa`** (RN-06). La única excepción es la cuenta que el servidor crea para una invitación de administrador vigente, que se reconoce por `app_metadata` y no por los metadatos del usuario (§9.12);
 - si es empresa: la suscripción trial contra el plan trial (RF-37). Si no existe plan trial activo, el registro **falla** en lugar de crear una empresa sin trial;
 - si es consultor: la fila de `consultor_perfiles` en estado `incompleto`, sin suscripción (RN-11, CU-14).
 
@@ -190,7 +190,7 @@ Cierra los vacíos detectados en la auditoría de seguridad de la arquitectura: 
 | Campo | Tipo | Restricción |
 |---|---|---|
 | id | uuid | PK |
-| tipo | text | check: `login_fallido` \| `acceso_denegado` \| `limite_tasa` \| `mfa_activado` \| `mfa_fallido` |
+| tipo | text | check: `login_fallido` \| `acceso_denegado` \| `limite_tasa` \| `mfa_activado` \| `mfa_fallido` \| `admin_invitado` \| `invitacion_cancelada` \| `admin_revocado` *(los tres últimos, v6 — RF-65)* |
 | usuario_id | uuid | FK → perfiles, **nullable** (un login fallido puede no resolver a un usuario existente) |
 | ip | inet | |
 | ruta | text | endpoint o recurso afectado |
@@ -261,14 +261,54 @@ Hasta v4 solo estaba documentada la política de las tablas nuevas del módulo d
 Decisiones de mecanismo tomadas al escribir las migraciones (`supabase/migrations/`). No cambian qué puede ver cada rol; fijan cómo se garantiza.
 
 1. **Mínimo privilegio en escritura.** Lo que §9.5 y §9.10 no conceden expresamente al usuario lo escribe solo el servidor (API routes con `service_role`, RNF-26, o jobs de `pg_cron`): encargos y sus avances, calificaciones fuera de la inserción única, consumos de IA, eventos de seguridad, suscripciones y pagos. Esas tablas tienen política de lectura, sin política de escritura para `authenticated`.
-2. **Columnas protegidas en filas editables.** Donde el usuario puede editar su propia fila, un trigger rechaza el cambio de las columnas que no le corresponden: en `perfiles`, `rol` y `mfa_habilitado`; en `consultor_perfiles`, `estado_perfil`, `motivo_rechazo`, `es_equipo_interno`, `revisado_por`/`revisado_at`, `rating_promedio` y `total_encargos_completados`; en `proyectos` y `postulaciones`, el propietario; en `documentos_generados`, todo salvo `titulo` (solo dueño), `contenido` y `pendientes`. El `service_role` no queda sujeto a estos triggers.
-3. **Administrador = rol + MFA verificado.** Toda política que concede algo al administrador exige además `aal2` en el JWT de la sesión (RNF-28, RN-24). Un administrador sin segundo factor verificado se trata como un usuario sin privilegios.
+2. **Columnas protegidas en filas editables.** Donde el usuario puede editar su propia fila, un trigger rechaza el cambio de las columnas que no le corresponden: en `perfiles`, `rol`, `mfa_habilitado`, `es_propietario`, `admin_revocado_at` y `admin_revocado_por`; en `consultor_perfiles`, `estado_perfil`, `motivo_rechazo`, `es_equipo_interno`, `revisado_por`/`revisado_at`, `rating_promedio` y `total_encargos_completados`; en `proyectos` y `postulaciones`, el propietario; en `documentos_generados`, todo salvo `titulo` (solo dueño), `contenido` y `pendientes`. El `service_role` no queda sujeto a estos triggers.
+3. **Administrador = rol + MFA verificado + acceso no revocado.** Toda política que concede algo al administrador exige además `aal2` en el JWT de la sesión (RNF-28, RN-24) y `admin_revocado_at is null` en su perfil (RF-87, *sesión 005*). Un administrador sin segundo factor verificado, o revocado, se trata como un usuario sin privilegios. **Propietario = administrador + `es_propietario`.**
 4. **Contacto del consultor por columna.** RLS filtra filas, no columnas. `sitio_web` y `cv_path` quedan sin permiso de lectura directa para `anon` y `authenticated`, y se leen con la función `public.contacto_consultor(consultor_id)`, que los devuelve solo al propio consultor, al administrador o a la empresa con solicitud activa con él (RF-80). `consultor_redes` sigue la misma condición con RLS por fila.
 5. **Solicitud activa** (RF-80) = existe un encargo de la pareja (empresa de la sesión, consultor) en estado `pendiente` o `en_curso`.
 6. **Acceso derivado del consultor a documentos** (RN-27): la política no se fía de `compartido_con_consultor_id` sola; exige además un encargo `en_curso` de ese consultor sobre el proyecto del documento, evaluado en cada consulta.
 7. **Lecturas agregadas por necesidad.** La empresa sigue viendo las convocatorias cerradas o despublicadas que están vinculadas a sus postulaciones, encargos o documentos, porque si no su historial quedaría sin nombre. También ve el perfil de los consultores con los que tuvo encargos, aunque estén suspendidos (RN-15). Estos vínculos se resuelven con funciones `security definer` para evitar recursión entre políticas.
 8. **`fuentes` solo para el administrador.** Son configuración interna (notas de parametrización) y el portal público no las muestra; la "lectura pública" de §9.10 aplica a convocatorias, categorías y a las tablas hijas de la convocatoria.
-9. **La cuenta la crea la base, no el cliente** *(sesión 004)*. `perfiles`, la suscripción trial y `consultor_perfiles` nacen del trigger de registro sobre `auth.users` (ver §9.2), que corre con los privilegios de su dueño. Ninguna de esas tablas gana política de insert para usuarios.
+9. **La cuenta la crea la base, no el cliente** *(sesión 004; ampliado en la sesión 005 con las invitaciones de administrador, §9.12)*. `perfiles`, la suscripción trial y `consultor_perfiles` nacen del trigger de registro sobre `auth.users` (ver §9.2), que corre con los privilegios de su dueño. Ninguna de esas tablas gana política de insert para usuarios.
+
+
+### 9.12 Propietario y administradores por invitación *(nuevo v6, sesión 005)*
+
+Implementa RN-06, RN-31, RN-32 y RF-85..87: el rol administrador deja de asignarse "a mano" y pasa a otorgarlo solo el Propietario, con registro de cada alta y baja.
+
+**Columnas nuevas en PERFILES**
+
+| Campo | Tipo | Restricción |
+|---|---|---|
+| es_propietario | boolean | not null, default false · **índice único parcial `where es_propietario`**: como máximo uno · check: `not es_propietario or rol = 'administrador'` · solo se escribe desde la consola con `service_role` (RN-31) |
+| admin_revocado_at | timestamptz | nullable · no nulo = acceso revocado; `privado.es_admin()` lo exige nulo (RF-87) · check: `admin_revocado_at is null or not es_propietario` |
+| admin_revocado_por | uuid | FK → perfiles, nullable · quién revocó |
+
+**Nueva tabla INVITACIONES_ADMIN**
+
+| Campo | Tipo | Restricción |
+|---|---|---|
+| id | uuid | PK |
+| correo | text | not null, en minúsculas · índice único parcial `where estado = 'pendiente'` |
+| nombre | text | |
+| estado | text | check: `pendiente` \| `aceptada` \| `cancelada` \| `vencida` |
+| invitado_por | uuid | FK → perfiles, not null (el Propietario) |
+| usuario_id | uuid | FK → perfiles, nullable · la cuenta que la aceptó |
+| creada_at | timestamptz | default now() |
+| expira_at | timestamptz | not null, `creada_at + 72 horas` |
+| resuelta_at | timestamptz | nullable · aceptación, cancelación o vencimiento |
+
+**Políticas RLS**
+
+| Tabla | Política |
+|---|---|
+| invitaciones_admin | Lectura solo para el Propietario con `aal2`; **sin escritura para `authenticated`**: la escriben el servidor (`service_role`) y el trigger de registro |
+| perfiles | Se mantiene §9.10. Ninguna política deja a un administrador cambiar el rol, la revocación ni la marca de Propietario de otro perfil |
+
+**Cómo nace un administrador.** El endpoint de invitación, solo para el Propietario, comprueba que el correo no tenga cuenta (RN-32), inserta la invitación y crea la cuenta en Auth con `app_metadata.invitacion_id`. Ese campo solo se escribe con credenciales de servicio: un registro público no puede fijarlo. Después envía el enlace para definir la contraseña (CU-42). El trigger de registro (§9.2) da rol `administrador` **solo si** `app_metadata.invitacion_id` apunta a una invitación `pendiente`, no vencida y del mismo correo. En ese caso marca la invitación `aceptada` y no crea trial ni perfil de consultor. En cualquier otro caso aplica la regla normal.
+
+**Cómo se revoca.** El endpoint de revocación, solo para el Propietario y nunca sobre sí mismo, escribe `admin_revocado_at`/`admin_revocado_por` con `service_role`. Con eso la RLS le niega todo en la siguiente consulta. Además cierra sus sesiones y bloquea la cuenta en Auth, y registra `admin_revocado`.
+
+**Cómo se designa el Propietario.** Una sola vez, desde la consola de la base de datos: `update perfiles set es_propietario = true where id = …`, sobre una cuenta de administrador ya creada. Ninguna migración de la aplicación lo fija a un usuario concreto. El primer administrador —el Propietario— se crea igualmente desde la consola, porque todavía no hay quién invite.
 
 ---
 

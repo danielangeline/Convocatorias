@@ -31,8 +31,10 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RF | Estado | Nota |
 |---|---|---|
 | RF-01 Registro con rol y trial | servidor | Sesión 004: `/registro` con Supabase Auth y confirmación de correo; el trigger `al_registrar_cuenta` crea perfil y trial o perfil de consultor. Probado vía la API de Auth; falta el recorrido completo por el formulario con un correo real |
-| RF-02 Restringir funciones administrativas | pendiente | Sesión 004: la autenticación es real y todo portal exige sesión en el servidor, y RLS niega privilegios al no administrador. Pero `/admin` aún se abre con otro rol autenticado: entra con `requireRole()` (RNF-30) |
+| RF-02 Restringir funciones administrativas | pendiente | Sesión 004: autenticación real; todo portal exige sesión en el servidor y la RLS niega privilegios al no administrador. Sesión 005: la especificación exige además que el panel **no exista** para los demás (404, RF-85). Hoy `/admin` redirige a `/login` sin sesión y se abre con otro rol autenticado |
 | RF-03 Recuperación de contraseña | pendiente | — |
+| RF-84 Entrada con dos puertas *(v6, sesión 005)* | pendiente | El registro ya ofrece empresa/consultor (sesión 004); faltan la landing y el login con las dos puertas y el aviso de portal equivocado. Cambiar la etiqueta a "empresa o entidad" |
+| RF-85 Panel administrativo oculto *(v6, sesión 005)* | pendiente | Sprint 1, junto a `requireRole()`: 404 en `/admin`, `/mfa` y `/api/admin` para no administradores, `noindex` |
 
 ### 4.2 Fuentes y convocatorias (administrador)
 
@@ -155,6 +157,8 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RF-65 Registrar eventos de seguridad | prototipo | Sesión 004: `login_fallido`, `mfa_activado` y `mfa_fallido` ya se escriben en `eventos_seguridad` con `service_role`. Faltan `acceso_denegado` (RNF-30) y `limite_tasa` (RNF-27), y el panel sigue leyendo el mock |
 | RF-66 Límite de tasa | pendiente | |
 | RF-67 Liberar bloqueo | prototipo | |
+| RF-86 Solo el Propietario invita y revoca administradores *(v6, sesión 005)* | pendiente | Modelo en docs/05 §9.12: `perfiles.es_propietario`, tabla `invitaciones_admin` y trigger que reconoce la invitación por `app_metadata` |
+| RF-87 Revocación inmediata *(v6, sesión 005)* | pendiente | `perfiles.admin_revocado_at` en `privado.es_admin()` + cierre de sesiones y bloqueo en Auth |
 
 ### 4.12 Autorización y aislamiento *(v6)*
 
@@ -204,7 +208,7 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RNF-22 Independencia del proveedor de IA | pendiente | 4 | |
 | RNF-23 Veracidad del contenido | prototipo | 4 | El principio está bien implementado |
 | RNF-24 Transparencia del uso de IA | pendiente | 4 | |
-| RNF-25 Cobertura de RLS | servidor | 1 | 26 tablas, todas con RLS y ≥1 política (95 en total), comprobado por consulta al catálogo (sesión 003). La lectura cruzada con 2 cuentas cubre las tablas de usuario, no aún las 26 una por una |
+| RNF-25 Cobertura de RLS | servidor | 1 | 26 tablas, todas con RLS y ≥1 política (95 en total), comprobado por consulta al catálogo (sesión 003). La lectura cruzada con 2 cuentas cubre las tablas de usuario, no aún las 26 una por una. **Sesión 005:** el modelo pasa a 27 tablas; falta crear `invitaciones_admin` con su política |
 | RNF-26 Credenciales elevadas | pendiente | 1 | |
 | RNF-27 Límite de tasa | pendiente | 5 | |
 | RNF-28 MFA de administradores | servidor | 1 | Sesión 004: enrolamiento TOTP en Supabase Auth y redirección a `/mfa` en el servidor. Probado por código: admin en `aal1` sin privilegios; tras verificar el TOTP, `aal2` y lectura de todo. Falta probar la pantalla en el navegador |
@@ -214,6 +218,7 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RNF-32 Retención y eliminación | pendiente | 5 | |
 | RNF-33 Degradación fail-closed | pendiente | 5 | |
 | RNF-34 Lenguaje sin identificadores | prototipo | — | Verificado: 0 en texto renderizado |
+| RNF-35 Panel administrativo oculto *(v6, sesión 005)* | pendiente | 1 | Criterio: misma respuesta 404 que una ruta inventada y 0 menciones de `/admin` en lo servido a no administradores |
 
 ---
 
@@ -229,7 +234,9 @@ Las 30 reglas están documentadas; estas son las que todavía no se hacen cumpli
 | RN-17 Un crédito por generación exitosa | prototipo | 4 — RLS impide crear documentos y tocar el contador de ajustes o los créditos desde el cliente (sesión 003) |
 | RN-18 Reinicio mensual, sin acumular | pendiente | 4 |
 | RN-23 Saneamiento del TDR | pendiente | 4 |
-| RN-06 Rol admin solo manual | servidor | 1 — el trigger de registro convierte cualquier rol distinto de `consultor` en `empresa`, y el perfil no deja cambiar el rol desde el cliente (sesión 004) |
+| RN-06 Rol admin solo por invitación del Propietario *(mod. v6, sesión 005)* | pendiente | 1 — el autorregistro ya no produce administradores (trigger, sesión 004); falta la vía de invitación (CU-41) |
+| RN-31 Propietario único, designado fuera de la app *(v6)* | pendiente | 1 |
+| RN-32 Cuenta de administrador dedicada *(v6)* | pendiente | 1 |
 | RN-11 Un trial por cuenta de empresa | servidor | 1 — índice único parcial y trigger de registro; el consultor nace sin suscripción (sesión 004) |
 | RN-24 RLS desde el Sprint 0 | servidor | 1 — cada tabla nació con su política en la misma migración (sesión 003) |
 | RN-26 Contacto solo en `en_curso` | prototipo | 5 |

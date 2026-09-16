@@ -24,7 +24,7 @@ Tres cosas no dependen de la velocidad de programación y conviene decirlas ante
 | **Piloto con 3 usuarios reales** (RNF-07) y **≥50 convocatorias publicadas** (métrica de éxito) | Depende de personas y de carga manual de contenido, no de código | Se saca del plazo de 30 días: el día 30 entrega la plataforma en producción, no el piloto ejecutado |
 | **Auditoría de veracidad sobre 10 documentos** (RNF-23) | Necesita revisión experta, no automatizable | Se ejecuta en el Sprint 5 con proyectos deliberadamente incompletos |
 
-**Compromiso del día 30:** la aplicación completa en producción, con las 26 tablas bajo RLS, los tres portales funcionando contra datos reales, la generación con IA operativa y los 83 RF verificados. **No** incluye el piloto con usuarios ni el catálogo poblado con 50 convocatorias reales: eso es trabajo de contenido que corre en paralelo y después.
+**Compromiso del día 30:** la aplicación completa en producción, con las 27 tablas bajo RLS, los tres portales funcionando contra datos reales, la generación con IA operativa y los 83 RF verificados. **No** incluye el piloto con usuarios ni el catálogo poblado con 50 convocatorias reales: eso es trabajo de contenido que corre en paralelo y después.
 
 ---
 
@@ -94,15 +94,16 @@ Lo primero es lo que el prototipo no puede simular y lo que más caro sale corre
 
 | Entregable | Requerimientos |
 |---|---|
-| Proyecto Supabase, migraciones de las 26 tablas, **cada una con su política RLS en el mismo commit** | RNF-25, RN-24 |
+| Proyecto Supabase, migraciones de las 27 tablas, **cada una con su política RLS en el mismo commit** | RNF-25, RN-24 |
 | Columnas de propietario en proyectos, postulaciones, documentos generados y encargos | **RN-30** |
-| Supabase Auth con los tres roles; `lib/session.ts` y el `ModoDemo` desaparecen | RF-01, RF-02, RN-06 |
-| Middleware `requireRole()` en toda ruta y endpoint | **RNF-30** |
+| Supabase Auth con los tres roles; `lib/session.ts` y el `ModoDemo` desaparecen; **entrada con dos puertas** (empresa o entidad / consultor) | RF-01, RF-02, RN-06, **RF-84** |
+| Middleware `requireRole()` en toda ruta y endpoint; **panel administrativo oculto (404)** | **RNF-30**, **RF-85, RNF-35** |
+| **Propietario y administradores por invitación**: invitar, activar y revocar *(sesión 005)* | **RF-86, RF-87, RN-31, RN-32** |
 | MFA obligatorio para administradores | RNF-28, RF-64 |
 | Storage: 3 buckets, hoja de vida privada con URLs firmadas de 15 min | RNF-16, RNF-18 |
 | CI/CD en Vercel con despliegue de vista previa | — |
 
-**Hito 1 —** Un consultor autenticado recibe **403** en `/admin` y en `/convocatorias/[id]/generar`; dos empresas distintas no ven nada la una de la otra en ninguno de los cuatro listados. Ambas cosas probadas, no supuestas.
+**Hito 1 —** Un consultor autenticado recibe **404** en `/admin` —igual que un anónimo y que una ruta inventada— y **403** en `/convocatorias/[id]/generar`; solo el Propietario convierte a alguien en administrador; dos empresas distintas no ven nada la una de la otra en ninguno de los cuatro listados. Ambas cosas probadas, no supuestas.
 
 ---
 
