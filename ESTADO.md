@@ -7,7 +7,7 @@
 
 **Actualizado:** 17 de septiembre de 2026 · cierre de la sesión 010
 **Sprint:** 1 · día 1 de 30
-**Rama de trabajo:** `sprint-1` — la sesión 010 queda en `sprint-1` y en `origin/sprint-1` (vista previa de Vercel); **sin fusionar a `main`** hasta que el Product Owner lo pida. Sin migraciones nuevas
+**Rama de trabajo:** `sprint-1` (el Sprint 2 puede seguir en ella o abrir `sprint-2`) — al cierre de la sesión 010, `main` y `sprint-1` iguales y subidos a `origin`: producción despliega las dos puertas y la recuperación de contraseña. Sin migraciones nuevas
 
 ---
 
