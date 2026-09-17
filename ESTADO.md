@@ -5,7 +5,7 @@
 
 ---
 
-**Actualizado:** 16 de septiembre de 2026 · cierre de la sesión 007
+**Actualizado:** 16 de septiembre de 2026 · cierre de la sesión 008
 **Sprint:** 1 · día 1 de 30
 **Rama de trabajo:** `sprint-1` — fusionada a `main` al cierre de la sesión 006 (producción ya despliega Auth real)
 
@@ -17,17 +17,15 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 
 ## Lo último que se hizo
 
-- **Sesión 007: `requireRole()` hecho (paso 4).**
-  - `lib/autorizacion/matriz.ts` declara la matriz rol × ruta y `proxy.ts` la aplica a cada petición: páginas, RSC, Server Actions y `/api`.
-  - Cerrada por defecto: una ruta sin declarar responde 404.
-  - Portales: 403 y `acceso_denegado`. Panel y `/mfa`: 404 idéntico al de una ruta inexistente, también para anónimos, y `noindex`.
-  - Los layouts repiten la comprobación con `exigirRol()`.
-  - **Matriz probada** con `scripts/prueba-matriz-roles.mjs` contra el build de producción: 44 comprobaciones que pasan. **RNF-35 queda `verificado`**; RF-02, RF-85 y RNF-30 pasan a `servidor`.
-- **Defecto corregido (migración `20260916150000`):** `service_role` no podía escribir `perfiles` (42501 en el esquema `privado`). Por eso `mfa_habilitado` del Propietario había quedado en `false` aunque el MFA estaba activo; ya está en `true`.
-- **Hallazgo que bloquea el paso 5:** el mecanismo de invitación de `docs/05 §9.12` no funciona. `createUser` escribe `app_metadata` después del `insert`, y el trigger no ve la invitación. Ver hallazgos.
-- **Sesión 006:** catálogo solo para empresas, Propietario designado (ya activó su cuenta y su MFA), Storage al Sprint 2.
+- **Sesión 008: rediseño de las invitaciones de administrador.**
+  - El trigger de registro ya no intenta reconocer invitaciones: nunca veía `app_metadata`.
+  - El servidor convierte la cuenta con `aceptar_invitacion_admin()`, que solo ejecuta `service_role` y valida que la invitación esté pendiente y vigente, que el correo coincida y que la cuenta sea posterior a la invitación.
+  - `privado.admin_vigente()` es la regla única de administrador con privilegios (no revocado y sin invitación vencida sin activar). La usan la RLS y `rol_efectivo()`, que leen `proxy.ts` y `obtenerSesion()`.
+  - Migración `20260916160000`, especificación en `docs/05 §9.12`, CU-41, CU-42, RF-86 y `docs/04`.
+  - Probado en la prueba de RLS, contra el servicio real de Auth y en `scripts/prueba-matriz-roles.mjs`, que ahora crea su administrador por invitación: 46 comprobaciones que pasan.
+- **Sesión 007:** `requireRole()` en `proxy.ts` con panel oculto (404) y corrección del permiso de `service_role`.
 
-Detalle en [`docs/bitacora/2026-09-16-sesion-007.md`](docs/bitacora/2026-09-16-sesion-007.md).
+Detalle en [`docs/bitacora/2026-09-16-sesion-008.md`](docs/bitacora/2026-09-16-sesion-008.md).
 
 ## En curso
 
@@ -39,11 +37,16 @@ Nada a medias en el código. **Falta la prueba en el navegador con sesión inici
 2. ~~Supabase y migraciones con RLS~~ — sesión 003.
 3. ~~Supabase Auth, trial y MFA~~ — sesión 004.
 4. ~~`requireRole()` y panel oculto~~ — sesión 007.
-5. **← Empezar aquí.** **Gestión de administradores** (CU-41, CU-42, RF-86, RF-87, RN-32). **Primero, rediseñar en `docs/05 §9.12` cómo nace el administrador**: el trigger no ve `app_metadata`. Una opción es una función de aceptación que el servidor ejecute con `service_role` justo después de `createUser`: valida la invitación, convierte el perfil, retira el trial y vincula la invitación. Después:
-   - endpoints de invitar, reenviar, cancelar y revocar (con cierre de sesiones y bloqueo en Auth);
-   - `/admin/administradores`, declarada en la matriz solo para el Propietario;
-   - invitación `aceptada` al activar el MFA;
-   - añadir el caso de invitación a `scripts/prueba-matriz-roles.mjs`.
+5. **← Empezar aquí.** **Gestión de administradores en la app** (CU-41, CU-42, RF-86, RF-87, RN-32). La base ya está rediseñada y probada (sesión 008). Falta:
+   - declarar en `lib/autorizacion/matriz.ts` las rutas `/admin/administradores` y `/api/admin/administradores`, `/api/admin/invitaciones`, **solo para el Propietario**, con 404 para los demás administradores (hoy la matriz solo distingue el rol);
+   - endpoints, según docs/04 §8.3 y docs/05 §9.12:
+     - invitar: `correo_tiene_cuenta` → invitación → `inviteUserByEmail` → `aceptar_invitacion_admin`, y si algo falla, borrar la cuenta;
+     - reenviar;
+     - cancelar, que borra la cuenta sin activar;
+     - revocar, que marca, bloquea en Auth y registra `admin_revocado`;
+   - pantalla `/admin/administradores`;
+   - `confirmarMfa` marca la invitación `aceptada`.
+   - Probar la invitación con un correo real: el enlace de `inviteUserByEmail` y la pantalla `/auth/definir-contrasena`.
 6. **Entrada con dos puertas** en landing y login, con la etiqueta "empresa o entidad" (RF-84).
 
 Storage (3 buckets) pasó al Sprint 2 (sesión 006). **Regla nueva:** toda pantalla o endpoint nuevo se declara en `lib/autorizacion/matriz.ts`; si no, responde 404.
@@ -98,7 +101,7 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | Tres nombres de política de la migración `20260916120400` superan 63 bytes y Postgres los guardó recortados; no chocan, pero no coinciden letra a letra con el archivo | `supabase/migrations/20260916120400_consultores_y_encargos.sql` | baja · cosmético |
 | El prototipo cuenta como "solicitud activa" los encargos `completado` y `calificado`; RF-80 ya fija `pendiente`/`en_curso` | `app/(portal)/consultores/[id]/page.tsx:60` | baja · se alinea al conectar el endpoint |
 | **Supabase no admite `http://localhost:3000/**` en *Redirect URLs***: un `redirectTo` a localhost se sustituye por la *Site URL*, así que confirmar el correo o recuperar la contraseña en local lleva a producción. Comprobado con `generateLink` en la sesión 006 | Supabase → Authentication → URL Configuration | media · revisar cómo quedó escrita la entrada de localhost |
-| **El mecanismo de invitación de administradores no funciona**: `auth.admin.createUser` inserta el usuario sin `app_metadata` y lo añade con un `update`, así que el trigger `after insert` nunca ve `invitacion_id` y la cuenta nace empresa con trial. Comprobado contra el remoto | `docs/05 §9.12`, migración `20260916140000` | **alta** · bloquea el paso 5; rediseñar antes de programar |
+| El mecanismo de invitación de administradores no funcionaba: Auth inserta el usuario sin `app_metadata`, y el trigger nunca veía la invitación | `docs/05 §9.12` | **resuelto** en la sesión 008: aceptación explícita del servidor (`aceptar_invitacion_admin`) |
 | `service_role` no tenía `usage` sobre el esquema `privado`: sus escrituras sobre tablas con triggers fallaban (42501). Era la causa del `update` que no persistió en la sesión 004 y de `mfa_habilitado = false` del Propietario | Supabase | **resuelto** en la sesión 007 (migración `20260916150000`) |
 | Una Server Action denegada por el proxy responde 404, no 403: la reescritura a `/acceso-denegado` no encuentra la acción. No se ejecuta y queda el evento `acceso_denegado` | `proxy.ts` | baja · revisar cuando existan Server Actions de negocio |
 | La segunda barrera (`exigirRol` en los layouts) no se ejercitó por separado: el proxy corta antes | `lib/auth.ts` | baja · probarla desactivando el proxy en un entorno de prueba |

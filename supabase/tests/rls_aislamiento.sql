@@ -42,7 +42,7 @@ begin
 end;
 $$;
 
-grant execute on all functions in schema pg_temp to anon, authenticated;
+grant execute on all functions in schema pg_temp to anon, authenticated, service_role;
 
 -- ---------------------------------------------------------------------------
 -- Datos (como postgres, sin RLS)
@@ -317,31 +317,64 @@ update public.perfiles set es_propietario = true where id = '00000000-0000-0000-
 
 insert into public.invitaciones_admin (id, correo, nombre, invitado_por) values
   ('00000000-0000-0000-0000-0000000001a1', 'nuevo.admin@prueba.co', 'Nuevo admin', '00000000-0000-0000-0000-0000000000ad'),
-  ('00000000-0000-0000-0000-0000000001a2', 'otro.admin@prueba.co', 'Otro admin', '00000000-0000-0000-0000-0000000000ad');
+  ('00000000-0000-0000-0000-0000000001a2', 'otro.admin@prueba.co', 'Otro admin', '00000000-0000-0000-0000-0000000000ad'),
+  ('00000000-0000-0000-0000-0000000001a4', 'previa@prueba.co', 'Cuenta previa', '00000000-0000-0000-0000-0000000000ad'),
+  ('00000000-0000-0000-0000-0000000001a5', 'se.vence@prueba.co', 'Se vence', '00000000-0000-0000-0000-0000000000ad');
 insert into public.invitaciones_admin (id, correo, invitado_por, creada_at, expira_at) values
   ('00000000-0000-0000-0000-0000000001a3', 'vencida@prueba.co', '00000000-0000-0000-0000-0000000000ad', now() - interval '4 days', now() - interval '1 day');
 
--- Cuenta creada por el servidor con la invitación en app_metadata.
-insert into auth.users (id, email, raw_app_meta_data) values
-  ('00000000-0000-0000-0000-0000000000a2', 'nuevo.admin@prueba.co', '{"invitacion_id": "00000000-0000-0000-0000-0000000001a1"}');
--- Intentos que no deben producir administradores.
+-- Cuentas creadas como las crearía Auth al invitar: el trigger no sabe de invitaciones.
+insert into auth.users (id, email) values
+  ('00000000-0000-0000-0000-0000000000a2', 'nuevo.admin@prueba.co'),
+  ('00000000-0000-0000-0000-0000000000f2', 'ajeno@prueba.co'),
+  ('00000000-0000-0000-0000-0000000000f3', 'vencida@prueba.co'),
+  ('00000000-0000-0000-0000-0000000000f5', 'se.vence@prueba.co');
+insert into auth.users (id, email, created_at) values
+  ('00000000-0000-0000-0000-0000000000f4', 'previa@prueba.co', now() - interval '1 day');
+-- Metadatos del usuario pidiendo administrador: el trigger los ignora (RN-06).
 insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000000f1', 'otro.admin@prueba.co', '{"invitacion_id": "00000000-0000-0000-0000-0000000001a2", "rol": "administrador"}');
-insert into auth.users (id, email, raw_app_meta_data) values
-  ('00000000-0000-0000-0000-0000000000f2', 'ajeno@prueba.co', '{"invitacion_id": "00000000-0000-0000-0000-0000000001a2"}'),
-  ('00000000-0000-0000-0000-0000000000f3', 'vencida@prueba.co', '{"invitacion_id": "00000000-0000-0000-0000-0000000001a3"}');
+
+select pg_temp.ok((select rol from public.perfiles where id = '00000000-0000-0000-0000-0000000000a2') = 'empresa'
+                  and (select rol from public.perfiles where id = '00000000-0000-0000-0000-0000000000f1') = 'empresa',
+  'Registro: una cuenta invitada nace empresa y los metadatos del usuario no producen administrador (RN-06)');
+
+-- Solo service_role convierte y consulta correos (§9.12).
+set local role authenticated;
+select pg_temp.como('00000000-0000-0000-0000-0000000000e1');
+select pg_temp.rechaza($$select public.aceptar_invitacion_admin('00000000-0000-0000-0000-0000000001a1', '00000000-0000-0000-0000-0000000000e1')$$,
+  'E1 ejecuta aceptar_invitacion_admin');
+select pg_temp.rechaza($$select public.correo_tiene_cuenta('nuevo.admin@prueba.co')$$, 'E1 consulta si un correo tiene cuenta');
+reset role;
+set local role anon;
+select pg_temp.rechaza($$select public.aceptar_invitacion_admin('00000000-0000-0000-0000-0000000001a1', '00000000-0000-0000-0000-0000000000a2')$$,
+  'anon ejecuta aceptar_invitacion_admin');
+reset role;
+
+set local role service_role;
+select public.aceptar_invitacion_admin('00000000-0000-0000-0000-0000000001a1', '00000000-0000-0000-0000-0000000000a2');
+select public.aceptar_invitacion_admin('00000000-0000-0000-0000-0000000001a5', '00000000-0000-0000-0000-0000000000f5');
+select pg_temp.rechaza($$select public.aceptar_invitacion_admin('00000000-0000-0000-0000-0000000001a2', '00000000-0000-0000-0000-0000000000f2')$$,
+  'Aceptar con una cuenta de otro correo');
+select pg_temp.rechaza($$select public.aceptar_invitacion_admin('00000000-0000-0000-0000-0000000001a3', '00000000-0000-0000-0000-0000000000f3')$$,
+  'Aceptar una invitación vencida');
+select pg_temp.rechaza($$select public.aceptar_invitacion_admin('00000000-0000-0000-0000-0000000001a4', '00000000-0000-0000-0000-0000000000f4')$$,
+  'Aceptar con una cuenta anterior a la invitación (RN-32)');
+select pg_temp.rechaza($$select public.aceptar_invitacion_admin('00000000-0000-0000-0000-0000000001a1', '00000000-0000-0000-0000-0000000000a2')$$,
+  'Aceptar dos veces la misma invitación');
+select pg_temp.ok(public.correo_tiene_cuenta(' NUEVO.admin@prueba.co ') and not public.correo_tiene_cuenta('nadie@prueba.co'),
+  'correo_tiene_cuenta: detecta la cuenta sin importar mayúsculas (RN-32)');
+reset role;
 
 select pg_temp.ok((select rol from public.perfiles where id = '00000000-0000-0000-0000-0000000000a2') = 'administrador'
                   and not exists (select 1 from public.suscripciones where usuario_id = '00000000-0000-0000-0000-0000000000a2'),
-  'Invitación vigente en app_metadata: nace administrador, sin trial (RN-32)');
-select pg_temp.ok((select usuario_id from public.invitaciones_admin where id = '00000000-0000-0000-0000-0000000001a1') = '00000000-0000-0000-0000-0000000000a2',
-  'La invitación queda vinculada a la cuenta creada');
-select pg_temp.ok((select rol from public.perfiles where id = '00000000-0000-0000-0000-0000000000f1') = 'empresa',
-  'Invitación en los metadatos del usuario: no produce administrador (RN-06)');
-select pg_temp.ok((select rol from public.perfiles where id = '00000000-0000-0000-0000-0000000000f2') = 'empresa',
-  'Invitación de otro correo: no produce administrador');
-select pg_temp.ok((select rol from public.perfiles where id = '00000000-0000-0000-0000-0000000000f3') = 'empresa',
-  'Invitación vencida: no produce administrador');
+  'Invitación aceptada por el servidor: la cuenta pasa a administrador y pierde el trial (RN-32)');
+select pg_temp.ok((select usuario_id = '00000000-0000-0000-0000-0000000000a2' and estado = 'pendiente'
+                   from public.invitaciones_admin where id = '00000000-0000-0000-0000-0000000001a1'),
+  'La invitación queda vinculada y pendiente hasta activar el MFA');
+select pg_temp.ok((select rol from public.perfiles where id = '00000000-0000-0000-0000-0000000000f2') = 'empresa'
+                  and (select rol from public.perfiles where id = '00000000-0000-0000-0000-0000000000f4') = 'empresa',
+  'Los intentos rechazados no convierten ninguna cuenta');
 select pg_temp.rechaza($$update public.perfiles set es_propietario = true where id = '00000000-0000-0000-0000-0000000000a2'$$,
   'Un segundo Propietario (RN-31)');
 select pg_temp.rechaza($$update public.perfiles set admin_revocado_at = now() where id = '00000000-0000-0000-0000-0000000000ad'$$,
@@ -358,7 +391,7 @@ select pg_temp.ok((select count(*) from public.invitaciones_admin) = 0, 'E1: no 
 select pg_temp.como('00000000-0000-0000-0000-0000000000ad', 'aal1');
 select pg_temp.ok((select count(*) from public.invitaciones_admin) = 0, 'Propietario sin MFA: no ve invitaciones');
 select pg_temp.como('00000000-0000-0000-0000-0000000000ad', 'aal2');
-select pg_temp.ok((select count(*) from public.invitaciones_admin) = 3, 'Propietario con MFA: ve las invitaciones (RF-86)');
+select pg_temp.ok((select count(*) from public.invitaciones_admin) = 5, 'Propietario con MFA: ve las invitaciones (RF-86)');
 select pg_temp.rechaza($$insert into public.invitaciones_admin (correo, invitado_por) values ('x@prueba.co', '00000000-0000-0000-0000-0000000000ad')$$,
   'El Propietario escribe invitaciones desde el cliente (solo servidor)');
 
@@ -373,6 +406,24 @@ where id = '00000000-0000-0000-0000-0000000000a2';
 set local role authenticated;
 select pg_temp.como('00000000-0000-0000-0000-0000000000a2', 'aal2');
 select pg_temp.ok((select count(*) from public.perfiles) = 1, 'Admin revocado: pierde privilegios en la siguiente consulta, con el mismo JWT (RF-87)');
+reset role;
+
+-- Invitación que vence sin activarse: la cuenta pierde los privilegios (§9.12).
+set local role authenticated;
+select pg_temp.como('00000000-0000-0000-0000-0000000000f5', 'aal2');
+select pg_temp.ok((select count(*) from public.perfiles) > 1 and public.rol_efectivo() = 'administrador',
+  'Admin con invitación vigente sin activar: tiene privilegios');
+reset role;
+update public.invitaciones_admin set creada_at = now() - interval '4 days', expira_at = now() - interval '1 minute'
+where id = '00000000-0000-0000-0000-0000000001a5';
+set local role authenticated;
+select pg_temp.como('00000000-0000-0000-0000-0000000000f5', 'aal2');
+select pg_temp.ok((select count(*) from public.perfiles) = 1 and public.rol_efectivo() is null,
+  'Admin con invitación vencida sin activar: sin privilegios y sin rol efectivo');
+select pg_temp.como('00000000-0000-0000-0000-0000000000a2', 'aal2');
+select pg_temp.ok(public.rol_efectivo() is null, 'Admin revocado: sin rol efectivo (RF-87)');
+select pg_temp.como('00000000-0000-0000-0000-0000000000e1');
+select pg_temp.ok(public.rol_efectivo() = 'empresa', 'rol_efectivo de una empresa: empresa');
 reset role;
 
 select 'TODAS LAS COMPROBACIONES PASARON' as resultado;

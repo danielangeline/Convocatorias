@@ -4,7 +4,8 @@
 //   node --env-file=.env.local scripts/prueba-matriz-roles.mjs
 //
 // Usa las cuentas de prueba empresa.s004 y consultor.s004 (les asigna una contraseña
-// aleatoria con service_role) y crea un administrador temporal que borra al terminar.
+// aleatoria con service_role) y crea un administrador temporal por invitación, que
+// borra al terminar junto con su invitación.
 // Deja eventos `acceso_denegado` reales en eventos_seguridad: es lo que se prueba.
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
@@ -46,15 +47,13 @@ const con = sesion(); ok(!(await con.cliente.auth.signInWithPassword({ email: "c
 // Administrador temporal por la vía real de invitación (§9.12).
 const { data: propietario } = await svc.from("perfiles").select("id").eq("es_propietario", true).single();
 const correoAdmin = "admin.temporal.s007@example.com";
-// La vía por invitación no funciona con createUser (hallazgo de la sesión 007,
-// docs/05 §9.12): se crea como el Propietario, por consola.
+// Por la vía real de invitación (docs/05 §9.12, rediseñada en la sesión 008):
+// invitación → cuenta en Auth (nace empresa) → aceptar_invitacion_admin con service_role.
+const { data: inv } = await svc.from("invitaciones_admin").insert({ correo: correoAdmin, nombre: "Admin temporal", invitado_por: propietario.id }).select("id").single();
 const claveAdmin = crypto.randomBytes(18).toString("base64url");
 const { data: creado, error: eCreado } = await svc.auth.admin.createUser({ email: correoAdmin, password: claveAdmin, email_confirm: true });
-await svc.from("suscripciones").delete().eq("usuario_id", creado.user.id);
-const { error: ePromo } = await svc.from("perfiles").update({ rol: "administrador" }).eq("id", creado.user.id);
-ok(!eCreado && !ePromo, `cuenta de administrador temporal creada por consola ${eCreado?.message ?? ""} ${ePromo ? ePromo.code + " " + ePromo.message : ""}`);
-const { data: rolTemp } = await svc.from("perfiles").select("rol").eq("id", creado.user.id).single();
-console.log("      rol guardado del admin temporal:", rolTemp?.rol);
+const { error: eAcep } = await svc.rpc("aceptar_invitacion_admin", { p_invitacion: inv.id, p_usuario: creado.user.id });
+ok(!eCreado && !eAcep, `administrador temporal creado por invitación ${eCreado?.message ?? ""} ${eAcep?.message ?? ""}`);
 const adm = sesion();
 const eAdm = (await adm.cliente.auth.signInWithPassword({ email: correoAdmin, password: claveAdmin })).error;
 ok(!eAdm, `sesión admin temporal ${eAdm ? eAdm.code + " " + eAdm.message : ""}`);
@@ -114,6 +113,14 @@ try {
   const adminHtml = await pedir("/admin", adm.cookie());
   ok(/noindex/.test(adminHtml.cuerpo), "admin · el panel lleva noindex");
 
+  // Invitación vencida sin activar: con la misma cookie, el panel desaparece (§9.12).
+  await svc.from("invitaciones_admin").update({ creada_at: new Date(Date.now() - 4 * 864e5).toISOString(), expira_at: new Date(Date.now() - 864e5).toISOString() }).eq("id", inv.id);
+  const venc = await pedir("/admin", adm.cookie());
+  const vencMfa = await pedir("/mfa", adm.cookie());
+  ok(venc.status === 404 && vencMfa.status === 404, `admin con invitación vencida · /admin y /mfa → 404 (${venc.status}, ${vencMfa.status})`);
+  await svc.from("invitaciones_admin").update({ estado: "aceptada", resuelta_at: new Date().toISOString() }).eq("id", inv.id);
+  ok((await pedir("/admin", adm.cookie())).status === 200, "admin con invitación aceptada · /admin → 200");
+
   // Revocación: con la misma cookie, el panel desaparece (RF-87).
   await svc.from("perfiles").update({ admin_revocado_at: new Date().toISOString(), admin_revocado_por: propietario.id }).eq("id", creado.user.id);
   const rev = await pedir("/admin", adm.cookie());
@@ -139,6 +146,7 @@ try {
   const count = (await contarDenegados()) - inicio;
   ok(count >= 15, `eventos acceso_denegado registrados durante la prueba: ${count}`);
 } finally {
+  await svc.from("invitaciones_admin").delete().eq("id", inv.id);
   const { error } = await svc.auth.admin.deleteUser(creado.user.id);
   console.log(error ? `No se pudo borrar el admin temporal: ${error.message}` : "admin temporal borrado");
 }

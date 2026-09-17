@@ -48,7 +48,7 @@ erDiagram
 **SUSCRIPCIONES** — se agregan `creditos_usados_periodo` (int), `creditos_extra` (int, paquetes adicionales que no se reinician) y `periodo_creditos_inicio` (date, ancla del reinicio mensual). *(mod. v6, sesión 004)* `plan_id` es **not null también en el trial**: la suscripción trial apunta al plan con `es_trial`, y su `fecha_vencimiento` es `fecha_inicio + dias_trial`
 
 **Registro de cuentas** *(nuevo v6, sesión 004)* — un trigger `after insert` sobre `auth.users` crea en la misma transacción:
-- la fila de `perfiles`, con el rol leído de los metadatos del registro. **Solo `consultor` produce consultor; cualquier otro valor —incluido `administrador`— produce `empresa`** (RN-06). La única excepción es la cuenta que el servidor crea para una invitación de administrador vigente, que se reconoce por `app_metadata` y no por los metadatos del usuario (§9.12);
+- la fila de `perfiles`, con el rol leído de los metadatos del registro. **Solo `consultor` produce consultor; cualquier otro valor —incluido `administrador`— produce `empresa`** (RN-06). La cuenta invitada como administrador también nace así y el servidor la convierte después con `aceptar_invitacion_admin` (§9.12, *rediseñado en la sesión 008*);
 - si es empresa: la suscripción trial contra el plan trial (RF-37). Si no existe plan trial activo, el registro **falla** en lugar de crear una empresa sin trial;
 - si es consultor: la fila de `consultor_perfiles` en estado `incompleto`, sin suscripción (RN-11, CU-14).
 
@@ -283,7 +283,7 @@ Implementa RN-06, RN-31, RN-32 y RF-85..87: el rol administrador deja de asignar
 | Campo | Tipo | Restricción |
 |---|---|---|
 | es_propietario | boolean | not null, default false · **índice único parcial `where es_propietario`**: como máximo uno · check: `not es_propietario or rol = 'administrador'` · solo se escribe desde la consola con `service_role` (RN-31) |
-| admin_revocado_at | timestamptz | nullable · no nulo = acceso revocado; `privado.es_admin()` lo exige nulo (RF-87) · check: `admin_revocado_at is null or not es_propietario` |
+| admin_revocado_at | timestamptz | nullable · no nulo = acceso revocado; `privado.admin_vigente()` lo exige nulo (RF-87) · check: `admin_revocado_at is null or not es_propietario` |
 | admin_revocado_por | uuid | FK → perfiles, nullable · quién revocó |
 
 **Nueva tabla INVITACIONES_ADMIN**
@@ -304,12 +304,43 @@ Implementa RN-06, RN-31, RN-32 y RF-85..87: el rol administrador deja de asignar
 
 | Tabla | Política |
 |---|---|
-| invitaciones_admin | Lectura solo para el Propietario con `aal2`; **sin escritura para `authenticated`**: la escriben el servidor (`service_role`) y el trigger de registro |
+| invitaciones_admin | Lectura solo para el Propietario con `aal2`; **sin escritura para `authenticated`**: la escriben el servidor (`service_role`) y `aceptar_invitacion_admin` *(sesión 008)* |
 | perfiles | Se mantiene §9.10. Ninguna política deja a un administrador cambiar el rol, la revocación ni la marca de Propietario de otro perfil |
 
-> ⚠️ **Hallazgo de la sesión 007 — el mecanismo de este párrafo no funciona tal como está escrito.** `auth.admin.createUser` inserta el usuario **sin** `app_metadata` y lo añade después con un `update`, así que el trigger `after insert` nunca ve `invitacion_id`: la cuenta nace empresa con trial. Comprobado contra el remoto. Hay que rediseñarlo antes del paso 5 del Sprint 1 (ver `ESTADO.md`); por ejemplo, con una aceptación explícita que ejecute el servidor con `service_role`.
+**Cómo nace un administrador** *(rediseñado en la sesión 008)*. El diseño anterior reconocía la invitación dentro del trigger de registro, leyendo `app_metadata.invitacion_id`, y no funcionaba: `auth.admin.createUser` e `inviteUserByEmail` insertan el usuario **sin** `app_metadata` y lo añaden después con un `update`, así que el trigger nunca veía la invitación (hallazgo de la sesión 007). Ahora la conversión es un paso explícito del servidor. El trigger de registro vuelve a no saber nada de invitaciones.
 
-**Cómo nace un administrador.** El endpoint de invitación, solo para el Propietario, comprueba que el correo no tenga cuenta (RN-32), inserta la invitación y crea la cuenta en Auth con `app_metadata.invitacion_id`. Ese campo solo se escribe con credenciales de servicio: un registro público no puede fijarlo. Después envía el enlace para definir la contraseña (CU-42). El trigger de registro (§9.2) da rol `administrador` **solo si** `app_metadata.invitacion_id` apunta a una invitación `pendiente`, no vencida y del mismo correo. En ese caso marca la invitación `aceptada` y no crea trial ni perfil de consultor. En cualquier otro caso aplica la regla normal.
+1. **Invitar** (endpoint solo del Propietario con `aal2`):
+   - con `public.correo_tiene_cuenta(correo)` comprueba que el correo no tenga cuenta (RN-32);
+   - inserta la invitación `pendiente`, vigente 72 horas;
+   - llama a `auth.admin.inviteUserByEmail(correo, { redirectTo: <origen>/auth/definir-contrasena })`, que crea la cuenta en Auth y envía el correo de invitación. El trigger de registro la crea como empresa con trial, como a cualquier cuenta.
+2. **Convertir**, en la misma petición: el servidor llama a `public.aceptar_invitacion_admin(invitacion, usuario)`. La función es `security definer` y **solo la ejecuta `service_role`**. En una transacción exige que:
+   - la invitación esté `pendiente` y no vencida;
+   - el correo de la cuenta coincida;
+   - la cuenta se haya creado **después** de la invitación, lo que garantiza que se creó para ella y no es una cuenta previa;
+   - la cuenta no tenga todavía un perfil de administrador.
+
+   Si todo se cumple, pone `rol = 'administrador'`, borra la suscripción trial y el perfil de consultor si los hubiera, y vincula `usuario_id`. Si la función o el envío fallan, el servidor borra la cuenta recién creada y no deja una empresa huérfana.
+3. **Activar** (CU-42): la persona abre el enlace, define su contraseña en `/auth/definir-contrasena` y enrola el MFA. `confirmarMfa`, en el servidor y con `aal2` comprobado, marca la invitación `aceptada` y `resuelta_at`.
+
+**Vigencia de los privilegios.** `privado.admin_vigente(usuario)` es la única definición de "administrador con privilegios":
+- rol `administrador`;
+- `admin_revocado_at` nulo;
+- sin invitación `pendiente` vencida vinculada a la cuenta.
+
+La usan `privado.es_admin()` (RLS, junto con `aal2`) y `public.rol_efectivo()`, que devuelve el rol de la sesión o nulo si es un administrador sin vigencia y que leen `proxy.ts` y `obtenerSesion()`. Así, una invitación que vence sin activarse deja la cuenta sin privilegios en ninguna parte, sin depender de un job.
+
+**Enlace y vigencia son cosas distintas.** El enlace del correo caduca según la configuración de Auth (por defecto, 1 hora); la invitación dura 72 horas. Mientras la invitación esté vigente, el Propietario puede **reenviar** el enlace. Si Auth no admite reenviar una invitación a una cuenta existente, se envía el correo de recuperación de contraseña, que lleva a la misma pantalla.
+
+**Cancelar** una invitación `pendiente` la marca `cancelada` y borra la cuenta vinculada, que nunca llegó a activarse. Una invitación vencida se muestra como tal y se resuelve igual al cancelarla o al invitar de nuevo a ese correo.
+
+**Funciones nuevas**
+
+| Función | Ejecuta | Qué hace |
+|---|---|---|
+| `privado.admin_vigente(uuid)` | interna | Regla única de administrador con privilegios (ver arriba) |
+| `public.rol_efectivo()` | `authenticated` | Rol de la sesión; nulo si es administrador sin vigencia |
+| `public.correo_tiene_cuenta(text)` | solo `service_role` | Si ya existe una cuenta en Auth con ese correo (RN-32) |
+| `public.aceptar_invitacion_admin(uuid, uuid)` | solo `service_role` | Convierte la cuenta recién invitada en administrador (paso 2) |
 
 **Cómo se revoca.** El endpoint de revocación, solo para el Propietario y nunca sobre sí mismo, escribe `admin_revocado_at`/`admin_revocado_por` con `service_role`. Con eso la RLS le niega todo en la siguiente consulta. Además cierra sus sesiones y bloquea la cuenta en Auth, y registra `admin_revocado`.
 

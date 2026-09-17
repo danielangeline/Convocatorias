@@ -23,12 +23,14 @@ export const obtenerSesion = cache(async (): Promise<DatosSesion | null> => {
 
   const { data: perfil } = await supabase
     .from("perfiles")
-    .select("id, nombre, rol, nombre_empresa, admin_revocado_at")
+    .select("id, nombre, rol, nombre_empresa")
     .eq("id", usuario.user.id)
     .maybeSingle();
   if (!perfil) return null;
-  // Un administrador revocado no tiene sesión válida en ninguna parte (RF-87).
-  if (perfil.rol === "administrador" && perfil.admin_revocado_at) return null;
+  // Un administrador sin vigencia (revocado o con la invitación vencida) no
+  // tiene sesión válida en ninguna parte (docs/05 §9.12, RF-87).
+  const { data: rolEfectivo } = await supabase.rpc("rol_efectivo");
+  if (rolEfectivo !== perfil.rol) return null;
 
   const rol = perfil.rol as RolUsuario;
 

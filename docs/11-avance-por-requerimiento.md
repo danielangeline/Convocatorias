@@ -157,8 +157,8 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RF-65 Registrar eventos de seguridad | prototipo | Se escriben en `eventos_seguridad`: `login_fallido`, `mfa_activado` y `mfa_fallido` (sesión 004), y `acceso_denegado` desde el proxy y los layouts (sesión 007, probado; las precargas de enlaces no cuentan). Falta `limite_tasa` (RNF-27); el panel sigue leyendo el mock |
 | RF-66 Límite de tasa | pendiente | |
 | RF-67 Liberar bloqueo | prototipo | |
-| RF-86 Solo el Propietario invita y revoca administradores *(v6, sesión 005)* | pendiente | Sesión 006: base lista y probada. Se aplicaron `es_propietario` único, la tabla `invitaciones_admin` con lectura solo del Propietario y el trigger que reconoce la invitación por `app_metadata`; el intento por metadatos del usuario, con otro correo o con una invitación vencida produce empresa. Faltan los endpoints y `/admin/administradores` |
-| RF-87 Revocación inmediata *(v6, sesión 005)* | pendiente | Sesión 006: `privado.es_admin()` exige no revocado. Sesión 007: el proxy y `obtenerSesion()` tratan al administrador revocado como sin acceso; probado que `/admin` pasa a 404 con la misma cookie. Falta el endpoint que revoca, cierra sesiones y bloquea la cuenta |
+| RF-86 Solo el Propietario invita y revoca administradores *(v6, sesión 005)* | pendiente | Sesión 008: base **rediseñada y probada**. La invitación ya no depende del trigger: `aceptar_invitacion_admin()` (solo `service_role`) convierte la cuenta; `correo_tiene_cuenta()` aplica RN-32; la invitación vencida sin activar deja la cuenta sin privilegios. Probado en SQL y contra el servicio real de Auth. Faltan los endpoints y `/admin/administradores` |
+| RF-87 Revocación inmediata *(v6, sesión 005)* | pendiente | La regla única es `privado.admin_vigente()`: la usan la RLS y `rol_efectivo()`, que leen `proxy.ts` y `obtenerSesion()` (sesión 008). Probado que `/admin` pasa a 404 con la misma cookie al revocar o al vencer la invitación. Falta el endpoint que revoca, cierra sesiones y bloquea la cuenta |
 
 ### 4.12 Autorización y aislamiento *(v6)*
 
@@ -234,10 +234,10 @@ Las 30 reglas están documentadas; estas son las que todavía no se hacen cumpli
 | RN-17 Un crédito por generación exitosa | prototipo | 4 — RLS impide crear documentos y tocar el contador de ajustes o los créditos desde el cliente (sesión 003) |
 | RN-18 Reinicio mensual, sin acumular | pendiente | 4 |
 | RN-23 Saneamiento del TDR | pendiente | 4 |
-| RN-06 Rol admin solo por invitación del Propietario *(mod. v6, sesión 005)* | pendiente | 1 — base lista y probada (sesión 006): el registro público no produce administradores y la invitación vigente sí. Falta la pantalla del Propietario para invitar |
+| RN-06 Rol admin solo por invitación del Propietario *(mod. v6, sesión 005)* | pendiente | 1 — el autorregistro nunca produce administradores (trigger, probado). La conversión por invitación funciona contra Auth real (sesión 008). Falta la pantalla del Propietario |
 | RN-31 Propietario único, designado fuera de la app *(v6)* | servidor | 1 — índice único, check que impide revocar al Propietario y columnas protegidas contra el cliente, todo probado. Propietario designado desde la consola en la sesión 006 |
 | RN-33 Catálogo solo para empresas *(v6, sesión 006)* | pendiente | 1 — RLS lista y probada (sesión 006). Sesión 007: la ruta `/convocatorias` solo admite empresa (consultor y administrador → 403, anónimo → login; probado). Falta que la app lea el catálogo de Supabase (Sprint 2) |
-| RN-32 Cuenta de administrador dedicada *(v6)* | pendiente | 1 — la cuenta invitada nace sin trial ni perfil de consultor (probado); falta que el endpoint de invitación rechace correos que ya tienen cuenta |
+| RN-32 Cuenta de administrador dedicada *(v6)* | pendiente | 1 — `correo_tiene_cuenta()` y `aceptar_invitacion_admin()` rechazan cuentas anteriores a la invitación y de otro correo, y retiran el trial (sesión 008, probado). Falta que el endpoint de invitar lo use |
 | RN-11 Un trial por cuenta de empresa | servidor | 1 — índice único parcial y trigger de registro; el consultor nace sin suscripción (sesión 004) |
 | RN-24 RLS desde el Sprint 0 | servidor | 1 — cada tabla nació con su política en la misma migración (sesión 003) |
 | RN-26 Contacto solo en `en_curso` | prototipo | 5 |

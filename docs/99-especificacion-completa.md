@@ -437,7 +437,7 @@ Heredado de la sección 6 del alcance inicial y ahora **operativo**: el document
 | **Actor** | Propietario de la plataforma |
 | **Descripción** | Otorga y retira el acceso al panel administrativo. Es la **única** vía por la que una persona llega a ser administrador |
 | **Precondiciones** | Sesión del Propietario con segundo factor verificado (CU-38) |
-| **Flujo principal** | 1. Abre "Administradores" en el panel: ve los administradores activos, los revocados y las invitaciones pendientes, con quién hizo cada cosa y cuándo. 2. "Invitar administrador": escribe nombre y correo. 3. El sistema comprueba que el correo no tenga ya una cuenta (RN-32), registra la invitación con vencimiento a las 72 horas y envía el enlace. 4. Para retirar un acceso, elige un administrador → "Revocar acceso" → confirma. 5. El sistema le quita todo privilegio desde la siguiente petición, cierra sus sesiones y bloquea la cuenta (RF-87) |
+| **Flujo principal** | 1. Abre "Administradores" en el panel: ve los administradores activos, los revocados y las invitaciones pendientes, con quién hizo cada cosa y cuándo. 2. "Invitar administrador": escribe nombre y correo. 3. El sistema comprueba que el correo no tenga ya una cuenta (RN-32), registra la invitación con vencimiento a las 72 horas, crea la cuenta invitada como administrador y envía el enlace *(mod. v6, sesión 008)*. 4. Para retirar un acceso, elige un administrador → "Revocar acceso" → confirma. 5. El sistema le quita todo privilegio desde la siguiente petición, cierra sus sesiones y bloquea la cuenta (RF-87) |
 | **Flujos alternos** | 3a. El correo ya tiene cuenta de empresa o consultor → se rechaza: el administrador usa una cuenta dedicada. 3b. Ya hay una invitación pendiente para ese correo → se ofrece reenviarla o cancelarla. 4a. Intenta revocarse a sí mismo → no se permite (RN-31) |
 | **Postcondiciones** | Cada invitación, cancelación y revocación queda en `eventos_seguridad` con el Propietario que la hizo (RF-65) |
 | **Nota** | Para cualquier otro usuario —incluido un administrador que no es Propietario— esta sección responde 404 (RF-85, RF-86). El Propietario se designa fuera de la aplicación (RN-31) |
@@ -449,7 +449,7 @@ Heredado de la sección 6 del alcance inicial y ahora **operativo**: el document
 | **Actor** | Persona invitada |
 | **Precondiciones** | Invitación pendiente y vigente (CU-41) |
 | **Flujo principal** | 1. Abre el enlace del correo. 2. Define su contraseña. 3. Activa el segundo factor (CU-38). 4. Entra al panel administrativo |
-| **Flujos alternos** | 1a. Invitación vencida, cancelada o ya usada → mensaje genérico de enlace no válido; debe pedir una nueva al Propietario |
+| **Flujos alternos** | 1a. Invitación vencida, cancelada o ya usada → mensaje genérico de enlace no válido; debe pedir una nueva al Propietario. 1b. El enlace caducó (dura menos que la invitación) pero la invitación sigue vigente → pide al Propietario que lo reenvíe *(sesión 008)*. 3a. La invitación vence antes de activar el segundo factor → la cuenta queda sin privilegios |
 | **Postcondiciones** | Cuenta con rol administrador, sin portal de empresa ni de consultor y sin suscripción (RN-32). La invitación queda marcada como aceptada |
 
 ### Relaciones y dependencias
@@ -615,7 +615,7 @@ Heredado de la sección 6 del alcance inicial y ahora **operativo**: el document
 | RF-65 | Registrar cada evento de seguridad (login fallido, acceso denegado, bloqueo por límite de tasa, activación/fallo de MFA, **invitación, cancelación y revocación de administradores** *(mod. v6)*) con tipo, usuario si aplica, IP, ruta y fecha | CU-39 | Must |
 | RF-66 | Aplicar límite de tasa por usuario e IP en los endpoints de la capa de aplicación, en especial en la generación con IA, de forma independiente al cupo de créditos | CU-40 | Must |
 | RF-67 | Permitir al administrador liberar manualmente un bloqueo por límite de tasa antes de su expiración | CU-40 | Should |
-| RF-86 | Solo el **Propietario de la plataforma** invita administradores, reenvía o cancela invitaciones y revoca accesos. La invitación va a un correo **sin cuenta previa**, vence a las 72 horas y es de un solo uso. Para cualquier otro usuario, incluido un administrador que no es Propietario, la sección y sus endpoints responden 404 (RN-06, RN-31, RN-32) *(nuevo v6)* | CU-41, 42 | Must |
+| RF-86 | Solo el **Propietario de la plataforma** invita administradores, reenvía o cancela invitaciones y revoca accesos. La invitación va a un correo **sin cuenta previa**, vence a las 72 horas y es de un solo uso; el enlace del correo puede caducar antes y se reenvía mientras la invitación siga vigente. Una cuenta invitada solo tiene privilegios mientras su invitación esté vigente o aceptada *(precisado en la sesión 008)*. Para cualquier otro usuario, incluido un administrador que no es Propietario, la sección y sus endpoints responden 404 (RN-06, RN-31, RN-32) *(nuevo v6)* | CU-41, 42 | Must |
 | RF-87 | Revocar un administrador surte efecto **en la siguiente petición**, sin esperar a que caduque su sesión: pierde todo privilegio en el servidor y en RLS, se cierran sus sesiones y la cuenta queda bloqueada. Su perfil se conserva para la auditoría *(nuevo v6)* | CU-41 | Must |
 
 ### 4.12 Autorización y aislamiento *(nuevo v6)*

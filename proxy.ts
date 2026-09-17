@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { reglaDeRuta } from "@/lib/autorizacion/matriz";
 import { ipDeCabeceras, registrarAccesoDenegado } from "@/lib/autorizacion/eventos";
+import type { RolUsuario } from "@/lib/types";
 
 /**
  * Refresca la sesión de Supabase Auth y aplica la matriz rol × ruta (RNF-30)
@@ -63,14 +64,10 @@ export async function proxy(request: NextRequest) {
     return conSesion(NextResponse.redirect(new URL("/login", request.url)));
   }
 
-  const { data: perfil } = await supabase
-    .from("perfiles")
-    .select("rol, admin_revocado_at")
-    .eq("id", usuarioId)
-    .maybeSingle();
-
-  // Un administrador revocado no conserva el rol para ninguna ruta (RF-87).
-  const rol = perfil && !(perfil.rol === "administrador" && perfil.admin_revocado_at) ? perfil.rol : null;
+  // Rol efectivo desde la base: nulo para un administrador revocado o con la
+  // invitación vencida sin activar (docs/05 §9.12, RF-87).
+  const { data: rolEfectivo } = await supabase.rpc("rol_efectivo");
+  const rol = typeof rolEfectivo === "string" ? (rolEfectivo as RolUsuario) : null;
   if (!rol || !regla.roles.includes(rol)) {
     return denegar(`Rol ${rol ?? "sin perfil válido"} no admitido`);
   }
