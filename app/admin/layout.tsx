@@ -2,14 +2,16 @@ import { redirect } from "next/navigation";
 import { AdminSidebar } from "@/components/AdminSidebar";
 import { MenuUsuario } from "@/components/MenuUsuario";
 import { SincronizarSesion } from "@/components/SincronizarSesion";
-import { exigirSesion } from "@/lib/auth";
+import { exigirRol } from "@/lib/auth";
 
 // Ninguna sesión administrativa opera sin segundo factor verificado (RNF-28,
 // RF-64): un administrador en aal1 va a /mfa. Se comprueba en el servidor en
 // cada petición; la RLS además niega todo privilegio sin aal2.
-// La restricción por rol del grupo llega con requireRole() (RNF-30).
+// Para quien no es administrador el panel no existe: 404 (RF-85, RNF-35).
+export const metadata = { robots: { index: false, follow: false } };
+
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const datos = await exigirSesion();
+  const datos = await exigirRol(["administrador"], { ruta: "panel", oculta: true });
   if (datos.sesion.rol === "administrador" && datos.sesion.aal !== "aal2") redirect("/mfa");
 
   return (

@@ -1,6 +1,8 @@
 import "server-only";
 import { cache } from "react";
-import { redirect } from "next/navigation";
+import { forbidden, notFound, redirect } from "next/navigation";
+import { headers } from "next/headers";
+import { ipDeCabeceras, registrarAccesoDenegado } from "./autorizacion/eventos";
 import { crearClienteServidor } from "./supabase/servidor";
 import type { DatosSesion, EstadoPerfilConsultor, ModalidadSuscripcion, EstadoSuscripcion, RolUsuario } from "./types";
 
@@ -21,10 +23,12 @@ export const obtenerSesion = cache(async (): Promise<DatosSesion | null> => {
 
   const { data: perfil } = await supabase
     .from("perfiles")
-    .select("id, nombre, rol, nombre_empresa")
+    .select("id, nombre, rol, nombre_empresa, admin_revocado_at")
     .eq("id", usuario.user.id)
     .maybeSingle();
   if (!perfil) return null;
+  // Un administrador revocado no tiene sesión válida en ninguna parte (RF-87).
+  if (perfil.rol === "administrador" && perfil.admin_revocado_at) return null;
 
   const rol = perfil.rol as RolUsuario;
 
@@ -114,9 +118,32 @@ export const obtenerSesion = cache(async (): Promise<DatosSesion | null> => {
   };
 });
 
-/** Exige sesión en el servidor: sin ella, redirige a /login. */
-export async function exigirSesion(): Promise<DatosSesion> {
+/**
+ * Segunda barrera de RNF-30, para layouts y páginas: repite en el servidor lo
+ * que `proxy.ts` ya aplicó con la matriz rol × ruta. Si el proxy se saltara
+ * (una ruta mal declarada, un cambio de matcher), la página sigue protegida.
+ *   · sin sesión → /login, o 404 si la sección está oculta (RF-85);
+ *   · rol no admitido → 403, o 404 si está oculta, y evento `acceso_denegado`.
+ */
+export async function exigirRol(
+  roles: RolUsuario[],
+  opciones: { ruta: string; oculta?: boolean }
+): Promise<DatosSesion> {
   const datos = await obtenerSesion();
-  if (!datos) redirect("/login");
+  const admitido = datos && roles.includes(datos.sesion.rol);
+
+  if (!admitido) {
+    if (datos || opciones.oculta) {
+      await registrarAccesoDenegado({
+        usuarioId: datos?.sesion.usuarioId ?? null,
+        ruta: opciones.ruta,
+        ip: ipDeCabeceras(await headers()),
+        detalle: `Rol ${datos?.sesion.rol ?? "sin sesión"} no admitido (layout)`,
+      });
+    }
+    if (opciones.oculta) notFound();
+    if (!datos) redirect("/login");
+    forbidden();
+  }
   return datos;
 }

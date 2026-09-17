@@ -31,10 +31,10 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RF | Estado | Nota |
 |---|---|---|
 | RF-01 Registro con rol y trial | servidor | Sesión 004: `/registro` con Supabase Auth y confirmación de correo; el trigger `al_registrar_cuenta` crea perfil y trial o perfil de consultor. Probado vía la API de Auth; falta el recorrido completo por el formulario con un correo real |
-| RF-02 Restringir funciones administrativas | pendiente | Sesión 004: autenticación real; todo portal exige sesión en el servidor y la RLS niega privilegios al no administrador. Sesión 005: la especificación exige además que el panel **no exista** para los demás (404, RF-85). Hoy `/admin` redirige a `/login` sin sesión y se abre con otro rol autenticado |
+| RF-02 Restringir funciones administrativas | servidor | Sesión 007: `proxy.ts` aplica la matriz rol × ruta y los layouts la repiten con `exigirRol()`. Empresa y consultor reciben 404 en `/admin`, `/mfa` y `/api/admin`, probado con `scripts/prueba-matriz-roles.mjs` contra el build de producción (sesión 007). La RLS niega privilegios sin rol administrador y `aal2` |
 | RF-03 Recuperación de contraseña | pendiente | Sesión 006: existe `/auth/definir-contrasena`, que recibe el enlace de recuperación o de invitación; falta la pantalla para pedir el correo de recuperación |
 | RF-84 Entrada con dos puertas *(v6, sesión 005)* | pendiente | El registro ya ofrece empresa/consultor (sesión 004); faltan la landing y el login con las dos puertas y el aviso de portal equivocado. Cambiar la etiqueta a "empresa o entidad" |
-| RF-85 Panel administrativo oculto *(v6, sesión 005)* | pendiente | Sprint 1, junto a `requireRole()`: 404 en `/admin`, `/mfa` y `/api/admin` para no administradores, `noindex` |
+| RF-85 Panel administrativo oculto *(v6, sesión 005)* | servidor | Sesión 007: 404 idéntico al de una ruta inventada para anónimo, empresa y consultor; `noindex` en el panel y en `/mfa`; sin enlaces fuera del panel; intento registrado como `acceso_denegado`. Probado con `scripts/prueba-matriz-roles.mjs` contra el build de producción (sesión 007) |
 
 ### 4.2 Fuentes y convocatorias (administrador)
 
@@ -153,12 +153,12 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 
 | RF | Estado | Nota |
 |---|---|---|
-| RF-64 MFA para administradores | servidor | Sesión 004: `/mfa` con TOTP real (enrolar o verificar); el layout de `/admin` redirige toda sesión de administrador sin `aal2`, y RLS no da privilegios sin `aal2`. `GuardaMFA` eliminado |
-| RF-65 Registrar eventos de seguridad | prototipo | Sesión 004: `login_fallido`, `mfa_activado` y `mfa_fallido` ya se escriben en `eventos_seguridad` con `service_role`. Faltan `acceso_denegado` (RNF-30) y `limite_tasa` (RNF-27), y el panel sigue leyendo el mock |
+| RF-64 MFA para administradores | servidor | Sesión 004: `/mfa` con TOTP real y RLS sin privilegios sin `aal2`. Sesión 007: el proxy lleva a `/mfa` cualquier ruta del panel sin `aal2` (probado). Se corrigió un defecto: `mfa_habilitado` no se guardaba porque `service_role` no tenía uso del esquema `privado` (migración `20260916150000`); el `update` ya no falla en silencio |
+| RF-65 Registrar eventos de seguridad | prototipo | Se escriben en `eventos_seguridad`: `login_fallido`, `mfa_activado` y `mfa_fallido` (sesión 004), y `acceso_denegado` desde el proxy y los layouts (sesión 007, probado; las precargas de enlaces no cuentan). Falta `limite_tasa` (RNF-27); el panel sigue leyendo el mock |
 | RF-66 Límite de tasa | pendiente | |
 | RF-67 Liberar bloqueo | prototipo | |
 | RF-86 Solo el Propietario invita y revoca administradores *(v6, sesión 005)* | pendiente | Sesión 006: base lista y probada. Se aplicaron `es_propietario` único, la tabla `invitaciones_admin` con lectura solo del Propietario y el trigger que reconoce la invitación por `app_metadata`; el intento por metadatos del usuario, con otro correo o con una invitación vencida produce empresa. Faltan los endpoints y `/admin/administradores` |
-| RF-87 Revocación inmediata *(v6, sesión 005)* | pendiente | Sesión 006: `privado.es_admin()` exige `admin_revocado_at is null`; probado que el admin revocado pierde privilegios con el mismo JWT. Falta el endpoint que cierra sesiones y bloquea la cuenta |
+| RF-87 Revocación inmediata *(v6, sesión 005)* | pendiente | Sesión 006: `privado.es_admin()` exige no revocado. Sesión 007: el proxy y `obtenerSesion()` tratan al administrador revocado como sin acceso; probado que `/admin` pasa a 404 con la misma cookie. Falta el endpoint que revoca, cierra sesiones y bloquea la cuenta |
 
 ### 4.12 Autorización y aislamiento *(v6)*
 
@@ -213,12 +213,12 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RNF-27 Límite de tasa | pendiente | 5 | |
 | RNF-28 MFA de administradores | servidor | 1 | Sesión 004: enrolamiento TOTP en Supabase Auth y redirección a `/mfa` en el servidor. Probado por código: admin en `aal1` sin privilegios; tras verificar el TOTP, `aal2` y lectura de todo. Falta probar la pantalla en el navegador |
 | RNF-29 Validación del enlace | prototipo | 2 | Solo en cliente |
-| RNF-30 Autorización por rol | pendiente | 1 | **Causa raíz de la auditoría** |
+| RNF-30 Autorización por rol | servidor | 1 | **Causa raíz de la auditoría.** Sesión 007: la matriz está en `lib/autorizacion/matriz.ts` y la aplica `proxy.ts` a páginas, peticiones RSC, Server Actions y `/api`; es cerrada por defecto (una ruta sin declarar responde 404). Segunda barrera en los layouts (`exigirRol`). Matriz ejecutada con `scripts/prueba-matriz-roles.mjs` contra el build de producción (sesión 007): 44 comprobaciones, todas pasan. **Pendiente:** aún no hay endpoints `/api` propios que probar, y la segunda barrera no se ejercitó por separado |
 | RNF-31 Inyección en el TDR | pendiente | 4 | |
 | RNF-32 Retención y eliminación | pendiente | 5 | |
 | RNF-33 Degradación fail-closed | pendiente | 5 | |
 | RNF-34 Lenguaje sin identificadores | prototipo | — | Verificado: 0 en texto renderizado |
-| RNF-35 Panel administrativo oculto *(v6, sesión 005)* | pendiente | 1 | Criterio: misma respuesta 404 que una ruta inventada y 0 menciones de `/admin` en lo servido a no administradores |
+| RNF-35 Panel administrativo oculto *(v6, sesión 005)* | verificado | 1 | Sesión 007, criterio ejecutado con `scripts/prueba-matriz-roles.mjs` contra el build de producción (sesión 007): `/admin`, `/admin/*`, `/mfa` y `/api/admin/*` dan la misma respuesta 404 (código y cuerpo) que una ruta inventada para anónimo, empresa y consultor. En 22 archivos JS y sus HTML servidos a no administradores no aparece `/admin` ni `/mfa`; se retiraron tres rutas del panel que venían en los eventos del mock. No hay `sitemap` ni `robots.txt` |
 
 ---
 
@@ -236,7 +236,7 @@ Las 30 reglas están documentadas; estas son las que todavía no se hacen cumpli
 | RN-23 Saneamiento del TDR | pendiente | 4 |
 | RN-06 Rol admin solo por invitación del Propietario *(mod. v6, sesión 005)* | pendiente | 1 — base lista y probada (sesión 006): el registro público no produce administradores y la invitación vigente sí. Falta la pantalla del Propietario para invitar |
 | RN-31 Propietario único, designado fuera de la app *(v6)* | servidor | 1 — índice único, check que impide revocar al Propietario y columnas protegidas contra el cliente, todo probado. Propietario designado desde la consola en la sesión 006 |
-| RN-33 Catálogo solo para empresas *(v6, sesión 006)* | pendiente | 1 — RLS lista y probada: anónimo y consultor sin encargo ven 0 convocatorias, la empresa ve las vigentes y el público solo recibe los indicadores. Falta que la app lea el catálogo de Supabase (Sprint 2) y la guarda de ruta (RNF-30) |
+| RN-33 Catálogo solo para empresas *(v6, sesión 006)* | pendiente | 1 — RLS lista y probada (sesión 006). Sesión 007: la ruta `/convocatorias` solo admite empresa (consultor y administrador → 403, anónimo → login; probado). Falta que la app lea el catálogo de Supabase (Sprint 2) |
 | RN-32 Cuenta de administrador dedicada *(v6)* | pendiente | 1 — la cuenta invitada nace sin trial ni perfil de consultor (probado); falta que el endpoint de invitación rechace correos que ya tienen cuenta |
 | RN-11 Un trial por cuenta de empresa | servidor | 1 — índice único parcial y trigger de registro; el consultor nace sin suscripción (sesión 004) |
 | RN-24 RLS desde el Sprint 0 | servidor | 1 — cada tabla nació con su política en la misma migración (sesión 003) |

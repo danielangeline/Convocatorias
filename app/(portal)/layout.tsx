@@ -2,12 +2,12 @@ import { Navbar } from "@/components/Navbar";
 import { ModalSuscripcion } from "@/components/ModalSuscripcion";
 import { ModalCreditos } from "@/components/ModalCreditos";
 import { SincronizarSesion } from "@/components/SincronizarSesion";
-import { exigirSesion } from "@/lib/auth";
+import { exigirRol } from "@/lib/auth";
 
-// La sesión se comprueba en el servidor en cada petición (RF-02). La
-// restricción por rol de este grupo llega con requireRole() (RNF-30).
+// Portal Empresa: solo rol empresa (RNF-30, docs/04 §8.2). proxy.ts ya lo
+// aplica; esta es la segunda barrera.
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
-  const datos = await exigirSesion();
+  const datos = await exigirRol(["empresa"], { ruta: "portal empresa" });
 
   return (
     <div className="flex min-h-screen flex-col bg-white">

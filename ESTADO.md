@@ -5,7 +5,7 @@
 
 ---
 
-**Actualizado:** 16 de septiembre de 2026 · cierre de la sesión 006
+**Actualizado:** 16 de septiembre de 2026 · cierre de la sesión 007
 **Sprint:** 1 · día 1 de 30
 **Rama de trabajo:** `sprint-1` — fusionada a `main` al cierre de la sesión 006 (producción ya despliega Auth real)
 
@@ -17,15 +17,17 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 
 ## Lo último que se hizo
 
-- **Sesión 006.**
-  - **Catálogo solo para empresas** (decisión del Product Owner). Se añadió RN-33 y se modificaron CU-07, CU-08, CU-36, RF-11 y RF-44. Anónimos y consultores no ven convocatorias; la landing solo muestra cifras agregadas con `public.indicadores_catalogo()`.
-  - **Storage pasó al Sprint 2.**
-  - **Migración `20260916140000`:** Propietario único, `invitaciones_admin`, `es_admin()` con revocación, trigger que reconoce la invitación por `app_metadata` y catálogo privado. **La base tiene 27 tablas** y la prueba cruzada pasa con las comprobaciones nuevas.
-  - **Cuenta de Propietario creada:** `daniel.bohorquez.p@gmail.com`, designada desde la consola. Se le envió el correo para definir la contraseña (`/auth/definir-contrasena`, pantalla nueva).
-- **Sesión 005:** especificación del acceso (dos puertas, panel oculto, administradores por invitación).
-- **Sesión 004:** Supabase Auth real, trial de 7 días y trigger de registro.
+- **Sesión 007: `requireRole()` hecho (paso 4).**
+  - `lib/autorizacion/matriz.ts` declara la matriz rol × ruta y `proxy.ts` la aplica a cada petición: páginas, RSC, Server Actions y `/api`.
+  - Cerrada por defecto: una ruta sin declarar responde 404.
+  - Portales: 403 y `acceso_denegado`. Panel y `/mfa`: 404 idéntico al de una ruta inexistente, también para anónimos, y `noindex`.
+  - Los layouts repiten la comprobación con `exigirRol()`.
+  - **Matriz probada** con `scripts/prueba-matriz-roles.mjs` contra el build de producción: 44 comprobaciones que pasan. **RNF-35 queda `verificado`**; RF-02, RF-85 y RNF-30 pasan a `servidor`.
+- **Defecto corregido (migración `20260916150000`):** `service_role` no podía escribir `perfiles` (42501 en el esquema `privado`). Por eso `mfa_habilitado` del Propietario había quedado en `false` aunque el MFA estaba activo; ya está en `true`.
+- **Hallazgo que bloquea el paso 5:** el mecanismo de invitación de `docs/05 §9.12` no funciona. `createUser` escribe `app_metadata` después del `insert`, y el trigger no ve la invitación. Ver hallazgos.
+- **Sesión 006:** catálogo solo para empresas, Propietario designado (ya activó su cuenta y su MFA), Storage al Sprint 2.
 
-Detalle en [`docs/bitacora/2026-09-16-sesion-006.md`](docs/bitacora/2026-09-16-sesion-006.md).
+Detalle en [`docs/bitacora/2026-09-16-sesion-007.md`](docs/bitacora/2026-09-16-sesion-007.md).
 
 ## En curso
 
@@ -36,13 +38,17 @@ Nada a medias en el código. **Falta la prueba en el navegador con sesión inici
 1. ~~Columnas de propietario (RN-30)~~ — sesión 002.
 2. ~~Supabase y migraciones con RLS~~ — sesión 003.
 3. ~~Supabase Auth, trial y MFA~~ — sesión 004.
-4. **← Empezar aquí.** **`requireRole()` en toda ruta y endpoint** (RNF-30). En los portales, 403 y `acceso_denegado` (RF-65). **En `/admin`, `/mfa` y `/api/admin`, 404 igual que una ruta inventada, también para anónimos** (RF-85, RNF-35). `/convocatorias` solo para empresa (RN-33). Los layouts ya leen la sesión con `obtenerSesion()` de `lib/auth.ts`.
-5. **Gestión de administradores en la app** (CU-41, CU-42, RF-86, RF-87, RN-32). La base ya está. Faltan los endpoints de invitar, reenviar, cancelar y revocar (con `service_role`, cierre de sesiones y bloqueo en Auth), la pantalla `/admin/administradores` y la marca de invitación `aceptada` al activar el MFA.
-6. **Entrada con dos puertas** en landing y login, y la etiqueta "empresa o entidad" (RF-84).
+4. ~~`requireRole()` y panel oculto~~ — sesión 007.
+5. **← Empezar aquí.** **Gestión de administradores** (CU-41, CU-42, RF-86, RF-87, RN-32). **Primero, rediseñar en `docs/05 §9.12` cómo nace el administrador**: el trigger no ve `app_metadata`. Una opción es una función de aceptación que el servidor ejecute con `service_role` justo después de `createUser`: valida la invitación, convierte el perfil, retira el trial y vincula la invitación. Después:
+   - endpoints de invitar, reenviar, cancelar y revocar (con cierre de sesiones y bloqueo en Auth);
+   - `/admin/administradores`, declarada en la matriz solo para el Propietario;
+   - invitación `aceptada` al activar el MFA;
+   - añadir el caso de invitación a `scripts/prueba-matriz-roles.mjs`.
+6. **Entrada con dos puertas** en landing y login, con la etiqueta "empresa o entidad" (RF-84).
 
-Storage (3 buckets) pasó al Sprint 2 (sesión 006).
+Storage (3 buckets) pasó al Sprint 2 (sesión 006). **Regla nueva:** toda pantalla o endpoint nuevo se declara en `lib/autorizacion/matriz.ts`; si no, responde 404.
 
-**Hito 1 (día 6):** un consultor recibe **404** en `/admin` (como un anónimo y como una ruta inventada) y **403** en `/convocatorias/[id]/generar`; solo el Propietario crea administradores; dos empresas no ven nada la una de la otra en los cuatro listados. Probado, no supuesto. *La mitad RLS está probada; la autenticación real existe; falta la de rutas y endpoints.*
+**Hito 1 (día 6):** un consultor recibe **404** en `/admin` (como un anónimo y como una ruta inventada) y **403** en `/convocatorias/[id]/generar`; solo el Propietario crea administradores; dos empresas no ven nada la una de la otra en los cuatro listados. Probado, no supuesto. *Sesión 007: la parte de rutas está probada (consultor → 404 en `/admin`, 403 en `/convocatorias/[id]/generar`). El aislamiento entre dos empresas está probado en RLS; los cuatro listados de la app siguen leyendo el mock.*
 
 ## Infraestructura que ya existe
 
@@ -60,7 +66,7 @@ Ninguno para seguir programando. **Sí bloquea el registro real desde Vercel** e
 Pendiente del Product Owner:
 
 1. ~~**URL Configuration de Auth en Supabase**~~ — hecho por el Product Owner (16-sep). Referencia:: *Site URL* = `https://convocatorias-neon.vercel.app`; *Redirect URLs* = `http://localhost:3000/**`, `https://convocatorias-neon.vercel.app/**` y `https://convocatorias-*-danielbohorquezps-projects.vercel.app/**`. Sin esto, el enlace de confirmación de correo no vuelve a `/auth/confirmar`.
-2. **Activar la cuenta de Propietario** (`daniel.bohorquez.p@gmail.com`). El primer correo no sirvió porque Supabase no admite `localhost` como destino y lo mandó a la portada. Se reenvió hacia `https://convocatorias-neon.vercel.app/auth/definir-contrasena`, válido por 1 hora. Después de definir la contraseña, activar el MFA en `/mfa`.
+2. ~~**Activar la cuenta de Propietario**~~ — hecho (contraseña y MFA, 16-sep). El primer correo no sirvió porque Supabase no admite `localhost` como destino y lo mandó a la portada. Se reenvió hacia `https://convocatorias-neon.vercel.app/auth/definir-contrasena`, válido por 1 hora. Después de definir la contraseña, activar el MFA en `/mfa`.
 3. **Probar en el navegador con sesión** las cuentas de prueba `empresa.s004@example.com` y `consultor.s004@example.com` (contraseña dada en el chat de la sesión 004, no está en el repositorio): login, navbar con iniciales y "Salir", 3 créditos en el indicador y `/suscripcion` con el trial. El QR de `/mfa` se prueba con la cuenta del Propietario.
 4. **SMTP propio antes de los pilotos** (p. ej. Resend): el correo por defecto de Supabase envía muy pocos mensajes por hora.
 5. **Cambiar la contraseña de la base de datos** (quedó escrita en el chat de la sesión 003).
@@ -92,6 +98,11 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | Tres nombres de política de la migración `20260916120400` superan 63 bytes y Postgres los guardó recortados; no chocan, pero no coinciden letra a letra con el archivo | `supabase/migrations/20260916120400_consultores_y_encargos.sql` | baja · cosmético |
 | El prototipo cuenta como "solicitud activa" los encargos `completado` y `calificado`; RF-80 ya fija `pendiente`/`en_curso` | `app/(portal)/consultores/[id]/page.tsx:60` | baja · se alinea al conectar el endpoint |
 | **Supabase no admite `http://localhost:3000/**` en *Redirect URLs***: un `redirectTo` a localhost se sustituye por la *Site URL*, así que confirmar el correo o recuperar la contraseña en local lleva a producción. Comprobado con `generateLink` en la sesión 006 | Supabase → Authentication → URL Configuration | media · revisar cómo quedó escrita la entrada de localhost |
+| **El mecanismo de invitación de administradores no funciona**: `auth.admin.createUser` inserta el usuario sin `app_metadata` y lo añade con un `update`, así que el trigger `after insert` nunca ve `invitacion_id` y la cuenta nace empresa con trial. Comprobado contra el remoto | `docs/05 §9.12`, migración `20260916140000` | **alta** · bloquea el paso 5; rediseñar antes de programar |
+| `service_role` no tenía `usage` sobre el esquema `privado`: sus escrituras sobre tablas con triggers fallaban (42501). Era la causa del `update` que no persistió en la sesión 004 y de `mfa_habilitado = false` del Propietario | Supabase | **resuelto** en la sesión 007 (migración `20260916150000`) |
+| Una Server Action denegada por el proxy responde 404, no 403: la reescritura a `/acceso-denegado` no encuentra la acción. No se ejecuta y queda el evento `acceso_denegado` | `proxy.ts` | baja · revisar cuando existan Server Actions de negocio |
+| La segunda barrera (`exigirRol` en los layouts) no se ejercitó por separado: el proxy corta antes | `lib/auth.ts` | baja · probarla desactivando el proxy en un entorno de prueba |
+| Las pruebas de la sesión 007 dejaron ~120 eventos `acceso_denegado` reales en `eventos_seguridad` | Supabase remoto | baja · son evidencia; limpiar antes de los pilotos |
 | Quedan 2 cuentas de prueba (`empresa.s004@example.com`, `consultor.s004@example.com`) en la base remota; `admin.s004` se borró en la sesión 006 | Supabase remoto | baja · borrarlas antes de los pilotos |
 | El reloj de esta máquina va ~141 s atrasado frente a Supabase: los códigos TOTP generados en ella fallan | máquina local | baja · sincronizar la hora de Windows |
 | En la sesión 004, el primer `update` de `perfiles.rol` con `service_role` no persistió y el error no se leyó; al repetirlo funcionó. No se reprodujo | script de prueba | baja · vigilar al escribir el endpoint de asignar rol |

@@ -145,7 +145,12 @@ export async function confirmarMfa(): Promise<ResultadoFormulario> {
     .single();
 
   if (perfil && !perfil.mfa_habilitado) {
-    await servicio.from("perfiles").update({ mfa_habilitado: true }).eq("id", datos.sesion.usuarioId);
+    const { error } = await servicio.from("perfiles").update({ mfa_habilitado: true }).eq("id", datos.sesion.usuarioId);
+    // No se oculta: en la sesión 007 este update fallaba en silencio (42501).
+    if (error) {
+      console.error("No se pudo marcar mfa_habilitado", error.code, error.message);
+      return { error: "Tu segundo factor quedó activo, pero no pudimos registrarlo. Intenta de nuevo." };
+    }
     await registrarEvento("mfa_activado", {
       usuarioId: datos.sesion.usuarioId,
       ruta: "/mfa",

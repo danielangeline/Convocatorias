@@ -121,6 +121,9 @@ insert into public.documentos_generados (id, usuario_id, proyecto_id, convocator
    'Doc E2', 'texto', 'generado', 0, null);
 
 insert into public.eventos_seguridad (tipo, ruta) values ('acceso_denegado', '/admin');
+-- La tabla real ya tiene eventos: se guarda el total para comparar lo que ve cada rol.
+create temp table total_eventos as select count(*) as n from public.eventos_seguridad;
+grant select on total_eventos to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- 0 · Cobertura (RNF-25): toda tabla de public con RLS y al menos una política
@@ -265,7 +268,7 @@ select pg_temp.rechaza($$insert into public.fuentes (nombre) values ('x')$$, 'Ad
 
 select pg_temp.como('00000000-0000-0000-0000-0000000000ad', 'aal2');
 select pg_temp.ok((select count(*) from public.proyectos) = 2, 'Admin con MFA: lee todos los proyectos');
-select pg_temp.ok((select count(*) from public.eventos_seguridad) = 1, 'Admin con MFA: lee eventos de seguridad');
+select pg_temp.ok((select count(*) from public.eventos_seguridad) = (select n from total_eventos), 'Admin con MFA: lee todos los eventos de seguridad');
 select pg_temp.ok((select count(*) from public.convocatorias) = 3, 'Admin con MFA: lee borradores y vencidas');
 select pg_temp.ok((select count(*) from public.contacto_consultor('00000000-0000-0000-0000-0000000000c2')) = 1, 'Admin con MFA: ve el contacto de un consultor');
 insert into public.fuentes (nombre) values ('Fuente admin');
@@ -307,6 +310,9 @@ select pg_temp.ok((select rating_promedio = 5 and total_encargos_completados = 1
 -- 7 · Propietario, invitaciones y revocación (RN-06, RN-31, RN-32, RF-86, RF-87)
 -- ---------------------------------------------------------------------------
 
+-- La base real ya tiene Propietario: dentro de esta transacción se le quita la
+-- marca para probar con el admin de prueba (el ROLLBACK la devuelve).
+update public.perfiles set es_propietario = false where es_propietario;
 update public.perfiles set es_propietario = true where id = '00000000-0000-0000-0000-0000000000ad';
 
 insert into public.invitaciones_admin (id, correo, nombre, invitado_por) values
