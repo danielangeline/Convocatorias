@@ -152,6 +152,23 @@ export async function exigirRol(
 }
 
 /**
+ * Segunda barrera de RF-85 y RNF-28 para los endpoints del panel: administrador
+ * vigente con segundo factor verificado. Devuelve null y registra
+ * `acceso_denegado` en cualquier otro caso; quien llama responde 404.
+ */
+export async function sesionDeAdministrador(ruta: string): Promise<DatosSesion | null> {
+  const datos = await obtenerSesion();
+  if (datos?.sesion.rol === "administrador" && datos.sesion.aal === "aal2") return datos;
+  await registrarAccesoDenegado({
+    usuarioId: datos?.sesion.usuarioId ?? null,
+    ruta,
+    ip: ipDeCabeceras(await headers()),
+    detalle: "No es administrador con MFA (segunda barrera)",
+  });
+  return null;
+}
+
+/**
  * Segunda barrera de RF-86 para la gestión de administradores: sesión del
  * Propietario vigente con segundo factor verificado. Devuelve null y registra
  * `acceso_denegado` en cualquier otro caso; quien llama responde 404.

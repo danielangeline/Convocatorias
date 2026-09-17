@@ -1,5 +1,5 @@
 -- =============================================================================
--- Prueba cruzada de RLS y del registro (RF-01, RF-37, RN-06, RN-11, RN-31..33, RF-86, RF-87, RNF-03, RNF-25, RNF-16, RN-17, RN-25, RN-27, RNF-28)
+-- Prueba cruzada de RLS y del registro (RF-01, RF-37, RN-06, RN-11, RN-31..33, RF-86, RF-87, RNF-03, RNF-25, RNF-16, RN-17, RN-25, RN-27, RNF-28, RF-05, RF-06, RF-08, RN-01, RN-04, RNF-29)
 --
 -- Corre dentro de una transacción que termina en ROLLBACK: no deja datos.
 --   npx supabase db query --local -f supabase/tests/rls_aislamiento.sql
@@ -124,6 +124,9 @@ insert into public.eventos_seguridad (tipo, ruta) values ('acceso_denegado', '/a
 -- La tabla real ya tiene eventos: se guarda el total para comparar lo que ve cada rol.
 create temp table total_eventos as select count(*) as n from public.eventos_seguridad;
 grant select on total_eventos to authenticated;
+-- La base remota puede tener invitaciones reales (sesión 011): se cuentan aparte.
+create temp table invitaciones_previas as select count(*) as n from public.invitaciones_admin;
+grant select on invitaciones_previas to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- 0 · Cobertura (RNF-25): toda tabla de public con RLS y al menos una política
@@ -391,7 +394,7 @@ select pg_temp.ok((select count(*) from public.invitaciones_admin) = 0, 'E1: no 
 select pg_temp.como('00000000-0000-0000-0000-0000000000ad', 'aal1');
 select pg_temp.ok((select count(*) from public.invitaciones_admin) = 0, 'Propietario sin MFA: no ve invitaciones');
 select pg_temp.como('00000000-0000-0000-0000-0000000000ad', 'aal2');
-select pg_temp.ok((select count(*) from public.invitaciones_admin) = 5, 'Propietario con MFA: ve las invitaciones (RF-86)');
+select pg_temp.ok((select count(*) from public.invitaciones_admin) = 5 + (select n from invitaciones_previas), 'Propietario con MFA: ve las invitaciones (RF-86)');
 select pg_temp.rechaza($$insert into public.invitaciones_admin (correo, invitado_por) values ('x@prueba.co', '00000000-0000-0000-0000-0000000000ad')$$,
   'El Propietario escribe invitaciones desde el cliente (solo servidor)');
 
@@ -547,6 +550,80 @@ select pg_temp.como('00000000-0000-0000-0000-0000000000b2', 'aal2');
 select pg_temp.ok(public.rol_efectivo() is null and (select count(*) from public.perfiles) = 1,
   'Administrador revocado por la función: sin privilegios con el mismo JWT (RF-87)');
 reset role;
+
+-- ---------------------------------------------------------------------------
+-- 9 · Guardar una convocatoria desde el panel (RF-05, RF-06, RF-08, RN-01, RN-04, §9.13)
+-- ---------------------------------------------------------------------------
+
+insert into public.fuentes (id, nombre, activa) values
+  ('00000000-0000-0000-0000-00000000f001', 'Fuente activa', true),
+  ('00000000-0000-0000-0000-00000000f002', 'Fuente inactiva', false);
+insert into public.categorias (id, tipo, nombre, activa) values
+  ('00000000-0000-0000-0000-0000000ca701', 'sector', 'Agro prueba', true),
+  ('00000000-0000-0000-0000-0000000ca702', 'sector', 'Minería prueba', false);
+
+create temp table datos_c002 as select jsonb_build_object(
+  'fuente_id', '00000000-0000-0000-0000-00000000f001', 'nombre', 'Borrador editado', 'entidad_convocante', 'iNNpulsa',
+  'monto_min', '1000', 'monto_max', '5000', 'fecha_apertura', current_date::text,
+  'fecha_cierre', (current_date + 30)::text, 'url_postulacion', 'https://innpulsa.gov.co/x') as d;
+grant select on datos_c002 to authenticated;
+
+set local role authenticated;
+select pg_temp.como('00000000-0000-0000-0000-0000000000e1');
+select pg_temp.rechaza($$select public.guardar_convocatoria('00000000-0000-0000-0000-00000000c002', (select d from datos_c002), '{}', '[]')$$,
+  'Una empresa guarda una convocatoria');
+select pg_temp.como('00000000-0000-0000-0000-0000000000ad', 'aal1');
+select pg_temp.rechaza($$select public.guardar_convocatoria('00000000-0000-0000-0000-00000000c002', (select d from datos_c002), '{}', '[]')$$,
+  'Admin sin MFA guarda una convocatoria (RNF-28)');
+
+select pg_temp.como('00000000-0000-0000-0000-0000000000ad', 'aal2');
+select public.guardar_convocatoria('00000000-0000-0000-0000-00000000c002', (select d from datos_c002),
+  array['00000000-0000-0000-0000-0000000ca701']::uuid[],
+  '[{"descripcion": "RUT", "tipo": "documento"}, {"descripcion": "Ser pyme", "tipo": "condicion", "obligatorio": false}]');
+select pg_temp.ok((select nombre = 'Borrador editado' and estado = 'borrador' and monto_max = 5000
+                   and fuente_id = '00000000-0000-0000-0000-00000000f001'
+                   from public.convocatorias where id = '00000000-0000-0000-0000-00000000c002')
+                  and (select count(*) from public.convocatoria_categoria where convocatoria_id = '00000000-0000-0000-0000-00000000c002') = 1
+                  and (select string_agg(descripcion || ':' || orden || ':' || obligatorio, ',' order by orden)
+                       from public.requisitos_convocatoria where convocatoria_id = '00000000-0000-0000-0000-00000000c002')
+                      = 'RUT:1:true,Ser pyme:2:false',
+  'Admin con MFA: guarda datos, categorías y requisitos en orden sin tocar el estado');
+
+select pg_temp.rechaza($$select public.guardar_convocatoria('00000000-0000-0000-0000-00000000c002',
+  (select d || '{"fuente_id": "00000000-0000-0000-0000-00000000f002"}' from datos_c002), '{}', '[]')$$,
+  'Asignar una fuente inactiva (CU-02)');
+select pg_temp.rechaza($$select public.guardar_convocatoria('00000000-0000-0000-0000-00000000c002', (select d from datos_c002),
+  array['00000000-0000-0000-0000-0000000ca702']::uuid[], '[]')$$,
+  'Asignar una categoría inactiva (RF-06)');
+select pg_temp.rechaza($$select public.guardar_convocatoria('00000000-0000-0000-0000-00000000c002',
+  (select d || '{"url_postulacion": "javascript:alert(1)"}' from datos_c002), '{}', '[]')$$,
+  'Guardar un enlace javascript: (RNF-29)');
+select pg_temp.rechaza($$select public.guardar_convocatoria('00000000-0000-0000-0000-00000000c002',
+  (select d from datos_c002), '{}',
+  (select jsonb_build_array(jsonb_build_object('id', id, 'descripcion', 'x', 'tipo', 'documento'))
+   from public.requisitos_convocatoria where convocatoria_id = '00000000-0000-0000-0000-00000000c001' limit 1))$$,
+  'Editar un requisito de otra convocatoria');
+select pg_temp.rechaza($$select public.guardar_convocatoria('00000000-0000-0000-0000-00000000c001',
+  (select d || '{"nombre": "Vigente", "entidad_convocante": "MinCiencias", "url_postulacion": ""}' from datos_c002), '{}',
+  '[{"descripcion": "RUT", "tipo": "documento"}]')$$,
+  'Dejar una publicada sin enlace oficial (RN-01)');
+select pg_temp.rechaza($$select public.guardar_convocatoria('00000000-0000-0000-0000-00000000c001',
+  (select d || '{"nombre": "Vigente", "entidad_convocante": "MinCiencias"}' from datos_c002), '{}', '[]')$$,
+  'Dejar una publicada sin requisitos (RN-01)');
+
+-- Retirar un requisito de una publicada no altera el checklist ya copiado (RN-04).
+select public.guardar_convocatoria('00000000-0000-0000-0000-00000000c001',
+  (select d || '{"nombre": "Vigente", "entidad_convocante": "MinCiencias", "url_postulacion": "https://minciencias.gov.co/x"}' from datos_c002),
+  '{}',
+  (select jsonb_build_array(jsonb_build_object('id', id, 'descripcion', descripcion, 'tipo', tipo))
+   from public.requisitos_convocatoria where convocatoria_id = '00000000-0000-0000-0000-00000000c001' and orden = 1));
+select pg_temp.ok((select count(*) from public.requisitos_convocatoria where convocatoria_id = '00000000-0000-0000-0000-00000000c001') = 1
+                  and (select estado from public.convocatorias where id = '00000000-0000-0000-0000-00000000c001') = 'publicada',
+  'Admin con MFA: retira un requisito de una publicada y sigue publicada');
+reset role;
+select pg_temp.ok((select count(*) from public.postulacion_checklist) = 2
+                  and (select count(*) from public.postulacion_checklist where requisito_id is null) = 1,
+  'El checklist ya copiado conserva sus 2 ítems (RN-04)');
 
 select 'TODAS LAS COMPROBACIONES PASARON' as resultado;
 

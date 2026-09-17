@@ -393,6 +393,65 @@ export interface InvitacionAdminListado {
   tieneCuenta: boolean;
 }
 
+// ---------------------------------------------------------------------------
+// Catálogo en el panel de administración (Supabase, sesión 011 — RF-04..08)
+// ---------------------------------------------------------------------------
+
+export interface FuenteAdmin {
+  id: string;
+  nombre: string;
+  tipoEntidad: string;
+  url: string;
+  notas: string;
+  activa: boolean;
+}
+
+export interface CategoriaAdmin {
+  id: string;
+  tipo: TipoCategoria;
+  nombre: string;
+  activa: boolean;
+}
+
+export interface RequisitoAdmin {
+  // Sin id: requisito nuevo que aún no se ha guardado.
+  id?: string;
+  descripcion: string;
+  tipo: TipoRequisito;
+  obligatorio: boolean;
+}
+
+export interface ConvocatoriaAdminListado {
+  id: string;
+  nombre: string;
+  entidadConvocante: string;
+  fuenteNombre: string | null;
+  montoMin: number | null;
+  montoMax: number | null;
+  fechaCierre: string;
+  estado: EstadoConvocatoria;
+}
+
+export interface ConvocatoriaAdmin {
+  id: string;
+  fuenteId: string | null;
+  nombre: string;
+  entidadConvocante: string;
+  descripcion: string;
+  montoMin: number | null;
+  montoMax: number | null;
+  ubicacion: string;
+  fechaApertura: string | null;
+  fechaCierre: string;
+  urlPostulacion: string;
+  estado: EstadoConvocatoria;
+  publicadaAt: string | null;
+  actualizadoAt: string;
+  categorias: string[];
+  requisitos: RequisitoAdmin[];
+  totalDocumentos: number;
+}
+
 export interface ListadoAdministradores {
   administradores: AdministradorListado[];
   invitaciones: InvitacionAdminListado[];

@@ -1,6 +1,6 @@
 import "server-only";
 import { NextResponse, type NextRequest } from "next/server";
-import { sesionDePropietario } from "@/lib/auth";
+import { sesionDeAdministrador, sesionDePropietario } from "@/lib/auth";
 import { ipDeCabeceras } from "@/lib/autorizacion/eventos";
 import type { Contexto, Resultado } from "./administradores";
 
@@ -41,6 +41,40 @@ export async function conPropietario<T>(
     ip: ipDeCabeceras(request.headers),
     origen,
   });
+  if (!resultado.ok) return NextResponse.json({ error: resultado.error }, { status: resultado.status });
+  return NextResponse.json({ ok: true, datos: resultado.datos ?? null, aviso: resultado.aviso ?? null });
+}
+
+/**
+ * Envoltura de los endpoints del catálogo en el panel (RF-04..09, RF-85):
+ *   · sesión de administrador vigente con aal2, o 404 (segunda barrera; la
+ *     primera es proxy.ts y la tercera la RLS);
+ *   · en escrituras, la petición debe venir del mismo origen;
+ *   · el id de la ruta, si lo hay, debe ser un uuid.
+ * La acción recibe el cuerpo JSON ya leído (null si no es un objeto) y el id
+ * del administrador.
+ */
+export async function conAdministrador<T>(
+  request: NextRequest,
+  accion: (cuerpo: Record<string, unknown> | null, usuarioId: string) => Promise<Resultado<T>>,
+  opciones: { id?: string } = {}
+): Promise<NextResponse> {
+  const ruta = request.nextUrl.pathname;
+  const datos = await sesionDeAdministrador(ruta);
+  if (!datos) return noEncontrado();
+
+  if (request.method !== "GET" && request.headers.get("origin") !== origenDe(request)) {
+    return NextResponse.json({ error: "Origen no permitido." }, { status: 403 });
+  }
+  if (opciones.id !== undefined && !UUID.test(opciones.id)) return noEncontrado();
+
+  let cuerpo: Record<string, unknown> | null = null;
+  if (request.method !== "GET") {
+    const leido = await request.json().catch(() => null);
+    cuerpo = leido && typeof leido === "object" && !Array.isArray(leido) ? leido : null;
+  }
+
+  const resultado = await accion(cuerpo, datos.sesion.usuarioId);
   if (!resultado.ok) return NextResponse.json({ error: resultado.error }, { status: resultado.status });
   return NextResponse.json({ ok: true, datos: resultado.datos ?? null, aviso: resultado.aviso ?? null });
 }
