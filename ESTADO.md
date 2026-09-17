@@ -5,55 +5,52 @@
 
 ---
 
-**Actualizado:** 17 de septiembre de 2026 · cierre de la sesión 010
-**Sprint:** 1 · día 1 de 30
-**Rama de trabajo:** `sprint-1` (el Sprint 2 puede seguir en ella o abrir `sprint-2`) — al cierre de la sesión 010, `main` y `sprint-1` iguales y subidos a `origin`: producción despliega las dos puertas y la recuperación de contraseña. Sin migraciones nuevas
+**Actualizado:** 17 de septiembre de 2026 · cierre de la sesión 011
+**Sprint:** 2 · día 7 de 30
+**Rama de trabajo:** `sprint-2`, abierta desde `main` en la sesión 011 y subida a `origin` (sin fusionar a `main`: producción todavía no tiene el catálogo del panel). **Migración nueva ya aplicada al remoto:** `20260917100000_guardar_convocatoria`. No rompe `main`, que no la llama
 
 ---
 
 ## Dónde vamos
 
-La especificación está cerrada en **v6**. **La base de datos existe en Supabase** (27 tablas con RLS, prueba cruzada pasada) y **la identidad ya es real**: registro, login, confirmación de correo y MFA del administrador con Supabase Auth. El `ModoDemo` desapareció. Lo demás —proyectos, catálogo, postulaciones, documentos, encargos— sigue en datos de ejemplo de Zustand, filtrados por el `auth.uid()` real: una cuenta nueva empieza vacía y lo que crea se pierde al recargar.
+La especificación está cerrada en **v6**. **La base de datos existe en Supabase** (27 tablas con RLS, prueba cruzada pasada) y **la identidad ya es real**: registro, login, confirmación de correo y MFA del administrador con Supabase Auth. El `ModoDemo` desapareció. **Desde la sesión 011, el panel administra fuentes, categorías y convocatorias (datos y requisitos) contra Supabase**, con endpoints validados en el servidor. Las tablas del catálogo siguen vacías: nadie ha cargado contenido real. Lo demás —el catálogo que ve la empresa, proyectos, postulaciones, documentos, encargos— sigue en datos de ejemplo de Zustand, filtrados por el `auth.uid()` real: una cuenta nueva empieza vacía y lo que crea se pierde al recargar.
 
 ## Lo último que se hizo
 
-- **Sesión 010: entrada con dos puertas (RF-84), paso 6 y último entregable del Sprint 1.**
-  - Landing: las tarjetas "Soy empresa o entidad" y "Soy consultor", cada una con "Crear cuenta" y "Ya tengo cuenta". Se quitaron las tres convocatorias "destacadas", que mostraban convocatorias individuales a visitantes (RN-33).
-  - `/registro` y `/login` comparten `SelectorPuerta` y aceptan `?puerta=`. En el registro la puerta fija el rol; en el login solo orienta.
-  - `iniciarSesion` lleva siempre al inicio del rol real y agrega `?aviso=puerta` si la puerta no coincide. `AvisoPuerta` lo muestra en ambos portales y lo quita de la dirección. El administrador va a `/mfa` sin aviso.
-  - Probado en el navegador contra Supabase real con tres cuentas temporales, ya borradas: los cinco casos de puerta. `tsc`, `next build` y `lint` sin errores nuevos.
-  - **Agregado a pedido del Product Owner:**
-    - Recuperación de contraseña (RF-03): "¿Olvidaste tu contraseña?" en `/login` → `/auth/recuperar` → enlace → `/auth/definir-contrasena`. Probado con una cuenta temporal.
-    - Las puertas anuncian su nombre a los lectores de pantalla.
-    - Las cuentas s004 tienen contraseña nueva, dada en el chat de la sesión 010 (no está en el repositorio).
-- **Sesión 009:** gestión de administradores (invitar, reenviar, cancelar, revocar).
+- **Sesión 011: Sprint 2, paso 1 — administración del catálogo contra Supabase (RF-04, 05, 06, 08, RNF-29).**
+  - Endpoints bajo `/api/admin`, que heredan el 404 del panel y el MFA: fuentes, categorías y convocatorias. La lógica vive en `lib/admin/catalogo.ts`. La envoltura `conAdministrador` exige administrador con `aal2`, mismo origen e id uuid. `docs/04` actualizado: antes decía `/api/fuentes`.
+  - Migración `guardar_convocatoria` (`security invoker`, docs/05 §9.13): datos, categorías y requisitos en una transacción. No cambia el estado.
+  - `/admin/fuentes`, `/admin/categorias`, `/admin/convocatorias` y el editor leen y escriben en Supabase. Nada se borra (RN-07): fuentes y categorías se desactivan. El editor ya no publica ni simula adjuntos (pasos 2 y 3).
+  - Verificado con la sección 9 nueva de la prueba de RLS (todo pasa y cada rechazo sale por su regla) y con `scripts/prueba-catalogo-admin.mjs`: 40 comprobaciones con cuentas temporales, ya borradas. `tsc` y `next build` correctos; `lint` sin errores nuevos.
+  - **No verificado:** las pantallas en el navegador con sesión de administrador (ver pendiente 8).
+- **Pendiente 3, en parte:** el Product Owner revocó al administrador de prueba y confirmó el 404. En la base quedó `admin_revocado` y, 9 s después, `acceso_denegado` de esa sesión en `/admin`.
+- **Sesión 010:** entrada con dos puertas (RF-84) y recuperación de contraseña (RF-03). Cerró el Sprint 1.
 
-Detalle en [`docs/bitacora/2026-09-17-sesion-010.md`](docs/bitacora/2026-09-17-sesion-010.md).
+Detalle en [`docs/bitacora/2026-09-17-sesion-011.md`](docs/bitacora/2026-09-17-sesion-011.md).
 
 ## En curso
 
-Nada a medias en el código. **Sprint 1 cerrado: entregables completos y Hito 1 cumplido** (decisión del Product Owner, 17-sep). Del recorrido de administradores falta solo reenviar, cancelar y revocar (pendiente 3).
+Nada a medias en el código. **Sprint 2, paso 1 hecho** (sesión 011).
 
 ## Lo siguiente
 
-**Sprint 1 — completado** (pasos 1 a 6, sesiones 002 a 010, más RF-03 agregado en la 010). **Al abrir la sesión 011, el Product Owner termina la prueba de la gestión de administradores**: reenviar, cancelar y revocar (pendiente 3). Invitar, aceptar y activar el MFA ya funcionaron con correo real (17-sep). Después empieza el Sprint 2.
-
 **Sprint 2 — Catálogo y administración de contenido** (`docs/10 §Sprint 2`):
 
-1. **← Empezar aquí.** Endpoints de fuentes, convocatorias, categorías, requisitos y documentos adjuntos (RF-04..08).
-2. Storage: 3 buckets, hoja de vida privada con URLs firmadas de 15 min (RNF-16, RNF-18).
-3. Publicación validada en servidor, incluido el enlace oficial (RF-09, RN-01, RNF-29).
-4. Catálogo, filtros, chips e indicadores de la landing contra datos reales (RF-11, 12, 13, 43, 44).
+1. ~~Endpoints de fuentes, convocatorias, categorías y requisitos (RF-04..06, 08)~~ — **sesión 011**. Los documentos adjuntos (RF-07) pasan al paso 2, que trae Storage.
+2. **← Empezar aquí.** Storage:
+   - 3 buckets y hoja de vida privada con URLs firmadas de 15 min (RNF-16, RNF-18);
+   - **adjuntos de convocatoria** (RF-07, CU-03): subir, renombrar y quitar antes de publicar. La sección de documentos del editor ya muestra el conteo real.
+3. Publicación validada en servidor, incluido el enlace oficial (RF-09, RN-01, RNF-29): `POST /api/admin/convocatorias/[id]/publicar` y `.../despublicar`, con 400 y la lista de lo que falta. El botón del editor está deshabilitado a la espera.
+4. Catálogo, filtros, chips e indicadores de la landing contra datos reales (RF-11, 12, 13, 43, 44), con `GET /api/convocatorias` para la empresa.
 5. Cerradas fuera del listado salvo filtro explícito (RF-11, RN-02).
 6. Job diario de cierre (RF-10, CU-06).
 7. Vigencia verificada en servidor al postular y al generar (RF-78).
 
-**Regla vigente:** toda pantalla o endpoint nuevo se declara en `lib/autorizacion/matriz.ts`; si no, responde 404.
+**Regla vigente:** toda pantalla o endpoint nuevo se declara en `lib/autorizacion/matriz.ts`; si no, responde 404. Los endpoints del catálogo del panel cuelgan de `/api/admin`, así que ya los cubre la regla del panel.
 
-**Hito 1 (día 6) — cumplido.** Un consultor recibe **404** en `/admin` (como un anónimo y como una ruta inventada) y **403** en `/convocatorias/[id]/generar`; solo el Propietario crea administradores; dos empresas no ven nada la una de la otra en los cuatro listados. Probado, no supuesto.
-- *Rutas (sesión 007):* consultor → 404 en `/admin` y 403 en `/convocatorias/[id]/generar`.
-- *"Solo el Propietario crea administradores":* probado en la base y en rutas en la sesión 009 (otro administrador recibe 404 y no crea nada). **El 17-sep el Propietario lo hizo desde su sesión con correo real**: invitó a `danielangeline322@gmail.com`, la persona definió la contraseña y activó el MFA, y la invitación quedó `aceptada` (eventos `admin_invitado` y `mfa_activado`).
-- *Aislamiento entre empresas:* probado en RLS (sesión 003). **Decisión del Product Owner (17-sep, opción a):** el hito se da por cumplido con esa prueba. **Condición:** al conectar cada uno de los cuatro listados —proyectos y postulaciones en el Sprint 3, documentos y encargos en el Sprint 4— se repite la prueba con dos empresas en pantalla, y ese listado no está terminado sin ella.
+**Hito 2 (día 12):** un administrador carga una convocatoria real de principio a fin —datos, adjuntos, requisitos, enlace— y aparece en el catálogo de las empresas —no para visitantes ni consultores, RN-33—; una vencida desaparece sola al correr el job. *Hoy* ya se cargan datos, categorías, requisitos y enlace; faltan adjuntos, publicar y el catálogo de la empresa.
+
+**Hito 1 (día 6) — cumplido** (sesión 010). Sigue vigente la condición: cada listado de empresa repite la prueba de aislamiento con dos empresas en pantalla al conectarse (proyectos y postulaciones en el Sprint 3; documentos y encargos en el Sprint 4).
 
 ## Infraestructura que ya existe
 
@@ -72,14 +69,23 @@ Pendiente del Product Owner:
 
 1. ~~**URL Configuration de Auth en Supabase**~~ — hecho por el Product Owner (16-sep). Referencia:: *Site URL* = `https://convocatorias-neon.vercel.app`; *Redirect URLs* = `http://localhost:3000/**`, `https://convocatorias-neon.vercel.app/**` y `https://convocatorias-*-danielbohorquezps-projects.vercel.app/**`. Sin esto, el enlace de confirmación de correo no vuelve a `/auth/confirmar`.
 2. ~~**Activar la cuenta de Propietario**~~ — hecho (contraseña y MFA, 16-sep). El primer correo no sirvió porque Supabase no admite `localhost` como destino y lo mandó a la portada. Se reenvió hacia `https://convocatorias-neon.vercel.app/auth/definir-contrasena`, válido por 1 hora. Después de definir la contraseña, activar el MFA en `/mfa`.
-3. **Probar la gestión de administradores con la cuenta del Propietario** (sesión 009) — **a medias; se termina al abrir la sesión 011**, en producción (`https://convocatorias-neon.vercel.app`) o en local:
+3. **Probar la gestión de administradores con la cuenta del Propietario** (sesión 009) — **casi terminado**, en producción (`https://convocatorias-neon.vercel.app`) o en local:
    - ~~`/admin/administradores` aparece en el menú~~, ~~invitar a un correo real sin cuenta~~, ~~abrir el enlace, definir la contraseña, activar el MFA; la invitación pasa a "aceptada"~~ — **hecho el 17-sep** con `danielangeline322@gmail.com` (confirmado en la base: invitación `aceptada`, MFA TOTP verificado, eventos `admin_invitado` y `mfa_activado`);
-   - **falta:** reenviar y cancelar una segunda invitación; revocar al administrador de prueba y comprobar que su sesión abierta pierde el panel. **Ojo:** `danielangeline322@gmail.com` hoy es administrador con acceso real al panel. Si solo era de prueba, conviene que sea el que se revoca;
+   - ~~revocar al administrador de prueba y comprobar que su sesión abierta pierde el panel~~ — **hecho el 17-sep** (sesión 011): `danielangeline322@gmail.com` revocado. `admin_revocado` quedó a las 13:15:49 y su sesión recibió `acceso_denegado` en `/admin` 9 s después;
+   - **falta:** reenviar y cancelar una segunda invitación (invitar a otro correo real sin cuenta);
    - en `/admin/seguridad` todavía no se verán los eventos: esa pantalla sigue leyendo el mock.
 4. **Probar en el navegador con sesión** las cuentas de prueba `empresa.s004@example.com` y `consultor.s004@example.com`: login (ahora con las dos puertas y el aviso si eliges la otra), navbar con iniciales y "Salir", 3 créditos en el indicador y `/suscripcion` con el trial. Contraseña nueva dada en el chat de la sesión 010. **Ojo:** `scripts/prueba-matriz-roles.mjs` la vuelve a cambiar si se corre; en ese caso, pedir otra al agente. El QR de `/mfa` se prueba con la cuenta del Propietario.
 5. **SMTP propio antes de los pilotos** (p. ej. Resend): el correo por defecto de Supabase envía muy pocos mensajes por hora.
 6. **Cambiar la contraseña de la base de datos** (quedó escrita en el chat de la sesión 003).
 7. **Docker Desktop no arranca** en esta máquina: no bloquea (las migraciones se ensayan en una transacción con `ROLLBACK` contra el remoto).
+8. **Recorrer el catálogo del panel en el navegador con la cuenta del Propietario** (sesión 011). Mientras `sprint-2` no llegue a producción, en local con `npm run dev`:
+   - crear una fuente con notas y desactivar otra;
+   - crear categorías de los tres tipos y desactivar una;
+   - crear una convocatoria en borrador; en el editor, llenar datos, enlace oficial, categorías y 3 requisitos, reordenarlos, quitar uno y guardar;
+   - recargar y comprobar que todo sigue;
+   - probar un enlace `javascript:`: debe rechazarse con mensaje.
+
+   El agente no inicia sesión escribiendo contraseñas en el navegador, así que esta parte solo la puede hacer el Product Owner. **Ojo:** lo que se cree queda en la base real; si es de prueba, avisar para borrarlo.
 
 ## Decisiones abiertas
 
@@ -124,13 +130,17 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | No había "¿Olvidaste tu contraseña?" en `/login` | `app/(identidad)/login` | **resuelto** en la sesión 010 (RF-03, agregado al Sprint 1 en `docs/10`) |
 | Las puertas se anunciaban por su valor (`empresa`, `consultor`) y no por su nombre | `components/identidad/SelectorPuerta.tsx` | **resuelto** en la sesión 010 (`aria-label` + `aria-describedby`); falta probar con un lector de pantalla real |
 | Apareció en Auth la cuenta `danielangeline322@gmail.com` durante la sesión 010 | Supabase Auth | **resuelto**: la invitó el Propietario desde el panel; el Product Owner lo confirmó. Es administrador (ver pendiente 3) |
+| Las acciones del store para fuentes, categorías y convocatorias (`agregarFuente`, `eliminarCategoria`, `agregarConvocatoria`…) quedaron sin uso en el panel. El dashboard `/admin` y el portal Empresa aún leen convocatorias y categorías del mock | `lib/store.ts`, `app/admin/page.tsx` | baja · retirarlas cuando el catálogo de la empresa pase a Supabase (Sprint 2, paso 4) |
+| CU-05 3c pide que la edición de una convocatoria quede "auditada", pero solo existe `actualizado_at`: no se guarda quién editó ni qué cambió. RNF-11 solo nombra la creación y la publicación | `convocatorias` | media · decidir con el Product Owner si basta `actualizado_por` o hace falta historial |
+| La prueba de RLS asumía `invitaciones_admin` vacía y falló al existir la invitación real del 17-sep | `supabase/tests/rls_aislamiento.sql` | **resuelto** en la sesión 011: cuenta con línea base, como `total_eventos` |
+| A un administrador sin MFA, `/api/admin/...` responde 307 a `/mfa`, no 404. Es lo que hace `proxy.ts` desde la sesión 007 y no le entrega datos, pero un `fetch` sigue la redirección y recibe HTML | `proxy.ts` | baja · valorar un 401 JSON para `/api` si molesta al cliente |
 
 ---
 
 ## Cómo retomar en la próxima sesión
 
 1. Leer este archivo y la última entrada de [`docs/bitacora/`](docs/bitacora/).
-2. Confirmar si alguna decisión abierta se resolvió.
+2. Confirmar si alguna decisión abierta se resolvió y si el Product Owner hizo los pendientes 3 y 8.
 3. Continuar por "Lo siguiente".
 4. **Al cerrar**: actualizar este archivo, `docs/11-avance-por-requerimiento.md`, escribir la entrada de bitácora y hacer commit citando los `RF-xx`/`RNF-xx`.
 
