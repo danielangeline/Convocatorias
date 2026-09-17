@@ -5,7 +5,7 @@
 
 ---
 
-**Actualizado:** 16 de septiembre de 2026 · cierre de la sesión 005
+**Actualizado:** 16 de septiembre de 2026 · cierre de la sesión 006
 **Sprint:** 1 · día 1 de 30
 **Rama de trabajo:** `sprint-1` — sin fusionar a `main`
 
@@ -13,18 +13,19 @@
 
 ## Dónde vamos
 
-La especificación está cerrada en **v6**. **La base de datos existe en Supabase** (26 tablas con RLS, prueba cruzada pasada; el modelo v6 ya pide 27) y **la identidad ya es real**: registro, login, confirmación de correo y MFA del administrador con Supabase Auth. El `ModoDemo` desapareció. Lo demás —proyectos, catálogo, postulaciones, documentos, encargos— sigue en datos de ejemplo de Zustand, filtrados por el `auth.uid()` real: una cuenta nueva empieza vacía y lo que crea se pierde al recargar.
+La especificación está cerrada en **v6**. **La base de datos existe en Supabase** (27 tablas con RLS, prueba cruzada pasada) y **la identidad ya es real**: registro, login, confirmación de correo y MFA del administrador con Supabase Auth. El `ModoDemo` desapareció. Lo demás —proyectos, catálogo, postulaciones, documentos, encargos— sigue en datos de ejemplo de Zustand, filtrados por el `auth.uid()` real: una cuenta nueva empieza vacía y lo que crea se pierde al recargar.
 
 ## Lo último que se hizo
 
-- **Sesión 005 (solo especificación, sin código):** nuevo modelo de acceso decidido por el Product Owner.
-  - **Entrada con dos puertas**, "Soy empresa o entidad" / "Soy consultor" (RF-84). El registro fija el rol; el login solo orienta y lleva al portal real.
-  - **Panel administrativo invisible:** 404 para quien no es administrador (RF-85, RNF-35). Cambia el Hito 1: el consultor recibe 404 en `/admin`.
-  - **Administradores solo por invitación de un Propietario único,** designado desde la consola, con cuenta dedicada y revocación inmediata (CU-41, CU-42, RF-86, RF-87, RN-06, RN-31, RN-32).
-  - Modelo de datos en `docs/05 §9.12`: `perfiles.es_propietario`, `admin_revocado_at` y tabla `invitaciones_admin`. **El esquema pasa a 27 tablas.**
-- **Sesión 004:** Supabase Auth real (registro, login, confirmación de correo, MFA TOTP), trial de 7 días como plan y trigger de registro. Pasaron a `servidor` RF-01, RF-37, RF-64, RNF-28 y RN-11.
+- **Sesión 006.**
+  - **Catálogo solo para empresas** (decisión del Product Owner). Se añadió RN-33 y se modificaron CU-07, CU-08, CU-36, RF-11 y RF-44. Anónimos y consultores no ven convocatorias; la landing solo muestra cifras agregadas con `public.indicadores_catalogo()`.
+  - **Storage pasó al Sprint 2.**
+  - **Migración `20260916140000`:** Propietario único, `invitaciones_admin`, `es_admin()` con revocación, trigger que reconoce la invitación por `app_metadata` y catálogo privado. **La base tiene 27 tablas** y la prueba cruzada pasa con las comprobaciones nuevas.
+  - **Cuenta de Propietario creada:** `daniel.bohorquez.p@gmail.com`, designada desde la consola. Se le envió el correo para definir la contraseña (`/auth/definir-contrasena`, pantalla nueva).
+- **Sesión 005:** especificación del acceso (dos puertas, panel oculto, administradores por invitación).
+- **Sesión 004:** Supabase Auth real, trial de 7 días y trigger de registro.
 
-Detalle en [`docs/bitacora/2026-09-16-sesion-005.md`](docs/bitacora/2026-09-16-sesion-005.md) y [`…-sesion-004.md`](docs/bitacora/2026-09-16-sesion-004.md).
+Detalle en [`docs/bitacora/2026-09-16-sesion-006.md`](docs/bitacora/2026-09-16-sesion-006.md).
 
 ## En curso
 
@@ -32,15 +33,14 @@ Nada a medias en el código. **Falta la prueba en el navegador con sesión inici
 
 ## Lo siguiente — Sprint 1
 
-1. ~~Columnas de propietario (RN-30) sobre mocks~~ — sesión 002.
-2. ~~Proyecto Supabase y migraciones con RLS~~ — sesión 003.
-3. ~~Supabase Auth con los tres roles, trial y MFA~~ — sesión 004.
-4. **← Empezar aquí.** **`requireRole()` en toda ruta y endpoint** (RNF-30). Hoy cualquier usuario autenticado abre `/admin`, `/consultor/*` o el portal empresa. En los portales: 403 y evento `acceso_denegado` (RF-65). **En `/admin`, `/mfa` y `/api/admin`: 404, igual que una ruta inventada, también para anónimos** (RF-85, RNF-35). Los layouts ya leen la sesión con `obtenerSesion()` de `lib/auth.ts`.
-5. **Propietario y administradores por invitación** (CU-41, CU-42, RF-86, RF-87, RN-31, RN-32). Migración de `docs/05 §9.12`: columnas en `perfiles`, tabla `invitaciones_admin` con RLS, `es_admin()` con revocación y trigger de registro que reconoce la invitación. Después, `/admin/administradores` y `/auth/definir-contrasena`. Actualizar la prueba de RLS.
+1. ~~Columnas de propietario (RN-30)~~ — sesión 002.
+2. ~~Supabase y migraciones con RLS~~ — sesión 003.
+3. ~~Supabase Auth, trial y MFA~~ — sesión 004.
+4. **← Empezar aquí.** **`requireRole()` en toda ruta y endpoint** (RNF-30). En los portales, 403 y `acceso_denegado` (RF-65). **En `/admin`, `/mfa` y `/api/admin`, 404 igual que una ruta inventada, también para anónimos** (RF-85, RNF-35). `/convocatorias` solo para empresa (RN-33). Los layouts ya leen la sesión con `obtenerSesion()` de `lib/auth.ts`.
+5. **Gestión de administradores en la app** (CU-41, CU-42, RF-86, RF-87, RN-32). La base ya está. Faltan los endpoints de invitar, reenviar, cancelar y revocar (con `service_role`, cierre de sesiones y bloqueo en Auth), la pantalla `/admin/administradores` y la marca de invitación `aceptada` al activar el MFA.
 6. **Entrada con dos puertas** en landing y login, y la etiqueta "empresa o entidad" (RF-84).
-7. **Storage: 3 buckets**, hoja de vida privada con URLs firmadas de 15 min (RNF-16, RNF-18).
 
-> El Sprint 1 creció (pasos 5 y 6). Si no cabe en el día 6, lo primero que se mueve es Storage (paso 7) al Sprint 2.
+Storage (3 buckets) pasó al Sprint 2 (sesión 006).
 
 **Hito 1 (día 6):** un consultor recibe **404** en `/admin` (como un anónimo y como una ruta inventada) y **403** en `/convocatorias/[id]/generar`; solo el Propietario crea administradores; dos empresas no ven nada la una de la otra en los cuatro listados. Probado, no supuesto. *La mitad RLS está probada; la autenticación real existe; falta la de rutas y endpoints.*
 
@@ -59,8 +59,8 @@ Ninguno para seguir programando. **Sí bloquea el registro real desde Vercel** e
 
 Pendiente del Product Owner:
 
-1. **URL Configuration de Auth en Supabase** (*Authentication → URL Configuration*): *Site URL* = `https://convocatorias-neon.vercel.app`; *Redirect URLs* = `http://localhost:3000/**`, `https://convocatorias-neon.vercel.app/**` y `https://convocatorias-*-danielbohorquezps-projects.vercel.app/**`. Sin esto, el enlace de confirmación de correo no vuelve a `/auth/confirmar`.
-2. **Designarte como Propietario** cuando exista la migración del paso 5: crear tu cuenta de administrador desde la consola y marcar `es_propietario` (`docs/05 §9.12`). Hasta entonces, `admin.s004@example.com` es solo de prueba.
+1. ~~**URL Configuration de Auth en Supabase**~~ — hecho por el Product Owner (16-sep). Referencia:: *Site URL* = `https://convocatorias-neon.vercel.app`; *Redirect URLs* = `http://localhost:3000/**`, `https://convocatorias-neon.vercel.app/**` y `https://convocatorias-*-danielbohorquezps-projects.vercel.app/**`. Sin esto, el enlace de confirmación de correo no vuelve a `/auth/confirmar`.
+2. **Activar la cuenta de Propietario** (`daniel.bohorquez.p@gmail.com`). Hay que abrir el correo de recuperación **con el servidor local corriendo** (`npm run dev`): el enlace lleva a `http://localhost:3000/auth/definir-contrasena` y caduca en 1 hora. Si caduca, se reenvía. Después de definir la contraseña, activar el MFA en `/mfa`.
 3. **Probar en el navegador con sesión** las cuentas de prueba de la sesión 004 (`empresa.s004@example.com`, `consultor.s004@example.com`, `admin.s004@example.com`; la contraseña se dio en el chat de la sesión 004, no está en el repositorio): login, navbar con iniciales y "Salir", 3 créditos en el indicador, `/suscripcion` con el trial, y el QR de `/mfa` con una app autenticadora.
 4. **SMTP propio antes de los pilotos** (p. ej. Resend): el correo por defecto de Supabase envía muy pocos mensajes por hora.
 5. **Cambiar la contraseña de la base de datos** (quedó escrita en el chat de la sesión 003).
@@ -73,7 +73,6 @@ Esperan al Product Owner. No bloquean el Sprint 1.
 | Decisión | Contexto | Cuándo hace falta |
 |---|---|---|
 | **Precio del plan Consultor** | Quedó en COP $69.000 al retirarle el cupo de IA. `docs/07 §10.2` marca los planes como "a validar con los pilotos" | Antes de cobrar |
-| **¿El catálogo es público?** *(sigue abierta tras la sesión 005)* | La landing prometía "Ver convocatorias sin registrarme", pero `docs/04 §8.2` marca `/convocatorias` como solo `empresa`, y la RLS sí deja leer el catálogo publicado a `anon`. En la sesión 004 el botón pasó a "Ya tengo cuenta" | Antes de `requireRole()` (paso 4) |
 | **Proveedor del límite de tasa** | RNF-27 pide un almacén fuera de Postgres (Upstash Redis o Vercel Edge Config); no está elegido | Sprint 5 |
 
 ## Hallazgos no planificados
@@ -92,7 +91,7 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | El asesor marca "varias políticas permisivas" por tabla (una por rol): cuesta rendimiento con volumen | `supabase/migrations/` | baja · consolidar si las consultas se vuelven lentas |
 | Tres nombres de política de la migración `20260916120400` superan 63 bytes y Postgres los guardó recortados; no chocan, pero no coinciden letra a letra con el archivo | `supabase/migrations/20260916120400_consultores_y_encargos.sql` | baja · cosmético |
 | El prototipo cuenta como "solicitud activa" los encargos `completado` y `calificado`; RF-80 ya fija `pendiente`/`en_curso` | `app/(portal)/consultores/[id]/page.tsx:60` | baja · se alinea al conectar el endpoint |
-| Hay 3 cuentas de prueba `*.s004@example.com` en la base remota (una con factor TOTP) | Supabase remoto | baja · borrarlas antes de los pilotos |
+| Hay 3 cuentas de prueba `*.s004@example.com` en la base remota. `admin.s004` es **administrador real** (sin ser Propietario), con la contraseña escrita en el chat de la sesión 004; un factor TOTP cuyo secreto no se guardó le impide operar | Supabase remoto | **media** · revocarla o borrarla en cuanto exista la gestión de administradores |
 | El reloj de esta máquina va ~141 s atrasado frente a Supabase: los códigos TOTP generados en ella fallan | máquina local | baja · sincronizar la hora de Windows |
 | En la sesión 004, el primer `update` de `perfiles.rol` con `service_role` no persistió y el error no se leyó; al repetirlo funcionó. No se reprodujo | script de prueba | baja · vigilar al escribir el endpoint de asignar rol |
 | El perfil de consultor real se edita solo en el store: nombre, descripción, portafolio y demás se pierden al recargar | `app/consultor/perfil` | media · entra con los endpoints de perfil (Sprint 2/5) |

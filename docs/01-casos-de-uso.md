@@ -73,6 +73,7 @@
 |---|---|
 | **Actor** | Usuario Empresa |
 | **Descripción** | Camino directo de búsqueda, navegable sin suscripción activa (modo consulta) |
+| **Precondiciones** | Sesión iniciada con cuenta de **empresa o entidad**. Visitantes y consultores no acceden al catálogo (RN-33) *(mod. v6)* |
 | **Flujo principal** | 1. Abre el catálogo (publicadas y vigentes). 2. Busca por texto libre. 3. Aplica filtros combinables: tipo de proyecto, sector, entidad, rango de monto, ubicación, fecha de cierre. 4. Resultados en < 2 s |
 | **Flujos alternos** | 2a. **Chips de búsqueda sugerida** clickeables ("innovación agro Antioquia", "cooperación internacional ambiental") que precargan filtros y enseñan a usar la herramienta *(nuevo v4)*. 4a. Sin resultados → chips alternativos y sugerencia de relajar filtros |
 
@@ -80,6 +81,7 @@
 
 | Campo | Contenido |
 |---|---|
+| **Precondiciones** | Sesión con cuenta de empresa o entidad (RN-33) *(mod. v6)* |
 | **Flujo principal** | 1. Abre la convocatoria. 2. Ve datos completos, categorías, requisitos y fechas. 3. Descarga documentos (URLs firmadas). 4. Dispone de tres acciones: **"Postular"** (CU-11), **"Generar documento con IA"** (CU-33) y **"Ir al portal de la entidad"** — abre el enlace oficial de postulación en una pestaña nueva *(v5)* |
 
 #### CU-09 · Registrar proyecto *(mod. v4 — enriquecido)*
@@ -106,7 +108,7 @@
 | Campo | Contenido |
 |---|---|
 | **Actor** | Visitante / Usuario Empresa |
-| **Descripción** | La landing muestra contadores calculados en vivo desde el catálogo: convocatorias vigentes, monto total disponible en COP, número de entidades convocantes y consultores aprobados |
+| **Descripción** | La landing muestra contadores calculados en vivo desde el catálogo: convocatorias vigentes, monto total disponible en COP, número de entidades convocantes y consultores aprobados. **Son solo cifras agregadas: el visitante no ve ninguna convocatoria; para explorarlas debe registrarse como empresa o entidad (RN-33)** *(mod. v6)* |
 | **Flujo principal** | 1. El visitante abre la landing. 2. El sistema calcula los indicadores sobre convocatorias publicadas vigentes (con caché de 1 hora). 3. Los muestra como prueba social junto al llamado a registrarse |
 | **Postcondiciones** | Ninguna (consulta pública) |
 

@@ -141,6 +141,7 @@ Heredado de la sección 6 del alcance inicial y ahora **operativo**: el document
 |---|---|
 | **Actor** | Usuario Empresa |
 | **Descripción** | Camino directo de búsqueda, navegable sin suscripción activa (modo consulta) |
+| **Precondiciones** | Sesión iniciada con cuenta de **empresa o entidad**. Visitantes y consultores no acceden al catálogo (RN-33) *(mod. v6)* |
 | **Flujo principal** | 1. Abre el catálogo (publicadas y vigentes). 2. Busca por texto libre. 3. Aplica filtros combinables: tipo de proyecto, sector, entidad, rango de monto, ubicación, fecha de cierre. 4. Resultados en < 2 s |
 | **Flujos alternos** | 2a. **Chips de búsqueda sugerida** clickeables ("innovación agro Antioquia", "cooperación internacional ambiental") que precargan filtros y enseñan a usar la herramienta *(nuevo v4)*. 4a. Sin resultados → chips alternativos y sugerencia de relajar filtros |
 
@@ -148,6 +149,7 @@ Heredado de la sección 6 del alcance inicial y ahora **operativo**: el document
 
 | Campo | Contenido |
 |---|---|
+| **Precondiciones** | Sesión con cuenta de empresa o entidad (RN-33) *(mod. v6)* |
 | **Flujo principal** | 1. Abre la convocatoria. 2. Ve datos completos, categorías, requisitos y fechas. 3. Descarga documentos (URLs firmadas). 4. Dispone de tres acciones: **"Postular"** (CU-11), **"Generar documento con IA"** (CU-33) y **"Ir al portal de la entidad"** — abre el enlace oficial de postulación en una pestaña nueva *(v5)* |
 
 #### CU-09 · Registrar proyecto *(mod. v4 — enriquecido)*
@@ -174,7 +176,7 @@ Heredado de la sección 6 del alcance inicial y ahora **operativo**: el document
 | Campo | Contenido |
 |---|---|
 | **Actor** | Visitante / Usuario Empresa |
-| **Descripción** | La landing muestra contadores calculados en vivo desde el catálogo: convocatorias vigentes, monto total disponible en COP, número de entidades convocantes y consultores aprobados |
+| **Descripción** | La landing muestra contadores calculados en vivo desde el catálogo: convocatorias vigentes, monto total disponible en COP, número de entidades convocantes y consultores aprobados. **Son solo cifras agregadas: el visitante no ve ninguna convocatoria; para explorarlas debe registrarse como empresa o entidad (RN-33)** *(mod. v6)* |
 | **Flujo principal** | 1. El visitante abre la landing. 2. El sistema calcula los indicadores sobre convocatorias publicadas vigentes (con caché de 1 hora). 3. Los muestra como prueba social junto al llamado a registrarse |
 | **Postcondiciones** | Ninguna (consulta pública) |
 
@@ -508,14 +510,14 @@ Heredado de la sección 6 del alcance inicial y ahora **operativo**: el document
 
 | ID | Requerimiento | CU | Prioridad |
 |---|---|---|---|
-| RF-11 | Catálogo de publicadas vigentes con búsqueda por texto libre. **Las cerradas quedan fuera del listado por defecto (RN-02); pueden consultarse activando el filtro explícito "incluir convocatorias cerradas", que las marca como tales y mantiene deshabilitadas sus acciones** *(mod. v6)* | CU-07 | Must |
+| RF-11 | Catálogo **exclusivo de cuentas de empresa o entidad autenticadas** (RN-33) de publicadas vigentes con búsqueda por texto libre. **Las cerradas quedan fuera del listado por defecto (RN-02); pueden consultarse activando el filtro explícito "incluir convocatorias cerradas", que las marca como tales y mantiene deshabilitadas sus acciones** *(mod. v6)* | CU-07 | Must |
 | RF-12 | Filtros combinables: tipo de proyecto, sector, entidad, monto, ubicación, cierre | CU-07 | Must |
 | RF-13 | Ficha de detalle con datos, requisitos y descarga de documentos | CU-08 | Must |
 | RF-14 | Registrar proyectos con sus datos de clasificación | CU-09 | Must |
 | RF-15 | Sugerencias desde un proyecto ordenadas por coincidencias. Requiere suscripción. **Solo se incluyen convocatorias publicadas y vigentes a la fecha: una convocatoria cuya fecha de cierre ya pasó queda excluida aunque el job diario de cierre (CU-06) todavía no la haya marcado** *(mod. v6)* | CU-10 | Must |
 | RF-16 | Mostrar cada sugerencia con **porcentaje de compatibilidad** y desglose de criterios que coinciden y que no *(mod. v4)* | CU-10 | Must |
 | RF-43 | **Chips de búsqueda sugerida** clickeables en el buscador y en el estado sin resultados, que precargan combinaciones de filtros *(nuevo v4)* | CU-07 | Should |
-| RF-44 | **Indicadores públicos del catálogo** en la landing (convocatorias vigentes, monto total disponible en COP, entidades convocantes, consultores aprobados), calculados en vivo con caché de 1 hora. **La cifra real debe ser legible desde el primer fotograma: si se anima el conteo, la animación no puede dejar a la vista un valor distinto del real más allá de una transición imperceptible, porque esa primera lectura es la que capturan las vistas previas y los usuarios que solo echan un vistazo** *(nuevo v4; precisado en v6)* | CU-36 | Should |
+| RF-44 | **Indicadores públicos del catálogo** en la landing (convocatorias vigentes, monto total disponible en COP, entidades convocantes, consultores aprobados), calculados en vivo con caché de 1 hora. **La cifra real debe ser legible desde el primer fotograma: si se anima el conteo, la animación no puede dejar a la vista un valor distinto del real más allá de una transición imperceptible, porque esa primera lectura es la que capturan las vistas previas y los usuarios que solo echan un vistazo** *(nuevo v4; precisado en v6)* **Son agregados calculados en el servidor que no exponen ninguna convocatoria individual (RN-33)** *(mod. v6)* | CU-36 | Should |
 
 ### 4.4 Proyectos enriquecidos *(nuevo v4)*
 
@@ -752,6 +754,7 @@ Requerimientos derivados de la auditoría de interfaz. Cada uno corrige un punto
 | RN-30 | **Toda entidad de datos de usuario —proyecto, postulación, documento generado, encargo— declara su propietario como columna del esquema, y ningún endpoint de listado se sirve sin filtrar por el propietario de la sesión.** El filtrado en la capa de aplicación no sustituye a la política RLS ni al revés: se exigen los dos. Es requisito de diseño desde el Sprint 0, igual que RN-24, no una revisión posterior *(nuevo v6)* |
 | RN-31 | Existe **un único Propietario de la plataforma**. Se designa y se cambia **solo fuera de la aplicación** —consola de la base de datos con credenciales de servicio—, nunca desde una pantalla ni un endpoint. Es administrador con MFA, no puede revocarse a sí mismo y es la única cuenta que otorga o retira el rol administrador *(nuevo v6)* |
 | RN-32 | **Cuenta de administrador dedicada:** un correo que ya tiene cuenta de empresa o de consultor no puede recibir una invitación de administrador, y una cuenta de administrador no tiene portal de empresa ni de consultor, ni suscripción. Un rol por cuenta *(nuevo v6)* |
+| RN-33 | **El catálogo de convocatorias es exclusivo de las cuentas de empresa o entidad registradas**, con o sin suscripción vigente. Visitantes y consultores no ven convocatorias: el público solo recibe los indicadores agregados de la landing (RF-44) y el consultor solo la convocatoria vinculada a su encargo (RN-25). El administrador las ve todas *(nuevo v6)* |
 
 ---
 
@@ -1259,8 +1262,8 @@ Product Owner (fundador/socio) · Scrum Master (líder técnico) · 2 desarrolla
 | CU-04 Definir requisitos | RF-08 | RN-04 |
 | CU-05 Publicar *(v5: exige enlace válido)* | RF-09 | RN-01, RNF-11, 29 |
 | CU-06 Cierre automático | RF-10 | RN-02, RNF-12 |
-| CU-07 Catálogo y chips *(v6: cerradas fuera del listado por defecto)* | RF-11, 12, 43 | RNF-04, **RN-02** |
-| CU-08 Detalle y descargas *(v5: enlace al portal)* | RF-13, **73** | RNF-06 |
+| CU-07 Catálogo y chips *(v6: cerradas fuera del listado por defecto; solo empresas)* | RF-11, 12, 43 | RNF-04, **RN-02, RN-33** |
+| CU-08 Detalle y descargas *(v5: enlace al portal; v6: solo empresas)* | RF-13, **73** | RNF-06, **RN-33** |
 | CU-09 Proyecto enriquecido *(v6: completitud accionable)* | RF-14, 45, 46, 47, **81** | RN-21, RNF-03, **RNF-07** |
 | CU-10 Sugerencias con % *(v6: solo vigentes)* | RF-15, 16 | RN-05, RNF-05, **RN-02** |
 | CU-11 Iniciar postulación *(v6: vigencia verificada en servidor)* | RF-17, 21, **78** | RN-03, 04, 19, **RNF-20** |
@@ -1278,7 +1281,7 @@ Product Owner (fundador/socio) · Scrum Master (líder técnico) · 2 desarrolla
 | **CU-33 Generar documento** *(v6: actor solo empresa; vigencia verificada en servidor)* | RF-53..57, 62, 48, **78** | RN-17, 19, 20, 21, RNF-21, 23, 24, **RN-28, RNF-30** |
 | **CU-34 Revisar y exportar** *(v5: acceso del consultor; v6: autorización derivada, cupo y traza)* | RF-58..61, 71, 72, **76, 77, 79** | RN-20, 22, 27, 28, RNF-23, **RNF-11, 20** |
 | **CU-35 Cupo de créditos** | **RF-48, 49, 50, 52** | **RN-17, 18, RNF-20, 24** |
-| **CU-36 Indicadores landing** *(v6: cifra legible en reposo)* | **RF-44** | RNF-04, **RNF-07** |
+| **CU-36 Indicadores landing** *(v6: cifra legible en reposo; solo agregados)* | **RF-44** | RNF-04, **RNF-07, RN-33** |
 | **CU-37 Plantilla de generación** *(v4 — ausente de la matriz hasta v6)* | **RF-63** | **RNF-14, 22, 23** |
 | **CU-38 Activar MFA** *(v5; v6: la cuenta nace de CU-41/42)* | **RF-64** | **RNF-28**, RN-06 |
 | **CU-39 Eventos de seguridad** *(v5)* | **RF-65** | **RNF-11, 25, 26, 27** |

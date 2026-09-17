@@ -67,7 +67,7 @@ Cada ruta declara los roles que admite (RNF-30). El rol se verifica en el servid
 
 | Ruta | Pantalla | Rol | CU |
 |---|---|---|---|
-| `/` | Landing con **indicadores del catálogo** y registro por rol | pública | CU-14, CU-36 |
+| `/` | Landing con **indicadores agregados del catálogo** —ninguna convocatoria visible sin cuenta de empresa, RN-33— y las dos puertas de entrada | pública | CU-14, CU-36 |
 | `/convocatorias` | Catálogo con búsqueda, filtros y **chips sugeridos**; las cerradas quedan fuera por defecto y solo aparecen bajo filtro explícito (RF-11, RN-02) | empresa | CU-07 |
 | `/convocatorias/[id]` | Ficha con botones **"Postular"**, **"Generar documento con IA"** e **"Ir al portal de la entidad"** *(v5)* | empresa | CU-08, 11, 33 |
 | `/convocatorias/[id]/generar` | Selección de proyecto, aviso de cupo y confirmación | empresa | CU-33 |

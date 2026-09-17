@@ -171,6 +171,8 @@ WHERE estado='publicada' AND fecha_cierre >= CURRENT_DATE;
 
 Más el conteo de consultores aprobados. Se sirve con caché de una hora.
 
+*(mod. v6, sesión 006)* Como el catálogo es solo para empresas (RN-33), `anon` no puede leer `convocatorias`. El cálculo vive en la función `public.indicadores_catalogo()` (`security definer`), **la única lectura del catálogo abierta a `anon`**, y devuelve solo las cuatro cifras.
+
 ### 9.8b Extensión v5 — enlace oficial de postulación
 
 **Columna nueva en CONVOCATORIAS** (RF-05, RF-09, RF-73, RN-01, RNF-29)
@@ -179,7 +181,7 @@ Más el conteo de consultores aprobados. Se sirve con caché de una hora.
 |---|---|---|
 | url_postulacion | text | Validada en el servidor como `http`/`https` bien formada (RNF-29); **obligatoria para publicar** (RN-01) |
 
-No requiere tabla ni política RLS nueva: hereda la misma política de `convocatorias` ya documentada en §9.10 (lectura pública si está publicada y vigente).
+No requiere tabla ni política RLS nueva: hereda la misma política de `convocatorias` ya documentada en §9.10 (lectura para cuentas de empresa si está publicada y vigente — RN-33).
 
 ### 9.9 Extensión v5 — seguridad y auditoría
 
@@ -247,7 +249,8 @@ Hasta v4 solo estaba documentada la política de las tablas nuevas del módulo d
 |---|---|
 | perfiles | Cada usuario lee y edita solo su propio registro (`id = auth.uid()`); el administrador lee todos |
 | proyectos | Solo el dueño (`usuario_id = auth.uid()`) lee, edita y elimina; el administrador lee para soporte (RNF-03) |
-| convocatorias, fuentes, categorias, convocatoria_categoria, requisitos_convocatoria, documentos_convocatoria | Lectura pública solo de las **publicadas y vigentes**; escritura exclusiva del administrador (RN-01, RN-07) |
+| convocatorias, convocatoria_categoria, requisitos_convocatoria, documentos_convocatoria | Lectura **solo para cuentas con rol empresa** de las **publicadas y vigentes** (RN-33, *mod. v6 sesión 006*); las tablas hijas heredan la visibilidad de su convocatoria. Escritura exclusiva del administrador (RN-01, RN-07) |
+| categorias | Lectura pública de las activas (las usan el registro del consultor y los filtros); escritura exclusiva del administrador |
 | proyecto_categoria | Sigue la misma regla que `proyectos`: visible y editable solo por el dueño del proyecto asociado |
 | postulaciones y su checklist/historial | Solo la empresa dueña de la postulación (`usuario_id = auth.uid()`); el administrador lee para soporte (RN-04, RNF-03) |
 | perfil de consultor (portafolio, especialidades, descripción) | Lectura pública si `estado_perfil = aprobado`; edición solo por el propio consultor. **Sitio web, redes y hoja de vida quedan excluidos de la lectura pública en todos los casos: solo administrador, o la empresa que tenga una solicitud activa con ese consultor — la condición se evalúa sobre la pareja (empresa de la sesión, consultor), no sobre la existencia de cualquier solicitud** (RN-12, RF-80, RNF-16, *ampliado en v5; precisado en v6*) |
@@ -308,7 +311,7 @@ Implementa RN-06, RN-31, RN-32 y RF-85..87: el rol administrador deja de asignar
 
 **Cómo se revoca.** El endpoint de revocación, solo para el Propietario y nunca sobre sí mismo, escribe `admin_revocado_at`/`admin_revocado_por` con `service_role`. Con eso la RLS le niega todo en la siguiente consulta. Además cierra sus sesiones y bloquea la cuenta en Auth, y registra `admin_revocado`.
 
-**Cómo se designa el Propietario.** Una sola vez, desde la consola de la base de datos: `update perfiles set es_propietario = true where id = …`, sobre una cuenta de administrador ya creada. Ninguna migración de la aplicación lo fija a un usuario concreto. El primer administrador —el Propietario— se crea igualmente desde la consola, porque todavía no hay quién invite.
+**Cómo se designa el Propietario.** *(Ejecutado en la sesión 006.)* Se crea la cuenta con la API de administración de Auth, sin contraseña. Desde la consola se le asigna `rol = 'administrador'` y `es_propietario = true` y se retira el trial que creó el trigger. Después se le envía el correo de recuperación, que lleva a `/auth/definir-contrasena`, y al entrar activa el MFA en `/mfa`. En resumen, una sola vez, desde la consola de la base de datos: `update perfiles set es_propietario = true where id = …`, sobre una cuenta de administrador ya creada. Ninguna migración de la aplicación lo fija a un usuario concreto. El primer administrador —el Propietario— se crea igualmente desde la consola, porque todavía no hay quién invite.
 
 ---
 

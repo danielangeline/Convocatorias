@@ -100,7 +100,6 @@ Lo primero es lo que el prototipo no puede simular y lo que más caro sale corre
 | Middleware `requireRole()` en toda ruta y endpoint; **panel administrativo oculto (404)** | **RNF-30**, **RF-85, RNF-35** |
 | **Propietario y administradores por invitación**: invitar, activar y revocar *(sesión 005)* | **RF-86, RF-87, RN-31, RN-32** |
 | MFA obligatorio para administradores | RNF-28, RF-64 |
-| Storage: 3 buckets, hoja de vida privada con URLs firmadas de 15 min | RNF-16, RNF-18 |
 | CI/CD en Vercel con despliegue de vista previa | — |
 
 **Hito 1 —** Un consultor autenticado recibe **404** en `/admin` —igual que un anónimo y que una ruta inventada— y **403** en `/convocatorias/[id]/generar`; solo el Propietario convierte a alguien en administrador; dos empresas distintas no ven nada la una de la otra en ninguno de los cuatro listados. Ambas cosas probadas, no supuestas.
@@ -112,13 +111,14 @@ Lo primero es lo que el prototipo no puede simular y lo que más caro sale corre
 | Entregable | Requerimientos |
 |---|---|
 | Endpoints de fuentes, convocatorias, categorías, requisitos y documentos adjuntos | RF-04..08 |
+| Storage: 3 buckets, hoja de vida privada con URLs firmadas de 15 min *(movido desde el Sprint 1 en la sesión 006: el primer uso real son los adjuntos de convocatorias)* | RNF-16, RNF-18 |
 | Publicación validada en servidor, incluido el enlace oficial | RF-09, RN-01, RNF-29 |
 | Catálogo, filtros, chips e indicadores de la landing contra datos reales | RF-11, 12, 13, 43, 44 |
 | Cerradas fuera del listado salvo filtro explícito | RF-11, RN-02 |
 | Job diario de cierre de convocatorias | RF-10, CU-06 |
 | Vigencia verificada en servidor al postular y al generar | **RF-78** |
 
-**Hito 2 —** Un administrador carga una convocatoria real de principio a fin —datos, adjuntos, requisitos, enlace— y aparece en el catálogo público; una vencida desaparece sola al correr el job.
+**Hito 2 —** Un administrador carga una convocatoria real de principio a fin —datos, adjuntos, requisitos, enlace— y aparece en el catálogo de las empresas —no para visitantes ni consultores, RN-33—; una vencida desaparece sola al correr el job.
 
 ---
 

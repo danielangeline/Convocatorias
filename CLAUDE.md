@@ -59,7 +59,7 @@ Dos reglas que se rompen con facilidad:
 ENTRADA       dos puertas: "Soy empresa o entidad" / "Soy consultor" → registro fija el rol ·
               login lleva al portal del rol (sin opción de administrador en ninguna pantalla pública)
 ADMINS        Propietario → invita por correo → la persona define contraseña + MFA → panel · revocar
-CATÁLOGO      buscar/filtrar → ficha → [Postular] o [Generar documento con IA]
+CATÁLOGO      (solo cuentas de empresa, RN-33) buscar/filtrar → ficha → [Postular] o [Generar documento con IA]
 SUGERENCIAS   proyecto registrado → cruce de atributos → % de compatibilidad + desglose
 GENERACIÓN    convocatoria → elegir proyecto → generar (1 crédito) → editar → exportar .docx
 POSTULACIÓN   crear → checklist copiado de los requisitos → avance → estados con historial
@@ -85,7 +85,7 @@ Next.js (App Router) + TypeScript + Tailwind, desplegado en **Vercel**. Backend 
 |---|---|
 | Alcance, actores, métricas de éxito | `docs/00-contexto-y-alcance.md` |
 | Flujos paso a paso, precondiciones, alternos | `docs/01-casos-de-uso.md` |
-| Qué debe hacer el sistema (RF-01..83) | `docs/02-requerimientos-funcionales.md` |
+| Qué debe hacer el sistema (RF-01..87) | `docs/02-requerimientos-funcionales.md` |
 | Rendimiento, seguridad, veracidad, reglas de negocio | `docs/03-requerimientos-no-funcionales.md` |
 | Capas, rutas de pantallas, endpoints, servicios | `docs/04-arquitectura.md` |
 | **Tablas, columnas, RLS, índices, SQL** | `docs/05-modelo-de-datos.md` |

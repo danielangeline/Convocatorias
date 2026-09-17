@@ -1,5 +1,5 @@
 -- =============================================================================
--- Prueba cruzada de RLS y del registro (RF-01, RF-37, RN-06, RN-11, RNF-03, RNF-25, RNF-16, RN-17, RN-25, RN-27, RNF-28)
+-- Prueba cruzada de RLS y del registro (RF-01, RF-37, RN-06, RN-11, RN-31..33, RF-86, RF-87, RNF-03, RNF-25, RNF-16, RN-17, RN-25, RN-27, RNF-28)
 --
 -- Corre dentro de una transacción que termina en ROLLBACK: no deja datos.
 --   npx supabase db query --local -f supabase/tests/rls_aislamiento.sql
@@ -126,7 +126,7 @@ insert into public.eventos_seguridad (tipo, ruta) values ('acceso_denegado', '/a
 -- 0 · Cobertura (RNF-25): toda tabla de public con RLS y al menos una política
 -- ---------------------------------------------------------------------------
 
-select pg_temp.ok(count(*) = 26, 'hay 26 tablas en public') from pg_tables where schemaname = 'public';
+select pg_temp.ok(count(*) = 27, 'hay 27 tablas en public') from pg_tables where schemaname = 'public';
 select pg_temp.ok(bool_and(c.relrowsecurity), 'todas las tablas tienen RLS habilitado')
 from pg_class c join pg_namespace n on n.oid = c.relnamespace
 where n.nspname = 'public' and c.relkind = 'r';
@@ -141,8 +141,10 @@ select pg_temp.ok(not exists (
 -- ---------------------------------------------------------------------------
 
 set local role anon;
-select pg_temp.ok((select count(*) from public.convocatorias) = 1, 'anon: solo la convocatoria publicada y vigente');
-select pg_temp.ok((select count(*) from public.requisitos_convocatoria) = 2, 'anon: requisitos de la vigente');
+select pg_temp.ok((select count(*) from public.convocatorias) = 0, 'anon: no ve el catálogo (RN-33)');
+select pg_temp.ok((select count(*) from public.requisitos_convocatoria) = 0, 'anon: no ve requisitos (RN-33)');
+select pg_temp.ok((select convocatorias_vigentes = 1 and entidades = 1 and consultores_aprobados = 1 from public.indicadores_catalogo()),
+  'anon: solo recibe los indicadores agregados (RF-44)');
 select pg_temp.ok((select count(*) from public.proyectos) = 0, 'anon: ningún proyecto');
 select pg_temp.ok((select count(*) from public.consultor_perfiles) = 1, 'anon: solo consultores aprobados');
 select pg_temp.ok((select count(*) from public.consultor_redes) = 0, 'anon: ninguna red social');
@@ -165,6 +167,10 @@ select pg_temp.ok((select count(*) from public.suscripciones) = 1, 'E1: ve solo 
 select pg_temp.ok((select count(*) from public.perfiles) = 1, 'E1: ve solo su perfil');
 select pg_temp.ok((select count(*) from public.eventos_seguridad) = 0, 'E1: ningún evento de seguridad');
 select pg_temp.ok((select count(*) from public.fuentes) = 0, 'E1: no lee fuentes');
+select pg_temp.ok((select count(*) from public.convocatorias where estado = 'publicada' and fecha_cierre >= current_date) = 1
+                  and (select count(*) from public.convocatorias where id = '00000000-0000-0000-0000-00000000c002') = 0,
+  'E1: la empresa ve el catálogo vigente y no los borradores (RN-33)');
+select pg_temp.ok((select count(*) from public.requisitos_convocatoria) = 2, 'E1: ve los requisitos de la vigente');
 
 insert into public.postulaciones (convocatoria_id, proyecto_id)
 values ('00000000-0000-0000-0000-00000000c001', '00000000-0000-0000-0000-00000000b001');
@@ -250,6 +256,7 @@ select pg_temp.como('00000000-0000-0000-0000-0000000000c2');
 select pg_temp.ok((select count(*) from public.proyectos) = 0, 'C2: ningún proyecto');
 select pg_temp.ok((select count(*) from public.documentos_generados) = 0, 'C2: ningún documento');
 select pg_temp.ok((select count(*) from public.encargos) = 0, 'C2: ningún encargo');
+select pg_temp.ok((select count(*) from public.convocatorias) = 0, 'C2: el consultor no ve el catálogo (RN-33)');
 
 select pg_temp.como('00000000-0000-0000-0000-0000000000ad', 'aal1');
 select pg_temp.ok((select count(*) from public.proyectos) = 0, 'Admin sin MFA: ningún proyecto (RNF-28)');
@@ -295,6 +302,72 @@ reset role;
 select pg_temp.ok((select estado = 'calificado' from public.encargos where id = '00000000-0000-0000-0000-00000000a001'), 'Calificar marca el encargo calificado');
 select pg_temp.ok((select rating_promedio = 5 and total_encargos_completados = 1 from public.consultor_perfiles
                    where id = '00000000-0000-0000-0000-0000000000c1'), 'El trigger actualiza rating y total de C1');
+
+-- ---------------------------------------------------------------------------
+-- 7 · Propietario, invitaciones y revocación (RN-06, RN-31, RN-32, RF-86, RF-87)
+-- ---------------------------------------------------------------------------
+
+update public.perfiles set es_propietario = true where id = '00000000-0000-0000-0000-0000000000ad';
+
+insert into public.invitaciones_admin (id, correo, nombre, invitado_por) values
+  ('00000000-0000-0000-0000-0000000001a1', 'nuevo.admin@prueba.co', 'Nuevo admin', '00000000-0000-0000-0000-0000000000ad'),
+  ('00000000-0000-0000-0000-0000000001a2', 'otro.admin@prueba.co', 'Otro admin', '00000000-0000-0000-0000-0000000000ad');
+insert into public.invitaciones_admin (id, correo, invitado_por, creada_at, expira_at) values
+  ('00000000-0000-0000-0000-0000000001a3', 'vencida@prueba.co', '00000000-0000-0000-0000-0000000000ad', now() - interval '4 days', now() - interval '1 day');
+
+-- Cuenta creada por el servidor con la invitación en app_metadata.
+insert into auth.users (id, email, raw_app_meta_data) values
+  ('00000000-0000-0000-0000-0000000000a2', 'nuevo.admin@prueba.co', '{"invitacion_id": "00000000-0000-0000-0000-0000000001a1"}');
+-- Intentos que no deben producir administradores.
+insert into auth.users (id, email, raw_user_meta_data) values
+  ('00000000-0000-0000-0000-0000000000f1', 'otro.admin@prueba.co', '{"invitacion_id": "00000000-0000-0000-0000-0000000001a2", "rol": "administrador"}');
+insert into auth.users (id, email, raw_app_meta_data) values
+  ('00000000-0000-0000-0000-0000000000f2', 'ajeno@prueba.co', '{"invitacion_id": "00000000-0000-0000-0000-0000000001a2"}'),
+  ('00000000-0000-0000-0000-0000000000f3', 'vencida@prueba.co', '{"invitacion_id": "00000000-0000-0000-0000-0000000001a3"}');
+
+select pg_temp.ok((select rol from public.perfiles where id = '00000000-0000-0000-0000-0000000000a2') = 'administrador'
+                  and not exists (select 1 from public.suscripciones where usuario_id = '00000000-0000-0000-0000-0000000000a2'),
+  'Invitación vigente en app_metadata: nace administrador, sin trial (RN-32)');
+select pg_temp.ok((select usuario_id from public.invitaciones_admin where id = '00000000-0000-0000-0000-0000000001a1') = '00000000-0000-0000-0000-0000000000a2',
+  'La invitación queda vinculada a la cuenta creada');
+select pg_temp.ok((select rol from public.perfiles where id = '00000000-0000-0000-0000-0000000000f1') = 'empresa',
+  'Invitación en los metadatos del usuario: no produce administrador (RN-06)');
+select pg_temp.ok((select rol from public.perfiles where id = '00000000-0000-0000-0000-0000000000f2') = 'empresa',
+  'Invitación de otro correo: no produce administrador');
+select pg_temp.ok((select rol from public.perfiles where id = '00000000-0000-0000-0000-0000000000f3') = 'empresa',
+  'Invitación vencida: no produce administrador');
+select pg_temp.rechaza($$update public.perfiles set es_propietario = true where id = '00000000-0000-0000-0000-0000000000a2'$$,
+  'Un segundo Propietario (RN-31)');
+select pg_temp.rechaza($$update public.perfiles set admin_revocado_at = now() where id = '00000000-0000-0000-0000-0000000000ad'$$,
+  'Revocar al Propietario (RN-31)');
+select pg_temp.rechaza($$update public.perfiles set es_propietario = true where id = '00000000-0000-0000-0000-0000000000e1'$$,
+  'Propietario sin rol administrador');
+
+set local role authenticated;
+select pg_temp.como('00000000-0000-0000-0000-0000000000e1');
+select pg_temp.rechaza($$update public.perfiles set es_propietario = true where id = '00000000-0000-0000-0000-0000000000e1'$$,
+  'E1 se marca Propietario desde el cliente');
+select pg_temp.ok((select count(*) from public.invitaciones_admin) = 0, 'E1: no ve invitaciones');
+
+select pg_temp.como('00000000-0000-0000-0000-0000000000ad', 'aal1');
+select pg_temp.ok((select count(*) from public.invitaciones_admin) = 0, 'Propietario sin MFA: no ve invitaciones');
+select pg_temp.como('00000000-0000-0000-0000-0000000000ad', 'aal2');
+select pg_temp.ok((select count(*) from public.invitaciones_admin) = 3, 'Propietario con MFA: ve las invitaciones (RF-86)');
+select pg_temp.rechaza($$insert into public.invitaciones_admin (correo, invitado_por) values ('x@prueba.co', '00000000-0000-0000-0000-0000000000ad')$$,
+  'El Propietario escribe invitaciones desde el cliente (solo servidor)');
+
+select pg_temp.como('00000000-0000-0000-0000-0000000000a2', 'aal2');
+select pg_temp.ok((select count(*) from public.perfiles) > 1, 'Nuevo admin con MFA: tiene privilegios de administrador');
+select pg_temp.ok((select count(*) from public.invitaciones_admin) = 0, 'Nuevo admin: no es Propietario, no ve invitaciones (RF-86)');
+reset role;
+
+update public.perfiles set admin_revocado_at = now(), admin_revocado_por = '00000000-0000-0000-0000-0000000000ad'
+where id = '00000000-0000-0000-0000-0000000000a2';
+
+set local role authenticated;
+select pg_temp.como('00000000-0000-0000-0000-0000000000a2', 'aal2');
+select pg_temp.ok((select count(*) from public.perfiles) = 1, 'Admin revocado: pierde privilegios en la siguiente consulta, con el mismo JWT (RF-87)');
+reset role;
 
 select 'TODAS LAS COMPROBACIONES PASARON' as resultado;
 

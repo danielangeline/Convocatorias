@@ -35,14 +35,14 @@
 
 | ID | Requerimiento | CU | Prioridad |
 |---|---|---|---|
-| RF-11 | Catálogo de publicadas vigentes con búsqueda por texto libre. **Las cerradas quedan fuera del listado por defecto (RN-02); pueden consultarse activando el filtro explícito "incluir convocatorias cerradas", que las marca como tales y mantiene deshabilitadas sus acciones** *(mod. v6)* | CU-07 | Must |
+| RF-11 | Catálogo **exclusivo de cuentas de empresa o entidad autenticadas** (RN-33) de publicadas vigentes con búsqueda por texto libre. **Las cerradas quedan fuera del listado por defecto (RN-02); pueden consultarse activando el filtro explícito "incluir convocatorias cerradas", que las marca como tales y mantiene deshabilitadas sus acciones** *(mod. v6)* | CU-07 | Must |
 | RF-12 | Filtros combinables: tipo de proyecto, sector, entidad, monto, ubicación, cierre | CU-07 | Must |
 | RF-13 | Ficha de detalle con datos, requisitos y descarga de documentos | CU-08 | Must |
 | RF-14 | Registrar proyectos con sus datos de clasificación | CU-09 | Must |
 | RF-15 | Sugerencias desde un proyecto ordenadas por coincidencias. Requiere suscripción. **Solo se incluyen convocatorias publicadas y vigentes a la fecha: una convocatoria cuya fecha de cierre ya pasó queda excluida aunque el job diario de cierre (CU-06) todavía no la haya marcado** *(mod. v6)* | CU-10 | Must |
 | RF-16 | Mostrar cada sugerencia con **porcentaje de compatibilidad** y desglose de criterios que coinciden y que no *(mod. v4)* | CU-10 | Must |
 | RF-43 | **Chips de búsqueda sugerida** clickeables en el buscador y en el estado sin resultados, que precargan combinaciones de filtros *(nuevo v4)* | CU-07 | Should |
-| RF-44 | **Indicadores públicos del catálogo** en la landing (convocatorias vigentes, monto total disponible en COP, entidades convocantes, consultores aprobados), calculados en vivo con caché de 1 hora. **La cifra real debe ser legible desde el primer fotograma: si se anima el conteo, la animación no puede dejar a la vista un valor distinto del real más allá de una transición imperceptible, porque esa primera lectura es la que capturan las vistas previas y los usuarios que solo echan un vistazo** *(nuevo v4; precisado en v6)* | CU-36 | Should |
+| RF-44 | **Indicadores públicos del catálogo** en la landing (convocatorias vigentes, monto total disponible en COP, entidades convocantes, consultores aprobados), calculados en vivo con caché de 1 hora. **La cifra real debe ser legible desde el primer fotograma: si se anima el conteo, la animación no puede dejar a la vista un valor distinto del real más allá de una transición imperceptible, porque esa primera lectura es la que capturan las vistas previas y los usuarios que solo echan un vistazo** *(nuevo v4; precisado en v6)* **Son agregados calculados en el servidor que no exponen ninguna convocatoria individual (RN-33)** *(mod. v6)* | CU-36 | Should |
 
 ### 4.4 Proyectos enriquecidos *(nuevo v4)*
 
