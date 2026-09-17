@@ -60,6 +60,7 @@ Cada ruta declara los roles que admite (RNF-30). El rol se verifica en el servid
 | `/registro` | Registro por una de las **dos puertas** —"Soy empresa o entidad" o "Soy consultor"—, que fija el rol; exige confirmar el correo antes de entrar. `?puerta=consultor` preselecciona esa puerta; sin parámetro, la de empresa *(mod. v6)* | pública | CU-14 |
 | `/login` | Inicio de sesión con las mismas dos puertas (`?puerta=` como en el registro), que solo orientan: la cuenta va al inicio de su rol (`/convocatorias`, `/consultor/perfil`) con aviso si la puerta no coincidía —el inicio recibe `?aviso=puerta`, el portal lo muestra y lo quita de la dirección—; el administrador va a `/mfa` sin aviso (RF-84) | pública | CU-14 |
 | `/auth/confirmar` | Destino del enlace de confirmación de correo (intercambia el código por la sesión) | pública | CU-14 |
+| `/auth/recuperar` | Pedir el enlace de recuperación de contraseña con el correo. Responde lo mismo exista o no la cuenta; el enlace lleva a `/auth/definir-contrasena` (RF-03) *(nuevo v6, sesión 010)* | pública | CU-14 |
 | `/auth/definir-contrasena` | Definir contraseña al aceptar una invitación de administrador (y al recuperar la contraseña, RF-03) | con enlace válido | CU-42 |
 | `/mfa` | Enrolamiento TOTP (código QR) o verificación del segundo factor; toda sesión de administrador sin `aal2` termina aquí. **404 para cualquier otro usuario** (RF-85) | administrador | CU-38 |
 

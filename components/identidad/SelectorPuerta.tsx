@@ -48,11 +48,17 @@ export function SelectorPuerta({
               checked={puerta === valor}
               onChange={() => onCambio(valor)}
               className="sr-only"
+              aria-label={TITULO_PUERTA[valor]}
+              aria-describedby={detalle ? `puerta-${valor}-detalle` : undefined}
             />
-            <span className="flex items-center gap-2 text-sm font-semibold text-ink">
+            <span aria-hidden className="flex items-center gap-2 text-sm font-semibold text-ink">
               <Icono className="h-4 w-4 shrink-0" /> {TITULO_PUERTA[valor]}
             </span>
-            {detalle && <span className="mt-1 block text-xs text-ink-soft">{detalle[valor]}</span>}
+            {detalle && (
+              <span id={`puerta-${valor}-detalle`} className="mt-1 block text-xs text-ink-soft">
+                {detalle[valor]}
+              </span>
+            )}
           </label>
         );
       })}

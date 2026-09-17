@@ -22,6 +22,10 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
   - `/registro` y `/login` comparten `SelectorPuerta` y aceptan `?puerta=`. En el registro la puerta fija el rol; en el login solo orienta.
   - `iniciarSesion` lleva siempre al inicio del rol real y agrega `?aviso=puerta` si la puerta no coincide. `AvisoPuerta` lo muestra en ambos portales y lo quita de la dirección. El administrador va a `/mfa` sin aviso.
   - Probado en el navegador contra Supabase real con tres cuentas temporales, ya borradas: los cinco casos de puerta. `tsc`, `next build` y `lint` sin errores nuevos.
+  - **Agregado a pedido del Product Owner:**
+    - Recuperación de contraseña (RF-03): "¿Olvidaste tu contraseña?" en `/login` → `/auth/recuperar` → enlace → `/auth/definir-contrasena`. Probado con una cuenta temporal.
+    - Las puertas anuncian su nombre a los lectores de pantalla.
+    - Las cuentas s004 tienen contraseña nueva, dada en el chat de la sesión 010 (no está en el repositorio).
 - **Sesión 009:** gestión de administradores (invitar, reenviar, cancelar, revocar).
 
 Detalle en [`docs/bitacora/2026-09-17-sesion-010.md`](docs/bitacora/2026-09-17-sesion-010.md).
@@ -32,7 +36,7 @@ Nada a medias en el código. **Los entregables del Sprint 1 están completos.** 
 
 ## Lo siguiente
 
-**Sprint 1 — completado** (pasos 1 a 6, sesiones 002 a 010). Queda pendiente del Product Owner la prueba en el navegador de la gestión de administradores.
+**Sprint 1 — completado** (pasos 1 a 6, sesiones 002 a 010, más RF-03 agregado en la 010). **Al abrir la sesión 011, el Product Owner prueba la gestión de administradores** con la cuenta del Propietario (pendiente 3), antes de empezar el Sprint 2.
 
 **Sprint 2 — Catálogo y administración de contenido** (`docs/10 §Sprint 2`):
 
@@ -68,13 +72,13 @@ Pendiente del Product Owner:
 
 1. ~~**URL Configuration de Auth en Supabase**~~ — hecho por el Product Owner (16-sep). Referencia:: *Site URL* = `https://convocatorias-neon.vercel.app`; *Redirect URLs* = `http://localhost:3000/**`, `https://convocatorias-neon.vercel.app/**` y `https://convocatorias-*-danielbohorquezps-projects.vercel.app/**`. Sin esto, el enlace de confirmación de correo no vuelve a `/auth/confirmar`.
 2. ~~**Activar la cuenta de Propietario**~~ — hecho (contraseña y MFA, 16-sep). El primer correo no sirvió porque Supabase no admite `localhost` como destino y lo mandó a la portada. Se reenvió hacia `https://convocatorias-neon.vercel.app/auth/definir-contrasena`, válido por 1 hora. Después de definir la contraseña, activar el MFA en `/mfa`.
-3. **Probar la gestión de administradores con la cuenta del Propietario** (sesión 009), en producción (`https://convocatorias-neon.vercel.app`) o en local:
+3. **Probar la gestión de administradores con la cuenta del Propietario** (sesión 009) — **lo hace al abrir la sesión 011**, en producción (`https://convocatorias-neon.vercel.app`) o en local:
    - `/admin/administradores` aparece en el menú y lista al Propietario;
    - invitar a un correo **que controles y que no tenga cuenta**. Ojo: según la documentación de Supabase, mientras no haya SMTP propio (punto 5) su correo por defecto solo entrega a direcciones del equipo de la organización;
    - abrir el enlace, definir la contraseña en `/auth/definir-contrasena`, activar el MFA y entrar al panel; la invitación debe pasar a "aceptada";
    - reenviar y cancelar una segunda invitación; revocar al administrador de prueba y comprobar que su sesión abierta pierde el panel;
    - en `/admin/seguridad` todavía no se verán los eventos: esa pantalla sigue leyendo el mock.
-4. **Probar en el navegador con sesión** las cuentas de prueba `empresa.s004@example.com` y `consultor.s004@example.com`: login (ahora con las dos puertas y el aviso si eliges la otra), navbar con iniciales y "Salir", 3 créditos en el indicador y `/suscripcion` con el trial. **Ojo:** la contraseña dada en el chat de la sesión 004 ya no sirve, porque `scripts/prueba-matriz-roles.mjs` les asigna una aleatoria en cada corrida. Para probar, pide al agente que les asigne una nueva, o usa "recuperar contraseña" cuando exista (RF-03). El QR de `/mfa` se prueba con la cuenta del Propietario.
+4. **Probar en el navegador con sesión** las cuentas de prueba `empresa.s004@example.com` y `consultor.s004@example.com`: login (ahora con las dos puertas y el aviso si eliges la otra), navbar con iniciales y "Salir", 3 créditos en el indicador y `/suscripcion` con el trial. Contraseña nueva dada en el chat de la sesión 010. **Ojo:** `scripts/prueba-matriz-roles.mjs` la vuelve a cambiar si se corre; en ese caso, pedir otra al agente. El QR de `/mfa` se prueba con la cuenta del Propietario.
 5. **SMTP propio antes de los pilotos** (p. ej. Resend): el correo por defecto de Supabase envía muy pocos mensajes por hora.
 6. **Cambiar la contraseña de la base de datos** (quedó escrita en el chat de la sesión 003).
 7. **Docker Desktop no arranca** en esta máquina: no bloquea (las migraciones se ensayan en una transacción con `ROLLBACK` contra el remoto).
@@ -86,7 +90,7 @@ Esperan al Product Owner. No bloquean el Sprint 1.
 | Decisión | Contexto | Cuándo hace falta |
 |---|---|---|
 | **Precio del plan Consultor** | Quedó en COP $69.000 al retirarle el cupo de IA. `docs/07 §10.2` marca los planes como "a validar con los pilotos" | Antes de cobrar |
-| **Cierre del Hito 1: "dos empresas no ven nada la una de la otra en los cuatro listados"** | Probado en RLS (sesión 003); los listados de la app siguen leyendo el mock y se conectan en los sprints 3 y 4. ¿Se da por cumplido con la prueba de RLS o queda abierto hasta conectar los listados? | Antes de dar por cerrado el Sprint 1 |
+| **Cierre del Hito 1: "dos empresas no ven nada la una de la otra en los cuatro listados"** Los cuatro listados son proyectos, postulaciones, documentos y encargos. **La base ya lo impide y está probado** (sesión 003: la empresa E2 no lee ni modifica nada de E1). Pero **las pantallas todavía muestran datos de ejemplo del navegador**, no de la base; se conectan en los sprints 3 y 4. Opciones: (a) dar el hito por cumplido con la prueba de la base y repetirla en pantalla al conectar cada listado; (b) dejarlo abierto hasta el Sprint 4 | Antes de dar por cerrado el Sprint 1 |
 | **Proveedor del límite de tasa** | RNF-27 pide un almacén fuera de Postgres (Upstash Redis o Vercel Edge Config); no está elegido | Sprint 5 |
 
 ## Hallazgos no planificados
@@ -120,8 +124,9 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | Si `inviteUserByEmail` falla después de crear la cuenta en Auth, el endpoint borra la invitación pero no puede borrar esa cuenta (no conoce su id): queda una empresa con trial que ocupa el correo. Se registra en el log del servidor. No se ha observado; Auth suele deshacer la cuenta si el envío falla | `lib/admin/administradores.ts` | baja · resolver con una función que devuelva el id por correo si ocurre |
 | La segunda barrera de la gestión de administradores (`sesionDePropietario`) tampoco se ejercitó por separado: el proxy corta antes | `lib/auth.ts` | baja · mismo caso que `exigirRol` |
 | `scripts/prueba-matriz-roles.mjs` cambia en cada corrida la contraseña de las cuentas s004, así que la que tiene el Product Owner deja de servir | `scripts/prueba-matriz-roles.mjs` | baja · usar cuentas temporales propias, como la sesión 010 |
-| No hay "¿Olvidaste tu contraseña?" en `/login`: `/auth/definir-contrasena` existe, pero nada permite pedir el enlace | `app/(identidad)/login` | media · es RF-03, ya `pendiente` en `docs/11`; sin sprint asignado en `docs/10` |
-| `read_page` nombra las puertas por su valor (`empresa`, `consultor`) y no por el texto de la etiqueta: revisar con un lector de pantalla | `components/identidad/SelectorPuerta.tsx` | baja · accesibilidad |
+| No había "¿Olvidaste tu contraseña?" en `/login` | `app/(identidad)/login` | **resuelto** en la sesión 010 (RF-03, agregado al Sprint 1 en `docs/10`) |
+| Las puertas se anunciaban por su valor (`empresa`, `consultor`) y no por su nombre | `components/identidad/SelectorPuerta.tsx` | **resuelto** en la sesión 010 (`aria-label` + `aria-describedby`); falta probar con un lector de pantalla real |
+| Apareció en Auth la cuenta `danielangeline322@gmail.com` durante la sesión 010; el agente no la creó (¿registro del Product Owner?). Por registro nace como empresa o consultor, nunca como administrador | Supabase Auth | baja · confirmar con el Product Owner |
 
 ---
 

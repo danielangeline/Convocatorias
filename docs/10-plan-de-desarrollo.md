@@ -101,6 +101,7 @@ Lo primero es lo que el prototipo no puede simular y lo que más caro sale corre
 | **Propietario y administradores por invitación**: invitar, activar y revocar *(sesión 005)* | **RF-86, RF-87, RN-31, RN-32** |
 | MFA obligatorio para administradores | RNF-28, RF-64 |
 | CI/CD en Vercel con despliegue de vista previa | — |
+| Recuperación de contraseña desde el inicio de sesión *(agregado en la sesión 010: no tenía sprint)* | RF-03 |
 
 **Hito 1 —** Un consultor autenticado recibe **404** en `/admin` —igual que un anónimo y que una ruta inventada— y **403** en `/convocatorias/[id]/generar`; solo el Propietario convierte a alguien en administrador; dos empresas distintas no ven nada la una de la otra en ninguno de los cuatro listados. Ambas cosas probadas, no supuestas.
 

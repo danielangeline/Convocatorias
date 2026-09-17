@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState } from "react";
 import { iniciarSesion } from "@/lib/acciones/auth";
 import { Button } from "@/components/ui/Button";
@@ -17,6 +18,11 @@ export function FormularioLogin({ puertaInicial, errorInicial }: { puertaInicial
       <SelectorPuerta puerta={puerta} onCambio={setPuerta} />
       <Campo etiqueta="Correo" name="correo" type="email" autoComplete="email" required />
       <Campo etiqueta="Contraseña" name="contrasena" type="password" autoComplete="current-password" required />
+      <p className="-mt-2 text-right text-xs">
+        <Link href="/auth/recuperar" className="font-semibold text-primary-800 hover:underline">
+          ¿Olvidaste tu contraseña?
+        </Link>
+      </p>
       {estado.error && <Aviso tipo="error">{estado.error}</Aviso>}
       <Button type="submit" variant={puerta === "empresa" ? "primary" : "brick"} className="w-full" disabled={enviando}>
         {enviando ? "Entrando…" : "Entrar"}

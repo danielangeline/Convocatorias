@@ -129,6 +129,32 @@ export async function iniciarSesion(_previo: ResultadoFormulario, formulario: Fo
   redirect(puerta && puertaDeParametro(String(puerta)) !== rol ? `${inicio}?${AVISO_PUERTA}` : inicio);
 }
 
+// ---------------------------------------------------------------------------
+// Recuperación de contraseña (RF-03, CU-14 paso 5). El cliente de servicio usa
+// el flujo implícito: el enlace trae la sesión en el fragmento, que es lo que
+// lee /auth/definir-contrasena (el mismo camino del Propietario y del reenvío).
+// ---------------------------------------------------------------------------
+
+export async function pedirRecuperacion(_previo: ResultadoFormulario, formulario: FormData): Promise<ResultadoFormulario> {
+  const correo = String(formulario.get("correo") ?? "").trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) return { error: "Escribe un correo válido." };
+
+  const servicio = crearClienteServicio();
+  const { error } = await servicio.auth.resetPasswordForEmail(correo, {
+    redirectTo: `${await origenDeLaPeticion()}/auth/definir-contrasena`,
+  });
+  if (error?.code === "over_email_send_rate_limit") {
+    return { error: "Se alcanzó el límite de correos. Intenta de nuevo en unos minutos." };
+  }
+  if (error) console.error("resetPasswordForEmail falló", error.code, error.message);
+
+  // Mismo mensaje exista o no la cuenta, y aunque el envío falle por otra
+  // causa: no se revela qué correos están registrados.
+  return {
+    mensaje: `Si ${correo} tiene una cuenta, te enviamos un enlace para definir una contraseña nueva. Vence en 1 hora.`,
+  };
+}
+
 export async function cerrarSesion() {
   const supabase = await crearClienteServidor();
   await supabase.auth.signOut();

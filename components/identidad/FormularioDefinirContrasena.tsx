@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { KeyRound } from "lucide-react";
 import { crearClienteNavegador } from "@/lib/supabase/cliente";
@@ -83,8 +84,15 @@ export function FormularioDefinirContrasena() {
       {fase === "enlace_invalido" && (
         <div className="mt-4">
           <Aviso tipo="error">
-            El enlace no es válido o ya expiró. Pide uno nuevo a quien te dio acceso.
+            El enlace no es válido o ya expiró.
           </Aviso>
+          <p className="mt-3 text-sm text-ink-soft">
+            Si estabas recuperando tu contraseña,{" "}
+            <Link href="/auth/recuperar" className="font-semibold text-primary-800 hover:underline">
+              pide un enlace nuevo
+            </Link>
+            . Si te invitaron, pide a quien te invitó que reenvíe la invitación.
+          </p>
         </div>
       )}
 

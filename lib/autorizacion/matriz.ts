@@ -41,6 +41,7 @@ const PREFIJOS: [string, Regla][] = [
   ["/login", { tipo: "publica" }],
   ["/registro", { tipo: "publica" }],
   ["/auth/confirmar", { tipo: "publica" }],
+  ["/auth/recuperar", { tipo: "publica" }],
   ["/auth/definir-contrasena", { tipo: "publica" }],
   // Verificación en dos pasos: solo administradores, todavía sin aal2 (CU-38)
   ["/mfa", { tipo: "roles", roles: ["administrador"], oculta: true }],
