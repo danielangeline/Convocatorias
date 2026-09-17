@@ -7,7 +7,7 @@
 
 **Actualizado:** 16 de septiembre de 2026 · cierre de la sesión 009
 **Sprint:** 1 · día 1 de 30
-**Rama de trabajo:** `sprint-1` — lleva la sesión 009 (gestión de administradores), **todavía sin fusionar a `main`**: producción sigue en `bae56fb`. La migración `20260916170000` ya está aplicada en Supabase y es compatible con lo que corre en producción
+**Rama de trabajo:** `sprint-1` — `main` y `sprint-1` iguales en `498fc22` al cierre de la sesión 009 (producción despliega la gestión de administradores; la migración `20260916170000` ya está aplicada en Supabase)
 
 ---
 
@@ -61,7 +61,7 @@ Pendiente del Product Owner:
 
 1. ~~**URL Configuration de Auth en Supabase**~~ — hecho por el Product Owner (16-sep). Referencia:: *Site URL* = `https://convocatorias-neon.vercel.app`; *Redirect URLs* = `http://localhost:3000/**`, `https://convocatorias-neon.vercel.app/**` y `https://convocatorias-*-danielbohorquezps-projects.vercel.app/**`. Sin esto, el enlace de confirmación de correo no vuelve a `/auth/confirmar`.
 2. ~~**Activar la cuenta de Propietario**~~ — hecho (contraseña y MFA, 16-sep). El primer correo no sirvió porque Supabase no admite `localhost` como destino y lo mandó a la portada. Se reenvió hacia `https://convocatorias-neon.vercel.app/auth/definir-contrasena`, válido por 1 hora. Después de definir la contraseña, activar el MFA en `/mfa`.
-3. **Probar la gestión de administradores con la cuenta del Propietario** (sesión 009), en la vista previa de `sprint-1` o en local:
+3. **Probar la gestión de administradores con la cuenta del Propietario** (sesión 009), en producción (`https://convocatorias-neon.vercel.app`) o en local:
    - `/admin/administradores` aparece en el menú y lista al Propietario;
    - invitar a un correo **que controles y que no tenga cuenta**. Ojo: según la documentación de Supabase, mientras no haya SMTP propio (punto 5) su correo por defecto solo entrega a direcciones del equipo de la organización;
    - abrir el enlace, definir la contraseña en `/auth/definir-contrasena`, activar el MFA y entrar al panel; la invitación debe pasar a "aceptada";
