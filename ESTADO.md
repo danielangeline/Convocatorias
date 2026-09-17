@@ -24,6 +24,7 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
   - Verificado con la sección 9 nueva de la prueba de RLS (todo pasa y cada rechazo sale por su regla) y con `scripts/prueba-catalogo-admin.mjs`: 40 comprobaciones con cuentas temporales, ya borradas. `tsc` y `next build` correctos; `lint` sin errores nuevos.
   - **No verificado:** las pantallas en el navegador con sesión de administrador (ver pendiente 8).
 - **Pendiente 3, en parte:** el Product Owner revocó al administrador de prueba y confirmó el 404. En la base quedó `admin_revocado` y, 9 s después, `acceso_denegado` de esa sesión en `/admin`.
+- **Ya cerrada la sesión, a pedido del Product Owner:** no llegaba el correo de confirmación al crear una cuenta. Causa: registrarse con un correo que ya tiene cuenta devuelve éxito sin enviar nada (Supabase, para no revelar qué correos existen). Se borró la cuenta de administrador revocado `danielangeline322@gmail.com` y el Product Owner se registró con ella como empresa en producción: **RF-01 queda probado por el formulario con correo real**, con confirmación, perfil de empresa y trial de 3 créditos.
 - **Sesión 010:** entrada con dos puertas (RF-84) y recuperación de contraseña (RF-03). Cerró el Sprint 1.
 
 Detalle en [`docs/bitacora/2026-09-17-sesion-011.md`](docs/bitacora/2026-09-17-sesion-011.md).
