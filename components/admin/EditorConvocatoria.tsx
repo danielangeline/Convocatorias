@@ -3,9 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, FileText, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, CheckCircle2 } from "lucide-react";
 import type { CategoriaAdmin, ConvocatoriaAdmin, FuenteAdmin, RequisitoAdmin, TipoCategoria, TipoRequisito } from "@/lib/types";
 import { peticionAdmin } from "@/lib/admin/peticion";
+import { DocumentosConvocatoria } from "./DocumentosConvocatoria";
 import { cn, formatCOP, ESTADO_CONVOCATORIA_LABEL, ESTADO_CONVOCATORIA_ESTILO, TIPO_CATEGORIA_LABEL } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -252,17 +253,7 @@ export function EditorConvocatoria({
         </Seccion>
 
         <Seccion titulo="Documentos">
-          <div className="flex items-center gap-3 text-sm text-ink-soft">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-700">
-              <FileText className="h-4 w-4" />
-            </span>
-            <p>
-              {convocatoria.totalDocumentos === 0
-                ? "Aún no hay documentos adjuntos."
-                : `${convocatoria.totalDocumentos} documento(s) adjunto(s).`}{" "}
-              La carga de archivos (TDR, términos, anexos y formatos) estará disponible próximamente.
-            </p>
-          </div>
+          <DocumentosConvocatoria convocatoriaId={convocatoria.id} documentos={convocatoria.documentos} />
         </Seccion>
 
         <Seccion

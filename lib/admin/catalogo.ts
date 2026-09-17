@@ -5,10 +5,12 @@ import type {
   CategoriaAdmin,
   ConvocatoriaAdmin,
   ConvocatoriaAdminListado,
+  DocumentoAdmin,
   EstadoConvocatoria,
   FuenteAdmin,
   RequisitoAdmin,
   TipoCategoria,
+  TipoDocumento,
   TipoRequisito,
 } from "@/lib/types";
 import type { Resultado } from "./administradores";
@@ -248,7 +250,7 @@ export async function obtenerConvocatoria(id: string): Promise<ConvocatoriaAdmin
   const { data: c, error } = await supabase
     .from("convocatorias")
     .select(
-      "id, fuente_id, nombre, entidad_convocante, descripcion, monto_min, monto_max, ubicacion_cobertura, fecha_apertura, fecha_cierre, url_postulacion, estado, publicada_at, actualizado_at, convocatoria_categoria (categoria_id), requisitos_convocatoria (id, descripcion, tipo, obligatorio, orden), documentos_convocatoria (count)"
+      "id, fuente_id, nombre, entidad_convocante, descripcion, monto_min, monto_max, ubicacion_cobertura, fecha_apertura, fecha_cierre, url_postulacion, estado, publicada_at, actualizado_at, convocatoria_categoria (categoria_id), requisitos_convocatoria (id, descripcion, tipo, obligatorio, orden), documentos_convocatoria (id, tipo_doc, nombre, tipo_mime, tamano_bytes, creado_at)"
     )
     .eq("id", id)
     .maybeSingle();
@@ -264,7 +266,17 @@ export async function obtenerConvocatoria(id: string): Promise<ConvocatoriaAdmin
       tipo: r.tipo as TipoRequisito,
       obligatorio: r.obligatorio,
     }));
-  const conteo = c.documentos_convocatoria as unknown as { count: number }[] | null;
+  const documentos = (c.documentos_convocatoria ?? [])
+    .slice()
+    .sort((a, b) => a.creado_at.localeCompare(b.creado_at))
+    .map((d): DocumentoAdmin => ({
+      id: d.id,
+      tipo: d.tipo_doc as TipoDocumento,
+      nombre: d.nombre,
+      tipoMime: d.tipo_mime ?? "",
+      tamanoBytes: d.tamano_bytes === null ? null : Number(d.tamano_bytes),
+      creadoAt: d.creado_at,
+    }));
 
   return {
     id: c.id,
@@ -283,7 +295,7 @@ export async function obtenerConvocatoria(id: string): Promise<ConvocatoriaAdmin
     actualizadoAt: c.actualizado_at,
     categorias: (c.convocatoria_categoria ?? []).map((cc) => cc.categoria_id),
     requisitos,
-    totalDocumentos: conteo?.[0]?.count ?? 0,
+    documentos,
   };
 }
 

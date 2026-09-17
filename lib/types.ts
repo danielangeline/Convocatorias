@@ -449,7 +449,17 @@ export interface ConvocatoriaAdmin {
   actualizadoAt: string;
   categorias: string[];
   requisitos: RequisitoAdmin[];
-  totalDocumentos: number;
+  documentos: DocumentoAdmin[];
+}
+
+/** Adjunto de una convocatoria ya guardado en Storage (RF-07, docs/05 §9.14). */
+export interface DocumentoAdmin {
+  id: string;
+  tipo: TipoDocumento;
+  nombre: string;
+  tipoMime: string;
+  tamanoBytes: number | null;
+  creadoAt: string;
 }
 
 export interface ListadoAdministradores {

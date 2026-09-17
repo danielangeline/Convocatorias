@@ -50,14 +50,14 @@ export async function conPropietario<T>(
  *   · sesión de administrador vigente con aal2, o 404 (segunda barrera; la
  *     primera es proxy.ts y la tercera la RLS);
  *   · en escrituras, la petición debe venir del mismo origen;
- *   · el id de la ruta, si lo hay, debe ser un uuid.
+ *   · los ids de la ruta, si los hay, deben ser uuid.
  * La acción recibe el cuerpo JSON ya leído (null si no es un objeto) y el id
  * del administrador.
  */
 export async function conAdministrador<T>(
   request: NextRequest,
   accion: (cuerpo: Record<string, unknown> | null, usuarioId: string) => Promise<Resultado<T>>,
-  opciones: { id?: string } = {}
+  opciones: { id?: string; ids?: string[] } = {}
 ): Promise<NextResponse> {
   const ruta = request.nextUrl.pathname;
   const datos = await sesionDeAdministrador(ruta);
@@ -66,7 +66,8 @@ export async function conAdministrador<T>(
   if (request.method !== "GET" && request.headers.get("origin") !== origenDe(request)) {
     return NextResponse.json({ error: "Origen no permitido." }, { status: 403 });
   }
-  if (opciones.id !== undefined && !UUID.test(opciones.id)) return noEncontrado();
+  const ids = opciones.ids ?? (opciones.id === undefined ? [] : [opciones.id]);
+  if (ids.some((valor) => !UUID.test(valor))) return noEncontrado();
 
   let cuerpo: Record<string, unknown> | null = null;
   if (request.method !== "GET") {
