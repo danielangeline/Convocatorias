@@ -326,7 +326,11 @@ export type TipoEventoSeguridad =
   | "acceso_denegado"
   | "limite_tasa"
   | "mfa_activado"
-  | "mfa_fallido";
+  | "mfa_fallido"
+  // Gestión de administradores (CU-41, RF-65, v6)
+  | "admin_invitado"
+  | "invitacion_cancelada"
+  | "admin_revocado";
 
 export interface EventoSeguridad {
   id: string;
@@ -354,6 +358,44 @@ export interface SesionUsuario {
   rol: RolUsuario;
   // Nivel de autenticación de la sesión: aal2 = segundo factor verificado.
   aal: "aal1" | "aal2";
+  // Propietario de la plataforma (RN-31): el único que gestiona administradores.
+  esPropietario: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Gestión de administradores (CU-41, RF-86, RF-87 — docs/05 §9.12)
+// ---------------------------------------------------------------------------
+
+export type EstadoInvitacionAdmin = "pendiente" | "aceptada" | "cancelada" | "vencida";
+
+export interface AdministradorListado {
+  id: string;
+  nombre: string | null;
+  correo: string;
+  esPropietario: boolean;
+  mfaHabilitado: boolean;
+  creadoAt: string; // ISO datetime
+  invitadoPorNombre: string | null;
+  revocadoAt: string | null;
+  revocadoPorNombre: string | null;
+}
+
+export interface InvitacionAdminListado {
+  id: string;
+  correo: string;
+  nombre: string | null;
+  // "pendiente" ya vencida se entrega como "vencida": es lo que ve el Propietario.
+  estado: EstadoInvitacionAdmin;
+  invitadoPorNombre: string | null;
+  creadaAt: string;
+  expiraAt: string;
+  resueltaAt: string | null;
+  tieneCuenta: boolean;
+}
+
+export interface ListadoAdministradores {
+  administradores: AdministradorListado[];
+  invitaciones: InvitacionAdminListado[];
 }
 
 /** Lo que el servidor lee de Supabase para la sesión y entrega al cliente. */

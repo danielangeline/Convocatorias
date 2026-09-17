@@ -206,6 +206,9 @@ export const TIPO_EVENTO_SEGURIDAD_LABEL: Record<TipoEventoSeguridad, string> = 
   limite_tasa: "Límite de tasa",
   mfa_activado: "MFA activado",
   mfa_fallido: "MFA fallido",
+  admin_invitado: "Admin invitado",
+  invitacion_cancelada: "Invitación cancelada",
+  admin_revocado: "Admin revocado",
 };
 
 export const TIPO_EVENTO_SEGURIDAD_ESTILO: Record<TipoEventoSeguridad, string> = {
@@ -214,6 +217,9 @@ export const TIPO_EVENTO_SEGURIDAD_ESTILO: Record<TipoEventoSeguridad, string> =
   limite_tasa: "bg-brick-50 text-brick-700 ring-brick-100",
   mfa_activado: "bg-emerald-50 text-emerald-700 ring-emerald-200",
   mfa_fallido: "bg-danger-bg text-danger ring-red-200",
+  admin_invitado: "bg-primary-50 text-primary-700 ring-primary-100",
+  invitacion_cancelada: "bg-slate-100 text-slate-600 ring-slate-200",
+  admin_revocado: "bg-danger-bg text-danger ring-red-200",
 };
 
 export function formatFechaHora(iso: string): string {

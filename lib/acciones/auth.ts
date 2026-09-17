@@ -158,6 +158,19 @@ export async function confirmarMfa(): Promise<ResultadoFormulario> {
     });
   }
 
+  // CU-42 paso 3: con el segundo factor verificado, la invitación queda
+  // aceptada (docs/05 §9.12). Fuera del `if` anterior para que un fallo aquí se
+  // corrija al verificar de nuevo. obtenerSesion ya exigió que siga vigente.
+  const { error: eInvitacion } = await servicio
+    .from("invitaciones_admin")
+    .update({ estado: "aceptada", resuelta_at: new Date().toISOString() })
+    .eq("usuario_id", datos.sesion.usuarioId)
+    .eq("estado", "pendiente");
+  if (eInvitacion) {
+    console.error("No se pudo marcar la invitación aceptada", eInvitacion.code, eInvitacion.message);
+    return { error: "Tu segundo factor quedó activo, pero no pudimos completar la activación. Intenta de nuevo." };
+  }
+
   redirect("/admin");
 }
 

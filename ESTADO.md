@@ -5,9 +5,9 @@
 
 ---
 
-**Actualizado:** 16 de septiembre de 2026 · cierre de la sesión 008
+**Actualizado:** 16 de septiembre de 2026 · cierre de la sesión 009
 **Sprint:** 1 · día 1 de 30
-**Rama de trabajo:** `sprint-1` — `main` y `sprint-1` iguales en `bae56fb` al cierre de la sesión 008 (producción despliega Auth real, matriz de roles e invitaciones rediseñadas)
+**Rama de trabajo:** `sprint-1` — lleva la sesión 009 (gestión de administradores), **todavía sin fusionar a `main`**: producción sigue en `bae56fb`. La migración `20260916170000` ya está aplicada en Supabase y es compatible con lo que corre en producción
 
 ---
 
@@ -17,19 +17,19 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 
 ## Lo último que se hizo
 
-- **Sesión 008: rediseño de las invitaciones de administrador.**
-  - El trigger de registro ya no intenta reconocer invitaciones: nunca veía `app_metadata`.
-  - El servidor convierte la cuenta con `aceptar_invitacion_admin()`, que solo ejecuta `service_role` y valida que la invitación esté pendiente y vigente, que el correo coincida y que la cuenta sea posterior a la invitación.
-  - `privado.admin_vigente()` es la regla única de administrador con privilegios (no revocado y sin invitación vencida sin activar). La usan la RLS y `rol_efectivo()`, que leen `proxy.ts` y `obtenerSesion()`.
-  - Migración `20260916160000`, especificación en `docs/05 §9.12`, CU-41, CU-42, RF-86 y `docs/04`.
-  - Probado en la prueba de RLS, contra el servicio real de Auth y en `scripts/prueba-matriz-roles.mjs`, que ahora crea su administrador por invitación: 46 comprobaciones que pasan.
-- **Sesión 007:** `requireRole()` en `proxy.ts` con panel oculto (404) y corrección del permiso de `service_role`.
+- **Sesión 009: gestión de administradores (paso 5 del Sprint 1).**
+  - Especificación primero: `docs/05 §9.12` (funciones nuevas, vigencia ampliada a invitaciones canceladas o vencidas, cómo se reenvía, revoca y registra) y `docs/04` (rutas solo del Propietario).
+  - Migración `20260916170000`: `crear_invitacion_admin`, `cancelar_invitacion_admin` y `revocar_admin` (solo `service_role`, comprueban al Propietario), `soy_propietario()` para el proxy, y la FK de la invitación con `on delete set null`.
+  - Matriz con `soloPropietario`; `proxy.ts` consulta `soy_propietario()`; segunda barrera `sesionDePropietario()`.
+  - Endpoints en `app/api/admin/administradores` e `invitaciones`, con la lógica en `lib/admin/administradores.ts`; pantalla `/admin/administradores`, enlazada en el menú solo para el Propietario. `confirmarMfa` marca la invitación `aceptada`.
+  - Probado: prueba de RLS (sección 8 nueva), `scripts/prueba-gestion-administradores.mjs` contra Auth real (22) y la matriz (58). **Sin probar con la sesión del Propietario ni con correo real.**
+- **Sesión 008:** invitación por aceptación explícita del servidor (`aceptar_invitacion_admin`).
 
-Detalle en [`docs/bitacora/2026-09-16-sesion-008.md`](docs/bitacora/2026-09-16-sesion-008.md).
+Detalle en [`docs/bitacora/2026-09-16-sesion-009.md`](docs/bitacora/2026-09-16-sesion-009.md).
 
 ## En curso
 
-Nada a medias en el código. **Falta la prueba en el navegador con sesión iniciada** (ver "Pendiente del Product Owner"): el agente no escribe contraseñas en formularios.
+Nada a medias en el código. **Falta la prueba en el navegador con la sesión del Propietario** (ver "Pendiente del Product Owner", punto 3): el agente no tiene ni debe usar sus credenciales, así que los endpoints no se ejercitaron con esa sesión ni se envió un correo real.
 
 ## Lo siguiente — Sprint 1
 
@@ -37,21 +37,12 @@ Nada a medias en el código. **Falta la prueba en el navegador con sesión inici
 2. ~~Supabase y migraciones con RLS~~ — sesión 003.
 3. ~~Supabase Auth, trial y MFA~~ — sesión 004.
 4. ~~`requireRole()` y panel oculto~~ — sesión 007.
-5. **← Empezar aquí.** **Gestión de administradores en la app** (CU-41, CU-42, RF-86, RF-87, RN-32). La base ya está rediseñada y probada (sesión 008). Falta:
-   - declarar en `lib/autorizacion/matriz.ts` las rutas `/admin/administradores` y `/api/admin/administradores`, `/api/admin/invitaciones`, **solo para el Propietario**, con 404 para los demás administradores (hoy la matriz solo distingue el rol);
-   - endpoints, según docs/04 §8.3 y docs/05 §9.12:
-     - invitar: `correo_tiene_cuenta` → invitación → `inviteUserByEmail` → `aceptar_invitacion_admin`, y si algo falla, borrar la cuenta;
-     - reenviar;
-     - cancelar, que borra la cuenta sin activar;
-     - revocar, que marca, bloquea en Auth y registra `admin_revocado`;
-   - pantalla `/admin/administradores`;
-   - `confirmarMfa` marca la invitación `aceptada`.
-   - Probar la invitación con un correo real: el enlace de `inviteUserByEmail` y la pantalla `/auth/definir-contrasena`.
-6. **Entrada con dos puertas** en landing y login, con la etiqueta "empresa o entidad" (RF-84).
+5. ~~Gestión de administradores en la app~~ — sesión 009. Queda la prueba del Product Owner en el navegador (abajo).
+6. **← Empezar aquí.** **Entrada con dos puertas** en landing y login, con la etiqueta "empresa o entidad" (RF-84).
 
 Storage (3 buckets) pasó al Sprint 2 (sesión 006). **Regla nueva:** toda pantalla o endpoint nuevo se declara en `lib/autorizacion/matriz.ts`; si no, responde 404.
 
-**Hito 1 (día 6):** un consultor recibe **404** en `/admin` (como un anónimo y como una ruta inventada) y **403** en `/convocatorias/[id]/generar`; solo el Propietario crea administradores; dos empresas no ven nada la una de la otra en los cuatro listados. Probado, no supuesto. *Sesión 007: la parte de rutas está probada (consultor → 404 en `/admin`, 403 en `/convocatorias/[id]/generar`). El aislamiento entre dos empresas está probado en RLS; los cuatro listados de la app siguen leyendo el mock.*
+**Hito 1 (día 6):** un consultor recibe **404** en `/admin` (como un anónimo y como una ruta inventada) y **403** en `/convocatorias/[id]/generar`; solo el Propietario crea administradores; dos empresas no ven nada la una de la otra en los cuatro listados. Probado, no supuesto. *Sesión 007: la parte de rutas está probada (consultor → 404 en `/admin`, 403 en `/convocatorias/[id]/generar`). El aislamiento entre dos empresas está probado en RLS; los cuatro listados de la app siguen leyendo el mock. Sesión 009: "solo el Propietario crea administradores" está probado en la base y en rutas (otro administrador recibe 404 y no crea nada); falta verlo funcionar con la sesión del Propietario.*
 
 ## Infraestructura que ya existe
 
@@ -70,10 +61,16 @@ Pendiente del Product Owner:
 
 1. ~~**URL Configuration de Auth en Supabase**~~ — hecho por el Product Owner (16-sep). Referencia:: *Site URL* = `https://convocatorias-neon.vercel.app`; *Redirect URLs* = `http://localhost:3000/**`, `https://convocatorias-neon.vercel.app/**` y `https://convocatorias-*-danielbohorquezps-projects.vercel.app/**`. Sin esto, el enlace de confirmación de correo no vuelve a `/auth/confirmar`.
 2. ~~**Activar la cuenta de Propietario**~~ — hecho (contraseña y MFA, 16-sep). El primer correo no sirvió porque Supabase no admite `localhost` como destino y lo mandó a la portada. Se reenvió hacia `https://convocatorias-neon.vercel.app/auth/definir-contrasena`, válido por 1 hora. Después de definir la contraseña, activar el MFA en `/mfa`.
-3. **Probar en el navegador con sesión** las cuentas de prueba `empresa.s004@example.com` y `consultor.s004@example.com` (contraseña dada en el chat de la sesión 004, no está en el repositorio): login, navbar con iniciales y "Salir", 3 créditos en el indicador y `/suscripcion` con el trial. El QR de `/mfa` se prueba con la cuenta del Propietario.
-4. **SMTP propio antes de los pilotos** (p. ej. Resend): el correo por defecto de Supabase envía muy pocos mensajes por hora.
-5. **Cambiar la contraseña de la base de datos** (quedó escrita en el chat de la sesión 003).
-6. **Docker Desktop no arranca** en esta máquina: no bloquea (las migraciones se ensayan en una transacción con `ROLLBACK` contra el remoto).
+3. **Probar la gestión de administradores con la cuenta del Propietario** (sesión 009), en la vista previa de `sprint-1` o en local:
+   - `/admin/administradores` aparece en el menú y lista al Propietario;
+   - invitar a un correo **que controles y que no tenga cuenta**. Ojo: según la documentación de Supabase, mientras no haya SMTP propio (punto 5) su correo por defecto solo entrega a direcciones del equipo de la organización;
+   - abrir el enlace, definir la contraseña en `/auth/definir-contrasena`, activar el MFA y entrar al panel; la invitación debe pasar a "aceptada";
+   - reenviar y cancelar una segunda invitación; revocar al administrador de prueba y comprobar que su sesión abierta pierde el panel;
+   - en `/admin/seguridad` todavía no se verán los eventos: esa pantalla sigue leyendo el mock.
+4. **Probar en el navegador con sesión** las cuentas de prueba `empresa.s004@example.com` y `consultor.s004@example.com` (contraseña dada en el chat de la sesión 004, no está en el repositorio): login, navbar con iniciales y "Salir", 3 créditos en el indicador y `/suscripcion` con el trial. El QR de `/mfa` se prueba con la cuenta del Propietario.
+5. **SMTP propio antes de los pilotos** (p. ej. Resend): el correo por defecto de Supabase envía muy pocos mensajes por hora.
+6. **Cambiar la contraseña de la base de datos** (quedó escrita en el chat de la sesión 003).
+7. **Docker Desktop no arranca** en esta máquina: no bloquea (las migraciones se ensayan en una transacción con `ROLLBACK` contra el remoto).
 
 ## Decisiones abiertas
 
@@ -111,6 +108,9 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | En la sesión 004, el primer `update` de `perfiles.rol` con `service_role` no persistió y el error no se leyó; al repetirlo funcionó. No se reprodujo | script de prueba | baja · vigilar al escribir el endpoint de asignar rol |
 | El perfil de consultor real se edita solo en el store: nombre, descripción, portafolio y demás se pierden al recargar | `app/consultor/perfil` | media · entra con los endpoints de perfil (Sprint 2/5) |
 | La transición de estados de la postulación (RF-83) no se valida en la base: RLS deja a la dueña poner cualquier estado | `postulaciones` | media · validar en el endpoint o con trigger en el Sprint 2 |
+| `/admin/seguridad` sigue leyendo eventos del mock: los eventos reales (`admin_invitado`, `admin_revocado`, `acceso_denegado`…) no se ven en el panel | `app/admin/seguridad/page.tsx` | media · entra con CU-39 |
+| Si `inviteUserByEmail` falla después de crear la cuenta en Auth, el endpoint borra la invitación pero no puede borrar esa cuenta (no conoce su id): queda una empresa con trial que ocupa el correo. Se registra en el log del servidor. No se ha observado; Auth suele deshacer la cuenta si el envío falla | `lib/admin/administradores.ts` | baja · resolver con una función que devuelva el id por correo si ocurre |
+| La segunda barrera de la gestión de administradores (`sesionDePropietario`) tampoco se ejercitó por separado: el proxy corta antes | `lib/auth.ts` | baja · mismo caso que `exigirRol` |
 
 ---
 

@@ -20,18 +20,22 @@ export type Regla =
       oculta?: boolean;
       // Exige segundo factor verificado en la sesión (RNF-28).
       exigeMfa?: boolean;
+      // Solo el Propietario (RF-86): a los demás administradores, 404.
+      soloPropietario?: boolean;
     };
 
 const EMPRESA: Regla = { tipo: "roles", roles: ["empresa"] };
 const CONSULTOR: Regla = { tipo: "roles", roles: ["consultor"] };
 const PANEL: Regla = { tipo: "roles", roles: ["administrador"], oculta: true, exigeMfa: true };
+const PROPIETARIO: Regla = { ...PANEL, soloPropietario: true };
 
 // Rutas exactas.
 const EXACTAS: Record<string, Regla> = {
   "/": { tipo: "publica" },
 };
 
-// Prefijos: aplican a la ruta y a todo lo que cuelga de ella.
+// Prefijos: aplican a la ruta y a todo lo que cuelga de ella. Gana el primero
+// que coincide: los más específicos van antes.
 const PREFIJOS: [string, Regla][] = [
   // Identidad (CU-14, CU-42)
   ["/login", { tipo: "publica" }],
@@ -40,6 +44,10 @@ const PREFIJOS: [string, Regla][] = [
   ["/auth/definir-contrasena", { tipo: "publica" }],
   // Verificación en dos pasos: solo administradores, todavía sin aal2 (CU-38)
   ["/mfa", { tipo: "roles", roles: ["administrador"], oculta: true }],
+  // Gestión de administradores: solo el Propietario (CU-41, RF-86)
+  ["/admin/administradores", PROPIETARIO],
+  ["/api/admin/administradores", PROPIETARIO],
+  ["/api/admin/invitaciones", PROPIETARIO],
   // Panel administrativo (RF-85)
   ["/admin", PANEL],
   ["/api/admin", PANEL],

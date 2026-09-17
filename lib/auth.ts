@@ -23,7 +23,7 @@ export const obtenerSesion = cache(async (): Promise<DatosSesion | null> => {
 
   const { data: perfil } = await supabase
     .from("perfiles")
-    .select("id, nombre, rol, nombre_empresa")
+    .select("id, nombre, rol, nombre_empresa, es_propietario")
     .eq("id", usuario.user.id)
     .maybeSingle();
   if (!perfil) return null;
@@ -72,6 +72,7 @@ export const obtenerSesion = cache(async (): Promise<DatosSesion | null> => {
       nombreEmpresa: perfil.nombre_empresa,
       rol,
       aal: nivel?.currentLevel === "aal2" ? "aal2" : "aal1",
+      esPropietario: rol === "administrador" && perfil.es_propietario === true,
     },
     suscripcion: sus
       ? {
@@ -147,5 +148,31 @@ export async function exigirRol(
     if (!datos) redirect("/login");
     forbidden();
   }
+  return datos;
+}
+
+/**
+ * Segunda barrera de RF-86 para la gestión de administradores: sesión del
+ * Propietario vigente con segundo factor verificado. Devuelve null y registra
+ * `acceso_denegado` en cualquier otro caso; quien llama responde 404.
+ */
+export async function sesionDePropietario(ruta: string): Promise<DatosSesion | null> {
+  const datos = await obtenerSesion();
+  if (datos?.sesion.rol === "administrador" && datos.sesion.aal === "aal2" && datos.sesion.esPropietario) {
+    return datos;
+  }
+  await registrarAccesoDenegado({
+    usuarioId: datos?.sesion.usuarioId ?? null,
+    ruta,
+    ip: ipDeCabeceras(await headers()),
+    detalle: "No es el Propietario (segunda barrera)",
+  });
+  return null;
+}
+
+/** Para páginas: 404 si la sesión no es del Propietario (RF-85, RF-86). */
+export async function exigirPropietario(ruta: string): Promise<DatosSesion> {
+  const datos = await sesionDePropietario(ruta);
+  if (!datos) notFound();
   return datos;
 }

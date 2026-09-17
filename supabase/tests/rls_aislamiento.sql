@@ -426,6 +426,128 @@ select pg_temp.como('00000000-0000-0000-0000-0000000000e1');
 select pg_temp.ok(public.rol_efectivo() = 'empresa', 'rol_efectivo de una empresa: empresa');
 reset role;
 
+-- ---------------------------------------------------------------------------
+-- 8 · Gestión de administradores: invitar, cancelar y revocar (CU-41, RF-86, RF-87)
+-- ---------------------------------------------------------------------------
+
+set local role authenticated;
+select pg_temp.como('00000000-0000-0000-0000-0000000000ad', 'aal2');
+select pg_temp.ok(public.soy_propietario(), 'soy_propietario: el Propietario con MFA');
+select pg_temp.como('00000000-0000-0000-0000-0000000000ad', 'aal1');
+select pg_temp.ok(not public.soy_propietario(), 'soy_propietario: el Propietario sin MFA no lo es');
+select pg_temp.como('00000000-0000-0000-0000-0000000000e1');
+select pg_temp.ok(not public.soy_propietario(), 'soy_propietario: una empresa no lo es');
+select pg_temp.rechaza($$select public.crear_invitacion_admin('00000000-0000-0000-0000-0000000000ad', 'x@prueba.co', 'X')$$,
+  'E1 ejecuta crear_invitacion_admin');
+select pg_temp.rechaza($$select * from public.cancelar_invitacion_admin('00000000-0000-0000-0000-0000000000ad', '00000000-0000-0000-0000-0000000001a3')$$,
+  'E1 ejecuta cancelar_invitacion_admin');
+select pg_temp.rechaza($$select public.revocar_admin('00000000-0000-0000-0000-0000000000ad', '00000000-0000-0000-0000-0000000000f5')$$,
+  'E1 ejecuta revocar_admin');
+select pg_temp.como('00000000-0000-0000-0000-0000000000ad', 'aal2');
+select pg_temp.rechaza($$select public.crear_invitacion_admin('00000000-0000-0000-0000-0000000000ad', 'x@prueba.co', 'X')$$,
+  'El Propietario ejecuta crear_invitacion_admin desde el cliente (solo servidor)');
+reset role;
+
+set local role service_role;
+-- Invitar
+select pg_temp.rechaza($$select public.crear_invitacion_admin('00000000-0000-0000-0000-0000000000e1', 'x@prueba.co', 'X')$$,
+  'Invitar en nombre de quien no es Propietario');
+select pg_temp.rechaza($$select public.crear_invitacion_admin('00000000-0000-0000-0000-0000000000a2', 'x@prueba.co', 'X')$$,
+  'Invitar en nombre de un administrador revocado');
+select pg_temp.rechaza($$select public.crear_invitacion_admin('00000000-0000-0000-0000-0000000000ad', 'no-es-correo', 'X')$$,
+  'Invitar un correo no válido');
+select pg_temp.rechaza($$select public.crear_invitacion_admin('00000000-0000-0000-0000-0000000000ad', ' E1@prueba.co ', 'X')$$,
+  'Invitar un correo que ya tiene cuenta (RN-32)');
+select pg_temp.rechaza($$select public.crear_invitacion_admin('00000000-0000-0000-0000-0000000000ad', 'SE.VENCE@prueba.co', 'X')$$,
+  'Invitar un correo con invitación pendiente (CU-41 3b)');
+select pg_temp.ok(public.crear_invitacion_admin('00000000-0000-0000-0000-0000000000ad', ' Cancela@Prueba.co ', ' Por cancelar ') is not null,
+  'El Propietario invita un correo sin cuenta');
+reset role;
+select pg_temp.ok((select correo = 'cancela@prueba.co' and nombre = 'Por cancelar' and estado = 'pendiente'
+                          and invitado_por = '00000000-0000-0000-0000-0000000000ad' and expira_at > now() + interval '71 hours'
+                   from public.invitaciones_admin where correo = 'cancela@prueba.co'),
+  'La invitación nace pendiente, normalizada, a nombre del Propietario y vigente 72 horas');
+
+-- Cancelar una invitación con cuenta vinculada
+insert into auth.users (id, email) values ('00000000-0000-0000-0000-0000000000b1', 'cancela@prueba.co');
+set local role service_role;
+select public.aceptar_invitacion_admin((select id from public.invitaciones_admin where correo = 'cancela@prueba.co'),
+                                       '00000000-0000-0000-0000-0000000000b1');
+reset role;
+set local role authenticated;
+select pg_temp.como('00000000-0000-0000-0000-0000000000b1', 'aal2');
+select pg_temp.ok(public.rol_efectivo() = 'administrador' and not public.soy_propietario(),
+  'Cuenta invitada sin activar: administrador mientras la invitación está vigente, no Propietario');
+reset role;
+
+set local role service_role;
+select pg_temp.rechaza($$select * from public.cancelar_invitacion_admin('00000000-0000-0000-0000-0000000000b1',
+                          (select id from public.invitaciones_admin where correo = 'cancela@prueba.co'))$$,
+  'Cancelar en nombre de quien no es Propietario');
+select pg_temp.ok((select usuario_id = '00000000-0000-0000-0000-0000000000b1' and estado = 'cancelada' and not ya_resuelta
+                   from public.cancelar_invitacion_admin('00000000-0000-0000-0000-0000000000ad',
+                          (select id from public.invitaciones_admin where correo = 'cancela@prueba.co'))),
+  'Cancelar devuelve la cuenta por borrar y marca cancelada');
+select pg_temp.ok((select ya_resuelta and usuario_id = '00000000-0000-0000-0000-0000000000b1'
+                   from public.cancelar_invitacion_admin('00000000-0000-0000-0000-0000000000ad',
+                          (select id from public.invitaciones_admin where correo = 'cancela@prueba.co'))),
+  'Cancelar de nuevo con la cuenta sin borrar: reintento');
+select pg_temp.ok((select estado = 'vencida' and usuario_id is null and not ya_resuelta
+                   from public.cancelar_invitacion_admin('00000000-0000-0000-0000-0000000000ad', '00000000-0000-0000-0000-0000000001a3')),
+  'Cancelar una invitación pendiente ya vencida la marca vencida');
+reset role;
+
+set local role authenticated;
+select pg_temp.como('00000000-0000-0000-0000-0000000000b1', 'aal2');
+select pg_temp.ok(public.rol_efectivo() is null and (select count(*) from public.perfiles) = 1,
+  'Invitación cancelada con la cuenta aún sin borrar: sin privilegios');
+reset role;
+
+delete from auth.users where id = '00000000-0000-0000-0000-0000000000b1';
+select pg_temp.ok((select usuario_id is null and estado = 'cancelada' from public.invitaciones_admin where correo = 'cancela@prueba.co'),
+  'Borrar la cuenta deja la invitación cancelada y sin cuenta vinculada');
+set local role service_role;
+select pg_temp.rechaza($$select * from public.cancelar_invitacion_admin('00000000-0000-0000-0000-0000000000ad',
+                          (select id from public.invitaciones_admin where correo = 'cancela@prueba.co'))$$,
+  'Cancelar una invitación ya resuelta y sin cuenta');
+select pg_temp.ok(public.crear_invitacion_admin('00000000-0000-0000-0000-0000000000ad', 'cancela@prueba.co', null) is not null,
+  'Tras cancelar y borrar la cuenta, el correo se puede invitar de nuevo');
+reset role;
+
+-- Revocar
+insert into public.invitaciones_admin (id, correo, invitado_por) values
+  ('00000000-0000-0000-0000-0000000001b2', 'activo@prueba.co', '00000000-0000-0000-0000-0000000000ad');
+insert into auth.users (id, email) values ('00000000-0000-0000-0000-0000000000b2', 'activo@prueba.co');
+set local role service_role;
+select public.aceptar_invitacion_admin('00000000-0000-0000-0000-0000000001b2', '00000000-0000-0000-0000-0000000000b2');
+reset role;
+update public.invitaciones_admin set estado = 'aceptada', resuelta_at = now() where id = '00000000-0000-0000-0000-0000000001b2';
+insert into auth.sessions (id, user_id) values ('00000000-0000-0000-0000-0000000005b2', '00000000-0000-0000-0000-0000000000b2');
+
+set local role service_role;
+select pg_temp.rechaza($$select public.revocar_admin('00000000-0000-0000-0000-0000000000b2', '00000000-0000-0000-0000-0000000000ad')$$,
+  'Un administrador que no es Propietario revoca al Propietario');
+select pg_temp.rechaza($$select public.revocar_admin('00000000-0000-0000-0000-0000000000ad', '00000000-0000-0000-0000-0000000000ad')$$,
+  'El Propietario se revoca a sí mismo (RN-31)');
+select pg_temp.rechaza($$select public.revocar_admin('00000000-0000-0000-0000-0000000000ad', '00000000-0000-0000-0000-0000000000e1')$$,
+  'Revocar a una empresa');
+select pg_temp.rechaza($$select public.revocar_admin('00000000-0000-0000-0000-0000000000ad', '00000000-0000-0000-0000-0000000000a2')$$,
+  'Revocar a un administrador ya revocado');
+select pg_temp.rechaza($$select public.revocar_admin('00000000-0000-0000-0000-0000000000ad', '00000000-0000-0000-0000-0000000000f5')$$,
+  'Revocar a quien no activó su invitación (se cancela)');
+select public.revocar_admin('00000000-0000-0000-0000-0000000000ad', '00000000-0000-0000-0000-0000000000b2');
+reset role;
+
+select pg_temp.ok((select admin_revocado_at is not null and admin_revocado_por = '00000000-0000-0000-0000-0000000000ad'
+                   from public.perfiles where id = '00000000-0000-0000-0000-0000000000b2')
+                  and not exists (select 1 from auth.sessions where user_id = '00000000-0000-0000-0000-0000000000b2'),
+  'Revocar marca quién y cuándo y borra las sesiones de Auth (RF-87)');
+set local role authenticated;
+select pg_temp.como('00000000-0000-0000-0000-0000000000b2', 'aal2');
+select pg_temp.ok(public.rol_efectivo() is null and (select count(*) from public.perfiles) = 1,
+  'Administrador revocado por la función: sin privilegios con el mismo JWT (RF-87)');
+reset role;
+
 select 'TODAS LAS COMPROBACIONES PASARON' as resultado;
 
 rollback;

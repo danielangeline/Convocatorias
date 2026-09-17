@@ -10,7 +10,8 @@ import type { RolUsuario } from "@/lib/types";
  *   · ruta no declarada → 404 (cerrado por defecto);
  *   · sin sesión → /login, salvo en el panel, que responde 404 (RF-85);
  *   · rol no admitido → 403, o 404 en el panel, y evento `acceso_denegado`;
- *   · panel sin segundo factor verificado → /mfa (RNF-28).
+ *   · panel sin segundo factor verificado → /mfa (RNF-28);
+ *   · ruta solo del Propietario y la sesión no lo es → 404 (RF-86).
  * Los layouts repiten la comprobación (`exigirRol`) como segunda barrera.
  */
 export async function proxy(request: NextRequest) {
@@ -74,6 +75,11 @@ export async function proxy(request: NextRequest) {
 
   if (regla.exigeMfa && claims?.aal !== "aal2") {
     return conSesion(NextResponse.redirect(new URL("/mfa", request.url)));
+  }
+
+  if (regla.soloPropietario) {
+    const { data: esPropietario } = await supabase.rpc("soy_propietario");
+    if (esPropietario !== true) return denegar("No es el Propietario");
   }
 
   return respuesta;

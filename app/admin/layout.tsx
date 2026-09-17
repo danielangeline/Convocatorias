@@ -17,7 +17,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="flex min-h-screen min-w-[1024px] bg-primary-50/40">
       <SincronizarSesion datos={datos} />
-      <AdminSidebar />
+      <AdminSidebar esPropietario={datos.sesion.esPropietario} />
       <div className="flex-1 overflow-x-auto">
         <header className="flex justify-end border-b border-line bg-white px-8 py-3">
           <MenuUsuario tono="primary" />

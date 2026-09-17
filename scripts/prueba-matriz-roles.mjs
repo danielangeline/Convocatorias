@@ -66,7 +66,7 @@ try {
   ok((await pedir("/")).status === 200, "anónimo · / → 200");
   ok((await pedir("/login")).status === 200, "anónimo · /login → 200");
   const r1 = await pedir("/convocatorias"); ok(r1.status === 307 && r1.destino?.endsWith("/login"), "anónimo · /convocatorias → /login");
-  for (const ruta of ["/admin", "/admin/seguridad", "/mfa", "/api/admin/administradores", "/acceso-denegado"]) {
+  for (const ruta of ["/admin", "/admin/seguridad", "/admin/administradores", "/mfa", "/api/admin/administradores", "/api/admin/invitaciones", "/acceso-denegado"]) {
     const r = await pedir(ruta);
     ok(r.status === 404, `anónimo · ${ruta} → 404`);
     ok(r.cuerpo === inventada.cuerpo, `anónimo · ${ruta}: misma página que la ruta inventada (RNF-35)`);
@@ -77,7 +77,7 @@ try {
   for (const [ruta, esperado] of [["/convocatorias", 200], ["/convocatorias/conv-1/generar", 200], ["/documentos", 200], ["/consultor/perfil", 403]]) {
     ok((await pedir(ruta, emp.cookie())).status === esperado, `empresa · ${ruta} → ${esperado}`);
   }
-  for (const ruta of ["/admin", "/admin/planes", "/mfa", "/api/admin/administradores"]) {
+  for (const ruta of ["/admin", "/admin/planes", "/admin/administradores", "/mfa", "/api/admin/administradores"]) {
     const r = await pedir(ruta, emp.cookie());
     ok(r.status === 404 && r.cuerpo === inventadaEmp.cuerpo, `empresa · ${ruta} → 404 idéntico a ruta inventada (RF-85)`);
   }
@@ -112,6 +112,28 @@ try {
   }
   const adminHtml = await pedir("/admin", adm.cookie());
   ok(/noindex/.test(adminHtml.cuerpo), "admin · el panel lleva noindex");
+
+  // RF-86: la gestión de administradores es solo del Propietario; a otro
+  // administrador con MFA le responde lo mismo que una ruta inexistente.
+  const inventadaAdm = await pedir("/admin/ruta-inventada-s009", adm.cookie());
+  for (const ruta of ["/admin/administradores", "/api/admin/administradores"]) {
+    const r = await pedir(ruta, adm.cookie());
+    ok(r.status === 404 && r.cuerpo === inventadaAdm.cuerpo, `admin no Propietario · ${ruta} → 404 idéntico a ruta inventada (RF-86) (${r.status})`);
+  }
+  ok(adminHtml.cuerpo.includes('href="/admin/seguridad"') && !adminHtml.cuerpo.includes('href="/admin/administradores"'), "admin no Propietario · el menú enlaza el panel pero no la gestión de administradores");
+  const correoIntruso = "intruso.s009@example.com";
+  const post = (ruta, cuerpo) => fetch(APP + ruta, { method: "POST", redirect: "manual", headers: { cookie: adm.cookie(), origin: APP, "content-type": "application/json" }, body: JSON.stringify(cuerpo ?? {}) });
+  const rInv = await post("/api/admin/administradores/invitar", { correo: correoIntruso, nombre: "Intruso" });
+  const { count: invIntruso } = await svc.from("invitaciones_admin").select("*", { count: "exact", head: true }).eq("correo", correoIntruso);
+  ok(rInv.status === 404 && invIntruso === 0, `admin no Propietario · POST invitar → 404 y ninguna invitación creada (${rInv.status}, ${invIntruso})`);
+  const rRev = await post(`/api/admin/administradores/${propietario.id}/revocar`);
+  const { data: propTrasIntento } = await svc.from("perfiles").select("admin_revocado_at").eq("id", propietario.id).single();
+  ok(rRev.status === 404 && propTrasIntento.admin_revocado_at === null, `admin no Propietario · POST revocar al Propietario → 404 y sin efecto (${rRev.status})`);
+  const rCan = await post(`/api/admin/invitaciones/${inv.id}/cancelar`);
+  const { data: invTrasIntento } = await svc.from("invitaciones_admin").select("estado").eq("id", inv.id).single();
+  ok(rCan.status === 404 && invTrasIntento.estado === "pendiente", `admin no Propietario · POST cancelar su propia invitación → 404 y sin efecto (${rCan.status})`);
+  const rEmp = await fetch(APP + `/api/admin/invitaciones/${inv.id}/reenviar`, { method: "POST", redirect: "manual", headers: { cookie: emp.cookie(), origin: APP } });
+  ok(rEmp.status === 404, `empresa · POST reenviar → 404 (${rEmp.status})`);
 
   // Invitación vencida sin activar: con la misma cookie, el panel desaparece (§9.12).
   await svc.from("invitaciones_admin").update({ creada_at: new Date(Date.now() - 4 * 864e5).toISOString(), expira_at: new Date(Date.now() - 864e5).toISOString() }).eq("id", inv.id);

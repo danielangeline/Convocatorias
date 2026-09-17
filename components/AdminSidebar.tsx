@@ -16,13 +16,16 @@ import {
   CreditCard,
   Sparkles,
   ShieldAlert,
+  UserCog,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const grupos: Array<{
+type Grupo = {
   titulo: string;
   enlaces: Array<{ href: string; label: string; icon: React.ElementType; exacto?: boolean }>;
-}> = [
+};
+
+const grupos: Grupo[] = [
   {
     titulo: "General",
     enlaces: [{ href: "/admin", label: "Panel general", icon: LayoutDashboard, exacto: true }],
@@ -60,7 +63,13 @@ const grupos: Array<{
   },
 ];
 
-export function AdminSidebar() {
+// Solo el Propietario ve la sección; a los demás el servidor les responde 404 (RF-86).
+const grupoPropietario: Grupo = {
+  titulo: "Propietario",
+  enlaces: [{ href: "/admin/administradores", label: "Administradores", icon: UserCog }],
+};
+
+export function AdminSidebar({ esPropietario }: { esPropietario: boolean }) {
   const pathname = usePathname();
 
   return (
@@ -76,7 +85,7 @@ export function AdminSidebar() {
       </div>
 
       <nav className="flex-1 space-y-5 px-3 py-4">
-        {grupos.map((grupo) => (
+        {(esPropietario ? [...grupos, grupoPropietario] : grupos).map((grupo) => (
           <div key={grupo.titulo}>
             <p className="mb-1.5 px-3 text-[11px] font-semibold uppercase tracking-wide text-white/35">
               {grupo.titulo}
