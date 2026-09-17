@@ -75,7 +75,7 @@ Pendiente del Product Owner:
    - **falta:** reenviar y cancelar una segunda invitación (invitar a otro correo real sin cuenta);
    - en `/admin/seguridad` todavía no se verán los eventos: esa pantalla sigue leyendo el mock.
 4. **Probar en el navegador con sesión** las cuentas de prueba `empresa.s004@example.com` y `consultor.s004@example.com`: login (ahora con las dos puertas y el aviso si eliges la otra), navbar con iniciales y "Salir", 3 créditos en el indicador y `/suscripcion` con el trial. Contraseña nueva dada en el chat de la sesión 010. **Ojo:** `scripts/prueba-matriz-roles.mjs` la vuelve a cambiar si se corre; en ese caso, pedir otra al agente. El QR de `/mfa` se prueba con la cuenta del Propietario.
-5. **SMTP propio antes de los pilotos** (p. ej. Resend): el correo por defecto de Supabase envía muy pocos mensajes por hora.
+5. **SMTP propio antes de los pilotos** (p. ej. Resend): el correo por defecto de Supabase envía muy pocos mensajes por hora **y solo a direcciones del equipo del proyecto**. El 17-sep llegó bien a `danielangeline322@gmail.com` (registro real por el formulario, RF-01), pero eso no dice nada sobre una empresa piloto cualquiera.
 6. **Cambiar la contraseña de la base de datos** (quedó escrita en el chat de la sesión 003).
 7. **Docker Desktop no arranca** en esta máquina: no bloquea (las migraciones se ensayan en una transacción con `ROLLBACK` contra el remoto).
 8. **Recorrer el catálogo del panel en el navegador con la cuenta del Propietario** (sesión 011). Mientras `sprint-2` no llegue a producción, en local con `npm run dev`:
