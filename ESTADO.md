@@ -7,7 +7,7 @@
 
 **Actualizado:** 16 de septiembre de 2026 · cierre de la sesión 008
 **Sprint:** 1 · día 1 de 30
-**Rama de trabajo:** `sprint-1` — fusionada a `main` al cierre de la sesión 006 (producción ya despliega Auth real)
+**Rama de trabajo:** `sprint-1` — `main` y `sprint-1` iguales en `bae56fb` al cierre de la sesión 008 (producción despliega Auth real, matriz de roles e invitaciones rediseñadas)
 
 ---
 
