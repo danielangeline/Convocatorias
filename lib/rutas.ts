@@ -11,3 +11,17 @@ export function rutaInicioDeRol(rol: RolUsuario): string {
       return "/admin";
   }
 }
+
+/** Las dos puertas de la entrada (RF-84). Ninguna lleva al panel administrativo. */
+export type Puerta = "empresa" | "consultor";
+
+/** Lee la puerta de `?puerta=`; cualquier otro valor cae en la de empresa. */
+export function puertaDeParametro(valor: string | string[] | undefined): Puerta {
+  return valor === "consultor" ? "consultor" : "empresa";
+}
+
+/**
+ * Parámetro que el login agrega al inicio del portal cuando la puerta elegida
+ * no coincidía con el rol de la cuenta (RF-84, CU-14 flujo 4a).
+ */
+export const AVISO_PUERTA = "aviso=puerta";

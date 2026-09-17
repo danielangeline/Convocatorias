@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { crearClienteServidor, crearClienteServicio } from "@/lib/supabase/servidor";
 import { obtenerSesion } from "@/lib/auth";
-import { rutaInicioDeRol } from "@/lib/rutas";
+import { AVISO_PUERTA, puertaDeParametro, rutaInicioDeRol } from "@/lib/rutas";
 import type { RolUsuario } from "@/lib/types";
 
 export interface ResultadoFormulario {
@@ -48,14 +48,15 @@ async function registrarEvento(
 // ---------------------------------------------------------------------------
 
 export async function registrarse(_previo: ResultadoFormulario, formulario: FormData): Promise<ResultadoFormulario> {
-  const rol = formulario.get("rol") === "consultor" ? "consultor" : "empresa";
+  // La puerta fija el rol (RF-84).
+  const rol = puertaDeParametro(String(formulario.get("puerta") ?? ""));
   const nombre = String(formulario.get("nombre") ?? "").trim();
   const nombreEmpresa = String(formulario.get("nombre_empresa") ?? "").trim();
   const correo = String(formulario.get("correo") ?? "").trim().toLowerCase();
   const contrasena = String(formulario.get("contrasena") ?? "");
 
   if (!nombre || !correo) return { error: "Escribe tu nombre y tu correo." };
-  if (rol === "empresa" && !nombreEmpresa) return { error: "Escribe el nombre de la empresa." };
+  if (rol === "empresa" && !nombreEmpresa) return { error: "Escribe el nombre de la empresa o entidad." };
   if (contrasena.length < 8) return { error: "La contraseña debe tener al menos 8 caracteres." };
 
   const supabase = await crearClienteServidor();
@@ -115,9 +116,17 @@ export async function iniciarSesion(_previo: ResultadoFormulario, formulario: Fo
   }
 
   // El administrador no entra sin segundo factor (RNF-28): el layout de /admin
-  // lo mandaría a /mfa de todas formas; se ahorra el salto.
-  if (perfil.rol === "administrador") redirect("/mfa");
-  redirect(rutaInicioDeRol(perfil.rol as RolUsuario));
+  // lo mandaría a /mfa de todas formas; se ahorra el salto. Tampoco recibe el
+  // aviso de puerta: nada en la entrada delata que el panel existe (RF-84, RF-85).
+  const rol = perfil.rol as RolUsuario;
+  if (rol === "administrador") redirect("/mfa");
+
+  // La puerta solo orienta (RF-84, CU-14 flujo 4a): la cuenta entra siempre a
+  // su portal y, si eligió la otra puerta, allí se le avisa. Sin puerta en el
+  // formulario no hay nada que corregir.
+  const puerta = formulario.get("puerta");
+  const inicio = rutaInicioDeRol(rol);
+  redirect(puerta && puertaDeParametro(String(puerta)) !== rol ? `${inicio}?${AVISO_PUERTA}` : inicio);
 }
 
 export async function cerrarSesion() {

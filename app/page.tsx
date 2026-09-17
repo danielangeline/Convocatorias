@@ -1,22 +1,39 @@
+import Link from "next/link";
 import {
   Building2,
+  HardHat,
   Search,
   ClipboardCheck,
   LineChart,
   ArrowRight,
-  MapPin,
 } from "lucide-react";
 import { convocatorias, consultores } from "@/lib/mock-data";
-import { formatCOP, diasRestantes } from "@/lib/utils";
+import { diasRestantes } from "@/lib/utils";
 import { LinkButton } from "@/components/ui/Button";
 import { ContadorAnimado } from "@/components/ContadorAnimado";
 
 const vigentes = convocatorias.filter((c) => c.estado === "publicada" && diasRestantes(c.fechaCierre) >= 0);
-const destacadas = [...vigentes].sort((a, b) => diasRestantes(a.fechaCierre) - diasRestantes(b.fechaCierre)).slice(0, 3);
 
 const montoTotalDisponible = vigentes.reduce((acc, c) => acc + c.montoMax, 0);
 const entidadesConvocantes = new Set(convocatorias.map((c) => c.entidadConvocante)).size;
 const consultoresAprobados = consultores.filter((c) => c.estadoPerfil === "aprobado" && !c.esEquipoInterno).length;
+
+const PUERTAS = [
+  {
+    puerta: "empresa",
+    titulo: "Soy empresa o entidad",
+    texto: "Busca convocatorias, genera el documento base de tu postulación con IA y contrata consultores. Prueba gratis 7 días.",
+    icono: Building2,
+    tono: "primary",
+  },
+  {
+    puerta: "consultor",
+    titulo: "Soy consultor",
+    texto: "Publica tu perfil y recibe encargos de empresas que preparan sus postulaciones. Tu perfil pasa por revisión.",
+    icono: HardHat,
+    tono: "brick",
+  },
+] as const;
 
 export default function LandingPage() {
   return (
@@ -38,7 +55,7 @@ export default function LandingPage() {
               Iniciar sesión
             </LinkButton>
             <LinkButton href="/registro" variant="primary" size="sm" className="whitespace-nowrap">
-              Crear cuenta<span className="hidden sm:inline"> gratis</span>
+              Crear cuenta
             </LinkButton>
           </div>
         </div>
@@ -48,7 +65,7 @@ export default function LandingPage() {
         <div className="mx-auto grid max-w-7xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:px-8 lg:py-28">
           <div>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-gold-50 px-3 py-1 text-xs font-semibold text-gold-700 ring-1 ring-gold-100">
-              Hecho para empresas colombianas
+              Hecho para empresas y entidades colombianas
             </span>
             <h1 className="mt-5 font-display text-4xl font-extrabold leading-[1.08] tracking-tight text-primary-950 sm:text-5xl">
               La financiación de tu empresa, en un solo expediente.
@@ -58,14 +75,6 @@ export default function LandingPage() {
               cooperación internacional y fondos regionales. Postúlate,
               cumple los requisitos y haz seguimiento sin perder el hilo.
             </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
-              <LinkButton href="/convocatorias" variant="primary" size="lg">
-                Explorar convocatorias <ArrowRight className="h-4 w-4" />
-              </LinkButton>
-              <LinkButton href="/registro" variant="outline-gold" size="lg">
-                Crear cuenta
-              </LinkButton>
-            </div>
             <div className="mt-10 grid grid-cols-2 gap-6 border-t border-line pt-6 sm:grid-cols-4">
               <div>
                 <ContadorAnimado valor={vigentes.length} />
@@ -86,32 +95,43 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="space-y-3">
-            {destacadas.map((c) => {
-              const dias = diasRestantes(c.fechaCierre);
-              return (
-                <div
-                  key={c.id}
-                  className="rounded-2xl border border-line bg-white p-4 shadow-[0_16px_40px_-24px_rgba(31,56,100,0.4)]"
-                >
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-gold-700">
-                      Cierra en {dias} {dias === 1 ? "día" : "días"}
-                    </p>
-                  </div>
-                  <p className="mt-1 font-display text-sm font-semibold text-ink">{c.nombre}</p>
-                  <p className="mt-0.5 text-xs text-ink-soft">{c.entidadConvocante}</p>
-                  <div className="mt-3 flex items-center justify-between border-t border-line-soft pt-3 text-xs">
-                    <span className="font-tabular font-semibold text-primary-800">
-                      {formatCOP(c.montoMax)}
-                    </span>
-                    <span className="flex items-center gap-1 text-ink-faint">
-                      <MapPin className="h-3 w-3" /> {c.ubicacion}
-                    </span>
-                  </div>
+          {/* RF-84: las dos puertas. Ninguna convocatoria individual a la vista sin cuenta de empresa (RN-33) */}
+          <div className="space-y-4">
+            {PUERTAS.map(({ puerta, titulo, texto, icono: Icono, tono }) => (
+              <div
+                key={puerta}
+                className="rounded-2xl border border-line bg-white p-5 shadow-[0_16px_40px_-24px_rgba(31,56,100,0.4)]"
+              >
+                <div className="flex items-center gap-3">
+                  <span
+                    className={
+                      tono === "primary"
+                        ? "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-800 text-white"
+                        : "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brick-500 text-white"
+                    }
+                  >
+                    <Icono className="h-5 w-5" strokeWidth={1.75} />
+                  </span>
+                  <h2 className="font-display text-lg font-bold text-ink">{titulo}</h2>
                 </div>
-              );
-            })}
+                <p className="mt-3 text-sm text-ink-soft">{texto}</p>
+                <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+                  <LinkButton href={`/registro?puerta=${puerta}`} variant={tono === "primary" ? "primary" : "brick"}>
+                    Crear cuenta <ArrowRight className="h-4 w-4" />
+                  </LinkButton>
+                  <Link
+                    href={`/login?puerta=${puerta}`}
+                    className={
+                      tono === "primary"
+                        ? "text-sm font-semibold text-primary-800 hover:underline"
+                        : "text-sm font-semibold text-brick-600 hover:underline"
+                    }
+                  >
+                    Ya tengo cuenta
+                  </Link>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -158,20 +178,20 @@ export default function LandingPage() {
             Tu próxima fuente de financiación puede estar a un clic
           </h2>
           <p className="max-w-xl text-white/70">
-            Crea tu cuenta gratuita y empieza a comparar convocatorias hechas
-            para empresas como la tuya.
+            Entra por tu puerta: como empresa o entidad para encontrar y preparar
+            postulaciones, o como consultor para acompañarlas.
           </p>
           <div className="mt-2 flex flex-wrap justify-center gap-3">
-            <LinkButton href="/registro" variant="outline-gold" size="lg">
-              Crear cuenta gratis
+            <LinkButton href="/registro?puerta=empresa" variant="outline-gold" size="lg">
+              Soy empresa o entidad
             </LinkButton>
             <LinkButton
-              href="/login"
+              href="/registro?puerta=consultor"
               variant="ghost"
               size="lg"
-              className="text-white hover:bg-white/10"
+              className="text-white ring-1 ring-white/30 hover:bg-white/10"
             >
-              Ya tengo cuenta
+              Soy consultor
             </LinkButton>
           </div>
         </div>

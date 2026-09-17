@@ -1,32 +1,22 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { Building2, HardHat, MailCheck } from "lucide-react";
+import { MailCheck } from "lucide-react";
 import { registrarse } from "@/lib/acciones/auth";
 import { Button } from "@/components/ui/Button";
-import { cn } from "@/lib/utils";
+import type { Puerta } from "@/lib/rutas";
 import { Aviso, Campo } from "./Campo";
+import { SelectorPuerta } from "./SelectorPuerta";
 
-type Rol = "empresa" | "consultor";
+const DETALLE: Record<Puerta, string> = {
+  empresa: "Busca convocatorias y prepara postulaciones. Prueba gratis 7 días con 3 créditos de IA.",
+  consultor: "Ofrece tus servicios. Tu perfil pasa por revisión antes de publicarse.",
+};
 
-const opciones: { rol: Rol; titulo: string; detalle: string; icono: typeof Building2 }[] = [
-  {
-    rol: "empresa",
-    titulo: "Empresa",
-    detalle: "Busca convocatorias y prepara postulaciones. Prueba gratis 7 días con 3 créditos de IA.",
-    icono: Building2,
-  },
-  {
-    rol: "consultor",
-    titulo: "Consultor",
-    detalle: "Ofrece tus servicios. Tu perfil pasa por revisión antes de publicarse.",
-    icono: HardHat,
-  },
-];
-
-// CU-14, RF-01: el administrador no se elige aquí; se asigna manualmente (RN-06).
-export function FormularioRegistro({ rolInicial }: { rolInicial: Rol }) {
-  const [rol, setRol] = useState<Rol>(rolInicial);
+// CU-14, RF-01, RF-84: la puerta fija el rol. El administrador no se elige
+// aquí: solo nace de una invitación del Propietario (RN-06, RN-32).
+export function FormularioRegistro({ puertaInicial }: { puertaInicial: Puerta }) {
+  const [rol, setRol] = useState<Puerta>(puertaInicial);
   const [estado, accion, enviando] = useActionState(registrarse, {});
 
   if (estado.mensaje) {
@@ -43,39 +33,11 @@ export function FormularioRegistro({ rolInicial }: { rolInicial: Rol }) {
 
   return (
     <form action={accion} className="mt-6 space-y-4">
-      <fieldset className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        <legend className="sr-only">Tipo de cuenta</legend>
-        {opciones.map(({ rol: valor, titulo, detalle, icono: Icono }) => (
-          <label
-            key={valor}
-            className={cn(
-              "cursor-pointer rounded-xl border p-3 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary-100",
-              rol === valor
-                ? valor === "empresa"
-                  ? "border-primary-500 bg-primary-50"
-                  : "border-brick-500 bg-brick-50"
-                : "border-line hover:bg-slate-50"
-            )}
-          >
-            <input
-              type="radio"
-              name="rol"
-              value={valor}
-              checked={rol === valor}
-              onChange={() => setRol(valor)}
-              className="sr-only"
-            />
-            <span className="flex items-center gap-2 font-semibold text-ink">
-              <Icono className="h-4 w-4" /> {titulo}
-            </span>
-            <span className="mt-1 block text-xs text-ink-soft">{detalle}</span>
-          </label>
-        ))}
-      </fieldset>
+      <SelectorPuerta puerta={rol} onCambio={setRol} detalle={DETALLE} />
 
       <Campo etiqueta="Tu nombre" name="nombre" autoComplete="name" required />
       {rol === "empresa" && (
-        <Campo etiqueta="Nombre de la empresa" name="nombre_empresa" autoComplete="organization" required />
+        <Campo etiqueta="Nombre de la empresa o entidad" name="nombre_empresa" autoComplete="organization" required />
       )}
       <Campo etiqueta="Correo" name="correo" type="email" autoComplete="email" required />
       <Campo

@@ -5,9 +5,9 @@
 
 ---
 
-**Actualizado:** 16 de septiembre de 2026 · cierre de la sesión 009
+**Actualizado:** 17 de septiembre de 2026 · cierre de la sesión 010
 **Sprint:** 1 · día 1 de 30
-**Rama de trabajo:** `sprint-1` — `main` y `sprint-1` iguales en `498fc22` al cierre de la sesión 009 (producción despliega la gestión de administradores; la migración `20260916170000` ya está aplicada en Supabase)
+**Rama de trabajo:** `sprint-1` — la sesión 010 queda en `sprint-1` y en `origin/sprint-1` (vista previa de Vercel); **sin fusionar a `main`** hasta que el Product Owner lo pida. Sin migraciones nuevas
 
 ---
 
@@ -17,32 +17,39 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 
 ## Lo último que se hizo
 
-- **Sesión 009: gestión de administradores (paso 5 del Sprint 1).**
-  - Especificación primero: `docs/05 §9.12` (funciones nuevas, vigencia ampliada a invitaciones canceladas o vencidas, cómo se reenvía, revoca y registra) y `docs/04` (rutas solo del Propietario).
-  - Migración `20260916170000`: `crear_invitacion_admin`, `cancelar_invitacion_admin` y `revocar_admin` (solo `service_role`, comprueban al Propietario), `soy_propietario()` para el proxy, y la FK de la invitación con `on delete set null`.
-  - Matriz con `soloPropietario`; `proxy.ts` consulta `soy_propietario()`; segunda barrera `sesionDePropietario()`.
-  - Endpoints en `app/api/admin/administradores` e `invitaciones`, con la lógica en `lib/admin/administradores.ts`; pantalla `/admin/administradores`, enlazada en el menú solo para el Propietario. `confirmarMfa` marca la invitación `aceptada`.
-  - Probado: prueba de RLS (sección 8 nueva), `scripts/prueba-gestion-administradores.mjs` contra Auth real (22) y la matriz (58). **Sin probar con la sesión del Propietario ni con correo real.**
-- **Sesión 008:** invitación por aceptación explícita del servidor (`aceptar_invitacion_admin`).
+- **Sesión 010: entrada con dos puertas (RF-84), paso 6 y último entregable del Sprint 1.**
+  - Landing: las tarjetas "Soy empresa o entidad" y "Soy consultor", cada una con "Crear cuenta" y "Ya tengo cuenta". Se quitaron las tres convocatorias "destacadas", que mostraban convocatorias individuales a visitantes (RN-33).
+  - `/registro` y `/login` comparten `SelectorPuerta` y aceptan `?puerta=`. En el registro la puerta fija el rol; en el login solo orienta.
+  - `iniciarSesion` lleva siempre al inicio del rol real y agrega `?aviso=puerta` si la puerta no coincide. `AvisoPuerta` lo muestra en ambos portales y lo quita de la dirección. El administrador va a `/mfa` sin aviso.
+  - Probado en el navegador contra Supabase real con tres cuentas temporales, ya borradas: los cinco casos de puerta. `tsc`, `next build` y `lint` sin errores nuevos.
+- **Sesión 009:** gestión de administradores (invitar, reenviar, cancelar, revocar).
 
-Detalle en [`docs/bitacora/2026-09-16-sesion-009.md`](docs/bitacora/2026-09-16-sesion-009.md).
+Detalle en [`docs/bitacora/2026-09-17-sesion-010.md`](docs/bitacora/2026-09-17-sesion-010.md).
 
 ## En curso
 
-Nada a medias en el código. **Falta la prueba en el navegador con la sesión del Propietario** (ver "Pendiente del Product Owner", punto 3): el agente no tiene ni debe usar sus credenciales, así que los endpoints no se ejercitaron con esa sesión ni se envió un correo real.
+Nada a medias en el código. **Los entregables del Sprint 1 están completos.** Falta cerrar el Hito 1: ver "Decisiones abiertas" y la prueba del Product Owner (punto 3).
 
-## Lo siguiente — Sprint 1
+## Lo siguiente
 
-1. ~~Columnas de propietario (RN-30)~~ — sesión 002.
-2. ~~Supabase y migraciones con RLS~~ — sesión 003.
-3. ~~Supabase Auth, trial y MFA~~ — sesión 004.
-4. ~~`requireRole()` y panel oculto~~ — sesión 007.
-5. ~~Gestión de administradores en la app~~ — sesión 009. Queda la prueba del Product Owner en el navegador (abajo).
-6. **← Empezar aquí.** **Entrada con dos puertas** en landing y login, con la etiqueta "empresa o entidad" (RF-84).
+**Sprint 1 — completado** (pasos 1 a 6, sesiones 002 a 010). Queda pendiente del Product Owner la prueba en el navegador de la gestión de administradores.
 
-Storage (3 buckets) pasó al Sprint 2 (sesión 006). **Regla nueva:** toda pantalla o endpoint nuevo se declara en `lib/autorizacion/matriz.ts`; si no, responde 404.
+**Sprint 2 — Catálogo y administración de contenido** (`docs/10 §Sprint 2`):
 
-**Hito 1 (día 6):** un consultor recibe **404** en `/admin` (como un anónimo y como una ruta inventada) y **403** en `/convocatorias/[id]/generar`; solo el Propietario crea administradores; dos empresas no ven nada la una de la otra en los cuatro listados. Probado, no supuesto. *Sesión 007: la parte de rutas está probada (consultor → 404 en `/admin`, 403 en `/convocatorias/[id]/generar`). El aislamiento entre dos empresas está probado en RLS; los cuatro listados de la app siguen leyendo el mock. Sesión 009: "solo el Propietario crea administradores" está probado en la base y en rutas (otro administrador recibe 404 y no crea nada); falta verlo funcionar con la sesión del Propietario.*
+1. **← Empezar aquí.** Endpoints de fuentes, convocatorias, categorías, requisitos y documentos adjuntos (RF-04..08).
+2. Storage: 3 buckets, hoja de vida privada con URLs firmadas de 15 min (RNF-16, RNF-18).
+3. Publicación validada en servidor, incluido el enlace oficial (RF-09, RN-01, RNF-29).
+4. Catálogo, filtros, chips e indicadores de la landing contra datos reales (RF-11, 12, 13, 43, 44).
+5. Cerradas fuera del listado salvo filtro explícito (RF-11, RN-02).
+6. Job diario de cierre (RF-10, CU-06).
+7. Vigencia verificada en servidor al postular y al generar (RF-78).
+
+**Regla vigente:** toda pantalla o endpoint nuevo se declara en `lib/autorizacion/matriz.ts`; si no, responde 404.
+
+**Hito 1 (día 6):** un consultor recibe **404** en `/admin` (como un anónimo y como una ruta inventada) y **403** en `/convocatorias/[id]/generar`; solo el Propietario crea administradores; dos empresas no ven nada la una de la otra en los cuatro listados. Probado, no supuesto.
+- *Sesión 007:* la parte de rutas está probada (consultor → 404 en `/admin`, 403 en `/convocatorias/[id]/generar`).
+- *Aislamiento entre empresas:* probado en RLS; los cuatro listados de la app siguen leyendo el mock.
+- *Sesión 009:* "solo el Propietario crea administradores" está probado en la base y en rutas (otro administrador recibe 404 y no crea nada); falta verlo con la sesión del Propietario.
 
 ## Infraestructura que ya existe
 
@@ -67,7 +74,7 @@ Pendiente del Product Owner:
    - abrir el enlace, definir la contraseña en `/auth/definir-contrasena`, activar el MFA y entrar al panel; la invitación debe pasar a "aceptada";
    - reenviar y cancelar una segunda invitación; revocar al administrador de prueba y comprobar que su sesión abierta pierde el panel;
    - en `/admin/seguridad` todavía no se verán los eventos: esa pantalla sigue leyendo el mock.
-4. **Probar en el navegador con sesión** las cuentas de prueba `empresa.s004@example.com` y `consultor.s004@example.com` (contraseña dada en el chat de la sesión 004, no está en el repositorio): login, navbar con iniciales y "Salir", 3 créditos en el indicador y `/suscripcion` con el trial. El QR de `/mfa` se prueba con la cuenta del Propietario.
+4. **Probar en el navegador con sesión** las cuentas de prueba `empresa.s004@example.com` y `consultor.s004@example.com`: login (ahora con las dos puertas y el aviso si eliges la otra), navbar con iniciales y "Salir", 3 créditos en el indicador y `/suscripcion` con el trial. **Ojo:** la contraseña dada en el chat de la sesión 004 ya no sirve, porque `scripts/prueba-matriz-roles.mjs` les asigna una aleatoria en cada corrida. Para probar, pide al agente que les asigne una nueva, o usa "recuperar contraseña" cuando exista (RF-03). El QR de `/mfa` se prueba con la cuenta del Propietario.
 5. **SMTP propio antes de los pilotos** (p. ej. Resend): el correo por defecto de Supabase envía muy pocos mensajes por hora.
 6. **Cambiar la contraseña de la base de datos** (quedó escrita en el chat de la sesión 003).
 7. **Docker Desktop no arranca** en esta máquina: no bloquea (las migraciones se ensayan en una transacción con `ROLLBACK` contra el remoto).
@@ -79,6 +86,7 @@ Esperan al Product Owner. No bloquean el Sprint 1.
 | Decisión | Contexto | Cuándo hace falta |
 |---|---|---|
 | **Precio del plan Consultor** | Quedó en COP $69.000 al retirarle el cupo de IA. `docs/07 §10.2` marca los planes como "a validar con los pilotos" | Antes de cobrar |
+| **Cierre del Hito 1: "dos empresas no ven nada la una de la otra en los cuatro listados"** | Probado en RLS (sesión 003); los listados de la app siguen leyendo el mock y se conectan en los sprints 3 y 4. ¿Se da por cumplido con la prueba de RLS o queda abierto hasta conectar los listados? | Antes de dar por cerrado el Sprint 1 |
 | **Proveedor del límite de tasa** | RNF-27 pide un almacén fuera de Postgres (Upstash Redis o Vercel Edge Config); no está elegido | Sprint 5 |
 
 ## Hallazgos no planificados
@@ -111,6 +119,9 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | `/admin/seguridad` sigue leyendo eventos del mock: los eventos reales (`admin_invitado`, `admin_revocado`, `acceso_denegado`…) no se ven en el panel | `app/admin/seguridad/page.tsx` | media · entra con CU-39 |
 | Si `inviteUserByEmail` falla después de crear la cuenta en Auth, el endpoint borra la invitación pero no puede borrar esa cuenta (no conoce su id): queda una empresa con trial que ocupa el correo. Se registra en el log del servidor. No se ha observado; Auth suele deshacer la cuenta si el envío falla | `lib/admin/administradores.ts` | baja · resolver con una función que devuelva el id por correo si ocurre |
 | La segunda barrera de la gestión de administradores (`sesionDePropietario`) tampoco se ejercitó por separado: el proxy corta antes | `lib/auth.ts` | baja · mismo caso que `exigirRol` |
+| `scripts/prueba-matriz-roles.mjs` cambia en cada corrida la contraseña de las cuentas s004, así que la que tiene el Product Owner deja de servir | `scripts/prueba-matriz-roles.mjs` | baja · usar cuentas temporales propias, como la sesión 010 |
+| No hay "¿Olvidaste tu contraseña?" en `/login`: `/auth/definir-contrasena` existe, pero nada permite pedir el enlace | `app/(identidad)/login` | media · es RF-03, ya `pendiente` en `docs/11`; sin sprint asignado en `docs/10` |
+| `read_page` nombra las puertas por su valor (`empresa`, `consultor`) y no por el texto de la etiqueta: revisar con un lector de pantalla | `components/identidad/SelectorPuerta.tsx` | baja · accesibilidad |
 
 ---
 
