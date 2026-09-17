@@ -177,6 +177,54 @@ try {
   ok(pE.status === 200 && pE.html.includes("Cámara de comercio"), `/admin/convocatorias/[id] carga requisitos reales (${pE.status})`);
   ok((await pagina(emp, "/admin/fuentes")).status === 404, "empresa · /admin/fuentes → 404");
 
+  // --- Nombres repetidos: se comparan sin tildes ni mayúsculas (RF-04, RF-06, docs/05 §9.16) ---
+  const rTilde = await api(adm, "POST", "/api/admin/categorias", { tipo: "tipo_proyecto", nombre: `Transformación ${sufijo}` });
+  if (rTilde.json?.datos?.id) categorias.push(rTilde.json.datos.id);
+  ok(rTilde.status === 200, `crear categoría con tilde → 200 (${rTilde.status})`);
+  const rSinTilde = await api(adm, "POST", "/api/admin/categorias", { tipo: "tipo_proyecto", nombre: `Transformacion ${sufijo}` });
+  ok(rSinTilde.status === 409, `la misma sin tilde → 409 (${rSinTilde.status})`);
+  const rMayus = await api(adm, "POST", "/api/admin/categorias", { tipo: "tipo_proyecto", nombre: `  TRANSFORMACIÓN ${sufijo}  ` });
+  ok(rMayus.status === 409, `la misma en mayúsculas y con espacios → 409 (${rMayus.status})`);
+  // Mismo nombre, otro tipo: sí se admite (la unicidad es por tipo).
+  const rOtroTipo = await api(adm, "POST", "/api/admin/categorias", { tipo: "sector", nombre: `Transformación ${sufijo}` });
+  if (rOtroTipo.json?.datos?.id) categorias.push(rOtroTipo.json.datos.id);
+  ok(rOtroTipo.status === 200, `el mismo nombre en otro tipo → 200 (${rOtroTipo.status})`);
+
+  const rFuenteTilde = await api(adm, "POST", "/api/admin/fuentes", { nombre: `Cámara ${sufijo}` });
+  if (rFuenteTilde.json?.datos?.id) fuentes.push(rFuenteTilde.json.datos.id);
+  const rFuenteSin = await api(adm, "POST", "/api/admin/fuentes", { nombre: `camara ${sufijo}` });
+  ok(rFuenteTilde.status === 200 && rFuenteSin.status === 409,
+    `dos fuentes que solo difieren en tilde y mayúscula → 409 la segunda (${rFuenteSin.status})`);
+
+  // --- Borrar una categoría según si la usa alguien (RN-07, v6 sesión 014) ---
+  const borrable = rOtroTipo.json.datos.id;
+  ok(rOtroTipo.json.datos.usos === 0, "una categoría recién creada no la usa nadie");
+  ok((await api(emp, "DELETE", `/api/admin/categorias/${borrable}`)).status === 404, "empresa · borrar categoría → 404");
+  ok((await api(adm, "DELETE", `/api/admin/categorias/${crypto.randomUUID()}`)).status === 404, "borrar una categoría inexistente → 404");
+
+  // La que ya clasifica una convocatoria no se borra: 409 con el motivo.
+  const enUso = rTilde.json.datos.id;
+  await api(adm, "PATCH", `/api/admin/convocatorias/${convId}`, { ...ficha, categorias: [enUso] });
+  const rEnUso = await api(adm, "DELETE", `/api/admin/categorias/${enUso}`);
+  ok(rEnUso.status === 409 && /desact/i.test(rEnUso.json.error), `borrar una categoría en uso → 409 con el motivo ("${rEnUso.json?.error}")`);
+  const listaUsos = await api(adm, "GET", "/api/admin/categorias");
+  ok(listaUsos.json.datos.find((c) => c.id === enUso)?.usos === 1, "el listado dice cuántas convocatorias usan cada categoría");
+  // La RLS es la barrera, no el endpoint.
+  const { data: filasEnUso } = await adm.cliente.from("categorias").delete().eq("id", enUso).select("id");
+  ok((filasEnUso ?? []).length === 0, "borrarla directamente en la base también falla (la política no la encuentra)");
+
+  const rBorrar = await api(adm, "DELETE", `/api/admin/categorias/${borrable}`);
+  ok(rBorrar.status === 200, `borrar una categoría que nadie usa → 200 (${rBorrar.status})`);
+  ok(!(await api(adm, "GET", "/api/admin/categorias")).json.datos.some((c) => c.id === borrable), "desaparece del listado");
+  ok((await api(adm, "DELETE", `/api/admin/categorias/${borrable}`)).status === 404, "borrarla dos veces → 404");
+
+  // La pantalla ofrece borrar solo donde borrar es posible. En este punto
+  // `enUso` clasifica la convocatoria y la primera categoría ya no.
+  const pCat = await pagina(adm, "/admin/categorias");
+  ok(pCat.status === 200 && pCat.html.includes(`Transformación ${sufijo}`), `/admin/categorias muestra la categoría real (${pCat.status})`);
+  ok(!pCat.html.includes(`Borrar Transformación ${sufijo}`), "la categoría que clasifica una convocatoria no ofrece borrar");
+  ok(pCat.html.includes(`Borrar ${rC1.json.datos.nombre}`), "la que ya no usa nadie sí lo ofrece");
+
   // RN-07: la tabla no admite borrado ni para el administrador.
   const { data: filasBorradas } = await adm.cliente.from("fuentes").delete().eq("id", rF1.json.datos.id).select("id");
   ok((filasBorradas ?? []).length === 0, "administrador con MFA · borrar una fuente directamente en la base → 0 filas (RN-07)");

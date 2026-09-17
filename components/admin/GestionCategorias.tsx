@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Power, Tags } from "lucide-react";
+import { Plus, Power, Tags, Trash2 } from "lucide-react";
 import type { CategoriaAdmin, TipoCategoria } from "@/lib/types";
 import { peticionAdmin } from "@/lib/admin/peticion";
 import { TIPO_CATEGORIA_LABEL, cn } from "@/lib/utils";
@@ -13,8 +13,12 @@ import { Aviso } from "@/components/identidad/Campo";
 const tipos: TipoCategoria[] = ["tipo_proyecto", "sector", "tipo_entidad"];
 
 /**
- * RF-06 · Categorías para clasificar convocatorias. Una categoría no se borra
- * (puede estar asignada): se desactiva y deja de ofrecerse al clasificar.
+ * RF-06 · Categorías para clasificar convocatorias.
+ *
+ * Una categoría que ya clasifica alguna convocatoria **no se borra**: se
+ * desactiva y deja de ofrecerse (RN-07). La que no usa nadie sí se borra, porque
+ * no guarda historia —casi siempre es un error de tecleo—. El botón solo aparece
+ * donde borrar es posible, pero quien decide es el servidor (RNF-20).
  */
 export function GestionCategorias({ categorias }: { categorias: CategoriaAdmin[] }) {
   const router = useRouter();
@@ -38,6 +42,19 @@ export function GestionCategorias({ categorias }: { categorias: CategoriaAdmin[]
       return;
     }
     setNuevoNombre((prev) => ({ ...prev, [tipo]: "" }));
+    router.refresh();
+  };
+
+  const borrar = async (c: CategoriaAdmin) => {
+    if (!window.confirm(`¿Borrar la categoría “${c.nombre}”? No se puede deshacer.`)) return;
+    setOcupado(c.id);
+    setError(null);
+    const respuesta = await fetch(`/api/admin/categorias/${c.id}`, { method: "DELETE" });
+    setOcupado(null);
+    if (!respuesta.ok) {
+      const json = await respuesta.json().catch(() => ({}));
+      setError(json.error ?? "No pudimos borrar la categoría. Intenta de nuevo.");
+    }
     router.refresh();
   };
 
@@ -93,15 +110,35 @@ export function GestionCategorias({ categorias }: { categorias: CategoriaAdmin[]
                     ) : (
                       <span className="text-xs text-ink-faint line-through">{c.nombre}</span>
                     )}
-                    <button
-                      onClick={() => alternarActiva(c)}
-                      disabled={ocupado === c.id}
-                      className="text-ink-faint hover:text-primary-800 disabled:opacity-50"
-                      aria-label={c.activa ? `Desactivar ${c.nombre}` : `Activar ${c.nombre}`}
-                      title={c.activa ? "Desactivar" : "Activar"}
-                    >
-                      <Power className="h-3.5 w-3.5" />
-                    </button>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <button
+                        onClick={() => alternarActiva(c)}
+                        disabled={ocupado === c.id}
+                        className="text-ink-faint hover:text-primary-800 disabled:opacity-50"
+                        aria-label={c.activa ? `Desactivar ${c.nombre}` : `Activar ${c.nombre}`}
+                        title={c.activa ? "Desactivar" : "Activar"}
+                      >
+                        <Power className="h-3.5 w-3.5" />
+                      </button>
+                      {c.usos === 0 ? (
+                        <button
+                          onClick={() => borrar(c)}
+                          disabled={ocupado === c.id}
+                          className="text-ink-faint hover:text-danger disabled:opacity-50"
+                          aria-label={`Borrar ${c.nombre}`}
+                          title="Borrar"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      ) : (
+                        <span
+                          className="font-tabular text-xs text-ink-faint"
+                          title={`La usan ${c.usos} convocatoria(s), así que ya no se puede borrar: desactívala`}
+                        >
+                          {c.usos}
+                        </span>
+                      )}
+                    </div>
                   </li>
                 ))}
               </ul>

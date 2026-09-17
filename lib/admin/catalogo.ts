@@ -53,7 +53,11 @@ const RECHAZOS: Record<string, { status: number; error: string }> = {
 function rechazo(error: PostgrestError, accion: string): Rechazo {
   const conocido = error.hint ? RECHAZOS[error.hint] : undefined;
   if (conocido) return { ok: false, ...conocido };
-  if (error.code === "23505") return { ok: false, status: 409, error: "Ya existe un registro con ese nombre." };
+  // El nombre se compara normalizado: sin tildes, sin mayúsculas y sin espacios
+  // sobrantes (docs/05 §9.16).
+  if (error.code === "23505") {
+    return { ok: false, status: 409, error: "Ya existe uno con ese nombre. No distinguimos tildes ni mayúsculas." };
+  }
   if (error.code === "23514") return invalido("Algún dato no cumple las reglas: revisa montos, fechas y enlaces.");
   console.error(`Catálogo: ${accion} falló`, error.code, error.message);
   return { ok: false, status: 500, error: "No pudimos completar la acción. Intenta de nuevo." };
@@ -178,9 +182,18 @@ export async function editarFuente(id: string, cuerpo: Cuerpo): Promise<Resultad
 
 export async function listarCategorias(): Promise<CategoriaAdmin[]> {
   const supabase = await crearClienteServidor();
-  const { data, error } = await supabase.from("categorias").select("id, tipo, nombre, activa").order("nombre");
+  const { data, error } = await supabase
+    .from("categorias")
+    .select("id, tipo, nombre, activa, convocatoria_categoria (count)")
+    .order("nombre");
   if (error) throw new Error(`No se pudieron leer las categorías: ${error.message}`);
-  return (data ?? []).map((c) => ({ id: c.id, tipo: c.tipo as TipoCategoria, nombre: c.nombre, activa: c.activa }));
+  return (data ?? []).map((c) => ({
+    id: c.id,
+    tipo: c.tipo as TipoCategoria,
+    nombre: c.nombre,
+    activa: c.activa,
+    usos: (c.convocatoria_categoria as unknown as { count: number }[] | null)?.[0]?.count ?? 0,
+  }));
 }
 
 export async function crearCategoria(cuerpo: Cuerpo): Promise<Resultado<CategoriaAdmin>> {
@@ -195,7 +208,7 @@ export async function crearCategoria(cuerpo: Cuerpo): Promise<Resultado<Categori
     .select("id, tipo, nombre, activa")
     .single();
   if (error) return rechazo(error, "crear categoría");
-  return { ok: true, datos: { ...data, tipo: data.tipo as TipoCategoria } };
+  return { ok: true, datos: { ...data, tipo: data.tipo as TipoCategoria, usos: 0 } };
 }
 
 /** Renombrar o activar/desactivar. Una categoría no se borra: puede estar asignada. */
@@ -217,11 +230,54 @@ export async function editarCategoria(id: string, cuerpo: Cuerpo): Promise<Resul
     .from("categorias")
     .update(cambios)
     .eq("id", id)
-    .select("id, tipo, nombre, activa")
+    .select("id, tipo, nombre, activa, convocatoria_categoria (count)")
     .maybeSingle();
   if (error) return rechazo(error, "editar categoría");
   if (!data) return { ok: false, status: 404, error: "La categoría no existe." };
-  return { ok: true, datos: { ...data, tipo: data.tipo as TipoCategoria } };
+  return {
+    ok: true,
+    datos: {
+      id: data.id,
+      tipo: data.tipo as TipoCategoria,
+      nombre: data.nombre,
+      activa: data.activa,
+      usos: (data.convocatoria_categoria as unknown as { count: number }[] | null)?.[0]?.count ?? 0,
+    },
+  };
+}
+
+/**
+ * RN-07 (precisado en v6, sesión 014) · Borrar una categoría **que nadie usa**.
+ * La barrera es la política RLS (docs/05 §9.16), que no encuentra la fila si ya
+ * clasifica algo; aquí se cuenta el uso antes para responder 409 con el motivo
+ * en vez de un 404 que haría pensar que la categoría no existe.
+ */
+export async function borrarCategoria(id: string): Promise<Resultado<null>> {
+  const supabase = await crearClienteServidor();
+  const { data: categoria, error: eLeer } = await supabase
+    .from("categorias")
+    .select("id, convocatoria_categoria (count)")
+    .eq("id", id)
+    .maybeSingle();
+  if (eLeer) return rechazo(eLeer, "leer categoría");
+  if (!categoria) return { ok: false, status: 404, error: "La categoría no existe." };
+
+  const usos = (categoria.convocatoria_categoria as unknown as { count: number }[] | null)?.[0]?.count ?? 0;
+  if (usos > 0) {
+    return {
+      ok: false,
+      status: 409,
+      error:
+        usos === 1
+          ? "Esta categoría ya clasifica una convocatoria, así que no se puede borrar. Desactívala para dejar de ofrecerla."
+          : `Esta categoría ya clasifica ${usos} convocatorias, así que no se puede borrar. Desactívala para dejar de ofrecerla.`,
+    };
+  }
+
+  const { data, error } = await supabase.from("categorias").delete().eq("id", id).select("id");
+  if (error) return rechazo(error, "borrar categoría");
+  if ((data ?? []).length === 0) return { ok: false, status: 404, error: "La categoría no existe." };
+  return { ok: true, datos: null };
 }
 
 // ---------------------------------------------------------------------------

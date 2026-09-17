@@ -5,9 +5,9 @@
 
 ---
 
-**Actualizado:** 18 de septiembre de 2026 · cierre de la sesión 013
+**Actualizado:** 18 de septiembre de 2026 · cierre de la sesión 014
 **Sprint:** 2 · día 8 de 30
-**Rama de trabajo:** `sprint-2`, abierta desde `main` en la sesión 011 y subida a `origin` (sin fusionar a `main`: producción todavía no tiene el catálogo del panel). **Migraciones nuevas ya aplicadas al remoto:** `20260917100000_guardar_convocatoria`, `20260917200000_storage_y_adjuntos` y `20260918100000_publicar_convocatoria`. No rompen `main`, que no las llama
+**Rama de trabajo:** `sprint-2`, abierta desde `main` en la sesión 011 y subida a `origin` (sin fusionar a `main`: producción todavía no tiene el catálogo del panel). **Migraciones nuevas ya aplicadas al remoto:** `20260917100000_guardar_convocatoria`, `20260917200000_storage_y_adjuntos` , `20260918100000_publicar_convocatoria` y `20260918200000_nombres_normalizados_y_borrar_categorias`. No rompen `main`, que no las llama
 
 ---
 
@@ -17,6 +17,12 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 
 ## Lo último que se hizo
 
+- **Sesión 014: tres cosas que el Product Owner encontró probando el panel** (no estaba planificada).
+  1. **Desactivar una fuente no hacía nada** — no era el código: el `next dev` llevaba horas vivo y respondía **500** por caché corrupta. Con el proceso parado, `.next` borrada y el servidor de nuevo en pie, la misma petición responde 200. La fuente quedó como estaba. `.claude/launch.json` fija ahora `autoPort: false`, porque mover el puerto rompe en silencio la confirmación de correo.
+  2. **`Transformación digital` y `Transformacion digital` entraban como categorías distintas.** Ahora los nombres se comparan **sin tildes, sin mayúsculas y sin espacios sobrantes**, en categorías **y en fuentes** —que no tenían ninguna restricción de nombre—. El nombre se guarda tal como se escribe (docs/05 §9.16).
+  3. **No había forma de quitar una categoría equivocada.** Decisión del Product Owner: **se borra la que ninguna convocatoria usa**; la que ya clasifica algo solo se desactiva (RN-07 precisado). La condición vive en la política RLS; el endpoint cuenta el uso antes para responder 409 con el motivo, y el botón solo sale donde borrar es posible.
+  - `prueba-catalogo-admin.mjs` pasa de 40 a **55 comprobaciones**, todas verdes. Las otras dos suites, sin regresiones.
+  - **Quedó a medias:** al fusionar los duplicados existentes ganó la versión **sin tilde** (el criterio de desempate no servía, porque el nombre normalizado también baja a minúsculas). No se corrigió la migración porque ese código ya no vuelve a ejecutarse; el dato se arregla borrando la categoría y volviéndola a crear.
 - **Sesión 013: Sprint 2, paso 3 — publicación validada en servidor (RF-09, RN-01, RN-03, RNF-11).**
   - Migración `publicar_convocatoria` (`security invoker`, docs/05 §9.15): exige datos mínimos, enlace oficial y ≥1 requisito, y **no publica lo ya vencido**. Los adjuntos no se exigen (decisión de la 012). Registra `publicada_at` y `publicado_por`. Despublicar conserva ese rastro (RN-07). Se publica desde cualquier estado que no sea `publicada`, incluido `cerrada`, para que corregir la fecha devuelva la salida.
   - `POST .../publicar` y `.../despublicar`. El endpoint enumera **todo** lo que falta de una vez; la función SQL es la barrera y rechaza igual si se la llama directamente (RNF-20, comprobado).
@@ -43,7 +49,7 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 - **Ya cerrada la sesión, a pedido del Product Owner:** no llegaba el correo de confirmación al crear una cuenta. Causa: registrarse con un correo que ya tiene cuenta devuelve éxito sin enviar nada (Supabase, para no revelar qué correos existen). Se borró la cuenta de administrador revocado `danielangeline322@gmail.com` y el Product Owner se registró con ella como empresa en producción: **RF-01 queda probado por el formulario con correo real**, con confirmación, perfil de empresa y trial de 3 créditos.
 - **Sesión 010:** entrada con dos puertas (RF-84) y recuperación de contraseña (RF-03). Cerró el Sprint 1.
 
-Detalle en [`docs/bitacora/2026-09-18-sesion-013.md`](docs/bitacora/2026-09-18-sesion-013.md).
+Detalle en [`docs/bitacora/2026-09-18-sesion-014.md`](docs/bitacora/2026-09-18-sesion-014.md).
 
 ## En curso
 
@@ -158,6 +164,8 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | Registrarse con un correo que ya tiene cuenta devuelve éxito y no envía correo (Supabase lo hace a propósito, para no revelar qué correos existen), pero la pantalla dice "Te enviamos un enlace…". Comprobado el 17-sep: `signup` responde 200 con `identities: []` y sin correo | `lib/acciones/auth.ts` (`registrarse`) | media · redactar el mensaje sin afirmar el envío, p. ej. "Si ese correo no tenía cuenta, te enviamos un enlace" |
 | La cuenta `danielangeline322@gmail.com` (administrador revocado) se borró el 17-sep a pedido del Product Owner, para volver a registrarla como empresa. Sus 4 eventos de seguridad quedaron sin `usuario_id`; `admin_invitado` y `admin_revocado` conservan el correo en el texto | Supabase Auth | baja · queda anotado como contexto de la evidencia del Hito 1 |
 | RNF-06 admitía "carga admin hasta 50 MB" y contradecía a RNF-18 (20 MB, que es lo que el bucket hace cumplir) | `docs/03` RNF-06 | **resuelto** en la sesión 013: manda 20 MB, por decisión del Product Owner |
+| No se puede **renombrar una categoría** desde la pantalla, aunque `PATCH /api/admin/categorias/[id]` lo admite desde la sesión 011. Con el botón de borrar el caso queda cubierto a medias (borrar y volver a crear) | `components/admin/GestionCategorias.tsx` | baja · exponer el renombrado |
+| Una **fuente** no se puede borrar aunque no tenga convocatorias, que es el mismo argumento aceptado para categorías en la sesión 014. El Product Owner decidió sobre categorías y no se extendió por cuenta propia | `docs/03` RN-07 | baja · preguntarle si quiere lo mismo en fuentes |
 | Un servidor `next dev` de una sesión anterior puede seguir vivo y servir código viejo: en la sesión 013 hizo que seis comprobaciones "pasaran" por la razón equivocada (404 porque la ruta aún no existía en ese proceso). `next dev` lo avisa con el PID, pero en su propio log | máquina local | media · antes de creerse un 404, comprobar que responde el servidor de esta sesión |
 | Un `next dev` que lleva horas vivo puede corromper su caché y responder **500 en rutas dinámicas** que funcionan perfectamente: al Product Owner le pasó con `PATCH /api/admin/fuentes/[id]` al desactivar una fuente. En `.next/dev/logs/next-development.log`: `Failed to generate static paths` y `Jest worker encountered 2 child process exceptions`. **Se arregla parando el proceso, borrando `.next` y arrancando de nuevo**; reproducido y confirmado con el servidor limpio | máquina local | media · ante un 500 inexplicable, reiniciar con la caché limpia antes de buscar el fallo en el código |
 | Ante un 500, la pantalla del panel muestra "No pudimos completar la acción. Intenta de nuevo.", igual que ante un fallo de red. Es correcto de cara al usuario, pero no distingue un servidor caído de un rechazo, y eso alargó el diagnóstico anterior | `lib/admin/peticion.ts` | baja · valorar distinguir el 5xx en el texto |

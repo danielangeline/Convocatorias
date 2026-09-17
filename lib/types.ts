@@ -411,6 +411,8 @@ export interface CategoriaAdmin {
   tipo: TipoCategoria;
   nombre: string;
   activa: boolean;
+  /** Cuántas convocatorias la usan. Con 0 se puede borrar; si no, solo desactivar (RN-07). */
+  usos: number;
 }
 
 export interface RequisitoAdmin {

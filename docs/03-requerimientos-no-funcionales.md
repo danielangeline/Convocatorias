@@ -91,7 +91,7 @@
 | RN-04 | El checklist se genera copiando los requisitos vigentes al postular; ediciones posteriores no alteran postulaciones en curso |
 | RN-05 | El porcentaje de compatibilidad es un cálculo determinístico de coincidencias, no una predicción de éxito ni un resultado de IA, y así se comunica; la decisión de postular es del usuario |
 | RN-06 | El rol administrador **solo lo otorga el Propietario de la plataforma, por invitación** (CU-41). Todo registro de autoservicio nace como empresa o consultor, y ningún dato enviado por el usuario al registrarse puede producir un administrador *(mod. v6)* |
-| RN-07 | Fuentes y convocatorias no se eliminan físicamente: se desactivan o despublican |
+| RN-07 | Fuentes y convocatorias no se eliminan físicamente: se desactivan o despublican. **Una categoría es la excepción mientras no la use ninguna convocatoria: entonces no es historia, es un error de tecleo, y se borra. En cuanto clasifica algo, deja de poder borrarse y solo se desactiva** *(precisado en v6, sesión 014)* |
 | RN-08 | Un consultor aparece en el directorio solo si: perfil aprobado + no suspendido + suscripción activa |
 | RN-09 | Una calificación por encargo completado, emitida solo por la empresa de ese encargo, inmutable |
 | RN-10 | Consultor con suscripción vencida termina sus encargos en curso pero no recibe nuevos |
