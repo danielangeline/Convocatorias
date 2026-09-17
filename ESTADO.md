@@ -32,11 +32,11 @@ Detalle en [`docs/bitacora/2026-09-17-sesion-010.md`](docs/bitacora/2026-09-17-s
 
 ## En curso
 
-Nada a medias en el código. **Los entregables del Sprint 1 están completos.** Falta cerrar el Hito 1: ver "Decisiones abiertas" y la prueba del Product Owner (punto 3).
+Nada a medias en el código. **Sprint 1 cerrado: entregables completos y Hito 1 cumplido** (decisión del Product Owner, 17-sep). Del recorrido de administradores falta solo reenviar, cancelar y revocar (pendiente 3).
 
 ## Lo siguiente
 
-**Sprint 1 — completado** (pasos 1 a 6, sesiones 002 a 010, más RF-03 agregado en la 010). **Al abrir la sesión 011, el Product Owner prueba la gestión de administradores** con la cuenta del Propietario (pendiente 3), antes de empezar el Sprint 2.
+**Sprint 1 — completado** (pasos 1 a 6, sesiones 002 a 010, más RF-03 agregado en la 010). **Al abrir la sesión 011, el Product Owner termina la prueba de la gestión de administradores**: reenviar, cancelar y revocar (pendiente 3). Invitar, aceptar y activar el MFA ya funcionaron con correo real (17-sep). Después empieza el Sprint 2.
 
 **Sprint 2 — Catálogo y administración de contenido** (`docs/10 §Sprint 2`):
 
@@ -50,10 +50,10 @@ Nada a medias en el código. **Los entregables del Sprint 1 están completos.** 
 
 **Regla vigente:** toda pantalla o endpoint nuevo se declara en `lib/autorizacion/matriz.ts`; si no, responde 404.
 
-**Hito 1 (día 6):** un consultor recibe **404** en `/admin` (como un anónimo y como una ruta inventada) y **403** en `/convocatorias/[id]/generar`; solo el Propietario crea administradores; dos empresas no ven nada la una de la otra en los cuatro listados. Probado, no supuesto.
-- *Sesión 007:* la parte de rutas está probada (consultor → 404 en `/admin`, 403 en `/convocatorias/[id]/generar`).
-- *Aislamiento entre empresas:* probado en RLS; los cuatro listados de la app siguen leyendo el mock.
-- *Sesión 009:* "solo el Propietario crea administradores" está probado en la base y en rutas (otro administrador recibe 404 y no crea nada); falta verlo con la sesión del Propietario.
+**Hito 1 (día 6) — cumplido.** Un consultor recibe **404** en `/admin` (como un anónimo y como una ruta inventada) y **403** en `/convocatorias/[id]/generar`; solo el Propietario crea administradores; dos empresas no ven nada la una de la otra en los cuatro listados. Probado, no supuesto.
+- *Rutas (sesión 007):* consultor → 404 en `/admin` y 403 en `/convocatorias/[id]/generar`.
+- *"Solo el Propietario crea administradores":* probado en la base y en rutas en la sesión 009 (otro administrador recibe 404 y no crea nada). **El 17-sep el Propietario lo hizo desde su sesión con correo real**: invitó a `danielangeline322@gmail.com`, la persona definió la contraseña y activó el MFA, y la invitación quedó `aceptada` (eventos `admin_invitado` y `mfa_activado`).
+- *Aislamiento entre empresas:* probado en RLS (sesión 003). **Decisión del Product Owner (17-sep, opción a):** el hito se da por cumplido con esa prueba. **Condición:** al conectar cada uno de los cuatro listados —proyectos y postulaciones en el Sprint 3, documentos y encargos en el Sprint 4— se repite la prueba con dos empresas en pantalla, y ese listado no está terminado sin ella.
 
 ## Infraestructura que ya existe
 
@@ -72,11 +72,9 @@ Pendiente del Product Owner:
 
 1. ~~**URL Configuration de Auth en Supabase**~~ — hecho por el Product Owner (16-sep). Referencia:: *Site URL* = `https://convocatorias-neon.vercel.app`; *Redirect URLs* = `http://localhost:3000/**`, `https://convocatorias-neon.vercel.app/**` y `https://convocatorias-*-danielbohorquezps-projects.vercel.app/**`. Sin esto, el enlace de confirmación de correo no vuelve a `/auth/confirmar`.
 2. ~~**Activar la cuenta de Propietario**~~ — hecho (contraseña y MFA, 16-sep). El primer correo no sirvió porque Supabase no admite `localhost` como destino y lo mandó a la portada. Se reenvió hacia `https://convocatorias-neon.vercel.app/auth/definir-contrasena`, válido por 1 hora. Después de definir la contraseña, activar el MFA en `/mfa`.
-3. **Probar la gestión de administradores con la cuenta del Propietario** (sesión 009) — **lo hace al abrir la sesión 011**, en producción (`https://convocatorias-neon.vercel.app`) o en local:
-   - `/admin/administradores` aparece en el menú y lista al Propietario;
-   - invitar a un correo **que controles y que no tenga cuenta**. Ojo: según la documentación de Supabase, mientras no haya SMTP propio (punto 5) su correo por defecto solo entrega a direcciones del equipo de la organización;
-   - abrir el enlace, definir la contraseña en `/auth/definir-contrasena`, activar el MFA y entrar al panel; la invitación debe pasar a "aceptada";
-   - reenviar y cancelar una segunda invitación; revocar al administrador de prueba y comprobar que su sesión abierta pierde el panel;
+3. **Probar la gestión de administradores con la cuenta del Propietario** (sesión 009) — **a medias; se termina al abrir la sesión 011**, en producción (`https://convocatorias-neon.vercel.app`) o en local:
+   - ~~`/admin/administradores` aparece en el menú~~, ~~invitar a un correo real sin cuenta~~, ~~abrir el enlace, definir la contraseña, activar el MFA; la invitación pasa a "aceptada"~~ — **hecho el 17-sep** con `danielangeline322@gmail.com` (confirmado en la base: invitación `aceptada`, MFA TOTP verificado, eventos `admin_invitado` y `mfa_activado`);
+   - **falta:** reenviar y cancelar una segunda invitación; revocar al administrador de prueba y comprobar que su sesión abierta pierde el panel. **Ojo:** `danielangeline322@gmail.com` hoy es administrador con acceso real al panel. Si solo era de prueba, conviene que sea el que se revoca;
    - en `/admin/seguridad` todavía no se verán los eventos: esa pantalla sigue leyendo el mock.
 4. **Probar en el navegador con sesión** las cuentas de prueba `empresa.s004@example.com` y `consultor.s004@example.com`: login (ahora con las dos puertas y el aviso si eliges la otra), navbar con iniciales y "Salir", 3 créditos en el indicador y `/suscripcion` con el trial. Contraseña nueva dada en el chat de la sesión 010. **Ojo:** `scripts/prueba-matriz-roles.mjs` la vuelve a cambiar si se corre; en ese caso, pedir otra al agente. El QR de `/mfa` se prueba con la cuenta del Propietario.
 5. **SMTP propio antes de los pilotos** (p. ej. Resend): el correo por defecto de Supabase envía muy pocos mensajes por hora.
@@ -90,7 +88,6 @@ Esperan al Product Owner. No bloquean el Sprint 1.
 | Decisión | Contexto | Cuándo hace falta |
 |---|---|---|
 | **Precio del plan Consultor** | Quedó en COP $69.000 al retirarle el cupo de IA. `docs/07 §10.2` marca los planes como "a validar con los pilotos" | Antes de cobrar |
-| **Cierre del Hito 1: "dos empresas no ven nada la una de la otra en los cuatro listados"** Los cuatro listados son proyectos, postulaciones, documentos y encargos. **La base ya lo impide y está probado** (sesión 003: la empresa E2 no lee ni modifica nada de E1). Pero **las pantallas todavía muestran datos de ejemplo del navegador**, no de la base; se conectan en los sprints 3 y 4. Opciones: (a) dar el hito por cumplido con la prueba de la base y repetirla en pantalla al conectar cada listado; (b) dejarlo abierto hasta el Sprint 4 | Antes de dar por cerrado el Sprint 1 |
 | **Proveedor del límite de tasa** | RNF-27 pide un almacén fuera de Postgres (Upstash Redis o Vercel Edge Config); no está elegido | Sprint 5 |
 
 ## Hallazgos no planificados
@@ -126,7 +123,7 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | `scripts/prueba-matriz-roles.mjs` cambia en cada corrida la contraseña de las cuentas s004, así que la que tiene el Product Owner deja de servir | `scripts/prueba-matriz-roles.mjs` | baja · usar cuentas temporales propias, como la sesión 010 |
 | No había "¿Olvidaste tu contraseña?" en `/login` | `app/(identidad)/login` | **resuelto** en la sesión 010 (RF-03, agregado al Sprint 1 en `docs/10`) |
 | Las puertas se anunciaban por su valor (`empresa`, `consultor`) y no por su nombre | `components/identidad/SelectorPuerta.tsx` | **resuelto** en la sesión 010 (`aria-label` + `aria-describedby`); falta probar con un lector de pantalla real |
-| Apareció en Auth la cuenta `danielangeline322@gmail.com` durante la sesión 010; el agente no la creó (¿registro del Product Owner?). Por registro nace como empresa o consultor, nunca como administrador | Supabase Auth | baja · confirmar con el Product Owner |
+| Apareció en Auth la cuenta `danielangeline322@gmail.com` durante la sesión 010 | Supabase Auth | **resuelto**: la invitó el Propietario desde el panel; el Product Owner lo confirmó. Es administrador (ver pendiente 3) |
 
 ---
 

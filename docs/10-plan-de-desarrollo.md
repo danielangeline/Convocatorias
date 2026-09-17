@@ -105,6 +105,8 @@ Lo primero es lo que el prototipo no puede simular y lo que más caro sale corre
 
 **Hito 1 —** Un consultor autenticado recibe **404** en `/admin` —igual que un anónimo y que una ruta inventada— y **403** en `/convocatorias/[id]/generar`; solo el Propietario convierte a alguien en administrador; dos empresas distintas no ven nada la una de la otra en ninguno de los cuatro listados. Ambas cosas probadas, no supuestas.
 
+*Cumplido (sesión 010, decisión del Product Owner):* el aislamiento entre empresas se acepta con la prueba de RLS. **Condición:** cada listado, al conectarse a Supabase —proyectos y postulaciones en el Sprint 3, documentos y encargos en el Sprint 4—, repite la prueba con dos empresas en pantalla antes de darse por terminado.
+
 ---
 
 ### Sprint 2 · Días 7–12 — Catálogo y administración de contenido
