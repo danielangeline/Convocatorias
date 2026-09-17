@@ -55,6 +55,9 @@ export function EditorConvocatoria({
   );
   const [mensaje, setMensaje] = useState<{ tipo: "error" | "exito"; texto: string } | null>(null);
   const [guardando, setGuardando] = useState(false);
+  const [estado, setEstado] = useState(convocatoria.estado);
+  const [documentos, setDocumentos] = useState(convocatoria.documentos);
+  const [publicando, setPublicando] = useState(false);
 
   const campo = (nombre: keyof typeof form) => ({
     value: form[nombre],
@@ -81,7 +84,46 @@ export function EditorConvocatoria({
     }
     // Los requisitos nuevos reciben su id del servidor.
     setRequisitos(r.datos.requisitos.map((req) => ({ ...req, clave: req.id ?? nuevaClave() })));
+    setEstado(r.datos.estado);
     setMensaje({ tipo: "exito", texto: "Cambios guardados." });
+    router.refresh();
+  };
+
+  /**
+   * CU-05 · Publicar y despublicar (RF-09). Lo que falta lo decide y lo enumera
+   * el servidor (RNF-20); aquí solo se advierte de lo que no impide publicar:
+   * una convocatoria sin adjuntos se publica, pero la generación con IA pierde
+   * el texto del TDR como contexto (CU-05 3d).
+   */
+  const cambiarPublicacion = async (publicar: boolean) => {
+    if (publicar && documentos.length === 0) {
+      const sigue = window.confirm(
+        [
+          "Esta convocatoria no tiene ningún documento adjunto.",
+          "",
+          "Se puede publicar igual, y la empresa siempre tendrá el enlace oficial de la entidad. " +
+            "Pero al generar el documento con IA no se contará con el texto de los términos de " +
+            "referencia, así que el borrador saldrá más pobre.",
+          "",
+          "¿Publicar de todos modos?",
+        ].join("\n")
+      );
+      if (!sigue) return;
+    }
+    setPublicando(true);
+    setMensaje(null);
+    const r = await peticionAdmin<ConvocatoriaAdmin>(
+      `/api/admin/convocatorias/${convocatoria.id}/${publicar ? "publicar" : "despublicar"}`,
+      "POST",
+      {}
+    );
+    setPublicando(false);
+    if (!r.ok) {
+      setMensaje({ tipo: "error", texto: r.error });
+      return;
+    }
+    setEstado(r.datos.estado);
+    setMensaje({ tipo: "exito", texto: publicar ? "Convocatoria publicada." : "Convocatoria despublicada." });
     router.refresh();
   };
 
@@ -114,19 +156,19 @@ export function EditorConvocatoria({
 
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <Badge className={ESTADO_CONVOCATORIA_ESTILO[convocatoria.estado]}>
-            {ESTADO_CONVOCATORIA_LABEL[convocatoria.estado]}
-          </Badge>
+          <Badge className={ESTADO_CONVOCATORIA_ESTILO[estado]}>{ESTADO_CONVOCATORIA_LABEL[estado]}</Badge>
           <h1 className="mt-2 font-display text-2xl font-bold text-ink">{form.nombre || "Convocatoria sin nombre"}</h1>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="secondary"
-            disabled
-            title="La publicación con validación en el servidor (RF-09) aún no está disponible"
-          >
-            Publicar (próximamente)
-          </Button>
+          {estado === "publicada" ? (
+            <Button variant="secondary" onClick={() => cambiarPublicacion(false)} disabled={publicando}>
+              {publicando ? "Despublicando…" : "Despublicar"}
+            </Button>
+          ) : (
+            <Button variant="secondary" onClick={() => cambiarPublicacion(true)} disabled={publicando}>
+              {publicando ? "Publicando…" : "Publicar"}
+            </Button>
+          )}
           <Button variant="primary" onClick={guardar} disabled={guardando}>
             {guardando ? "Guardando…" : "Guardar cambios"}
           </Button>
@@ -253,7 +295,11 @@ export function EditorConvocatoria({
         </Seccion>
 
         <Seccion titulo="Documentos">
-          <DocumentosConvocatoria convocatoriaId={convocatoria.id} documentos={convocatoria.documentos} />
+          <DocumentosConvocatoria
+            convocatoriaId={convocatoria.id}
+            documentos={convocatoria.documentos}
+            onCambio={setDocumentos}
+          />
         </Seccion>
 
         <Seccion

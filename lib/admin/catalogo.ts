@@ -45,6 +45,9 @@ const RECHAZOS: Record<string, { status: number; error: string }> = {
     status: 409,
     error: "Una convocatoria publicada necesita el enlace oficial y al menos un requisito. Despublícala antes de quitarlos.",
   },
+  ya_publicada: { status: 409, error: "La convocatoria ya está publicada." },
+  no_publicada: { status: 409, error: "Solo se despublica una convocatoria publicada." },
+  vencida: { status: 400, error: "La fecha de cierre ya pasó. Actualízala antes de publicar." },
 };
 
 function rechazo(error: PostgrestError, accion: string): Rechazo {
@@ -406,6 +409,46 @@ export async function guardarConvocatoria(id: string, cuerpo: Cuerpo): Promise<R
     p_requisitos: requisitos.map((r) => ({ id: r.id ?? "", descripcion: r.descripcion, tipo: r.tipo, obligatorio: r.obligatorio })),
   });
   if (error) return rechazo(error, "guardar convocatoria");
+
+  const guardada = await obtenerConvocatoria(id);
+  if (!guardada) return { ok: false, status: 404, error: "La convocatoria no existe." };
+  return { ok: true, datos: guardada };
+}
+
+/**
+ * RF-09, CU-05 · Publicar y despublicar. La barrera es `publicar_convocatoria`
+ * (docs/05 §9.15), que vuelve a comprobar todo con la sesión del administrador;
+ * aquí se lee antes la ficha para poder enumerar **todo** lo que falta de una
+ * vez, en vez de que el administrador lo descubra de uno en uno.
+ *
+ * Los documentos adjuntos no se exigen (RN-01, v6 sesión 012): publicar sin
+ * ninguno se permite y la pantalla lo advierte antes de confirmar (CU-05 3d).
+ */
+export async function cambiarPublicacion(id: string, publicar: boolean): Promise<Resultado<ConvocatoriaAdmin>> {
+  if (publicar) {
+    const ficha = await obtenerConvocatoria(id);
+    if (!ficha) return { ok: false, status: 404, error: "La convocatoria no existe." };
+    if (ficha.estado === "publicada") return { ok: false, status: 409, error: RECHAZOS.ya_publicada.error };
+
+    const falta: string[] = [];
+    if (!ficha.nombre.trim()) falta.push("el nombre de la convocatoria");
+    if (!ficha.entidadConvocante.trim()) falta.push("la entidad convocante");
+    if (!ficha.urlPostulacion.trim()) falta.push("el enlace oficial de postulación");
+    else if (!esUrlHttp(ficha.urlPostulacion)) falta.push("un enlace oficial válido que empiece por http:// o https://");
+    if (ficha.requisitos.length === 0) falta.push("al menos un requisito");
+    if (falta.length > 0) {
+      const lista = falta.length === 1 ? falta[0] : `${falta.slice(0, -1).join(", ")} y ${falta[falta.length - 1]}`;
+      return { ok: false, status: 400, error: `Para publicar falta ${lista}.` };
+    }
+    // La fecha se compara con el día de hoy, igual que hace el SQL.
+    if (ficha.fechaCierre < new Date().toISOString().slice(0, 10)) {
+      return { ok: false, status: 400, error: RECHAZOS.vencida.error };
+    }
+  }
+
+  const supabase = await crearClienteServidor();
+  const { error } = await supabase.rpc("publicar_convocatoria", { p_id: id, p_publicar: publicar });
+  if (error) return rechazo(error, publicar ? "publicar convocatoria" : "despublicar convocatoria");
 
   const guardada = await obtenerConvocatoria(id);
   if (!guardada) return { ok: false, status: 404, error: "La convocatoria no existe." };

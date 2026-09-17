@@ -5,18 +5,26 @@
 
 ---
 
-**Actualizado:** 17 de septiembre de 2026 · cierre de la sesión 012
-**Sprint:** 2 · día 7 de 30
-**Rama de trabajo:** `sprint-2`, abierta desde `main` en la sesión 011 y subida a `origin` (sin fusionar a `main`: producción todavía no tiene el catálogo del panel). **Migraciones nuevas ya aplicadas al remoto:** `20260917100000_guardar_convocatoria` y `20260917200000_storage_y_adjuntos`. No rompen `main`, que no las llama
+**Actualizado:** 18 de septiembre de 2026 · cierre de la sesión 013
+**Sprint:** 2 · día 8 de 30
+**Rama de trabajo:** `sprint-2`, abierta desde `main` en la sesión 011 y subida a `origin` (sin fusionar a `main`: producción todavía no tiene el catálogo del panel). **Migraciones nuevas ya aplicadas al remoto:** `20260917100000_guardar_convocatoria`, `20260917200000_storage_y_adjuntos` y `20260918100000_publicar_convocatoria`. No rompen `main`, que no las llama
 
 ---
 
 ## Dónde vamos
 
-La especificación está cerrada en **v6**. **La base de datos existe en Supabase** (27 tablas con RLS, prueba cruzada pasada) y **la identidad ya es real**: registro, login, confirmación de correo y MFA del administrador con Supabase Auth. El `ModoDemo` desapareció. **Desde la sesión 011, el panel administra fuentes, categorías y convocatorias (datos y requisitos) contra Supabase**, con endpoints validados en el servidor, y **desde la 012 también los adjuntos, en Storage real**: los 3 buckets existen, los tres privados, y todo archivo se entrega por URL firmada de 15 minutos. Las tablas del catálogo siguen vacías: nadie ha cargado contenido real. Lo demás —el catálogo que ve la empresa, proyectos, postulaciones, documentos, encargos— sigue en datos de ejemplo de Zustand, filtrados por el `auth.uid()` real: una cuenta nueva empieza vacía y lo que crea se pierde al recargar.
+La especificación está cerrada en **v6**. **La base de datos existe en Supabase** (27 tablas con RLS, prueba cruzada pasada) y **la identidad ya es real**: registro, login, confirmación de correo y MFA del administrador con Supabase Auth. El `ModoDemo` desapareció. **Desde la sesión 011, el panel administra fuentes, categorías y convocatorias (datos y requisitos) contra Supabase**, con endpoints validados en el servidor, desde la 012 también los adjuntos, en Storage real —los 3 buckets existen, los tres privados, y todo archivo se entrega por URL firmada de 15 minutos— y **desde la 013 publica y despublica, validado en el servidor**. Con eso, el panel ya carga una convocatoria de principio a fin. Las tablas del catálogo siguen vacías: nadie ha cargado contenido real. Lo demás —el catálogo que ve la empresa, proyectos, postulaciones, documentos, encargos— sigue en datos de ejemplo de Zustand, filtrados por el `auth.uid()` real: una cuenta nueva empieza vacía y lo que crea se pierde al recargar.
 
 ## Lo último que se hizo
 
+- **Sesión 013: Sprint 2, paso 3 — publicación validada en servidor (RF-09, RN-01, RN-03, RNF-11).**
+  - Migración `publicar_convocatoria` (`security invoker`, docs/05 §9.15): exige datos mínimos, enlace oficial y ≥1 requisito, y **no publica lo ya vencido**. Los adjuntos no se exigen (decisión de la 012). Registra `publicada_at` y `publicado_por`. Despublicar conserva ese rastro (RN-07). Se publica desde cualquier estado que no sea `publicada`, incluido `cerrada`, para que corregir la fecha devuelva la salida.
+  - `POST .../publicar` y `.../despublicar`. El endpoint enumera **todo** lo que falta de una vez; la función SQL es la barrera y rechaza igual si se la llama directamente (RNF-20, comprobado).
+  - El editor ya trae el botón real, y antes de publicar **sin adjuntos** advierte que la generación con IA perderá el TDR como contexto (CU-05 3d). La advertencia no bloquea.
+  - Verificado con `scripts/prueba-publicar-convocatoria.mjs`: **30 comprobaciones, todas pasan**. Las dos suites anteriores se volvieron a correr sin regresiones. `tsc` y `next build` correctos; `lint` sin errores nuevos.
+  - **La migración se ensayó con el método corregido** (`raise` dentro del propio archivo) y se comprobó que el ensayo **no** dejaba nada aplicado. El método funciona.
+  - **RNF-06 corregido a 20 MB**, por decisión del Product Owner: decía 50 y contradecía a RNF-18.
+  - **No verificado:** las pantallas en el navegador con sesión (ver pendiente 9).
 - **Sesión 012: Sprint 2, paso 2 — Storage y adjuntos de convocatoria (RF-07, CU-03, RNF-16, RNF-18).**
   - **Dos huecos de especificación resueltos por el Product Owner antes de programar:** los **tres** buckets quedan privados (`docs/04` venía de v5 y dejaba públicos dos, lo que vaciaba RN-33 para los adjuntos) y un adjunto admite **PDF, Word, Excel y ZIP hasta 20 MB**. `docs/03` y `docs/04` corregidos; `docs/05 §9.14` nueva.
   - Migración `storage_y_adjuntos`: los 3 buckets con su límite y su lista de tipos —**ese es el enforcement real**: una subida directa que los incumpla la rechaza Storage—, 12 políticas sobre `storage.objects`, columnas `tipo_mime`, `tamano_bytes` y `actualizado_at`, y un trigger que impide que un `update` cambie el archivo.
@@ -35,11 +43,11 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 - **Ya cerrada la sesión, a pedido del Product Owner:** no llegaba el correo de confirmación al crear una cuenta. Causa: registrarse con un correo que ya tiene cuenta devuelve éxito sin enviar nada (Supabase, para no revelar qué correos existen). Se borró la cuenta de administrador revocado `danielangeline322@gmail.com` y el Product Owner se registró con ella como empresa en producción: **RF-01 queda probado por el formulario con correo real**, con confirmación, perfil de empresa y trial de 3 créditos.
 - **Sesión 010:** entrada con dos puertas (RF-84) y recuperación de contraseña (RF-03). Cerró el Sprint 1.
 
-Detalle en [`docs/bitacora/2026-09-17-sesion-012.md`](docs/bitacora/2026-09-17-sesion-012.md).
+Detalle en [`docs/bitacora/2026-09-18-sesion-013.md`](docs/bitacora/2026-09-18-sesion-013.md).
 
 ## En curso
 
-Nada a medias en el código. **Sprint 2, pasos 1 y 2 hechos** (sesiones 011 y 012).
+Nada a medias en el código. **Sprint 2, pasos 1, 2 y 3 hechos** (sesiones 011, 012 y 013).
 
 ## Lo siguiente
 
@@ -47,15 +55,15 @@ Nada a medias en el código. **Sprint 2, pasos 1 y 2 hechos** (sesiones 011 y 01
 
 1. ~~Endpoints de fuentes, convocatorias, categorías y requisitos (RF-04..06, 08)~~ — **sesión 011**. Los documentos adjuntos (RF-07) pasan al paso 2, que trae Storage.
 2. ~~Storage: 3 buckets privados con URLs firmadas de 15 min y adjuntos de convocatoria (RF-07, RNF-16, RNF-18)~~ — **sesión 012**. Los archivos del perfil del consultor (foto y hoja de vida) tienen ya su bucket y sus políticas; la pantalla y sus endpoints van con el módulo de consultores.
-3. **← Empezar aquí.** Publicación validada en servidor, incluido el enlace oficial (RF-09, RN-01, RNF-29): `POST /api/admin/convocatorias/[id]/publicar` y `.../despublicar`, con 400 y la lista de lo que falta. El botón del editor está deshabilitado a la espera. **Decisión del Product Owner (sesión 012): se publica sin adjuntos.** RN-01, RF-09 y CU-05 ya no los exigen —hasta v5 sí—, así que lo que valida `guardar_convocatoria` hoy (enlace + requisitos) **es exactamente la regla** y no hay que ampliarla. Lo que sí pide RF-09: al publicar sin ningún adjunto, **advertirlo antes de confirmar** (CU-05 3d), porque la generación con IA pierde el TDR como contexto.
-4. Catálogo, filtros, chips e indicadores de la landing contra datos reales (RF-11, 12, 13, 43, 44), con `GET /api/convocatorias` para la empresa.
+3. ~~Publicación validada en servidor (RF-09, RN-01, RNF-29), con la advertencia de CU-05 3d~~ — **sesión 013**.
+4. **← Empezar aquí.** Catálogo, filtros, chips e indicadores de la landing contra datos reales (RF-11, 12, 13, 43, 44), con `GET /api/convocatorias` para la empresa. **Solo cuentas de empresa** (RN-33): ni visitantes ni consultores.
 5. Cerradas fuera del listado salvo filtro explícito (RF-11, RN-02).
 6. Job diario de cierre (RF-10, CU-06).
 7. Vigencia verificada en servidor al postular y al generar (RF-78).
 
 **Regla vigente:** toda pantalla o endpoint nuevo se declara en `lib/autorizacion/matriz.ts`; si no, responde 404. Los endpoints del catálogo del panel cuelgan de `/api/admin`, así que ya los cubre la regla del panel.
 
-**Hito 2 (día 12):** un administrador carga una convocatoria real de principio a fin —datos, adjuntos, requisitos, enlace— y aparece en el catálogo de las empresas —no para visitantes ni consultores, RN-33—; una vencida desaparece sola al correr el job. *Hoy* ya se cargan datos, categorías, requisitos, enlace **y adjuntos**; faltan publicar y el catálogo de la empresa.
+**Hito 2 (día 12):** un administrador carga una convocatoria real de principio a fin —datos, adjuntos, requisitos, enlace— y aparece en el catálogo de las empresas —no para visitantes ni consultores, RN-33—; una vencida desaparece sola al correr el job. *Hoy* ya se carga la convocatoria entera —datos, categorías, requisitos, enlace, adjuntos— **y se publica**; falta el catálogo de la empresa y ver correr el job de cierre.
 
 **Hito 1 (día 6) — cumplido** (sesión 010). Sigue vigente la condición: cada listado de empresa repite la prueba de aislamiento con dos empresas en pantalla al conectarse (proyectos y postulaciones en el Sprint 3; documentos y encargos en el Sprint 4).
 
@@ -93,7 +101,12 @@ Pendiente del Product Owner:
    - intentar adjuntar un archivo que no sea PDF/Word/Excel/ZIP: debe rechazarse con mensaje;
    - quitarlo y recargar para comprobar que no vuelve.
 
-   **Ojo:** lo que se suba queda en el bucket real; si es de prueba, avisar para borrarlo.
+   Y de la sesión 013, sobre la misma convocatoria:
+   - pulsar **Publicar** sin enlace ni requisitos: debe rechazar diciendo **las dos cosas** que faltan;
+   - completarlos y publicar **sin ningún adjunto**: debe salir la advertencia, y al aceptar debe publicarse;
+   - comprobar que el botón pasa a **Despublicar**, usarlo y volver a publicar.
+
+   **Ojo:** lo que se suba queda en el bucket real y lo que se publique queda publicado; si es de prueba, avisar para borrarlo.
 
 ## Decisiones abiertas
 
@@ -144,7 +157,8 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | La prueba de RLS asumía `invitaciones_admin` vacía y falló al existir la invitación real del 17-sep | `supabase/tests/rls_aislamiento.sql` | **resuelto** en la sesión 011: cuenta con línea base, como `total_eventos` |
 | Registrarse con un correo que ya tiene cuenta devuelve éxito y no envía correo (Supabase lo hace a propósito, para no revelar qué correos existen), pero la pantalla dice "Te enviamos un enlace…". Comprobado el 17-sep: `signup` responde 200 con `identities: []` y sin correo | `lib/acciones/auth.ts` (`registrarse`) | media · redactar el mensaje sin afirmar el envío, p. ej. "Si ese correo no tenía cuenta, te enviamos un enlace" |
 | La cuenta `danielangeline322@gmail.com` (administrador revocado) se borró el 17-sep a pedido del Product Owner, para volver a registrarla como empresa. Sus 4 eventos de seguridad quedaron sin `usuario_id`; `admin_invitado` y `admin_revocado` conservan el correo en el texto | Supabase Auth | baja · queda anotado como contexto de la evidencia del Hito 1 |
-| RNF-06 admite "carga admin hasta 50 MB", pero RNF-18 fija 20 MB para un adjunto de convocatoria y el bucket lo hace cumplir. Los dos números no pueden ser ciertos a la vez | `docs/03` RNF-06 vs. RNF-18 | baja · decidir cuál manda y dejar uno solo |
+| RNF-06 admitía "carga admin hasta 50 MB" y contradecía a RNF-18 (20 MB, que es lo que el bucket hace cumplir) | `docs/03` RNF-06 | **resuelto** en la sesión 013: manda 20 MB, por decisión del Product Owner |
+| Un servidor `next dev` de una sesión anterior puede seguir vivo y servir código viejo: en la sesión 013 hizo que seis comprobaciones "pasaran" por la razón equivocada (404 porque la ruta aún no existía en ese proceso). `next dev` lo avisa con el PID, pero en su propio log | máquina local | media · antes de creerse un 404, comprobar que responde el servidor de esta sesión |
 | **El ensayo de una migración con `raise` en un archivo aparte no ensaya nada**: `supabase db push` corre cada migración en su propia transacción, así que el archivo de ensayo solo se revierte a sí mismo y la migración real anterior ya quedó aplicada | procedimiento de migraciones | **resuelto** en la sesión 012: el paso 6 de `docs/10 §17.3` fija que el `raise` va dentro del propio archivo |
 | `set role supabase_storage_admin` está negado al rol que corre las migraciones (42501), aunque ese mismo rol sí puede crear políticas sobre `storage.objects` | `supabase/migrations/` | baja · anotado en la migración |
 | Si la subida al bucket ocurre y el registro de la fila no, queda un objeto suelto. Es invisible (toda descarga parte de la fila) y la pantalla pide borrarlo, pero nadie barre los que queden de un navegador cerrado a media subida | `lib/admin/documentos.ts` | baja · valorar un job de limpieza antes de los pilotos |

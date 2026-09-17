@@ -431,3 +431,26 @@ Si el paso 3 no llega a ocurrir, queda un objeto sin fila: **invisible para todo
 - **Renombrar** (`PATCH`): nueva política de `update` para el administrador. Un **trigger** impide que ese update cambie `convocatoria_id`, `storage_path` o `tamano_bytes`: renombrar es cambiar el rótulo, no el archivo. Para reemplazar el archivo se quita el adjunto y se sube otro.
 - **Quitar** (`DELETE`): borra la fila y el objeto. Aquí sí hay borrado, a diferencia de fuentes y categorías (RN-07): un adjunto equivocado no es historia que valga la pena conservar, y CU-03 1a lo pide.
 - Ni uno ni otro dependen del estado de la convocatoria. CU-03 1a nombra el caso de antes de publicar, pero no prohíbe corregir un adjunto después, igual que `guardar_convocatoria` deja editar una publicada.
+
+---
+
+### 9.15 Publicar y despublicar una convocatoria *(nuevo v6, sesión 013)*
+
+Implementa RF-09 y RN-01 en el servidor. Cambiar el estado es lo único que `guardar_convocatoria` (§9.13) deja fuera a propósito: la ficha se edita todo lo que haga falta sin que la convocatoria se vuelva visible por accidente.
+
+**`public.publicar_convocatoria(p_id uuid, p_publicar boolean)`**
+
+- **`security invoker`**, igual que §9.13: corre con la sesión del administrador y la RLS sigue aplicando; la función lo comprueba además al entrar.
+- **Publicar** (`p_publicar = true`) exige, en una sola lectura con bloqueo de la fila:
+  - nombre, entidad convocante y fecha de cierre (la tabla ya los pide);
+  - **enlace oficial de postulación** presente y bien formado (RN-01, RNF-29). La restricción `convocatorias_publicada_con_enlace` lo repite;
+  - **al menos un requisito** (RN-01);
+  - **fecha de cierre no vencida**: no se publica algo que ya cerró, porque el job de RF-10 lo cerraría esa misma noche y porque RN-03 prohíbe postular sobre ello.
+
+  **Los documentos adjuntos no se exigen** *(v6, sesión 012 — RN-01)*. Publicar sin ninguno se permite; advertirlo antes de confirmar es cosa de la pantalla (CU-05 3d).
+
+  Al publicar: `estado = 'publicada'`, `publicada_at = now()` y `publicado_por = auth.uid()` (RNF-11). Se puede publicar desde **cualquier** estado que no sea `publicada`, incluido `cerrada` — si alguien corrige la fecha de cierre de una cerrada, debe poder volver a publicarla sin quedarse sin salida.
+- **Despublicar** (`p_publicar = false`) exige que esté `publicada` y la deja en `despublicada`, conservando `publicada_at` y `publicado_por` como rastro de que estuvo publicada. No se borra nada (RN-07). A partir de ahí no se puede postular ni generar sobre ella (RN-03), y las postulaciones ya iniciadas conservan su checklist (RN-04).
+- Rechazos con clave estable en `hint`: `no_es_admin`, `no_existe`, `ya_publicada`, `no_publicada`, `publicada_incompleta` y `vencida`.
+
+**Por qué la lista de lo que falta la arma el servidor y no el SQL.** La función rechaza con una sola clave; el endpoint lee antes la ficha y responde 400 enumerando **todo** lo que falta de una vez, para que el administrador no descubra los problemas de uno en uno. La función es la barrera; el enunciado es cortesía.

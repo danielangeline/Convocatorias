@@ -34,7 +34,7 @@
 |---|---|---|---|
 | RNF-04 | Catálogo | Búsqueda y filtros < 2 s con hasta 1.000 convocatorias | Prueba de carga |
 | RNF-05 | Sugerencias | Cruce de atributos y cálculo de compatibilidad < 3 s | SQL indexado; prueba de carga |
-| RNF-06 | Documentos | Descarga de 20 MB inicia < 3 s; carga admin hasta 50 MB | Archivos límite |
+| RNF-06 | Documentos | Descarga de 20 MB inicia < 3 s; **carga admin hasta 20 MB** *(corregido en v6, sesión 012: decía 50 MB y contradecía a RNF-18, que es el límite que el bucket hace cumplir de verdad. Manda 20)* | Archivos límite |
 | RNF-21 | **Generación con IA** | La generación puede tardar hasta 120 s; queda excluida de los umbrales anteriores. Debe mostrar progreso y no bloquear la navegación; si excede el tope, falla de forma controlada sin consumir crédito *(nuevo v4)* | Medición sobre 20 generaciones con TDR reales |
 
 ### 5.3 Usabilidad

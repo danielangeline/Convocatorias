@@ -44,11 +44,20 @@ function tamanoLegible(bytes: number | null): string {
 export function DocumentosConvocatoria({
   convocatoriaId,
   documentos: iniciales,
+  onCambio,
 }: {
   convocatoriaId: string;
   documentos: DocumentoAdmin[];
+  /** El editor necesita saber cuántos hay para advertir al publicar (CU-05 3d). */
+  onCambio?: (documentos: DocumentoAdmin[]) => void;
 }) {
-  const [documentos, setDocumentos] = useState(iniciales);
+  const [documentos, setDocumentosEstado] = useState(iniciales);
+  const setDocumentos = (siguiente: DocumentoAdmin[] | ((prev: DocumentoAdmin[]) => DocumentoAdmin[])) =>
+    setDocumentosEstado((prev) => {
+      const valor = typeof siguiente === "function" ? siguiente(prev) : siguiente;
+      onCambio?.(valor);
+      return valor;
+    });
   const [tipo, setTipo] = useState<TipoDocumento>("TDR");
   const [subiendo, setSubiendo] = useState(false);
   const [error, setError] = useState<string | null>(null);
