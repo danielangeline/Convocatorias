@@ -85,7 +85,7 @@
 
 | ID | Regla |
 |---|---|
-| RN-01 | Una convocatoria es visible solo cuando el admin completa datos mínimos —**incluido el enlace oficial de postulación**—, adjunta ≥1 documento, define requisitos y publica *(ampliado en v5)* |
+| RN-01 | Una convocatoria es visible solo cuando el admin completa datos mínimos —**incluido el enlace oficial de postulación**—, define requisitos y publica *(ampliado en v5; **los adjuntos dejan de ser obligatorios en v6, sesión 012**, por decisión del Product Owner: una entidad anuncia a veces la convocatoria antes de colgar los términos, y bloquear la publicación por eso le quita días a la empresa mientras el cierre corre. El enlace oficial siempre lleva al portal de la entidad, donde los documentos sí están)* |
 | RN-02 | Convocatoria vencida pasa automáticamente a "cerrada". Queda **excluida de las sugerencias y de la generación con IA sin excepción**, y **fuera del listado del catálogo por defecto**; solo reaparece en el catálogo si el usuario activa el filtro explícito de convocatorias cerradas, donde se muestra marcada como tal y con sus acciones deshabilitadas (RF-11, RN-03) *(precisado en v6)* |
 | RN-03 | No se puede postular ni generar documentos sobre convocatorias cerradas o despublicadas |
 | RN-04 | El checklist se genera copiando los requisitos vigentes al postular; ediciones posteriores no alteran postulaciones en curso |

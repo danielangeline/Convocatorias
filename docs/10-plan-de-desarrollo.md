@@ -61,6 +61,9 @@ Es la parte que hace que todo lo demás funcione. Está descrito también en `CL
 **Durante**
 4. Trabajar sobre la tarea del sprint activo, citando el `RF-xx`/`RNF-xx` correspondiente.
 5. Si aparece algo fuera de alcance, **no** desviarse: anotarlo en `ESTADO.md` bajo "Hallazgos no planificados".
+6. **Ensayar toda migración antes de aplicarla**, mientras Docker no arranque en la máquina y haya que trabajar contra el remoto: se añade al **final del propio archivo** que se quiere ensayar una línea que lo revienta a propósito —`do $$ begin raise exception 'ENSAYO'; end $$;`—, se corre `npx supabase db push`, se comprueba que el único error es ese, y se quita la línea antes de aplicar de verdad.
+
+   > **El `raise` va dentro del archivo que se ensaya, nunca en uno posterior** (hallazgo de la sesión 012). `db push` corre **cada** migración en su propia transacción: un archivo de ensayo aparte solo se revierte a sí mismo, y la migración real que iba antes ya quedó aplicada sin que nadie la hubiera ensayado.
 
 **Al cerrar sesión — obligatorio, aunque la sesión haya sido corta**
 6. Actualizar [`docs/11-avance-por-requerimiento.md`](11-avance-por-requerimiento.md) con los requerimientos que cambiaron de estado.

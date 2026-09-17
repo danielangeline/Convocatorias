@@ -50,13 +50,13 @@
 | **Descripción** | Lista de requisitos y documentos exigidos; genera el checklist (CU-11) y orienta la estructura del documento generado (CU-33) |
 | **Flujo principal** | 1. Agrega ítems. 2. Define descripción, tipo (documento/condición), obligatoriedad y orden. 3. Guarda la lista |
 
-#### CU-05 · Publicar convocatoria *(mod. v5)*
+#### CU-05 · Publicar convocatoria *(mod. v5; mod. v6)*
 
 | Campo | Contenido |
 |---|---|
-| **Precondiciones** | Datos mínimos **(incluido el enlace oficial de postulación)** + ≥1 documento adjunto + requisitos definidos |
+| **Precondiciones** | Datos mínimos **(incluido el enlace oficial de postulación)** + requisitos definidos. **Los documentos adjuntos no son precondición** *(mod. v6, sesión 012 — RN-01)* |
 | **Flujo principal** | 1. Revisa la ficha. 2. "Publicar". 3. El sistema valida y cambia a **publicada** registrando quién y cuándo |
-| **Flujos alternos** | 3a. Falla la validación → indica qué falta, **incluido un enlace de postulación faltante o inválido**. 3b. Despublicar. 3c. Editar (auditado) |
+| **Flujos alternos** | 3a. Falla la validación → indica qué falta, **incluido un enlace de postulación faltante o inválido**. **3d. Publicar sin ningún adjunto se permite, pero se advierte antes de confirmar** *(nuevo v6)*. 3b. Despublicar. 3c. Editar (auditado) |
 
 #### CU-06 · Cerrar convocatoria vencida (automático)
 

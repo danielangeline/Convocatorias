@@ -28,7 +28,7 @@
 | RF-06 | Clasificar en categorías: tipo de proyecto, sector y tipo de entidad elegible | CU-02 | Must |
 | RF-07 | Adjuntar documentos (TDR, términos, anexos, formatos) con nombre descriptivo | CU-03 | Must |
 | RF-08 | Registrar la lista de requisitos exigidos como ítems individuales | CU-04 | Must |
-| RF-09 | Publicar solo con datos mínimos **(incluido un enlace de postulación válido)** y ≥1 documento; permitir despublicar y editar *(mod. v5)* | CU-05 | Must |
+| RF-09 | Publicar solo con datos mínimos **(incluido un enlace de postulación válido)** y requisitos definidos; permitir despublicar y editar. **Los documentos adjuntos no son obligatorios para publicar** *(mod. v5; adjuntos dejan de exigirse en v6, sesión 012 — ver RN-01)*. Si se publica sin ninguno, la pantalla lo advierte, porque la generación con IA pierde el texto del TDR como contexto (CU-33 paso 4) | CU-05 | Must |
 | RF-10 | Cerrar automáticamente las convocatorias vencidas | CU-06 | Must |
 
 ### 4.3 Búsqueda y descubrimiento

@@ -47,7 +47,7 @@ Nada a medias en el código. **Sprint 2, pasos 1 y 2 hechos** (sesiones 011 y 01
 
 1. ~~Endpoints de fuentes, convocatorias, categorías y requisitos (RF-04..06, 08)~~ — **sesión 011**. Los documentos adjuntos (RF-07) pasan al paso 2, que trae Storage.
 2. ~~Storage: 3 buckets privados con URLs firmadas de 15 min y adjuntos de convocatoria (RF-07, RNF-16, RNF-18)~~ — **sesión 012**. Los archivos del perfil del consultor (foto y hoja de vida) tienen ya su bucket y sus políticas; la pantalla y sus endpoints van con el módulo de consultores.
-3. **← Empezar aquí.** Publicación validada en servidor, incluido el enlace oficial (RF-09, RN-01, RNF-29): `POST /api/admin/convocatorias/[id]/publicar` y `.../despublicar`, con 400 y la lista de lo que falta. El botón del editor está deshabilitado a la espera. **Decisión a tomar:** hoy RN-01 exige enlace y requisitos; falta saber si publicar debe exigir también al menos un adjunto.
+3. **← Empezar aquí.** Publicación validada en servidor, incluido el enlace oficial (RF-09, RN-01, RNF-29): `POST /api/admin/convocatorias/[id]/publicar` y `.../despublicar`, con 400 y la lista de lo que falta. El botón del editor está deshabilitado a la espera. **Decisión del Product Owner (sesión 012): se publica sin adjuntos.** RN-01, RF-09 y CU-05 ya no los exigen —hasta v5 sí—, así que lo que valida `guardar_convocatoria` hoy (enlace + requisitos) **es exactamente la regla** y no hay que ampliarla. Lo que sí pide RF-09: al publicar sin ningún adjunto, **advertirlo antes de confirmar** (CU-05 3d), porque la generación con IA pierde el TDR como contexto.
 4. Catálogo, filtros, chips e indicadores de la landing contra datos reales (RF-11, 12, 13, 43, 44), con `GET /api/convocatorias` para la empresa.
 5. Cerradas fuera del listado salvo filtro explícito (RF-11, RN-02).
 6. Job diario de cierre (RF-10, CU-06).
@@ -103,7 +103,7 @@ Esperan al Product Owner. No bloquean el Sprint 1.
 |---|---|---|
 | **Precio del plan Consultor** | Quedó en COP $69.000 al retirarle el cupo de IA. `docs/07 §10.2` marca los planes como "a validar con los pilotos" | Antes de cobrar |
 | **Proveedor del límite de tasa** | RNF-27 pide un almacén fuera de Postgres (Upstash Redis o Vercel Edge Config); no está elegido | Sprint 5 |
-| **¿Publicar exige al menos un adjunto?** | RN-01 hoy pide solo enlace oficial y requisitos. Con los adjuntos ya reales (sesión 012), hay que decidir si una convocatoria puede publicarse sin TDR | Sprint 2, paso 3 (RF-09) |
+
 
 ## Hallazgos no planificados
 
@@ -144,7 +144,8 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | La prueba de RLS asumía `invitaciones_admin` vacía y falló al existir la invitación real del 17-sep | `supabase/tests/rls_aislamiento.sql` | **resuelto** en la sesión 011: cuenta con línea base, como `total_eventos` |
 | Registrarse con un correo que ya tiene cuenta devuelve éxito y no envía correo (Supabase lo hace a propósito, para no revelar qué correos existen), pero la pantalla dice "Te enviamos un enlace…". Comprobado el 17-sep: `signup` responde 200 con `identities: []` y sin correo | `lib/acciones/auth.ts` (`registrarse`) | media · redactar el mensaje sin afirmar el envío, p. ej. "Si ese correo no tenía cuenta, te enviamos un enlace" |
 | La cuenta `danielangeline322@gmail.com` (administrador revocado) se borró el 17-sep a pedido del Product Owner, para volver a registrarla como empresa. Sus 4 eventos de seguridad quedaron sin `usuario_id`; `admin_invitado` y `admin_revocado` conservan el correo en el texto | Supabase Auth | baja · queda anotado como contexto de la evidencia del Hito 1 |
-| **El ensayo de una migración con `raise` en un archivo aparte no ensaya nada**: `supabase db push` corre cada migración en su propia transacción, así que el archivo de ensayo solo se revierte a sí mismo y la migración real anterior ya quedó comprometida. Solo sirve si el `raise` va **dentro del mismo archivo** que se ensaya | procedimiento de migraciones | media · corregir el hábito; en la sesión 012 no hubo daño |
+| RNF-06 admite "carga admin hasta 50 MB", pero RNF-18 fija 20 MB para un adjunto de convocatoria y el bucket lo hace cumplir. Los dos números no pueden ser ciertos a la vez | `docs/03` RNF-06 vs. RNF-18 | baja · decidir cuál manda y dejar uno solo |
+| **El ensayo de una migración con `raise` en un archivo aparte no ensaya nada**: `supabase db push` corre cada migración en su propia transacción, así que el archivo de ensayo solo se revierte a sí mismo y la migración real anterior ya quedó aplicada | procedimiento de migraciones | **resuelto** en la sesión 012: el paso 6 de `docs/10 §17.3` fija que el `raise` va dentro del propio archivo |
 | `set role supabase_storage_admin` está negado al rol que corre las migraciones (42501), aunque ese mismo rol sí puede crear políticas sobre `storage.objects` | `supabase/migrations/` | baja · anotado en la migración |
 | Si la subida al bucket ocurre y el registro de la fila no, queda un objeto suelto. Es invisible (toda descarga parte de la fila) y la pantalla pide borrarlo, pero nadie barre los que queden de un navegador cerrado a media subida | `lib/admin/documentos.ts` | baja · valorar un job de limpieza antes de los pilotos |
 | Borrar una convocatoria arrastra sus filas de `documentos_convocatoria` por `on delete cascade`, pero **no** los objetos del bucket | `supabase/migrations/20260917200000` | baja · mismo job de limpieza |

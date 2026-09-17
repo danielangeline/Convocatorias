@@ -182,3 +182,13 @@ Lo único estable que conviene saber de entrada:
 - El prototipo implementa el modelo **v6** en la interfaz, contra datos simulados (Zustand + `ModoDemo`). **No hay backend ni autenticación real.**
 - La especificación va **por delante** del código: RF-76..80 y RNF-30..33 están escritos y sin construir. Hasta que un requerimiento no figure como `servidor` o `verificado` en `docs/11-avance-por-requerimiento.md`, no está hecho, aunque funcione en pantalla.
 - El desarrollo sigue el plan de 30 días de `docs/10-plan-de-desarrollo.md`, en cinco sprints de seis días. A partir del Sprint 1 las reglas dejan de implementarse en `lib/store.ts` y pasan a API routes, migraciones y políticas RLS.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
