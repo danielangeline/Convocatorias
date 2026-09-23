@@ -63,7 +63,7 @@
 | Campo | Contenido |
 |---|---|
 | **Actor** | Reloj del sistema (pg_cron) |
-| **Flujo principal** | Job diario: las publicadas con `fecha_cierre < hoy` pasan a **cerrada** y salen del catálogo, de las sugerencias y de la generación con IA |
+| **Flujo principal** | Job diario: las publicadas con `fecha_cierre < hoy` pasan a **cerrada** y salen del catálogo, de las sugerencias y de la generación con IA. **"Hoy" es el día en Colombia: una convocatoria vence al terminar su día de cierre en hora de Bogotá, y el job corre a medianoche de Colombia** *(mod. v6, sesión 017)* |
 
 ### Módulo B — Búsqueda y descubrimiento (Usuario Empresa)
 

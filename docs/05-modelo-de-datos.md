@@ -140,10 +140,14 @@ El monto coincide si `monto_buscado` está dentro de `[monto_min, monto_max]`; l
 
 ### 9.7 Jobs automáticos (pg_cron)
 
+**"Hoy" es el día en Colombia** *(sesión 017)*: una convocatoria vence al terminar su día de cierre en hora de Bogotá. `privado.hoy_colombia()` —`(now() at time zone 'America/Bogota')::date`— es la única definición, y la usan el cierre, la política de inserción de postulaciones (RF-78), `publicar_convocatoria` (RN-03), `indicadores_catalogo()` (RF-44) y el catálogo del servidor. Antes se usaba `current_date`, que en Supabase va en UTC: desde las 7 p. m. de Colombia, una convocatoria que cerraba ese día ya contaba como vencida. Las suscripciones siguen con `current_date` y se revisan en el Sprint 5.
+
+El job 1 ejecuta `privado.cerrar_convocatorias_vencidas()`, que devuelve cuántas cerró (lo muestra el historial de `pg_cron`). Corre a las 05:00 UTC, que es medianoche en Colombia.
+
 ```sql
--- Job 1 · cierre de convocatorias vencidas (RF-10)
+-- Job 1 · cierre de convocatorias vencidas (RF-10) — privado.cerrar_convocatorias_vencidas()
 UPDATE convocatorias SET estado='cerrada'
-WHERE estado='publicada' AND fecha_cierre < CURRENT_DATE;
+WHERE estado='publicada' AND fecha_cierre < privado.hoy_colombia();
 
 -- Job 2 · vencimiento de suscripciones con gracia (RF-39, RN-16)
 UPDATE suscripciones SET estado='en_gracia'

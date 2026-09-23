@@ -35,8 +35,11 @@ type Fila = {
 };
 
 const numero = (v: number | string | null) => (v === null ? null : Number(v));
-/** Mismo día que `current_date` de Postgres, que va en UTC (hallazgo de la sesión 017). */
-const hoy = () => new Date().toISOString().slice(0, 10);
+/**
+ * Hoy en Colombia, AAAA-MM-DD: una convocatoria vence al terminar su día de
+ * cierre en hora de Bogotá, igual que `privado.hoy_colombia()` en la base (RN-02).
+ */
+const hoy = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Bogota" }).format(new Date());
 const extensionDe = (ruta: string) => ruta.slice(ruta.lastIndexOf(".") + 1).toLowerCase();
 
 function aConvocatoria(f: Fila): Convocatoria {

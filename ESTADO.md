@@ -17,6 +17,11 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 
 ## Lo último que se hizo
 
+- **Sesión 017, después: Sprint 2, paso 6 — cierre diario (RF-10, CU-06).**
+  - El job existía desde la sesión 003 y corre bien cada día (historial de `pg_cron`), pero nunca había tenido nada que cerrar. Ahora ejecuta `privado.cerrar_convocatorias_vencidas()`, que devuelve cuántas cerró.
+  - **"Hoy" es el día en Colombia** (`privado.hoy_colombia()`): una convocatoria vence al terminar su día de cierre en hora de Bogotá. Antes el job ya lo cumplía por su horario (00:00 en Colombia), pero postular, publicar y los indicadores usaban `current_date` en UTC y la daban por vencida desde las 7 p. m. Resuelve el hallazgo de la sesión 017; RN-02 y CU-06 precisados.
+  - Probado con `supabase/tests/cierre_convocatorias.sql` (7/7, se revierte sola). La prueba RLS, la del guardado y las suites de catálogo, publicar y panel pasan enteras. RF-11 pasa a `verificado` tras la revisión del Product Owner.
+  - **Pendiente:** ver una ejecución real que cierre algo (Hito 2). La convocatoria real de MinCiencias tiene hoy fecha de cierre 12-sep y sigue publicada, así que **el job de esta medianoche la cerraría**: se le preguntó al Product Owner antes de provocar el cierre.
 - **Sesión 017, después: Sprint 2, paso 5 — cerradas fuera del listado salvo filtro explícito (RF-11, RN-02).**
   - Migración `20260923200000_empresa_lee_cerradas`: la empresa lee las publicadas y las cerradas; borradores y despublicadas siguen invisibles. **Leer no es actuar**: postular a una cerrada lo sigue rechazando la RLS (RF-78), comprobado.
   - El listado por defecto filtra las vigentes en la consulta; con `incluirCerradas=true` (o la casilla de la pantalla) vienen detrás, de la más reciente a la más antigua, marcadas como cerradas. Una publicada vencida se presenta como cerrada aunque el job de RF-10 no la haya cerrado. En la ficha de una cerrada se deshabilitan las tres acciones de CU-08, incluido "Ir al portal de la entidad".
@@ -81,7 +86,7 @@ Detalle en [`docs/bitacora/2026-09-23-sesion-017.md`](docs/bitacora/2026-09-23-s
 
 ## En curso
 
-Nada a medias. **Los pasos 4 y 5 están hechos.** Solo falta que el Product Owner mire en pantalla la casilla "Incluirlas en los resultados" para cerrar RF-11.
+**Paso 6, casi terminado:** el cierre está programado y probado, pero falta **ver una ejecución real que cierre algo**. Depende de lo que decida el Product Owner sobre su convocatoria de MinCiencias, que hoy tiene fecha de cierre pasada (ver "Lo último").
 
 ## Lo siguiente
 
@@ -202,7 +207,9 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | **El ensayo de una migración con `raise` en un archivo aparte no ensaya nada**: `supabase db push` corre cada migración en su propia transacción, así que el archivo de ensayo solo se revierte a sí mismo y la migración real anterior ya quedó aplicada | procedimiento de migraciones | **resuelto** en la sesión 012: el paso 6 de `docs/10 §17.3` fija que el `raise` va dentro del propio archivo |
 | **En el servidor, el store de Zustand solo tiene su estado inicial (datos de ejemplo).** `useAppStore` responde en el render del servidor con `getInitialState()`, así que cualquier pantalla que lea del store pinta primero datos de ejemplo y el navegador los cambia al hidratar. Se descubrió con el catálogo, que se pasó a props de servidor; siguen así la ficha de generar, postulaciones, sugerencias y el resto del portal | `lib/store.ts`, portal Empresa | media · resolver al pasar cada módulo a Supabase (Sprints 3 y 4) |
 | Los nombres con tilde en las descargas firmadas salían doblemente codificados (`T%C3%A9rminos.pdf`): `createSignedUrl({ download })` de storage-js codifica el nombre dos veces | `lib/supabase/descarga.ts` | **resuelto** en la sesión 017, también para el panel; si storage-js lo corrige, se puede volver a su opción |
-| "Vigente" se decide con `current_date` de Postgres, que va en UTC: desde las 7 p. m. hora de Colombia, una convocatoria que cierra ese día ya sale del catálogo | RLS de `convocatorias`, `lib/catalogo.ts` | media · decidir con el job de cierre (paso 6) si "cierra el día X" es hasta el final del día en Colombia |
+| "Vigente" se decidía con `current_date` de Postgres, que va en UTC: desde las 7 p. m. hora de Colombia, una convocatoria que cerraba ese día ya contaba como vencida | convocatorias | **resuelto** en la sesión 017: `privado.hoy_colombia()` en el cierre, postular, publicar, indicadores y el catálogo |
+| Las suscripciones también usan `current_date` en UTC (`crear_cuenta`, `tiene_suscripcion_vigente`, job 2): un trial o una suscripción vencen 5 horas antes en Colombia | suscripciones | media · aplicar `privado.hoy_colombia()` con el módulo de suscripciones (Sprint 5) |
+| **Editar una publicada permite poner una fecha de cierre ya pasada**: sigue publicada hasta que el job la cierra esa medianoche. Publicar sí rechaza una vencida (RN-03). Puede ser legítimo (la entidad cerró antes), pero hoy no se advierte ni se cierra en el momento. Así quedó la convocatoria de MinCiencias el 23-sep | `guardar_convocatoria` | media · decisión del Product Owner |
 | `unstable_cache` (indicadores) está reemplazado por `use cache` en Next 16, pero `use cache` exige activar `cacheComponents` en todo el proyecto | `lib/catalogo.ts` | baja · migrar si se activa `cacheComponents` |
 | Las pruebas que crean convocatorias con `service_role` no invalidan la caché de indicadores: si la landing se calcula mientras corren, muestra hasta 1 hora cifras con datos de prueba (pasó el 23-sep). `prueba-catalogo-empresa.mjs` ya mide antes de crear contenido | pruebas | baja · tenerlo en cuenta al leer la landing en local |
 | `set role supabase_storage_admin` está negado al rol que corre las migraciones (42501), aunque ese mismo rol sí puede crear políticas sobre `storage.objects` | `supabase/migrations/` | baja · anotado en la migración |
