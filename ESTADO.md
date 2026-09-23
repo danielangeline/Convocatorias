@@ -22,6 +22,7 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
   - `scripts/diagnostico-red-supabase.mjs` nuevo: lo reproduce en ~1 minuto sin tocar la base.
   - **No se cambió código de la aplicación ni la base.** La instrumentación se retiró. Solo se corrigió el comentario equivocado de `prueba-publicar-convocatoria.mjs`.
   - **Falta que el Product Owner lo confirme en otra red** (ver "Bloqueos"). Detalle en el §9 del reporte.
+  - **Restaurada la comprobación completa al guardar**, por decisión del Product Owner (RN-01, RF-09): editar una publicada ya no deja quitarle ubicación, descripción, categoría ni el segundo requisito (409 `publicada_incompleta`). Migración `20260922950000_guardar_con_ficha_completa`, ensayada y aplicada. Verificada con `supabase/tests/guardar_publicada_completa.sql`, **6 de 6**, que no deja nada escrito. La suite HTTP no llega a esos casos en esta red.
 - **Sesión 015: lo que el Product Owner encontró probando, y una verificación en el navegador** (no planificada).
   - **La pantalla engañaba al publicar:** el botón no miraba el formulario, sino lo último guardado. Ahora **Publicar guarda primero** y solo publica si ese guardado pasa (CU-05 3d).
   - **RN-01 ampliado por decisión del Product Owner:** publicar exige ubicación, descripción, ≥1 categoría, **≥1 documento adjunto** y **≥2 requisitos**, además del enlace. Lo del adjunto **revierte** la decisión de la 012, confirmado expresamente. El rechazo enumera de una vez todo lo que falta.
@@ -64,7 +65,7 @@ Detalle en [`docs/bitacora/2026-09-22-sesion-016.md`](docs/bitacora/2026-09-22-s
 
 ## En curso
 
-**El paso 3 quedó a medias:** las reglas nuevas de publicación están puestas y probadas en su mayor parte. El cuelgue que impedía verificarlas ya tiene causa: la red de este equipo, no el código (sesión 016). Faltan dos cosas: **confirmarlo en otra red**, para dar el paso por verificado, y que el Product Owner decida si se **restaura la comprobación completa al guardar**, que cierra el hueco de editar publicadas (ver "Bloqueos").
+**El paso 3 quedó a medias:** las reglas nuevas de publicación están puestas y probadas en su mayor parte. El cuelgue que impedía verificarlas ya tiene causa: la red de este equipo, no el código (sesión 016). La comprobación completa al guardar ya está restaurada (sesión 016). Falta **confirmar en otra red** que la suite pasa entera, para dar el paso por verificado, y decidir si se protege también **quitar el último adjunto** de una publicada (ver "Bloqueos").
 
 ## Lo siguiente
 
@@ -98,7 +99,7 @@ Detalle en [`docs/bitacora/2026-09-22-sesion-016.md`](docs/bitacora/2026-09-22-s
 **El cuelgue al guardar convocatorias (sesión 015) ya está diagnosticado (sesión 016): lo causa la red de este equipo, no la aplicación.** Ciertas peticiones hacia Supabase se pierden según su tamaño exacto en bytes. Sigue abierto hasta que el Product Owner haga esto:
 
    1. **Correr `node --env-file=.env.local scripts/diagnostico-red-supabase.mjs` en otra red** (p. ej. con datos compartidos desde el celular). Si sale `RED LIMPIA` y en esa red `prueba-publicar-convocatoria.mjs` pasa entera, queda confirmado y el paso 3 del Sprint 2 se da por verificado.
-   2. **Decidir si se restaura la comprobación completa en `guardar_convocatoria`**. Esa comprobación cierra el hueco de editar publicadas, y se había revertido creyendo que ella causaba el cuelgue. Es la decisión pendiente del §8 del reporte.
+   2. ~~Decidir si se restaura la comprobación completa en `guardar_convocatoria`~~ — **restaurada en la sesión 016** a pedido del Product Owner. Queda por decidir si se protege también **quitar el último adjunto** de una publicada: va por `DELETE` sobre `documentos_convocatoria` (CU-03), no por el guardado, y ninguna versión lo ha comprobado nunca.
    3. Opcional, para trabajar en local sin sobresaltos: aislar la pieza que pierde los paquetes. Candidatas: el filtro de VirtualBox enganchado al Wi-Fi, el driver del MediaTek MT7902 y el router.
 
    Reporte con la evidencia: [`docs/incidentes/2026-09-22-cuelgue-al-guardar-convocatoria.md`](docs/incidentes/2026-09-22-cuelgue-al-guardar-convocatoria.md), §9.
@@ -186,7 +187,9 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | La cuenta `danielangeline322@gmail.com` (administrador revocado) se borró el 17-sep a pedido del Product Owner, para volver a registrarla como empresa. Sus 4 eventos de seguridad quedaron sin `usuario_id`; `admin_invitado` y `admin_revocado` conservan el correo en el texto | Supabase Auth | baja · queda anotado como contexto de la evidencia del Hito 1 |
 | RNF-06 admitía "carga admin hasta 50 MB" y contradecía a RNF-18 (20 MB, que es lo que el bucket hace cumplir) | `docs/03` RNF-06 | **resuelto** en la sesión 013: manda 20 MB, por decisión del Product Owner |
 | **Guardar una convocatoria se cuelga ~20 s y muere con `ECONNRESET`** | red de la máquina local | **diagnosticado** en la sesión 016: se pierden paquetes según su tamaño exacto; falta confirmarlo en otra red (ver "Bloqueos") |
-| Editar una convocatoria **publicada** deja quitarle ubicación, descripción, categoría o adjunto: solo se protegen enlace y requisitos. Consecuencia de revertir una comprobación que **no** era la causa del cuelgue (sesión 016) | `guardar_convocatoria` | media · decide el Product Owner si se restaura |
+| Editar una convocatoria **publicada** dejaba quitarle ubicación, descripción o categoría | `guardar_convocatoria` | **resuelto** en la sesión 016: comprobación completa restaurada |
+| Se puede **quitar el último adjunto** de una convocatoria publicada: `quitarDocumento` borra la fila sin mirar el estado, y ninguna versión lo ha comprobado nunca. RN-01 exige ≥1 adjunto para publicar | `lib/admin/documentos.ts` / `documentos_convocatoria` | media · pregunta abierta al Product Owner |
+| `privado.ficha_publicable` quedó `security definer` (migración `…900005`) por una razón que resultó falsa: su comentario dice que `invoker` colgaba el guardado. Funciona y solo la llaman funciones que comprueban `es_admin()` antes | `supabase/migrations/20260922900005` | baja · valorar volver a `invoker` |
 | **Consultar la base remota sin migraciones temporales:** `npx supabase db query --linked "<sql>"` (o `-f archivo.sql`) va por la API de administración, con permisos para ver `pg_stat_activity` y `pg_stat_statements`. Tarda ~5 s por consulta; para muestrear, el bucle va dentro de un `do` con `pg_stat_clear_snapshot()` | herramienta | nota · la sesión 015 creó y retiró dos migraciones para lo mismo |
 | Los heredocs de este entorno se comen las barras invertidas: un `
 ` dentro de una cadena JavaScript se convierte en salto real y rompe el archivo. Pasó dos veces | herramienta | baja · escribir el parche a un archivo aparte |

@@ -180,10 +180,16 @@ try {
   ok(quitarEnlace.status === 400 || quitarEnlace.status === 409, `quitarle el enlace a una publicada -> rechazado (${quitarEnlace.status})`);
   const quitarReq = await api(adm, "PATCH", `/api/admin/convocatorias/${convId}`, { ...fichaCompleta, requisitos: [] });
   ok(quitarReq.status === 409, `dejar sin requisitos a una publicada -> 409 (${quitarReq.status})`);
-  // Hueco conocido (sesion 015): editar una publicada aun deja quitarle la
-  // ubicacion, la descripcion, la categoria o el adjunto. Publicar si lo exige.
-  const quitarUbic = await api(adm, "PATCH", `/api/admin/convocatorias/${convId}`, { ...fichaCompleta, ubicacion: "" });
-  conocido(quitarUbic.status === 409, `quitarle la ubicacion a una publicada -> 409 (${quitarUbic.status}; 200 = hueco conocido, ver ESTADO.md)`);
+  // Sesion 016: guardar vuelve a exigir la ficha completa de RN-01 a una publicada.
+  for (const [que, cambio] of [
+    ["la ubicacion", { ubicacion: "" }],
+    ["la descripcion", { descripcion: "" }],
+    ["la categoria", { categorias: [] }],
+    ["el segundo requisito", { requisitos: requisito }],
+  ]) {
+    const r = await api(adm, "PATCH", `/api/admin/convocatorias/${convId}`, { ...fichaCompleta, ...cambio });
+    ok(r.status === 409, `quitarle ${que} a una publicada -> 409 (${r.status})`);
+  }
   // Se deja como estaba para el resto de la prueba.
   await api(adm, "PATCH", `/api/admin/convocatorias/${convId}`, fichaCompleta);
   const intacta = await api(adm, "GET", `/api/admin/convocatorias/${convId}`);

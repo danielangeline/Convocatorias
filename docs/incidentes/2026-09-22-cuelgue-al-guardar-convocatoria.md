@@ -142,6 +142,6 @@ Termina en `LA RED PIERDE PETICIONES` o en `RED LIMPIA`. Aquí, el 22-sep: 1 000
 
 ### Consecuencias para el trabajo
 
-- **La decisión pendiente de §8 cambia de base:** el cuelgue **no** lo causaba `privado.ficha_publicable`. Restaurar la comprobación completa en `guardar_convocatoria` (y cerrar el hueco de editar publicadas) vuelve a ser posible, pero lo decide el Product Owner. En este equipo seguirá fallando a veces, porque cualquier petición del tamaño "malo" falla, lleve o no esa comprobación.
+- **§8 decidido por el Product Owner (sesión 016): se restauró la comprobación completa** en `guardar_convocatoria` (migración `20260922950000_guardar_con_ficha_completa`), verificada con `supabase/tests/guardar_publicada_completa.sql`. Lo que sigue es el razonamiento previo a la decisión. **La decisión pendiente de §8 cambia de base:** el cuelgue **no** lo causaba `privado.ficha_publicable`. Restaurar la comprobación completa en `guardar_convocatoria` (y cerrar el hueco de editar publicadas) vuelve a ser posible, pero lo decide el Product Owner. En este equipo seguirá fallando a veces, porque cualquier petición del tamaño "malo" falla, lleve o no esa comprobación.
 - **Las migraciones `…900000` a `…900006` fueron idas y vueltas de una hipótesis equivocada.** Se conservan como historial, tal como dice §7.
 - **El comentario de `scripts/prueba-publicar-convocatoria.mjs`** que atribuía el fallo a sockets keep-alive muertos estaba equivocado y se corrigió. Los reintentos se quedan, pero no curan nada: repiten los mismos bytes.
