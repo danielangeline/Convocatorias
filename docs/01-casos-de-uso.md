@@ -39,7 +39,7 @@
 | **Actor** | Administrador de Contenido |
 | **Descripción** | Adjuntar TDR, términos, anexos y formatos. Quedan disponibles para descarga del usuario **y como contexto de la generación con IA (CU-33)** |
 | **Flujo principal** | 1. Adjunta archivos indicando su tipo. 2. Asigna nombre descriptivo. 3. Se almacenan en Supabase Storage vinculados a la convocatoria |
-| **Flujos alternos** | 1a. Reemplazar o eliminar antes de publicar |
+| **Flujos alternos** | 1a. Reemplazar o eliminar antes de publicar. **1b. En una convocatoria publicada se puede quitar un adjunto mientras quede al menos otro; el último no se quita (RN-01): se sube el reemplazo antes, o se despublica** *(mod. v6, sesión 016)* |
 | **Relación** | Incluido en CU-02 |
 
 #### CU-04 · Definir requisitos de postulación

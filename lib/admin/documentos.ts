@@ -247,6 +247,14 @@ export async function quitarDocumento(convocatoriaId: string, documentoId: strin
     .select("storage_path")
     .maybeSingle();
   if (error) {
+    // RN-01, CU-03 1b: una publicada conserva al menos un adjunto (docs/05 §9.14).
+    if (error.hint === "publicada_incompleta") {
+      return {
+        ok: false,
+        status: 409,
+        error: "Una convocatoria publicada necesita al menos un documento adjunto. Sube el reemplazo antes de quitar este, o despublícala.",
+      };
+    }
     console.error("Adjuntos: no se pudo quitar", error.code, error.message);
     return { ok: false, status: 500, error: "No pudimos quitar el documento. Intenta de nuevo." };
   }

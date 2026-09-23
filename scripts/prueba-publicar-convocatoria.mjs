@@ -15,10 +15,6 @@ const APP = process.env.PRUEBA_URL ?? "http://localhost:3000";
 const svc = createClient(URL_, process.env.SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
 let fallas = 0;
 const ok = (c, d) => { console.log(c ? "ok   " : "FALLA", d); if (!c) fallas++; };
-// Defecto conocido y documentado en ESTADO.md (sesion 015): no suma a las
-// fallas para no tapar regresiones nuevas, pero se grita en cada corrida.
-let pendientes = 0;
-const conocido = (c, d) => { console.log(c ? "ok   " : "PENDIENTE", d); if (!c) pendientes++; };
 
 function sesion() {
   const jar = new Map();
@@ -190,6 +186,10 @@ try {
     const r = await api(adm, "PATCH", `/api/admin/convocatorias/${convId}`, { ...fichaCompleta, ...cambio });
     ok(r.status === 409, `quitarle ${que} a una publicada -> 409 (${r.status})`);
   }
+  // CU-03 1b (sesion 016): el ultimo adjunto de una publicada no se quita.
+  const docs = await api(adm, "GET", `/api/admin/convocatorias/${convId}/documentos`);
+  const quitarUltimo = await api(adm, "DELETE", `/api/admin/convocatorias/${convId}/documentos/${docs.json?.datos?.[0]?.id}`);
+  ok(docs.json?.datos?.length === 1 && quitarUltimo.status === 409, `quitarle el ultimo adjunto a una publicada -> 409 (${quitarUltimo.status})`);
   // Se deja como estaba para el resto de la prueba.
   await api(adm, "PATCH", `/api/admin/convocatorias/${convId}`, fichaCompleta);
   const intacta = await api(adm, "GET", `/api/admin/convocatorias/${convId}`);
@@ -256,6 +256,5 @@ try {
   if (invitaciones.length) await svc.from("invitaciones_admin").delete().in("id", invitaciones);
   console.log("datos y cuentas de prueba borrados");
 }
-if (pendientes) console.log(`${pendientes} PENDIENTE(S) CONOCIDO(S) — ver ESTADO.md`);
 console.log(fallas ? `${fallas} FALLAS` : "TODO PASÓ");
 process.exitCode = fallas ? 1 : 0;

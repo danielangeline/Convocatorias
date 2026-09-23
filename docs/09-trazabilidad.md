@@ -11,7 +11,7 @@
 |---|---|---|
 | CU-01 Parametrizar fuente | RF-04 | RN-07 |
 | CU-02 Cargar convocatoria *(v5: enlace oficial)* | RF-05, 06 | RNF-11, 14, 29 |
-| CU-03 Adjuntar documentos | RF-07 | RNF-02, 06, **RNF-16, RNF-18** *(v6, sesion 012: los adjuntos viven en un bucket privado y se entregan por URL firmada de 15 min; tipos y tamano validados en cliente, en servidor y en el propio bucket)* |
+| CU-03 Adjuntar documentos | RF-07 | RNF-02, 06, **RNF-16, RNF-18**, **RN-01** *(v6, sesion 016: una publicada no pierde su ultimo adjunto)*, *(v6, sesion 012: los adjuntos viven en un bucket privado y se entregan por URL firmada de 15 min; tipos y tamano validados en cliente, en servidor y en el propio bucket)* |
 | CU-04 Definir requisitos | RF-08 | RN-04 |
 | CU-05 Publicar *(v5: exige enlace válido)* | RF-09 | RN-01, RNF-11, 29 |
 | CU-06 Cierre automático | RF-10 | RN-02, RNF-12 |

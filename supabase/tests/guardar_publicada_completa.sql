@@ -1,5 +1,6 @@
--- RN-01, RF-09, CU-05 · Una convocatoria publicada no puede quedar incompleta
--- al editarla (guardar_convocatoria, docs/05 §9.13, restaurado en la sesión 016).
+-- RN-01, RF-09, CU-05, CU-03 1b · Una convocatoria publicada no puede quedar
+-- incompleta al editarla (guardar_convocatoria, docs/05 §9.13) ni al quitarle
+-- adjuntos (trigger de documentos_convocatoria, docs/05 §9.14). Sesión 016.
 --
 --   npx supabase db query --linked -f supabase/tests/guardar_publicada_completa.sql
 --
@@ -11,7 +12,7 @@
 do $$
 declare
   v_admin uuid; v_fuente uuid; v_cat uuid; v_conv uuid; v_r1 uuid; v_r2 uuid;
-  v_datos jsonb; v_reqs jsonb; v_res text := '';
+  v_datos jsonb; v_reqs jsonb; v_res text := ''; v_doc1 uuid; v_doc2 uuid;
   v_caso record;
 begin
   select id into v_admin from public.perfiles where es_propietario;
@@ -20,7 +21,8 @@ begin
   insert into public.convocatorias (fuente_id, nombre, entidad_convocante, descripcion, ubicacion_cobertura, fecha_cierre, url_postulacion, estado)
     values (v_fuente, 'Conv s016', 'Entidad', 'Objeto', 'Nacional', current_date + 30, 'https://entidad.gov.co/x', 'publicada') returning id into v_conv;
   insert into public.convocatoria_categoria values (v_conv, v_cat);
-  insert into public.documentos_convocatoria (convocatoria_id, tipo_doc, nombre, storage_path) values (v_conv, 'TDR', 'TDR', v_conv || '/verificacion.pdf');
+  insert into public.documentos_convocatoria (convocatoria_id, tipo_doc, nombre, storage_path) values (v_conv, 'TDR', 'TDR', v_conv || '/verificacion.pdf') returning id into v_doc1;
+  insert into public.documentos_convocatoria (convocatoria_id, tipo_doc, nombre, storage_path) values (v_conv, 'anexo', 'Anexo', v_conv || '/verificacion-2.pdf') returning id into v_doc2;
   insert into public.requisitos_convocatoria (convocatoria_id, descripcion, tipo, obligatorio, orden) values (v_conv, 'Camara', 'documento', true, 1) returning id into v_r1;
   insert into public.requisitos_convocatoria (convocatoria_id, descripcion, tipo, obligatorio, orden) values (v_conv, 'Pyme', 'condicion', false, 2) returning id into v_r2;
 
@@ -57,9 +59,27 @@ begin
       v_res := v_res || format(E'\n%s %s -> %s', case when v_obtenido = v_caso.esperado then 'OK   ' else 'FALLA' end, v_caso.caso, v_obtenido);
     end;
   end loop;
+  -- CU-03 1b: se quita un adjunto mientras quede otro; el último, no.
+  for v_caso in select * from (values ('quitar uno de dos adjuntos', v_doc2, 'ok'), ('quitar el ultimo adjunto', v_doc1, 'publicada_incompleta')) as t(caso, doc, esperado) loop
+    declare v_obtenido text;
+    begin
+      begin
+        execute 'set local role authenticated';
+        delete from public.documentos_convocatoria where id = v_caso.doc;
+        v_obtenido := case when found then 'ok' else 'no borro nada (RLS)' end;
+        execute 'reset role';
+      exception when others then
+        execute 'reset role';
+        get stacked diagnostics v_obtenido = pg_exception_hint;
+        if v_obtenido = '' then v_obtenido := sqlerrm; end if;
+      end;
+      v_res := v_res || format(E'\n%s %s -> %s', case when v_obtenido = v_caso.esperado then 'OK   ' else 'FALLA' end, v_caso.caso, v_obtenido);
+    end;
+  end loop;
   v_res := v_res || format(E'\nestado final: %s, requisitos %s, ubicacion %s',
     (select estado from public.convocatorias where id = v_conv),
     (select count(*) from public.requisitos_convocatoria where convocatoria_id = v_conv),
-    (select ubicacion_cobertura from public.convocatorias where id = v_conv));
+    (select ubicacion_cobertura from public.convocatorias where id = v_conv))
+    || format(', adjuntos %s', (select count(*) from public.documentos_convocatoria where convocatoria_id = v_conv));
   raise exception 'RESULTADO (todo se revierte):%', v_res;
 end $$;
