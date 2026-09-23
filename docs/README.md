@@ -19,6 +19,7 @@ Especificación funcional y técnica del MVP **v6** (septiembre 2026). Es la fue
 | [`10-plan-de-desarrollo.md`](10-plan-de-desarrollo.md) | **Plan de 30 días**: Scrum adaptado a una persona y un agente, ritual de sesión, definición de terminado y los cinco sprints con sus hitos | Al empezar un sprint, o si hay dudas sobre qué toca |
 | [`11-avance-por-requerimiento.md`](11-avance-por-requerimiento.md) | Estado de implementación de los 83 RF, 34 RNF y las reglas pendientes: `pendiente` · `prototipo` · `servidor` · `verificado` | Para saber qué está hecho de verdad y qué falta |
 | [`bitacora/`](bitacora/) | Una entrada por sesión: qué se hizo, cómo se verificó, qué se decidió y qué quedó abierto | Al abrir sesión, la última entrada |
+| [`incidentes/`](incidentes/) | Un archivo por problema abierto que sobrevive a la sesión que lo encontró: síntoma, reproducción, hipótesis descartadas **con su prueba** y plan de ataque | Cuando `ESTADO.md` lo cite en "Bloqueos" |
 | [`99-especificacion-completa.md`](99-especificacion-completa.md) | Todo lo anterior en un solo archivo, **salvo `10`, `11` y `bitacora/`**, que son registros vivos del desarrollo y no parte de la especificación | Solo si necesitas leerlo de corrido o exportarlo |
 
 `diagramas/` contiene las versiones en PNG de la arquitectura y del modelo de datos (todavía de v4).

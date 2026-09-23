@@ -90,7 +90,9 @@ Detalle en [`docs/bitacora/2026-09-22-sesion-015.md`](docs/bitacora/2026-09-22-s
 
 ## Bloqueos
 
-**SÍ hay uno, nuevo (sesión 015): un guardado de convocatoria se queda ~20 s y muere** con `ECONNRESET`. Se ve en el navegador (más de 34 s sin respuesta) y deja 4 comprobaciones de `prueba-publicar-convocatoria.mjs` en rojo. **Es lo primero que hay que resolver**, antes del paso 4. Lo ya descartado, con prueba, está en la bitácora de la 015: no es un bloqueo en Postgres, ni `ficha_publicable`, ni invoker/definer, ni la reescritura del cuerpo, ni el adjunto, ni hablar con Storage, ni intermitencia de red. Un caso mínimo pasa siempre; la suite larga falla siempre.
+**SÍ hay uno, nuevo (sesión 015): un guardado de convocatoria se queda ~20 s y muere** con `ECONNRESET`. Se ve en el navegador (más de 34 s sin respuesta) y deja 4 comprobaciones de `prueba-publicar-convocatoria.mjs` en rojo. **Es lo primero que hay que resolver**, antes del paso 4.
+
+   **Reporte completo para retomarlo: [`docs/incidentes/2026-09-22-cuelgue-al-guardar-convocatoria.md`](docs/incidentes/2026-09-22-cuelgue-al-guardar-convocatoria.md)** — síntoma, cómo reproducirlo, las siete hipótesis descartadas con su prueba, **lo que quedó sin comprobar** y un plan de ataque en cuatro pasos. Empezar por ahí, no por cero.
 
 Para lo demás, nada impide programar. **Sí bloquea el registro real desde Vercel** el punto 1 de abajo.
 
@@ -192,7 +194,7 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 
 ## Cómo retomar en la próxima sesión
 
-1. Leer este archivo y la última entrada de [`docs/bitacora/`](docs/bitacora/).
+1. Leer este archivo y la última entrada de [`docs/bitacora/`](docs/bitacora/). **Si el incidente de "Bloqueos" sigue abierto, leer también su reporte antes de tocar nada.**
 2. Confirmar si alguna decisión abierta se resolvió y si el Product Owner hizo los pendientes 3 y 8.
 3. Continuar por "Lo siguiente".
 4. **Al cerrar**: actualizar este archivo, `docs/11-avance-por-requerimiento.md`, escribir la entrada de bitácora y hacer commit citando los `RF-xx`/`RNF-xx`.
