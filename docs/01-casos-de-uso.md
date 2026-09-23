@@ -75,7 +75,7 @@
 | **Descripción** | Camino directo de búsqueda, navegable sin suscripción activa (modo consulta) |
 | **Precondiciones** | Sesión iniciada con cuenta de **empresa o entidad**. Visitantes y consultores no acceden al catálogo (RN-33) *(mod. v6)* |
 | **Flujo principal** | 1. Abre el catálogo (publicadas y vigentes). 2. Busca por texto libre. 3. Aplica filtros combinables: tipo de proyecto, sector, entidad, rango de monto, ubicación, fecha de cierre. 4. Resultados en < 2 s |
-| **Flujos alternos** | 2a. **Chips de búsqueda sugerida** clickeables ("innovación agro Antioquia", "cooperación internacional ambiental") que precargan filtros y enseñan a usar la herramienta *(nuevo v4)*. 4a. Sin resultados → chips alternativos y sugerencia de relajar filtros |
+| **Flujos alternos** | 2a. **Chips de búsqueda sugerida** clickeables ("innovación agro Antioquia", "cooperación internacional ambiental") que precargan filtros y enseñan a usar la herramienta *(nuevo v4)*. **Se derivan del catálogo vigente —las categorías y ubicaciones más frecuentes entre las publicadas— para que ningún chip lleve a un resultado vacío** *(mod. v6, sesión 016)*. 4a. Sin resultados → chips alternativos y sugerencia de relajar filtros |
 
 #### CU-08 · Ver detalle y descargar documentos *(mod. v4, mod. v5)*
 

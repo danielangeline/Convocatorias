@@ -249,6 +249,17 @@ export function agregarMeses(fechaIso: string, meses: number): string {
 }
 
 /** Formatea un monto COP en notación corta en español (mill. / mil M). */
+/**
+ * Rango de una convocatoria sin inventar cifras (RNF-23): si la entidad no
+ * informó un extremo, no se escribe. "$ 1 – $ 5", "Hasta $ 5", "Desde $ 1".
+ */
+export function formatRangoCOP(min: number | null, max: number | null): string {
+  if (min != null && max != null) return min === max ? formatCOP(max) : `${formatCOP(min)} – ${formatCOP(max)}`;
+  if (max != null) return `Hasta ${formatCOP(max)}`;
+  if (min != null) return `Desde ${formatCOP(min)}`;
+  return "Monto no informado";
+}
+
 export function formatCOPCorto(valor: number): string {
   if (valor >= 1_000_000_000_000) {
     return `$${(valor / 1_000_000_000_000).toFixed(1).replace(".", ",")} billones`;

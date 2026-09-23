@@ -5,8 +5,8 @@
 
 ---
 
-**Actualizado:** 22 de septiembre de 2026 · cierre de la sesión 016
-**Sprint:** 2 · día 8 de 30
+**Actualizado:** 23 de septiembre de 2026 · cierre de la sesión 017
+**Sprint:** 2 · día 9 de 30
 **Rama de trabajo:** `sprint-2`, abierta desde `main` en la sesión 011 y subida a `origin` (sin fusionar a `main`: producción todavía no tiene el catálogo del panel). **Migraciones nuevas ya aplicadas al remoto:** `20260917100000_guardar_convocatoria`, `20260917200000_storage_y_adjuntos` , `20260918100000_publicar_convocatoria` y `20260918200000_nombres_normalizados_y_borrar_categorias`. No rompen `main`, que no las llama
 
 ---
@@ -17,6 +17,13 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 
 ## Lo último que se hizo
 
+- **Sesión 017: Sprint 2, paso 4 — el catálogo de la empresa contra datos reales (RF-11, 12, 13, 43, 44, RN-33).**
+  - `lib/catalogo.ts` lee con la sesión de la empresa, así que **la RLS decide qué existe**. Endpoints `GET /api/convocatorias` (con filtros), `GET /api/convocatorias/[id]`, `GET .../documentos/[docId]/enlace` y `GET /api/indicadores` (público), declarados en la matriz (RNF-30) y con segunda barrera: 401 sin sesión, 403 con otro rol.
+  - Catálogo y ficha son componentes de servidor que pasan los datos a la parte interactiva. Filtros en un solo módulo (`lib/catalogo-filtros.ts`) para pantalla y endpoint; chips derivados de lo vigente. El layout del portal entrega además el catálogo real al store, para que postular, generar y sugerencias trabajen con convocatorias y categorías reales.
+  - **La empresa ya descarga los adjuntos**: política de Storage nueva (`20260923100000`) que hereda la visibilidad de la fila. Y un defecto previo corregido: **los nombres con tilde se descargaban como `T%C3%A9rminos.pdf`** (storage-js codifica dos veces); afectaba también al panel.
+  - La landing muestra los indicadores reales, con caché de 1 hora que se invalida al publicar, despublicar o editar.
+  - Montos y fecha de apertura pasan a admitir nulo en el tipo `Convocatoria`, y el rango se escribe sin inventar ("Hasta $X"). El texto del documento con IA ya no afirma un rango que la entidad no dio (RNF-23).
+  - Verificado con `scripts/prueba-catalogo-empresa.mjs` (34 comprobaciones, todas pasan): RN-33 para visitante, consultor y empresa (también contra la tabla y contra Storage directamente), los filtros, la ficha, la descarga del archivo exacto y las pantallas. Sin regresiones en adjuntos, catálogo del panel y publicar. **RF-12, RF-13 y RF-44 pasan a `verificado`**; RF-11 y RF-43, a `servidor`.
 - **Sesión 016: diagnosticado el cuelgue al guardar convocatorias. No es el código: es la red de este equipo.** Ciertas peticiones HTTPS hacia Supabase se pierden según su tamaño exacto en bytes. Windows retransmite ~19 s y aborta con `ECONNRESET`.
   - Se siguió el plan del reporte. Postgres **nunca** vio la llamada colgada: vigilante sin filtro cada 250 ms y `pg_stat_statements`, con 63 ms como máximo. Con `fetch` instrumentado solo fallaba esa RPC, y también fuera de Next. La prueba decisiva: **sin sesión, sin datos y sin pool**, un `POST` anónimo con 1 460 bytes de relleno muere 4 de cada 30 veces, con 1 000 ninguna, y con 10 bytes más pasan todas.
   - `scripts/diagnostico-red-supabase.mjs` nuevo: lo reproduce en ~1 minuto sin tocar la base.
@@ -65,11 +72,11 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 - **Ya cerrada la sesión, a pedido del Product Owner:** no llegaba el correo de confirmación al crear una cuenta. Causa: registrarse con un correo que ya tiene cuenta devuelve éxito sin enviar nada (Supabase, para no revelar qué correos existen). Se borró la cuenta de administrador revocado `danielangeline322@gmail.com` y el Product Owner se registró con ella como empresa en producción: **RF-01 queda probado por el formulario con correo real**, con confirmación, perfil de empresa y trial de 3 créditos.
 - **Sesión 010:** entrada con dos puertas (RF-84) y recuperación de contraseña (RF-03). Cerró el Sprint 1.
 
-Detalle en [`docs/bitacora/2026-09-22-sesion-016.md`](docs/bitacora/2026-09-22-sesion-016.md).
+Detalle en [`docs/bitacora/2026-09-23-sesion-017.md`](docs/bitacora/2026-09-23-sesion-017.md).
 
 ## En curso
 
-**El paso 3 quedó a medias:** las reglas nuevas de publicación están puestas y probadas en su mayor parte. El cuelgue que impedía verificarlas ya tiene causa: la red de este equipo, no el código (sesión 016). Nada: el paso 3 quedó **verificado** en la sesión 016 (la suite de publicar pasa entera en una red sana) y se sigue por el paso 4.
+Nada a medias. **El paso 4 está hecho**; lo único que depende de él y aún no existe es el filtro explícito de cerradas, que es el paso 5.
 
 ## Lo siguiente
 
@@ -78,14 +85,14 @@ Detalle en [`docs/bitacora/2026-09-22-sesion-016.md`](docs/bitacora/2026-09-22-s
 1. ~~Endpoints de fuentes, convocatorias, categorías y requisitos (RF-04..06, 08)~~ — **sesión 011**. Los documentos adjuntos (RF-07) pasan al paso 2, que trae Storage.
 2. ~~Storage: 3 buckets privados con URLs firmadas de 15 min y adjuntos de convocatoria (RF-07, RNF-16, RNF-18)~~ — **sesión 012**. Los archivos del perfil del consultor (foto y hoja de vida) tienen ya su bucket y sus políticas; la pantalla y sus endpoints van con el módulo de consultores.
 3. ~~Publicación validada en servidor (RF-09, RN-01, RNF-29), con la advertencia de CU-05 3d~~ — **sesión 013**; ficha completa en la 015; **verificado en la 016**.
-4. Catálogo, filtros, chips e indicadores de la landing contra datos reales (RF-11, 12, 13, 43, 44), con `GET /api/convocatorias` para la empresa. **Solo cuentas de empresa** (RN-33): ni visitantes ni consultores.
+4. ~~Catálogo, filtros, chips e indicadores de la landing contra datos reales (RF-11, 12, 13, 43, 44), con `GET /api/convocatorias` para la empresa. **Solo cuentas de empresa** (RN-33): ni visitantes ni consultores.~~ — **sesión 017**.
 5. Cerradas fuera del listado salvo filtro explícito (RF-11, RN-02).
 6. Job diario de cierre (RF-10, CU-06).
 7. Vigencia verificada en servidor al postular y al generar (RF-78).
 
 **Regla vigente:** toda pantalla o endpoint nuevo se declara en `lib/autorizacion/matriz.ts`; si no, responde 404. Los endpoints del catálogo del panel cuelgan de `/api/admin`, así que ya los cubre la regla del panel.
 
-**Hito 2 (día 12):** un administrador carga una convocatoria real de principio a fin —datos, adjuntos, requisitos, enlace— y aparece en el catálogo de las empresas —no para visitantes ni consultores, RN-33—; una vencida desaparece sola al correr el job. *Hoy* ya se carga la convocatoria entera —datos, categorías, requisitos, enlace, adjuntos— **y se publica**; falta el catálogo de la empresa y ver correr el job de cierre.
+**Hito 2 (día 12):** un administrador carga una convocatoria real de principio a fin —datos, adjuntos, requisitos, enlace— y aparece en el catálogo de las empresas —no para visitantes ni consultores, RN-33—; una vencida desaparece sola al correr el job. *Hoy* ya se carga la convocatoria entera, se publica **y aparece en el catálogo de las empresas** (no para visitantes ni consultores, verificado); falta ver correr el job de cierre (paso 6).
 
 **Hito 1 (día 6) — cumplido** (sesión 010). Sigue vigente la condición: cada listado de empresa repite la prueba de aislamiento con dos empresas en pantalla al conectarse (proyectos y postulaciones en el Sprint 3; documentos y encargos en el Sprint 4).
 
@@ -102,7 +109,7 @@ Detalle en [`docs/bitacora/2026-09-22-sesion-016.md`](docs/bitacora/2026-09-22-s
 
 **Ninguno propio del Sprint 2.** El cuelgue al guardar convocatorias (sesión 015) quedó **cerrado** en la sesión 016: en el punto de acceso Wi-Fi del iPhone del Product Owner (misma tarjeta MT7902 y mismo filtro de VirtualBox), `diagnostico-red-supabase.mjs` salió `RED LIMPIA` dos veces (180/180; en la red de casa fallaban 6 de 90) y `prueba-publicar-convocatoria.mjs` pasó **tres veces seguidas, 39/39, sin un solo reintento**. La causa es el router o el proveedor de la red de casa: con la misma tarjeta Wi-Fi en otra red, no ocurre. En esa red, guardar puede seguir colgándose ~20 s; las opciones para evitarlo están en el §10 del [reporte](docs/incidentes/2026-09-22-cuelgue-al-guardar-convocatoria.md). **Ante un cuelgue así, correr primero `scripts/diagnostico-red-supabase.mjs`.**
 
-Para lo demás, nada impide programar. **Sí bloquea el registro real desde Vercel** el punto 1 de abajo.
+Para lo demás, nada impide programar.
 
 Pendiente del Product Owner:
 
@@ -113,24 +120,12 @@ Pendiente del Product Owner:
    - ~~revocar al administrador de prueba y comprobar que su sesión abierta pierde el panel~~ — **hecho el 17-sep** (sesión 011): `danielangeline322@gmail.com` revocado. `admin_revocado` quedó a las 13:15:49 y su sesión recibió `acceso_denegado` en `/admin` 9 s después;
    - ~~reenviar y cancelar una segunda invitación~~ — **hecho el 17-sep**, informado por el Product Owner al abrir la sesión 012. **Pendiente 3 cerrado.**
    - en `/admin/seguridad` todavía no se verán los eventos: esa pantalla sigue leyendo el mock.
-4. **Probar en el navegador con sesión** las cuentas de prueba `empresa.s004@example.com` y `consultor.s004@example.com`: login (ahora con las dos puertas y el aviso si eliges la otra), navbar con iniciales y "Salir", 3 créditos en el indicador y `/suscripcion` con el trial. Contraseña nueva dada en el chat de la sesión 010. **Ojo:** `scripts/prueba-matriz-roles.mjs` la vuelve a cambiar si se corre; en ese caso, pedir otra al agente. El QR de `/mfa` se prueba con la cuenta del Propietario.
+4. ~~**Probar en el navegador con sesión** la cuenta de empresa de prueba~~ — **hecho el 23-sep** con `empresa.s004@example.com` (contraseña nueva generada por el agente y verificada): entra al portal, barra con iniciales y "Salir", 3 créditos y el trial. **Ojo:** esa contraseña quedó escrita en el chat, y `scripts/prueba-matriz-roles.mjs` la vuelve a cambiar si se corre. `consultor.s004` no se probó. El QR de `/mfa` se prueba con la cuenta del Propietario.
 5. **SMTP propio antes de los pilotos** (p. ej. Resend): el correo por defecto de Supabase envía muy pocos mensajes por hora **y solo a direcciones del equipo del proyecto**. El 17-sep llegó bien a `danielangeline322@gmail.com` (registro real por el formulario, RF-01), pero eso no dice nada sobre una empresa piloto cualquiera.
 6. **Cambiar la contraseña de la base de datos** (quedó escrita en el chat de la sesión 003).
 7. **Docker Desktop no arranca** en esta máquina: no bloquea, pero obliga a ensayar las migraciones contra el remoto. **Ojo con el método** (hallazgo de la sesión 012): `db push` corre cada migración en su propia transacción, así que para ensayar una hay que poner el `raise` que la revierte **dentro de ese mismo archivo**, nunca en uno posterior.
 8. ~~**Recorrer el catálogo del panel en el navegador**~~ — **hecho el 17-sep**, informado por el Product Owner al abrir la sesión 012: todo funciona.
-9. **Recorrer la sección "Documentos" del editor en el navegador** (sesión 012). Mismo motivo que el pendiente 8: el agente no inicia sesión escribiendo contraseñas, así que lo probó por HTTP con la cookie del administrador, no en pantalla. En local con `npm run dev`, sobre una convocatoria en borrador:
-   - adjuntar un PDF y comprobar que aparece con su tamaño;
-   - renombrarlo y cambiarle el tipo;
-   - descargarlo (debe abrirse con el nombre descriptivo, no con un uuid);
-   - intentar adjuntar un archivo que no sea PDF/Word/Excel/ZIP: debe rechazarse con mensaje;
-   - quitarlo y recargar para comprobar que no vuelve.
-
-   Y de la sesión 013, sobre la misma convocatoria:
-   - pulsar **Publicar** sin enlace ni requisitos: debe rechazar diciendo **las dos cosas** que faltan;
-   - completarlos y publicar **sin ningún adjunto**: debe salir la advertencia, y al aceptar debe publicarse;
-   - comprobar que el botón pasa a **Despublicar**, usarlo y volver a publicar.
-
-   **Ojo:** lo que se suba queda en el bucket real y lo que se publique queda publicado; si es de prueba, avisar para borrarlo.
+9. ~~**Recorrer la sección "Documentos" del editor en el navegador**~~ — **hecho**: el Product Owner la recorrió en la sesión 015 (19/19 pasos) y el agente la repitió en la 016. Uno de sus pasos quedó obsoleto: publicar sin adjuntos ya no se permite (RN-01).
 
 ## Decisiones abiertas
 
@@ -200,6 +195,11 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | Un `next dev` que lleva horas vivo puede corromper su caché y responder **500 en rutas dinámicas** que funcionan perfectamente: al Product Owner le pasó con `PATCH /api/admin/fuentes/[id]` al desactivar una fuente. En `.next/dev/logs/next-development.log`: `Failed to generate static paths` y `Jest worker encountered 2 child process exceptions`. **Se arregla parando el proceso, borrando `.next` y arrancando de nuevo**; reproducido y confirmado con el servidor limpio | máquina local | media · ante un 500 inexplicable, reiniciar con la caché limpia antes de buscar el fallo en el código |
 | Ante un 500, la pantalla del panel muestra "No pudimos completar la acción. Intenta de nuevo.", igual que ante un fallo de red. Es correcto de cara al usuario, pero no distingue un servidor caído de un rechazo, y eso alargó el diagnóstico anterior | `lib/admin/peticion.ts` | baja · valorar distinguir el 5xx en el texto |
 | **El ensayo de una migración con `raise` en un archivo aparte no ensaya nada**: `supabase db push` corre cada migración en su propia transacción, así que el archivo de ensayo solo se revierte a sí mismo y la migración real anterior ya quedó aplicada | procedimiento de migraciones | **resuelto** en la sesión 012: el paso 6 de `docs/10 §17.3` fija que el `raise` va dentro del propio archivo |
+| **En el servidor, el store de Zustand solo tiene su estado inicial (datos de ejemplo).** `useAppStore` responde en el render del servidor con `getInitialState()`, así que cualquier pantalla que lea del store pinta primero datos de ejemplo y el navegador los cambia al hidratar. Se descubrió con el catálogo, que se pasó a props de servidor; siguen así la ficha de generar, postulaciones, sugerencias y el resto del portal | `lib/store.ts`, portal Empresa | media · resolver al pasar cada módulo a Supabase (Sprints 3 y 4) |
+| Los nombres con tilde en las descargas firmadas salían doblemente codificados (`T%C3%A9rminos.pdf`): `createSignedUrl({ download })` de storage-js codifica el nombre dos veces | `lib/supabase/descarga.ts` | **resuelto** en la sesión 017, también para el panel; si storage-js lo corrige, se puede volver a su opción |
+| "Vigente" se decide con `current_date` de Postgres, que va en UTC: desde las 7 p. m. hora de Colombia, una convocatoria que cierra ese día ya sale del catálogo | RLS de `convocatorias`, `lib/catalogo.ts` | media · decidir con el job de cierre (paso 6) si "cierra el día X" es hasta el final del día en Colombia |
+| `unstable_cache` (indicadores) está reemplazado por `use cache` en Next 16, pero `use cache` exige activar `cacheComponents` en todo el proyecto | `lib/catalogo.ts` | baja · migrar si se activa `cacheComponents` |
+| Las pruebas que crean convocatorias con `service_role` no invalidan la caché de indicadores: si la landing se calcula mientras corren, muestra hasta 1 hora cifras con datos de prueba (pasó el 23-sep). `prueba-catalogo-empresa.mjs` ya mide antes de crear contenido | pruebas | baja · tenerlo en cuenta al leer la landing en local |
 | `set role supabase_storage_admin` está negado al rol que corre las migraciones (42501), aunque ese mismo rol sí puede crear políticas sobre `storage.objects` | `supabase/migrations/` | baja · anotado en la migración |
 | Si la subida al bucket ocurre y el registro de la fila no, queda un objeto suelto. Es invisible (toda descarga parte de la fila) y la pantalla pide borrarlo, pero nadie barre los que queden de un navegador cerrado a media subida | `lib/admin/documentos.ts` | baja · valorar un job de limpieza antes de los pilotos |
 | Borrar una convocatoria arrastra sus filas de `documentos_convocatoria` por `on delete cascade`, pero **no** los objetos del bucket | `supabase/migrations/20260917200000` | baja · mismo job de limpieza |

@@ -98,3 +98,15 @@ export function useEncargosPropios() {
   const encargos = useAppStore((s) => s.encargos);
   return useMemo(() => encargos.filter((e) => e.empresaId === usuarioId), [encargos, usuarioId]);
 }
+
+/**
+ * Busca una categoría en el store, que en el portal Empresa tiene las reales
+ * desde el Sprint 2 paso 4. Sustituye a `categoriaPorId` de los datos de ejemplo.
+ */
+export function useCategoriaPorId() {
+  const categorias = useAppStore((s) => s.categorias);
+  return useMemo(() => {
+    const porId = new Map(categorias.map((c) => [c.id, c]));
+    return (id: string) => porId.get(id);
+  }, [categorias]);
+}

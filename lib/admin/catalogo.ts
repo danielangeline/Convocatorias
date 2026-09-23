@@ -2,6 +2,7 @@ import "server-only";
 import type { PostgrestError } from "@supabase/supabase-js";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { leerMontoCOP } from "@/lib/montos";
+import { refrescarIndicadores } from "@/lib/catalogo";
 import type {
   CategoriaAdmin,
   ConvocatoriaAdmin,
@@ -100,7 +101,6 @@ function fechaValida(valor: string): boolean {
   const d = new Date(`${valor}T00:00:00Z`);
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === valor;
 }
-
 
 // ---------------------------------------------------------------------------
 // Fuentes (CU-01, RF-04)
@@ -469,6 +469,7 @@ export async function guardarConvocatoria(id: string, cuerpo: Cuerpo): Promise<R
 
   const guardada = await obtenerConvocatoria(id);
   if (!guardada) return { ok: false, status: 404, error: "La convocatoria no existe." };
+  refrescarIndicadores();
   return { ok: true, datos: guardada };
 }
 
@@ -517,5 +518,6 @@ export async function cambiarPublicacion(id: string, publicar: boolean): Promise
 
   const guardada = await obtenerConvocatoria(id);
   if (!guardada) return { ok: false, status: 404, error: "La convocatoria no existe." };
+  refrescarIndicadores();
   return { ok: true, datos: guardada };
 }

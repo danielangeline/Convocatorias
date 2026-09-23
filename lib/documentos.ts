@@ -1,5 +1,5 @@
 import type { Convocatoria, DocumentoGenerado, Postulacion, Proyecto, SeccionDocumento } from "./types";
-import { formatCOP, formatFecha } from "./utils";
+import { formatCOP, formatFecha, formatRangoCOP } from "./utils";
 
 const PATRON_COMPLETAR = /\[COMPLETAR:\s*([^\]]+)\]/g;
 
@@ -57,7 +57,11 @@ export function componerDocumento(proyecto: Proyecto, convocatoria: Convocatoria
       contenido:
         `${proyecto.nombre} presenta esta propuesta a la convocatoria "${convocatoria.nombre}", ` +
         `convocada por ${convocatoria.entidadConvocante}. ${campo(proyecto.descripcion, "una descripción general del proyecto")} ` +
-        `El proyecto busca una financiación de ${formatCOP(proyecto.montoBuscado)}, dentro del rango de ${formatCOP(convocatoria.montoMin)} a ${formatCOP(convocatoria.montoMax)} que ofrece esta convocatoria.`,
+        `El proyecto busca una financiación de ${formatCOP(proyecto.montoBuscado)}` +
+        // RNF-23: si la entidad no informó el monto, no se menciona ningún rango.
+        (convocatoria.montoMin == null && convocatoria.montoMax == null
+          ? "."
+          : `; el monto que ofrece esta convocatoria es: ${formatRangoCOP(convocatoria.montoMin, convocatoria.montoMax).toLowerCase()}.`),
     },
     {
       id: "problema-justificacion",

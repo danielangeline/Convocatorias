@@ -4,8 +4,8 @@ import { use, useMemo } from "react";
 import Link from "next/link";
 import { ArrowLeft, Check, X as XIcon, MapPin, Wallet, Info } from "lucide-react";
 import { useAppStore } from "@/lib/store";
-import type { Convocatoria, Proyecto } from "@/lib/types";
-import { diasRestantes, formatCOP, ESTADO_CONVOCATORIA_LABEL, ESTADO_CONVOCATORIA_ESTILO } from "@/lib/utils";
+import type { Convocatoria, Proyecto, TipoCategoria } from "@/lib/types";
+import { diasRestantes, formatRangoCOP, ESTADO_CONVOCATORIA_LABEL, ESTADO_CONVOCATORIA_ESTILO } from "@/lib/utils";
 import { useAccesoSuscripcion, useProyectosPropios } from "@/lib/hooks";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -18,16 +18,24 @@ type Criterio = {
   cumple: boolean;
 };
 
-function evaluarCriterios(proyecto: Proyecto, convocatoria: Convocatoria): Criterio[] {
-  const sectorProyecto = proyecto.categorias.filter((c) => c.startsWith("sec-"));
-  const tipoProyectoProyecto = proyecto.categorias.filter((c) => c.startsWith("tp-"));
-  const tipoEntidadProyecto = proyecto.categorias.filter((c) => c.startsWith("te-"));
+// El tipo de cada categoría se busca, no se deduce del id: las reales son uuid
+// (sesión 016); el prefijo solo existía en los datos de ejemplo.
+function evaluarCriterios(
+  proyecto: Proyecto,
+  convocatoria: Convocatoria,
+  tipoDe: (id: string) => TipoCategoria | undefined
+): Criterio[] {
+  const sectorProyecto = proyecto.categorias.filter((c) => tipoDe(c) === "sector");
+  const tipoProyectoProyecto = proyecto.categorias.filter((c) => tipoDe(c) === "tipo_proyecto");
+  const tipoEntidadProyecto = proyecto.categorias.filter((c) => tipoDe(c) === "tipo_entidad");
 
   const sectorMatch = sectorProyecto.some((c) => convocatoria.categorias.includes(c));
   const tipoProyectoMatch = tipoProyectoProyecto.some((c) => convocatoria.categorias.includes(c));
   const tipoEntidadMatch = tipoEntidadProyecto.some((c) => convocatoria.categorias.includes(c));
+  // Un extremo que la entidad no informó no pone límite.
   const montoMatch =
-    proyecto.montoBuscado >= convocatoria.montoMin && proyecto.montoBuscado <= convocatoria.montoMax;
+    (convocatoria.montoMin == null || proyecto.montoBuscado >= convocatoria.montoMin) &&
+    (convocatoria.montoMax == null || proyecto.montoBuscado <= convocatoria.montoMax);
   const ubicacionMatch =
     convocatoria.ubicacion.toLowerCase().includes("nacional") ||
     convocatoria.ubicacion.toLowerCase().includes(proyecto.ubicacion.toLowerCase()) ||
@@ -79,6 +87,7 @@ export default function SugerenciasPage({ params }: { params: Promise<{ id: stri
   const { id } = use(params);
   const proyecto = useProyectosPropios().find((p) => p.id === id);
   const convocatorias = useAppStore((s) => s.convocatorias);
+  const categorias = useAppStore((s) => s.categorias);
   const { tieneAcceso, requerirAcceso } = useAccesoSuscripcion();
 
   const sugerencias = useMemo(() => {
@@ -88,14 +97,14 @@ export default function SugerenciasPage({ params }: { params: Promise<{ id: stri
       // fecha pasó queda fuera aunque el job diario no la haya cerrado.
       .filter((c) => c.estado === "publicada" && diasRestantes(c.fechaCierre) >= 0)
       .map((c) => {
-        const criterios = evaluarCriterios(proyecto, c);
+        const criterios = evaluarCriterios(proyecto, c, (cid) => categorias.find((cat) => cat.id === cid)?.tipo);
         const coincidencias = criterios.filter((cr) => cr.cumple).length;
         const porcentaje = Math.round((coincidencias / criterios.length) * 100);
         return { convocatoria: c, criterios, coincidencias, porcentaje };
       })
       .filter((s) => s.coincidencias > 0)
       .sort((a, b) => b.porcentaje - a.porcentaje);
-  }, [proyecto, convocatorias]);
+  }, [proyecto, convocatorias, categorias]);
 
   if (!proyecto) {
     return (
@@ -211,7 +220,7 @@ export default function SugerenciasPage({ params }: { params: Promise<{ id: stri
                   <span className="flex items-center gap-1">
                     <Wallet className="h-3.5 w-3.5" />
                     <span className="font-tabular">
-                      {formatCOP(convocatoria.montoMin)} – {formatCOP(convocatoria.montoMax)}
+                      {formatRangoCOP(convocatoria.montoMin, convocatoria.montoMax)}
                     </span>
                   </span>
                   <span className="flex items-center gap-1">

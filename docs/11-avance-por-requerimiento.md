@@ -52,14 +52,14 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 
 | RF | Estado | Nota |
 |---|---|---|
-| RF-11 Catálogo, cerradas bajo filtro | prototipo | Filtro explícito ya implementado |
-| RF-12 Filtros combinables | prototipo | |
-| RF-13 Ficha de detalle | prototipo | |
+| RF-11 Catálogo, cerradas bajo filtro | servidor | **Sesión 017:** el catálogo lee de Supabase con la sesión de la empresa (`lib/catalogo.ts`, `GET /api/convocatorias`): publicadas y vigentes, sin borradores ni vencidas; visitante redirigido a `/login` y consultor con 403 (RN-33), verificado en `scripts/prueba-catalogo-empresa.mjs` (34 comprobaciones, todas pasan). **Falta el filtro explícito de cerradas** (paso 5): la RLS aún no deja leerlas, así que el control se retiró de la pantalla hasta entonces |
+| RF-12 Filtros combinables | verificado | **Sesión 017:** texto libre sin tildes, tipo de proyecto, sector, entidad, ubicación, monto (formato colombiano) y cierre, en un solo módulo (`lib/catalogo-filtros.ts`) que usan la pantalla y el endpoint. 10 comprobaciones de filtros en `scripts/prueba-catalogo-empresa.mjs` (34 comprobaciones, todas pasan) |
+| RF-13 Ficha de detalle | verificado | **Sesión 017:** la ficha se lee en el servidor con la sesión de la empresa (un borrador da 404); requisitos, documentos y enlace oficial reales; **Descargar** pide una URL firmada de 15 min y baja el archivo exacto con su nombre descriptivo, tildes incluidas. Verificado en `scripts/prueba-catalogo-empresa.mjs` (34 comprobaciones, todas pasan) |
 | RF-14 Registrar proyectos | prototipo | Sin columna de propietario |
 | RF-15 Sugerencias, solo vigentes | prototipo | |
 | RF-16 Porcentaje de compatibilidad | prototipo | |
-| RF-43 Chips sugeridos | prototipo | |
-| RF-44 Indicadores de la landing | prototipo | Cifra correcta en el primer fotograma. Sesión 006: `public.indicadores_catalogo()` ya da los agregados a `anon` (probado); la landing aún lee el mock |
+| RF-43 Chips sugeridos | servidor | **Sesión 017:** se derivan del catálogo vigente (categorías y ubicaciones más frecuentes), así que ninguno lleva a un resultado vacío (RF-43 mod. v6) |
+| RF-44 Indicadores de la landing | verificado | Cifra correcta en el primer fotograma. Sesión 006: `public.indicadores_catalogo()` ya da los agregados a `anon`. **Sesión 017:** la landing y `GET /api/indicadores` los leen en vivo con caché de 1 hora, que se invalida al publicar, despublicar o editar una convocatoria; si no se pueden calcular, no se muestran. Verificado en `scripts/prueba-catalogo-empresa.mjs` (34 comprobaciones, todas pasan) y en el navegador |
 
 ### 4.4 Proyectos enriquecidos
 
@@ -199,7 +199,7 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RNF-13 Evolución | — | — | Atributo de diseño, ya satisfecho |
 | RNF-14 Catálogos administrables | prototipo | 4 | RF-82 ya lo respeta |
 | RNF-15 Portabilidad | — | — | Atributo de diseño |
-| RNF-16 Datos personales | servidor | 2 | **Sesión 012:** los 3 buckets existen y **los tres son privados** (se corrigió `docs/04`, que dejaba públicos dos: con RN-33 los adjuntos no pueden servirse a quien adivine la ruta). La descarga es siempre una URL firmada de 15 min, y quién puede pedirla lo decide la RLS sobre la fila, no la ruta. Probado: `exp - iat` del token = 900 s; la ruta sin firmar → denegada; una cuenta de empresa no lista ni escribe en el bucket. **Falta** lo del consultor: la parte de hoja de vida y la prueba cruzada por pareja empresa-consultor (RN-12, RF-80) llegan con su módulo |
+| RNF-16 Datos personales | servidor | 2 | **Sesión 012:** los 3 buckets existen y **los tres son privados** (se corrigió `docs/04`, que dejaba públicos dos: con RN-33 los adjuntos no pueden servirse a quien adivine la ruta). La descarga es siempre una URL firmada de 15 min, y quién puede pedirla lo decide la RLS sobre la fila, no la ruta. Probado: `exp - iat` del token = 900 s; la ruta sin firmar → denegada; una cuenta de empresa no lista ni escribe en el bucket. **Falta** lo del consultor: la parte de hoja de vida y la prueba cruzada por pareja empresa-consultor (RN-12, RF-80) llegan con su módulo **Sesión 017:** la empresa descarga los adjuntos de las convocatorias que puede ver, con una política de Storage que hereda la visibilidad de la fila (docs/05 §9.14); consultor y borradores, rechazados también firmando directo contra Storage |
 | RNF-17 Integridad del rating | prototipo | 5 | RLS y trigger listos (sesión 003): segunda calificación rechazada, edición sin efecto, rating recalculado |
 | RNF-18 Archivos de perfil y adjuntos | servidor | 2 | **Sesión 012:** el límite y los tipos se declaran **en el bucket** (20 MB y PDF/Word/Excel/ZIP para adjuntos; 5 MB JPG/PNG para la foto; 10 MB PDF para la hoja de vida), así que una subida directa que los incumpla la rechaza Storage aunque nadie la revise. El servidor lo valida antes de firmar y otra vez al registrar, exigiendo que el tipo real case con la extensión; la pantalla avisa primero. Probado: .exe → 400, 21 MB → 400, un PDF subido como .zip → 400 y el objeto se borra. **Falta:** los archivos del perfil del consultor, que llegan con su módulo |
 | RNF-19 Rendimiento del directorio | pendiente | 5 | |

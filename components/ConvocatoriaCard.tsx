@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { MapPin, Clock, Landmark } from "lucide-react";
-import type { Convocatoria } from "@/lib/types";
-import { categoriaPorId } from "@/lib/mock-data";
+import type { Categoria, Convocatoria } from "@/lib/types";
 import {
   cn,
   diasRestantes,
-  formatCOP,
+  formatRangoCOP,
   formatFecha,
   ESTADO_CONVOCATORIA_LABEL,
   ESTADO_CONVOCATORIA_ESTILO,
@@ -13,12 +12,15 @@ import {
 import { Badge } from "./ui/Badge";
 import { Chip } from "./ui/Chip";
 
-export function ConvocatoriaCard({ convocatoria }: { convocatoria: Convocatoria }) {
+export function ConvocatoriaCard({ convocatoria, categorias }: { convocatoria: Convocatoria; categorias: Categoria[] }) {
   const dias = diasRestantes(convocatoria.fechaCierre);
   const esUrgente = convocatoria.estado === "publicada" && dias >= 0 && dias < 15;
   const yaCerro = dias < 0 || convocatoria.estado === "cerrada";
 
-  const categoriasVisibles = convocatoria.categorias.slice(0, 3).map((id) => categoriaPorId(id)).filter(Boolean);
+  const categoriasVisibles = convocatoria.categorias
+    .map((id) => categorias.find((c) => c.id === id))
+    .filter(Boolean)
+    .slice(0, 3);
 
   return (
     <Link
@@ -64,7 +66,7 @@ export function ConvocatoriaCard({ convocatoria }: { convocatoria: Convocatoria 
       <div className="flex items-center justify-between gap-3 border-t border-line-soft bg-primary-50/40 px-5 py-3">
         <div>
           <p className="font-tabular text-sm font-semibold text-primary-800">
-            {formatCOP(convocatoria.montoMin)} – {formatCOP(convocatoria.montoMax)}
+            {formatRangoCOP(convocatoria.montoMin, convocatoria.montoMax)}
           </p>
           <p className="mt-0.5 flex items-center gap-1 text-xs text-ink-faint">
             <MapPin className="h-3 w-3" /> {convocatoria.ubicacion}

@@ -5,8 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, MapPin, Wallet, Sparkles, UserPlus, FileStack, Users, X, Pencil } from "lucide-react";
 import { useAppStore } from "@/lib/store";
-import { categoriaPorId } from "@/lib/mock-data";
-import { useAccesoSuscripcion, useEncargosPropios, useProyectosPropios } from "@/lib/hooks";
+import { useAccesoSuscripcion, useEncargosPropios, useProyectosPropios, useCategoriaPorId } from "@/lib/hooks";
 import { diasRestantes, formatCOP } from "@/lib/utils";
 import { Chip } from "@/components/ui/Chip";
 import { Button, LinkButton } from "@/components/ui/Button";
@@ -16,6 +15,7 @@ import { ProyectoFormModal } from "@/components/ProyectoFormModal";
 import type { CampoContenido } from "@/lib/proyectos";
 
 export default function DetalleProyectoPage({ params }: { params: Promise<{ id: string }> }) {
+  const categoriaPorId = useCategoriaPorId();
   const { id } = use(params);
   const router = useRouter();
   const proyecto = useProyectosPropios().find((p) => p.id === id);

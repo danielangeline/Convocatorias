@@ -110,6 +110,8 @@ interface AppState {
   // Sesión real de Supabase Auth, entregada por el layout del servidor
   sesion: DatosSesion["sesion"] | null;
   hidratarSesion: (datos: DatosSesion) => void;
+  /** Sprint 2 paso 4: el catálogo real, ya autorizado en el servidor (RN-33). */
+  hidratarCatalogo: (convocatorias: Convocatoria[], categorias: Categoria[]) => void;
 
   // Seguridad y auditoría (CU-38..40, RNF-25..28, nuevo v5)
   liberarBloqueoSeguridad: (eventoId: string) => void;
@@ -239,6 +241,11 @@ export const useAppStore = create<AppState>((set, get) => ({
   // Mientras las demás entidades sigan en datos de ejemplo, la suscripción, el
   // plan y el perfil de consultor reales se integran a esas listas para que el
   // resto de la interfaz los encuentre por el id de la sesión.
+  // Las convocatorias y categorías de ejemplo se sustituyen por las reales: el
+  // resto del portal (postular, generar, sugerencias) las busca aquí mientras
+  // sus propios endpoints no existan (Sprints 3 y 4).
+  hidratarCatalogo: (convocatorias, categorias) => set({ convocatorias, categorias }),
+
   hidratarSesion: (datos) => {
     set((s) => {
       let planes = s.planes;

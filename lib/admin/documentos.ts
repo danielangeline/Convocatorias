@@ -1,5 +1,6 @@
 import "server-only";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
+import { firmarDescarga } from "@/lib/supabase/descarga";
 import type { DocumentoAdmin, TipoDocumento } from "@/lib/types";
 import type { Resultado } from "./administradores";
 
@@ -294,12 +295,10 @@ export async function enlaceDeDescarga(
   const extension = extensionDe(fila.storage_path);
   const nombreDescarga = extensionDe(fila.nombre) === extension ? fila.nombre : `${fila.nombre}.${extension}`;
 
-  const { data, error: eUrl } = await supabase.storage
-    .from(BUCKET)
-    .createSignedUrl(fila.storage_path, 900, { download: nombreDescarga });
-  if (eUrl || !data) {
-    console.error("Adjuntos: no se pudo firmar la descarga", eUrl?.message);
+  const firma = await firmarDescarga(supabase, BUCKET, fila.storage_path, nombreDescarga);
+  if ("error" in firma) {
+    console.error("Adjuntos: no se pudo firmar la descarga", firma.error);
     return { ok: false, status: 500, error: "No pudimos preparar la descarga. Intenta de nuevo." };
   }
-  return { ok: true, datos: { url: data.signedUrl, nombre: nombreDescarga } };
+  return { ok: true, datos: { url: firma.url, nombre: nombreDescarga } };
 }

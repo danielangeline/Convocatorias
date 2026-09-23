@@ -33,10 +33,11 @@ export interface Convocatoria {
   nombre: string;
   entidadConvocante: string;
   descripcion: string;
-  montoMin: number;
-  montoMax: number;
+  // Nulos cuando la entidad no los informa: nunca se rellenan con 0 (RNF-23).
+  montoMin: number | null;
+  montoMax: number | null;
   ubicacion: string;
-  fechaApertura: string; // ISO date
+  fechaApertura: string | null; // ISO date
   fechaCierre: string; // ISO date
   estado: EstadoConvocatoria;
   categorias: string[]; // Categoria ids

@@ -12,8 +12,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
-import { categoriaPorId } from "@/lib/mock-data";
-import { useAccesoSuscripcion, useCreditos, useProyectosPropios } from "@/lib/hooks";
+import { useAccesoSuscripcion, useCreditos, useProyectosPropios, useCategoriaPorId } from "@/lib/hooks";
 import { calcularCompletitud } from "@/lib/proyectos";
 import { cn } from "@/lib/utils";
 import { CompletitudBadge } from "@/components/CompletitudProyecto";
@@ -28,6 +27,7 @@ const MENSAJES_CARGA = [
 ];
 
 export default function GenerarDocumentoPage({ params }: { params: Promise<{ id: string }> }) {
+  const categoriaPorId = useCategoriaPorId();
   const { id } = use(params);
   const router = useRouter();
   const convocatoria = useAppStore((s) => s.convocatorias.find((c) => c.id === id));

@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { Sparkles, X } from "lucide-react";
 import { useAppStore } from "@/lib/store";
-import { categorias } from "@/lib/mock-data";
 import type { Proyecto } from "@/lib/types";
 import type { CampoContenido } from "@/lib/proyectos";
 import { Button } from "./ui/Button";
@@ -85,6 +84,8 @@ export function ProyectoFormModal({
   campoInicial?: ClaveContenido | null;
   onClose: () => void;
 }) {
+  // Sprint 2 paso 4: las categorías reales, para que las sugerencias crucen con las convocatorias.
+  const categorias = useAppStore((s) => s.categorias);
   const agregarProyecto = useAppStore((s) => s.agregarProyecto);
   const actualizarProyecto = useAppStore((s) => s.actualizarProyecto);
 

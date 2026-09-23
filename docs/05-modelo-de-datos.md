@@ -417,6 +417,10 @@ Si el paso 3 no llega a ocurrir, queda un objeto sin fila: **invisible para todo
 
 `GET /api/admin/convocatorias/[id]/documentos/[docId]/enlace` devuelve una URL firmada de 15 minutos, con el nombre descriptivo como nombre de descarga. **La autorización la decide la RLS**: el servidor lee primero la fila de `documentos_convocatoria` con la sesión de quien pide —si no puede verla, no existe para él— y solo entonces firma. El mismo endpoint sirve a la empresa cuando llegue el catálogo (Sprint 2, paso 4), sin cambiar la regla: la fila es visible o no lo es.
 
+#### La empresa descarga los adjuntos *(sesión 016, Sprint 2 paso 4)*
+
+Hasta aquí solo el administrador podía leer objetos del bucket `documentos-convocatorias`, y firmar una URL de descarga exige poder leer el objeto con la sesión de quien la pide. Se añade una política de `select` sobre `storage.objects` para `authenticated`: **un objeto se puede leer si su fila de `documentos_convocatoria` es visible para quien pide** (`exists (select 1 from documentos_convocatoria d where d.storage_path = name)`). Así Storage hereda la visibilidad de la tabla, que a su vez hereda la de `convocatorias`: la empresa descarga los adjuntos de las publicadas y vigentes (RN-33), y nadie más gana acceso. No se abre el bucket ni se firma con `service_role`.
+
 #### Columnas nuevas en `documentos_convocatoria`
 
 | Columna | Tipo | Para qué |

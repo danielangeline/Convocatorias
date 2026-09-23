@@ -7,17 +7,11 @@ import {
   LineChart,
   ArrowRight,
 } from "lucide-react";
-import { convocatorias, consultores } from "@/lib/mock-data";
-import { diasRestantes } from "@/lib/utils";
 import { LinkButton } from "@/components/ui/Button";
 import { ContadorAnimado } from "@/components/ContadorAnimado";
 import { haySesion } from "@/lib/auth";
+import { obtenerIndicadores } from "@/lib/catalogo";
 
-const vigentes = convocatorias.filter((c) => c.estado === "publicada" && diasRestantes(c.fechaCierre) >= 0);
-
-const montoTotalDisponible = vigentes.reduce((acc, c) => acc + c.montoMax, 0);
-const entidadesConvocantes = new Set(convocatorias.map((c) => c.entidadConvocante)).size;
-const consultoresAprobados = consultores.filter((c) => c.estadoPerfil === "aprobado" && !c.esEquipoInterno).length;
 
 const PUERTAS = [
   {
@@ -37,7 +31,9 @@ const PUERTAS = [
 ] as const;
 
 export default async function LandingPage() {
-  const conSesion = await haySesion();
+  // RF-44: cifras reales, calculadas en el servidor con caché de 1 hora. Si no
+  // se pueden calcular, no se muestran: una cifra inventada es peor que ninguna.
+  const [conSesion, indicadores] = await Promise.all([haySesion(), obtenerIndicadores()]);
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
@@ -87,24 +83,26 @@ export default async function LandingPage() {
               cooperación internacional y fondos regionales. Postúlate,
               cumple los requisitos y haz seguimiento sin perder el hilo.
             </p>
+            {indicadores && (
             <div className="mt-10 grid grid-cols-2 gap-6 border-t border-line pt-6 sm:grid-cols-4">
               <div>
-                <ContadorAnimado valor={vigentes.length} />
+                <ContadorAnimado valor={indicadores.convocatoriasVigentes} />
                 <p className="text-xs text-ink-faint">Convocatorias vigentes</p>
               </div>
               <div>
-                <ContadorAnimado valor={montoTotalDisponible} variante="cop-corto" />
+                <ContadorAnimado valor={indicadores.montoDisponible} variante="cop-corto" />
                 <p className="text-xs text-ink-faint">Monto total disponible</p>
               </div>
               <div>
-                <ContadorAnimado valor={entidadesConvocantes} />
+                <ContadorAnimado valor={indicadores.entidades} />
                 <p className="text-xs text-ink-faint">Entidades convocantes</p>
               </div>
               <div>
-                <ContadorAnimado valor={consultoresAprobados} />
+                <ContadorAnimado valor={indicadores.consultoresAprobados} />
                 <p className="text-xs text-ink-faint">Consultores aprobados</p>
               </div>
             </div>
+            )}
           </div>
 
           {/* RF-84: las dos puertas. Ninguna convocatoria individual a la vista sin cuenta de empresa (RN-33) */}
@@ -210,7 +208,7 @@ export default async function LandingPage() {
       </section>
 
       <footer className="border-t border-line-soft py-6 text-center text-xs text-ink-faint">
-        Plataforma de Gestión de Convocatorias — prototipo visual, datos de ejemplo.
+        Plataforma de Gestión de Convocatorias — las cifras del catálogo se calculan en vivo.
       </footer>
     </div>
   );

@@ -15,8 +15,8 @@
 | CU-04 Definir requisitos | RF-08 | RN-04 |
 | CU-05 Publicar *(v5: exige enlace válido)* | RF-09 | RN-01, RNF-11, 29 |
 | CU-06 Cierre automático | RF-10 | RN-02, RNF-12 |
-| CU-07 Catálogo y chips *(v6: cerradas fuera del listado por defecto; solo empresas)* | RF-11, 12, 43 | RNF-04, **RN-02, RN-33** |
-| CU-08 Detalle y descargas *(v5: enlace al portal; v6: solo empresas)* | RF-13, **73** | RNF-06, **RN-33** |
+| CU-07 Catálogo y chips *(v6: cerradas fuera del listado por defecto; solo empresas; sesión 016: chips derivados del catálogo vigente)* | RF-11, 12, 43 | RNF-04, **RN-02, RN-33** |
+| CU-08 Detalle y descargas *(v5: enlace al portal; v6: solo empresas; sesión 016: descarga por URL firmada heredando la visibilidad de la fila)* | RF-13, **73** | RNF-06, **RNF-16**, **RN-33** |
 | CU-09 Proyecto enriquecido *(v6: completitud accionable)* | RF-14, 45, 46, 47, **81** | RN-21, RNF-03, **RNF-07** |
 | CU-10 Sugerencias con % *(v6: solo vigentes)* | RF-15, 16 | RN-05, RNF-05, **RN-02** |
 | CU-11 Iniciar postulación *(v6: vigencia verificada en servidor)* | RF-17, 21, **78** | RN-03, 04, 19, **RNF-20** |

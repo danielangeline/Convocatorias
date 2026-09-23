@@ -1,0 +1,32 @@
+import { NextResponse, type NextRequest } from "next/server";
+import { conEmpresa } from "@/lib/api-empresa";
+import { listarCatalogo } from "@/lib/catalogo";
+import { filtrarCatalogo } from "@/lib/catalogo-filtros";
+import { leerMontoCOP } from "@/lib/montos";
+
+// RF-11, RF-12, CU-07 · Catálogo de la empresa: publicadas y vigentes (RN-33),
+// con texto libre y filtros combinables. Las categorías van como ids separados
+// por comas; montoHasta en pesos, en formato colombiano (CU-02 2b).
+export async function GET(request: NextRequest) {
+  return conEmpresa(async () => {
+    const p = request.nextUrl.searchParams;
+    const lista = (clave: string) => (p.get(clave) ?? "").split(",").map((v) => v.trim()).filter(Boolean);
+    const monto = leerMontoCOP(p.get("montoHasta") ?? "");
+    if (!monto.ok) return NextResponse.json({ error: `El monto ${monto.error}` }, { status: 400 });
+    const cierre = p.get("cierraAntesDe") ?? "";
+    if (cierre && !/^\d{4}-\d{2}-\d{2}$/.test(cierre)) {
+      return NextResponse.json({ error: "La fecha de cierre debe ir como AAAA-MM-DD." }, { status: 400 });
+    }
+
+    const datos = filtrarCatalogo(await listarCatalogo(), {
+      q: p.get("q") ?? "",
+      tipoProyecto: lista("tipoProyecto"),
+      sector: lista("sector"),
+      entidad: p.get("entidad") ?? "",
+      ubicacion: p.get("ubicacion") ?? "",
+      montoHasta: monto.valor,
+      cierraAntesDe: cierre,
+    });
+    return NextResponse.json({ ok: true, datos });
+  });
+}
