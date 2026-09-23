@@ -56,7 +56,6 @@ export function EditorConvocatoria({
   const [mensaje, setMensaje] = useState<{ tipo: "error" | "exito"; texto: string } | null>(null);
   const [guardando, setGuardando] = useState(false);
   const [estado, setEstado] = useState(convocatoria.estado);
-  const [documentos, setDocumentos] = useState(convocatoria.documentos);
   const [publicando, setPublicando] = useState(false);
 
   const campo = (nombre: keyof typeof form) => ({
@@ -69,49 +68,49 @@ export function EditorConvocatoria({
   const fuentesOfrecidas = fuentes.filter((f) => f.activa || f.id === convocatoria.fuenteId);
   const categoriasOfrecidas = categorias.filter((c) => c.activa || convocatoria.categorias.includes(c.id));
 
-  const guardar = async () => {
-    setGuardando(true);
-    setMensaje(null);
+  /** Envía el formulario y deja la pantalla al día. Devuelve si el guardado pasó. */
+  const enviarFormulario = async (): Promise<boolean> => {
     const r = await peticionAdmin<ConvocatoriaAdmin>(`/api/admin/convocatorias/${convocatoria.id}`, "PATCH", {
       ...form,
       categorias: categoriasSel,
       requisitos: requisitos.map(({ id, descripcion, tipo, obligatorio }) => ({ id, descripcion, tipo, obligatorio })),
     });
-    setGuardando(false);
     if (!r.ok) {
       setMensaje({ tipo: "error", texto: r.error });
-      return;
+      return false;
     }
     // Los requisitos nuevos reciben su id del servidor.
     setRequisitos(r.datos.requisitos.map((req) => ({ ...req, clave: req.id ?? nuevaClave() })));
     setEstado(r.datos.estado);
+    return true;
+  };
+
+  const guardar = async () => {
+    setGuardando(true);
+    setMensaje(null);
+    const ok = await enviarFormulario();
+    setGuardando(false);
+    if (!ok) return;
     setMensaje({ tipo: "exito", texto: "Cambios guardados." });
     router.refresh();
   };
 
   /**
-   * CU-05 · Publicar y despublicar (RF-09). Lo que falta lo decide y lo enumera
-   * el servidor (RNF-20); aquí solo se advierte de lo que no impide publicar:
-   * una convocatoria sin adjuntos se publica, pero la generación con IA pierde
-   * el texto del TDR como contexto (CU-05 3d).
+   * CU-05 · Publicar y despublicar (RF-09).
+   *
+   * **Publicar guarda primero** lo que hay en el formulario y solo publica si
+   * ese guardado pasa (CU-05 3d). Sin eso se publicaba lo último guardado
+   * aunque en pantalla hubiera otra cosa, y el administrador no tenía forma de
+   * notarlo. Qué falta para publicar lo decide y lo enumera el servidor
+   * (RNF-20): aquí no se adelanta ningún juicio.
    */
   const cambiarPublicacion = async (publicar: boolean) => {
-    if (publicar && documentos.length === 0) {
-      const sigue = window.confirm(
-        [
-          "Esta convocatoria no tiene ningún documento adjunto.",
-          "",
-          "Se puede publicar igual, y la empresa siempre tendrá el enlace oficial de la entidad. " +
-            "Pero al generar el documento con IA no se contará con el texto de los términos de " +
-            "referencia, así que el borrador saldrá más pobre.",
-          "",
-          "¿Publicar de todos modos?",
-        ].join("\n")
-      );
-      if (!sigue) return;
-    }
     setPublicando(true);
     setMensaje(null);
+    if (publicar && !(await enviarFormulario())) {
+      setPublicando(false);
+      return;
+    }
     const r = await peticionAdmin<ConvocatoriaAdmin>(
       `/api/admin/convocatorias/${convocatoria.id}/${publicar ? "publicar" : "despublicar"}`,
       "POST",
@@ -295,11 +294,7 @@ export function EditorConvocatoria({
         </Seccion>
 
         <Seccion titulo="Documentos">
-          <DocumentosConvocatoria
-            convocatoriaId={convocatoria.id}
-            documentos={convocatoria.documentos}
-            onCambio={setDocumentos}
-          />
+          <DocumentosConvocatoria convocatoriaId={convocatoria.id} documentos={convocatoria.documentos} />
         </Seccion>
 
         <Seccion

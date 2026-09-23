@@ -5,7 +5,7 @@
 
 ---
 
-**Actualizado:** 18 de septiembre de 2026 · cierre de la sesión 014
+**Actualizado:** 22 de septiembre de 2026 · cierre de la sesión 015
 **Sprint:** 2 · día 8 de 30
 **Rama de trabajo:** `sprint-2`, abierta desde `main` en la sesión 011 y subida a `origin` (sin fusionar a `main`: producción todavía no tiene el catálogo del panel). **Migraciones nuevas ya aplicadas al remoto:** `20260917100000_guardar_convocatoria`, `20260917200000_storage_y_adjuntos` , `20260918100000_publicar_convocatoria` y `20260918200000_nombres_normalizados_y_borrar_categorias`. No rompen `main`, que no las llama
 
@@ -17,6 +17,12 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 
 ## Lo último que se hizo
 
+- **Sesión 015: lo que el Product Owner encontró probando, y una verificación en el navegador** (no planificada).
+  - **La pantalla engañaba al publicar:** el botón no miraba el formulario, sino lo último guardado. Ahora **Publicar guarda primero** y solo publica si ese guardado pasa (CU-05 3d).
+  - **RN-01 ampliado por decisión del Product Owner:** publicar exige ubicación, descripción, ≥1 categoría, **≥1 documento adjunto** y **≥2 requisitos**, además del enlace. Lo del adjunto **revierte** la decisión de la 012, confirmado expresamente. El rechazo enumera de una vez todo lo que falta.
+  - **Recorrido A5–A7 verificado en el navegador** con la sesión del Product Owner: **19 de 19 pasos pasan**. De paso se corrigió un defecto de la sesión 014 (`setState` durante el render, en la sección de documentos).
+  - **Sin resolver:** el cuelgue de ~20 s al guardar (ver "Bloqueos"). Para no dejar el panel peor, `guardar_convocatoria` volvió a la comprobación de la 011 y **queda el hueco** de que editar una publicada solo protege enlace y requisitos; publicar sí lo exige todo.
+  - **El paso no se da por verificado:** 4 comprobaciones siguen en rojo, todas del mismo síntoma.
 - **Sesión 014: tres cosas que el Product Owner encontró probando el panel** (no estaba planificada).
   1. **Desactivar una fuente no hacía nada** — no era el código: el `next dev` llevaba horas vivo y respondía **500** por caché corrupta. Con el proceso parado, `.next` borrada y el servidor de nuevo en pie, la misma petición responde 200. La fuente quedó como estaba. `.claude/launch.json` fija ahora `autoPort: false`, porque mover el puerto rompe en silencio la confirmación de correo.
   2. **`Transformación digital` y `Transformacion digital` entraban como categorías distintas.** Ahora los nombres se comparan **sin tildes, sin mayúsculas y sin espacios sobrantes**, en categorías **y en fuentes** —que no tenían ninguna restricción de nombre—. El nombre se guarda tal como se escribe (docs/05 §9.16).
@@ -49,11 +55,11 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 - **Ya cerrada la sesión, a pedido del Product Owner:** no llegaba el correo de confirmación al crear una cuenta. Causa: registrarse con un correo que ya tiene cuenta devuelve éxito sin enviar nada (Supabase, para no revelar qué correos existen). Se borró la cuenta de administrador revocado `danielangeline322@gmail.com` y el Product Owner se registró con ella como empresa en producción: **RF-01 queda probado por el formulario con correo real**, con confirmación, perfil de empresa y trial de 3 créditos.
 - **Sesión 010:** entrada con dos puertas (RF-84) y recuperación de contraseña (RF-03). Cerró el Sprint 1.
 
-Detalle en [`docs/bitacora/2026-09-18-sesion-014.md`](docs/bitacora/2026-09-18-sesion-014.md).
+Detalle en [`docs/bitacora/2026-09-22-sesion-015.md`](docs/bitacora/2026-09-22-sesion-015.md).
 
 ## En curso
 
-Nada a medias en el código. **Sprint 2, pasos 1, 2 y 3 hechos** (sesiones 011, 012 y 013).
+**El paso 3 quedó a medias:** las reglas nuevas de publicación están puestas y probadas en su mayor parte, pero un cuelgue al guardar impide darlo por verificado y obliga a dejar un hueco al editar publicadas (ver "Bloqueos").
 
 ## Lo siguiente
 
@@ -62,7 +68,7 @@ Nada a medias en el código. **Sprint 2, pasos 1, 2 y 3 hechos** (sesiones 011, 
 1. ~~Endpoints de fuentes, convocatorias, categorías y requisitos (RF-04..06, 08)~~ — **sesión 011**. Los documentos adjuntos (RF-07) pasan al paso 2, que trae Storage.
 2. ~~Storage: 3 buckets privados con URLs firmadas de 15 min y adjuntos de convocatoria (RF-07, RNF-16, RNF-18)~~ — **sesión 012**. Los archivos del perfil del consultor (foto y hoja de vida) tienen ya su bucket y sus políticas; la pantalla y sus endpoints van con el módulo de consultores.
 3. ~~Publicación validada en servidor (RF-09, RN-01, RNF-29), con la advertencia de CU-05 3d~~ — **sesión 013**.
-4. **← Empezar aquí.** Catálogo, filtros, chips e indicadores de la landing contra datos reales (RF-11, 12, 13, 43, 44), con `GET /api/convocatorias` para la empresa. **Solo cuentas de empresa** (RN-33): ni visitantes ni consultores.
+4. Catálogo, filtros, chips e indicadores de la landing contra datos reales (RF-11, 12, 13, 43, 44), con `GET /api/convocatorias` para la empresa. **Solo cuentas de empresa** (RN-33): ni visitantes ni consultores.
 5. Cerradas fuera del listado salvo filtro explícito (RF-11, RN-02).
 6. Job diario de cierre (RF-10, CU-06).
 7. Vigencia verificada en servidor al postular y al generar (RF-78).
@@ -84,7 +90,9 @@ Nada a medias en el código. **Sprint 2, pasos 1, 2 y 3 hechos** (sesiones 011, 
 
 ## Bloqueos
 
-Ninguno para seguir programando. **Sí bloquea el registro real desde Vercel** el punto 1 de abajo.
+**SÍ hay uno, nuevo (sesión 015): un guardado de convocatoria se queda ~20 s y muere** con `ECONNRESET`. Se ve en el navegador (más de 34 s sin respuesta) y deja 4 comprobaciones de `prueba-publicar-convocatoria.mjs` en rojo. **Es lo primero que hay que resolver**, antes del paso 4. Lo ya descartado, con prueba, está en la bitácora de la 015: no es un bloqueo en Postgres, ni `ficha_publicable`, ni invoker/definer, ni la reescritura del cuerpo, ni el adjunto, ni hablar con Storage, ni intermitencia de red. Un caso mínimo pasa siempre; la suite larga falla siempre.
+
+Para lo demás, nada impide programar. **Sí bloquea el registro real desde Vercel** el punto 1 de abajo.
 
 Pendiente del Product Owner:
 
@@ -164,6 +172,10 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | Registrarse con un correo que ya tiene cuenta devuelve éxito y no envía correo (Supabase lo hace a propósito, para no revelar qué correos existen), pero la pantalla dice "Te enviamos un enlace…". Comprobado el 17-sep: `signup` responde 200 con `identities: []` y sin correo | `lib/acciones/auth.ts` (`registrarse`) | media · redactar el mensaje sin afirmar el envío, p. ej. "Si ese correo no tenía cuenta, te enviamos un enlace" |
 | La cuenta `danielangeline322@gmail.com` (administrador revocado) se borró el 17-sep a pedido del Product Owner, para volver a registrarla como empresa. Sus 4 eventos de seguridad quedaron sin `usuario_id`; `admin_invitado` y `admin_revocado` conservan el correo en el texto | Supabase Auth | baja · queda anotado como contexto de la evidencia del Hito 1 |
 | RNF-06 admitía "carga admin hasta 50 MB" y contradecía a RNF-18 (20 MB, que es lo que el bucket hace cumplir) | `docs/03` RNF-06 | **resuelto** en la sesión 013: manda 20 MB, por decisión del Product Owner |
+| **Guardar una convocatoria se cuelga ~20 s y muere con `ECONNRESET`.** Reproducible en la suite larga, nunca en un caso mínimo. Descartados: bloqueo en Postgres, `ficha_publicable`, invoker/definer, la forma del cuerpo de la función, el adjunto, las llamadas a Storage y la intermitencia de red | `lib/admin/catalogo.ts` / Supabase | **alta · bloquea el Sprint 2** |
+| Editar una convocatoria **publicada** deja quitarle ubicación, descripción, categoría o adjunto: solo se protegen enlace y requisitos. Consecuencia de revertir la comprobación que colgaba | `guardar_convocatoria` | media · se cierra cuando se resuelva el cuelgue |
+| Los heredocs de este entorno se comen las barras invertidas: un `
+` dentro de una cadena JavaScript se convierte en salto real y rompe el archivo. Pasó dos veces | herramienta | baja · escribir el parche a un archivo aparte |
 | No se puede **renombrar una categoría** desde la pantalla, aunque `PATCH /api/admin/categorias/[id]` lo admite desde la sesión 011. Con el botón de borrar el caso queda cubierto a medias (borrar y volver a crear) | `components/admin/GestionCategorias.tsx` | baja · exponer el renombrado |
 | Una **fuente** no se puede borrar aunque no tenga convocatorias, que es el mismo argumento aceptado para categorías en la sesión 014. El Product Owner decidió sobre categorías y no se extendió por cuenta propia | `docs/03` RN-07 | baja · preguntarle si quiere lo mismo en fuentes |
 | Un servidor `next dev` de una sesión anterior puede seguir vivo y servir código viejo: en la sesión 013 hizo que seis comprobaciones "pasaran" por la razón equivocada (404 porque la ruta aún no existía en ese proceso). `next dev` lo avisa con el PID, pero en su propio log | máquina local | media · antes de creerse un 404, comprobar que responde el servidor de esta sesión |

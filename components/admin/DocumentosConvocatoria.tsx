@@ -52,12 +52,14 @@ export function DocumentosConvocatoria({
   onCambio?: (documentos: DocumentoAdmin[]) => void;
 }) {
   const [documentos, setDocumentosEstado] = useState(iniciales);
-  const setDocumentos = (siguiente: DocumentoAdmin[] | ((prev: DocumentoAdmin[]) => DocumentoAdmin[])) =>
-    setDocumentosEstado((prev) => {
-      const valor = typeof siguiente === "function" ? siguiente(prev) : siguiente;
-      onCambio?.(valor);
-      return valor;
-    });
+
+  // El aviso al editor va aquí, en el manejador, y no dentro del actualizador de
+  // estado: allí se ejecutaría durante el render de este componente y React
+  // rechaza que eso cambie el estado del padre.
+  const setDocumentos = (siguiente: DocumentoAdmin[]) => {
+    setDocumentosEstado(siguiente);
+    onCambio?.(siguiente);
+  };
   const [tipo, setTipo] = useState<TipoDocumento>("TDR");
   const [subiendo, setSubiendo] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -117,7 +119,7 @@ export function DocumentosConvocatoria({
       setError(registro.error);
       return;
     }
-    setDocumentos((prev) => [...prev, registro.datos]);
+    setDocumentos([...documentos, registro.datos]);
     if (entrada.current) entrada.current.value = "";
   };
 
@@ -132,7 +134,7 @@ export function DocumentosConvocatoria({
       setError(r.error);
       return;
     }
-    setDocumentos((prev) => prev.map((d) => (d.id === doc.id ? r.datos : d)));
+    setDocumentos(documentos.map((d) => (d.id === doc.id ? r.datos : d)));
   };
 
   const cambiarTipo = async (doc: DocumentoAdmin, nuevo: TipoDocumento) => {
@@ -144,7 +146,7 @@ export function DocumentosConvocatoria({
       setError(r.error);
       return;
     }
-    setDocumentos((prev) => prev.map((d) => (d.id === doc.id ? r.datos : d)));
+    setDocumentos(documentos.map((d) => (d.id === doc.id ? r.datos : d)));
   };
 
   const quitar = async (doc: DocumentoAdmin) => {
@@ -158,7 +160,7 @@ export function DocumentosConvocatoria({
       setError(json.error ?? "No pudimos quitar el documento. Intenta de nuevo.");
       return;
     }
-    setDocumentos((prev) => prev.filter((d) => d.id !== doc.id));
+    setDocumentos(documentos.filter((d) => d.id !== doc.id));
   };
 
   // RNF-16: el enlace se pide en el momento y vive 15 minutos.

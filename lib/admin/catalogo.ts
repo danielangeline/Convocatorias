@@ -43,7 +43,8 @@ const RECHAZOS: Record<string, { status: number; error: string }> = {
   requisito_ajeno: { status: 400, error: "Uno de los requisitos no pertenece a esta convocatoria. Recarga la página." },
   publicada_incompleta: {
     status: 409,
-    error: "Una convocatoria publicada necesita el enlace oficial y al menos un requisito. Despublícala antes de quitarlos.",
+    error:
+      "Una convocatoria publicada no puede quedar incompleta: necesita ubicación, descripción, enlace oficial, una categoría, un documento adjunto y dos requisitos. Despublícala antes de quitar alguno.",
   },
   ya_publicada: { status: 409, error: "La convocatoria ya está publicada." },
   no_publicada: { status: 409, error: "Solo se despublica una convocatoria publicada." },
@@ -486,12 +487,20 @@ export async function cambiarPublicacion(id: string, publicar: boolean): Promise
     if (!ficha) return { ok: false, status: 404, error: "La convocatoria no existe." };
     if (ficha.estado === "publicada") return { ok: false, status: 409, error: RECHAZOS.ya_publicada.error };
 
+    // RN-01 · la lista la fija docs/03; `privado.ficha_publicable` la repite en
+    // la base. Aquí se enumera entera para no obligar a descubrirla a tientas.
     const falta: string[] = [];
     if (!ficha.nombre.trim()) falta.push("el nombre de la convocatoria");
     if (!ficha.entidadConvocante.trim()) falta.push("la entidad convocante");
+    if (!ficha.ubicacion.trim()) falta.push("la ubicación o cobertura");
+    if (!ficha.descripcion.trim()) falta.push("la descripción u objeto");
     if (!ficha.urlPostulacion.trim()) falta.push("el enlace oficial de postulación");
     else if (!esUrlHttp(ficha.urlPostulacion)) falta.push("un enlace oficial válido que empiece por http:// o https://");
-    if (ficha.requisitos.length === 0) falta.push("al menos un requisito");
+    if (ficha.categorias.length === 0) falta.push("al menos una categoría");
+    if (ficha.documentos.length === 0) falta.push("al menos un documento adjunto");
+    if (ficha.requisitos.length < 2) {
+      falta.push(ficha.requisitos.length === 1 ? "un segundo requisito" : "al menos dos requisitos");
+    }
     if (falta.length > 0) {
       const lista = falta.length === 1 ? falta[0] : `${falta.slice(0, -1).join(", ")} y ${falta[falta.length - 1]}`;
       return { ok: false, status: 400, error: `Para publicar falta ${lista}.` };

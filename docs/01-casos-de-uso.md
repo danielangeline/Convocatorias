@@ -54,9 +54,9 @@
 
 | Campo | Contenido |
 |---|---|
-| **Precondiciones** | Datos mínimos **(incluido el enlace oficial de postulación)** + requisitos definidos. **Los documentos adjuntos no son precondición** *(mod. v6, sesión 012 — RN-01)* |
-| **Flujo principal** | 1. Revisa la ficha. 2. "Publicar". 3. El sistema valida y cambia a **publicada** registrando quién y cuándo |
-| **Flujos alternos** | 3a. Falla la validación → indica qué falta, **incluido un enlace de postulación faltante o inválido**. **3d. Publicar sin ningún adjunto se permite, pero se advierte antes de confirmar** *(nuevo v6)*. 3b. Despublicar. 3c. Editar (auditado) |
+| **Precondiciones** | La ficha completa según RN-01: nombre, entidad convocante, ubicación o cobertura, descripción u objeto, enlace oficial de postulación, **≥1 categoría**, **≥1 documento adjunto (CU-03)**, **≥2 requisitos (CU-04)** y fecha de cierre no vencida *(lista fijada en v6, sesión 015)* |
+| **Flujo principal** | 1. Revisa la ficha. 2. "Publicar". 3. **El sistema guarda primero lo que hay en el formulario**; si el guardado pasa, valida la ficha y cambia a **publicada** registrando quién y cuándo |
+| **Flujos alternos** | 3a. Falla la validación → **enumera de una vez todo lo que falta**, incluido un enlace de postulación faltante o inválido. **3d. Falla el guardado previo → no se publica nada y se muestra el error del guardado** *(nuevo v6, sesión 015)*. 3b. Despublicar. 3c. Editar (auditado) |
 
 #### CU-06 · Cerrar convocatoria vencida (automático)
 

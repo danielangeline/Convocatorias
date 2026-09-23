@@ -28,7 +28,7 @@
 | RF-06 | Clasificar en categorías: tipo de proyecto, sector y tipo de entidad elegible. **Dos categorías del mismo tipo no pueden llamarse igual: la comparación ignora tildes, mayúsculas y espacios sobrantes** —`Transformación digital` y `Transformacion digital` son la misma—. **Una categoría que ninguna convocatoria usa sí se borra** (RN-07); una que ya clasifica algo solo se desactiva *(añadido en v6, sesión 014)* | CU-02 | Must |
 | RF-07 | Adjuntar documentos (TDR, términos, anexos, formatos) con nombre descriptivo | CU-03 | Must |
 | RF-08 | Registrar la lista de requisitos exigidos como ítems individuales | CU-04 | Must |
-| RF-09 | Publicar solo con datos mínimos **(incluido un enlace de postulación válido)** y requisitos definidos; permitir despublicar y editar. **Los documentos adjuntos no son obligatorios para publicar** *(mod. v5; adjuntos dejan de exigirse en v6, sesión 012 — ver RN-01)*. Si se publica sin ninguno, la pantalla lo advierte, porque la generación con IA pierde el texto del TDR como contexto (CU-33 paso 4) | CU-05 | Must |
+| RF-09 | Publicar solo con **la ficha completa según RN-01** —nombre, entidad, ubicación, descripción, enlace oficial válido, ≥1 categoría, ≥1 documento adjunto, ≥2 requisitos y cierre no vencido—; permitir despublicar y editar. El rechazo **enumera de una vez todo lo que falta**, no de uno en uno. **Publicar guarda primero lo que hay en el formulario y solo publica si ese guardado pasa**, de modo que nunca se publique una versión distinta de la que el administrador tiene en pantalla *(mod. v5; lista y guardado previo fijados en v6, sesión 015)* | CU-05 | Must |
 | RF-10 | Cerrar automáticamente las convocatorias vencidas | CU-06 | Must |
 
 ### 4.3 Búsqueda y descubrimiento

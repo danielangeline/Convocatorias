@@ -441,17 +441,24 @@ Implementa RF-09 y RN-01 en el servidor. Cambiar el estado es lo único que `gua
 **`public.publicar_convocatoria(p_id uuid, p_publicar boolean)`**
 
 - **`security invoker`**, igual que §9.13: corre con la sesión del administrador y la RLS sigue aplicando; la función lo comprueba además al entrar.
-- **Publicar** (`p_publicar = true`) exige, en una sola lectura con bloqueo de la fila:
-  - nombre, entidad convocante y fecha de cierre (la tabla ya los pide);
-  - **enlace oficial de postulación** presente y bien formado (RN-01, RNF-29). La restricción `convocatorias_publicada_con_enlace` lo repite;
-  - **al menos un requisito** (RN-01);
+- **Publicar** (`p_publicar = true`) exige, en una sola lectura con bloqueo de la fila, **la ficha completa de RN-01** *(lista ampliada en la sesión 015)*:
+  - nombre y entidad convocante (la tabla ya los pide);
+  - **ubicación o cobertura** y **descripción u objeto**;
+  - **enlace oficial de postulación** presente y bien formado (RNF-29). La restricción `convocatorias_publicada_con_enlace` lo repite;
+  - **al menos una categoría** en `convocatoria_categoria`;
+  - **al menos un documento adjunto** en `documentos_convocatoria`;
+  - **al menos dos requisitos** en `requisitos_convocatoria`;
   - **fecha de cierre no vencida**: no se publica algo que ya cerró, porque el job de RF-10 lo cerraría esa misma noche y porque RN-03 prohíbe postular sobre ello.
 
-  **Los documentos adjuntos no se exigen** *(v6, sesión 012 — RN-01)*. Publicar sin ninguno se permite; advertirlo antes de confirmar es cosa de la pantalla (CU-05 3d).
+  Ubicación y categorías son además los filtros del catálogo (RF-12): sin ellas la convocatoria no aparecería al filtrar. El adjunto **volvió a ser obligatorio** en la sesión 015, después de haber dejado de serlo en la 012.
 
   Al publicar: `estado = 'publicada'`, `publicada_at = now()` y `publicado_por = auth.uid()` (RNF-11). Se puede publicar desde **cualquier** estado que no sea `publicada`, incluido `cerrada` — si alguien corrige la fecha de cierre de una cerrada, debe poder volver a publicarla sin quedarse sin salida.
 - **Despublicar** (`p_publicar = false`) exige que esté `publicada` y la deja en `despublicada`, conservando `publicada_at` y `publicado_por` como rastro de que estuvo publicada. No se borra nada (RN-07). A partir de ahí no se puede postular ni generar sobre ella (RN-03), y las postulaciones ya iniciadas conservan su checklist (RN-04).
 - Rechazos con clave estable en `hint`: `no_es_admin`, `no_existe`, `ya_publicada`, `no_publicada`, `publicada_incompleta` y `vencida`.
+
+**Editar una publicada NO tiene la misma vara, y es un hueco conocido.** La intención era que `guardar_convocatoria` (§9.13) rechazara cualquier edición que dejara incompleta a una publicada, pero llamar a `ficha_publicable` desde ahí hacía que el guardado se quedara ~20 s y muriera con `ECONNRESET` (sesión 015; causa sin identificar, ver `ESTADO.md`). Por eso `guardar_convocatoria` conserva la comprobación de la sesión 011: **una publicada no queda sin enlace oficial ni sin requisitos**, pero sí se le puede quitar la ubicación, la descripción, la categoría o el adjunto editando. Publicar sí exige la lista entera.
+
+**Publicar guarda primero.** La pantalla envía el formulario a `PATCH` y solo llama a `publicar` si ese guardado pasa (RF-09, CU-05 3d). Sin eso, publicar tomaba lo último guardado e ignoraba lo que el administrador tenía delante: se podía ver un campo vacío en pantalla y publicar con el valor viejo. Lo detectó el Product Owner en la sesión 015.
 
 **Por qué la lista de lo que falta la arma el servidor y no el SQL.** La función rechaza con una sola clave; el endpoint lee antes la ficha y responde 400 enumerando **todo** lo que falta de una vez, para que el administrador no descubra los problemas de uno en uno. La función es la barrera; el enunciado es cortesía.
 

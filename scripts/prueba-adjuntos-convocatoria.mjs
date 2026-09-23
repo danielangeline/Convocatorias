@@ -28,11 +28,22 @@ const b32 = (s) => { const a = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"; let bits = ""
 const desfase = new Date((await fetch(`${URL_}/auth/v1/health`, { headers: { apikey: ANON } })).headers.get("date")).getTime() - Date.now();
 const totp = (sec) => { const c = Buffer.alloc(8); c.writeBigUInt64BE(BigInt(Math.floor((Date.now() + desfase) / 30000))); const h = crypto.createHmac("sha1", b32(sec)).update(c).digest(); const k = h[h.length - 1] & 15; return String((h.readUInt32BE(k) & 0x7fffffff) % 1e6).padStart(6, "0"); };
 
+// Supabase corta los sockets keep-alive inactivos y el servidor puede reutilizar
+// uno ya muerto: la llamada muere con ECONNRESET tras ~20 s y responde 500
+// (hallazgo de la sesion 015, anotado en ESTADO.md). Mientras eso no se resuelva
+// en el cliente de servidor, aqui se reintenta una vez, y solo lo idempotente:
+// repetir un POST podria duplicar lo que el primero si llego a hacer.
 async function api(s, metodo, ruta, cuerpo, { origen = APP } = {}) {
   const headers = { "content-type": "application/json" };
   if (s) headers.cookie = s.cookie();
   if (origen) headers.origin = origen;
-  const r = await fetch(APP + ruta, { method: metodo, headers, redirect: "manual", body: cuerpo === undefined ? undefined : JSON.stringify(cuerpo) });
+  const enviar = () => fetch(APP + ruta, { method: metodo, headers, redirect: "manual", body: cuerpo === undefined ? undefined : JSON.stringify(cuerpo) });
+  let r = await enviar();
+  for (let intento = 1; intento <= 3 && r.status === 500 && (metodo === "GET" || metodo === "PATCH"); intento++) {
+    console.log(`   (reintento ${intento} por fallo de red en ${metodo} ${ruta.slice(0, 48)})`);
+    await new Promise((espera) => setTimeout(espera, 1500 * intento));
+    r = await enviar();
+  }
   return { status: r.status, json: await r.json().catch(() => null) };
 }
 
