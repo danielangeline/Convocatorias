@@ -15,14 +15,16 @@ export function Campo({
   );
 }
 
-export function Aviso({ tipo, children }: { tipo: "error" | "exito"; children: React.ReactNode }) {
+export function Aviso({ tipo, children }: { tipo: "error" | "exito" | "advertencia"; children: React.ReactNode }) {
   return (
     <p
-      role={tipo === "error" ? "alert" : "status"}
+      role={tipo === "exito" ? "status" : "alert"}
       className={
         tipo === "error"
           ? "rounded-lg bg-red-50 px-3 py-2.5 text-sm text-danger"
-          : "rounded-lg bg-teal-50 px-3 py-2.5 text-sm text-teal-800"
+          : tipo === "advertencia"
+            ? "rounded-lg bg-gold-50 px-3 py-2.5 text-sm text-gold-700"
+            : "rounded-lg bg-teal-50 px-3 py-2.5 text-sm text-teal-800"
       }
     >
       {children}

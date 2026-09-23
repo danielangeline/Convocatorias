@@ -4,6 +4,7 @@ import { revalidateTag, unstable_cache } from "next/cache";
 import { cache } from "react";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { firmarDescarga } from "@/lib/supabase/descarga";
+import { hoyColombia } from "@/lib/fechas";
 import type { Categoria, Convocatoria, Documento, EstadoConvocatoria, TipoCategoria, TipoDocumento, TipoRequisito } from "@/lib/types";
 
 /**
@@ -35,11 +36,7 @@ type Fila = {
 };
 
 const numero = (v: number | string | null) => (v === null ? null : Number(v));
-/**
- * Hoy en Colombia, AAAA-MM-DD: una convocatoria vence al terminar su día de
- * cierre en hora de Bogotá, igual que `privado.hoy_colombia()` en la base (RN-02).
- */
-const hoy = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Bogota" }).format(new Date());
+const hoy = hoyColombia;
 const extensionDe = (ruta: string) => ruta.slice(ruta.lastIndexOf(".") + 1).toLowerCase();
 
 function aConvocatoria(f: Fila): Convocatoria {

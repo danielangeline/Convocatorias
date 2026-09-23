@@ -7,7 +7,7 @@ export async function peticionAdmin<T = unknown>(
   url: string,
   metodo: "POST" | "PATCH",
   cuerpo: unknown
-): Promise<{ ok: true; datos: T } | { ok: false; error: string }> {
+): Promise<{ ok: true; datos: T; aviso: string | null } | { ok: false; error: string }> {
   try {
     const respuesta = await fetch(url, {
       method: metodo,
@@ -16,7 +16,7 @@ export async function peticionAdmin<T = unknown>(
     });
     const json = await respuesta.json().catch(() => ({}));
     if (!respuesta.ok) return { ok: false, error: json.error ?? "No pudimos completar la acción. Intenta de nuevo." };
-    return { ok: true, datos: json.datos as T };
+    return { ok: true, datos: json.datos as T, aviso: typeof json.aviso === "string" ? json.aviso : null };
   } catch {
     return { ok: false, error: "No hay conexión con el servidor. Intenta de nuevo." };
   }

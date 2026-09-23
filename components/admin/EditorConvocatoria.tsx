@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, CheckCircle2 } from "lucide-react";
 import type { CategoriaAdmin, ConvocatoriaAdmin, FuenteAdmin, RequisitoAdmin, TipoCategoria, TipoRequisito } from "@/lib/types";
 import { peticionAdmin } from "@/lib/admin/peticion";
+import { hoyColombia } from "@/lib/fechas";
 import { formatearMontoCOP, leerMontoCOP } from "@/lib/montos";
 import { DocumentosConvocatoria } from "./DocumentosConvocatoria";
 import { cn, formatCOP, ESTADO_CONVOCATORIA_LABEL, ESTADO_CONVOCATORIA_ESTILO, TIPO_CATEGORIA_LABEL } from "@/lib/utils";
@@ -54,7 +55,7 @@ export function EditorConvocatoria({
   const [requisitos, setRequisitos] = useState<RequisitoEditable[]>(() =>
     convocatoria.requisitos.map((r) => ({ ...r, clave: r.id ?? nuevaClave() }))
   );
-  const [mensaje, setMensaje] = useState<{ tipo: "error" | "exito"; texto: string } | null>(null);
+  const [mensaje, setMensaje] = useState<{ tipo: "error" | "exito" | "advertencia"; texto: string } | null>(null);
   const [avisoDocumentos, setAvisoDocumentos] = useState<string | null>(null);
   /** Cada acción nueva empieza sin los avisos de la anterior, sean de la ficha o de los documentos. */
   const limpiarAvisos = () => {
@@ -75,8 +76,8 @@ export function EditorConvocatoria({
   const fuentesOfrecidas = fuentes.filter((f) => f.activa || f.id === convocatoria.fuenteId);
   const categoriasOfrecidas = categorias.filter((c) => c.activa || convocatoria.categorias.includes(c.id));
 
-  /** Envía el formulario y deja la pantalla al día. Devuelve si el guardado pasó. */
-  const enviarFormulario = async (): Promise<boolean> => {
+  /** Envía el formulario y deja la pantalla al día. Devuelve si el guardado pasó y el aviso del servidor. */
+  const enviarFormulario = async (): Promise<{ ok: boolean; aviso: string | null }> => {
     const r = await peticionAdmin<ConvocatoriaAdmin>(`/api/admin/convocatorias/${convocatoria.id}`, "PATCH", {
       ...form,
       categorias: categoriasSel,
@@ -84,21 +85,32 @@ export function EditorConvocatoria({
     });
     if (!r.ok) {
       setMensaje({ tipo: "error", texto: r.error });
-      return false;
+      return { ok: false, aviso: null };
     }
     // Los requisitos nuevos reciben su id del servidor.
     setRequisitos(r.datos.requisitos.map((req) => ({ ...req, clave: req.id ?? nuevaClave() })));
     setEstado(r.datos.estado);
-    return true;
+    return { ok: true, aviso: r.aviso };
   };
 
   const guardar = async () => {
+    // CU-05 3e: una publicada con fecha ya pasada se permite, pero se advierte antes.
+    if (
+      estado === "publicada" &&
+      form.fechaCierre &&
+      form.fechaCierre < hoyColombia() &&
+      !window.confirm(
+        "La fecha de cierre ya pasó. Si guardas, la convocatoria seguirá publicada hasta la medianoche (hora de Colombia) y entonces se cerrará sola. Para retirarla ya, usa Despublicar. ¿Guardar de todos modos?"
+      )
+    ) {
+      return;
+    }
     setGuardando(true);
     limpiarAvisos();
-    const ok = await enviarFormulario();
+    const { ok, aviso } = await enviarFormulario();
     setGuardando(false);
     if (!ok) return;
-    setMensaje({ tipo: "exito", texto: "Cambios guardados." });
+    setMensaje(aviso ? { tipo: "advertencia", texto: `Cambios guardados. ${aviso}` } : { tipo: "exito", texto: "Cambios guardados." });
     router.refresh();
   };
 
@@ -114,7 +126,7 @@ export function EditorConvocatoria({
   const cambiarPublicacion = async (publicar: boolean) => {
     setPublicando(true);
     limpiarAvisos();
-    if (publicar && !(await enviarFormulario())) {
+    if (publicar && !(await enviarFormulario()).ok) {
       setPublicando(false);
       return;
     }
@@ -191,7 +203,7 @@ export function EditorConvocatoria({
               <CheckCircle2 className="h-4 w-4" /> {mensaje.texto}
             </p>
           ) : (
-            <Aviso tipo="error">{mensaje.texto}</Aviso>
+            <Aviso tipo={mensaje.tipo}>{mensaje.texto}</Aviso>
           )}
         </div>
       )}

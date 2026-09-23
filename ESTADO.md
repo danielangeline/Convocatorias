@@ -17,6 +17,11 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 
 ## Lo último que se hizo
 
+- **Sesión 017, al final: Sprint 2, paso 7 (RF-78) y advertencia al editar (CU-05 3e). El Sprint 2 queda completo.**
+  - **RF-78 en la base:** un trigger en `postulaciones` y `documentos_generados` impide crear una fila (o mover una existente) sobre una convocatoria que no esté publicada y vigente, **también con `service_role`**, que las políticas RLS no frenan. Clave estable `convocatoria_no_vigente` para que los endpoints de postular (Sprint 3) y generar (Sprint 4) respondan 409. Probado: `supabase/tests/vigencia_al_crear.sql`, 14/14.
+  - **Advertencia (decisión del Product Owner):** guardar una publicada con fecha de cierre ya pasada se permite, pero la pantalla pide confirmación antes y muestra en ámbar que se cerrará a medianoche; el endpoint devuelve el `aviso`. En `prueba-publicar-convocatoria.mjs`. **La pantalla no se pudo ver**: la sesión de administrador del navegador se había reemplazado por la de la empresa de prueba.
+  - **El reloj de este equipo va 140 s atrasado y el servicio de hora de Windows está detenido.** Durante unos minutos alrededor de cada renovación horaria del token, el servidor local rechaza sesiones válidas: se vio en el navegador ("Acceso denegado" y luego `/login`). No afecta a producción. Arreglarlo es del Product Owner (ver "Bloqueos").
+  - Regresión completa en verde: pruebas RLS, de cierre, de guardado y de vigencia, y las suites de catálogo, publicar, panel y adjuntos.
 - **Sesión 017, después: Sprint 2, paso 6 — cierre diario (RF-10, CU-06).**
   - El job existía desde la sesión 003 y corre bien cada día (historial de `pg_cron`), pero nunca había tenido nada que cerrar. Ahora ejecuta `privado.cerrar_convocatorias_vencidas()`, que devuelve cuántas cerró.
   - **"Hoy" es el día en Colombia** (`privado.hoy_colombia()`): una convocatoria vence al terminar su día de cierre en hora de Bogotá. Antes el job ya lo cumplía por su horario (00:00 en Colombia), pero postular, publicar y los indicadores usaban `current_date` en UTC y la daban por vencida desde las 7 p. m. Resuelve el hallazgo de la sesión 017; RN-02 y CU-06 precisados.
@@ -86,7 +91,7 @@ Detalle en [`docs/bitacora/2026-09-23-sesion-017.md`](docs/bitacora/2026-09-23-s
 
 ## En curso
 
-Nada a medias. **Los pasos 4, 5 y 6 están hechos y el Hito 2 está cumplido.** Queda el paso 7 del Sprint 2.
+Nada a medias. **El Sprint 2 está completo**, con el Hito 2 cumplido (día 9 de 12). Lo siguiente es el Sprint 3.
 
 ## Lo siguiente
 
@@ -98,7 +103,7 @@ Nada a medias. **Los pasos 4, 5 y 6 están hechos y el Hito 2 está cumplido.** 
 4. ~~Catálogo, filtros, chips e indicadores de la landing contra datos reales (RF-11, 12, 13, 43, 44), con `GET /api/convocatorias` para la empresa. **Solo cuentas de empresa** (RN-33): ni visitantes ni consultores.~~ — **sesión 017**.
 5. ~~Cerradas fuera del listado salvo filtro explícito (RF-11, RN-02).~~ — **sesión 017**.
 6. ~~Job diario de cierre (RF-10, CU-06).~~ — **sesión 017**, verificado con una ejecución real.
-7. Vigencia verificada en servidor al postular y al generar (RF-78).
+7. ~~Vigencia verificada en servidor al postular y al generar (RF-78).~~ — **sesión 017**: garantizada en la base por un trigger; los endpoints que la traducen a 409 llegan con postulaciones (Sprint 3) y generación (Sprint 4).
 
 **Regla vigente:** toda pantalla o endpoint nuevo se declara en `lib/autorizacion/matriz.ts`; si no, responde 404. Los endpoints del catálogo del panel cuelgan de `/api/admin`, así que ya los cubre la regla del panel.
 
@@ -118,6 +123,8 @@ Nada a medias. **Los pasos 4, 5 y 6 están hechos y el Hito 2 está cumplido.** 
 ## Bloqueos
 
 **Ninguno propio del Sprint 2.** El cuelgue al guardar convocatorias (sesión 015) quedó **cerrado** en la sesión 016: en el punto de acceso Wi-Fi del iPhone del Product Owner (misma tarjeta MT7902 y mismo filtro de VirtualBox), `diagnostico-red-supabase.mjs` salió `RED LIMPIA` dos veces (180/180; en la red de casa fallaban 6 de 90) y `prueba-publicar-convocatoria.mjs` pasó **tres veces seguidas, 39/39, sin un solo reintento**. La causa es el router o el proveedor de la red de casa: con la misma tarjeta Wi-Fi en otra red, no ocurre. En esa red, guardar puede seguir colgándose ~20 s; las opciones para evitarlo están en el §10 del [reporte](docs/incidentes/2026-09-22-cuelgue-al-guardar-convocatoria.md). **Ante un cuelgue así, correr primero `scripts/diagnostico-red-supabase.mjs`.**
+
+**Para trabajar en local, sincronizar la hora de Windows** (Product Owner): el reloj va 140 s atrasado y el servicio "Hora de Windows" está detenido. Síntoma: durante unos minutos cada hora, el servidor local rechaza sesiones válidas ("Acceso denegado" o vuelta a `/login`) y los códigos TOTP generados en este equipo fallan. Configuración → Hora e idioma → Fecha y hora → activar "Establecer la hora automáticamente" y pulsar "Sincronizar ahora". No afecta a producción.
 
 Para lo demás, nada impide programar.
 
@@ -170,7 +177,8 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | La segunda barrera (`exigirRol` en los layouts) no se ejercitó por separado: el proxy corta antes | `lib/auth.ts` | baja · probarla desactivando el proxy en un entorno de prueba |
 | Las pruebas de la sesión 007 dejaron ~120 eventos `acceso_denegado` reales en `eventos_seguridad` | Supabase remoto | baja · son evidencia; limpiar antes de los pilotos |
 | Quedan 2 cuentas de prueba (`empresa.s004@example.com`, `consultor.s004@example.com`) en la base remota; `admin.s004` se borró en la sesión 006 | Supabase remoto | baja · borrarlas antes de los pilotos |
-| El reloj de esta máquina va ~141 s atrasado frente a Supabase: los códigos TOTP generados en ella fallan | máquina local | baja · sincronizar la hora de Windows |
+| El reloj de esta máquina va ~140 s atrasado frente a Supabase y el servicio "Hora de Windows" está detenido (medido el 23-sep). Además de los TOTP, **rompe las sesiones en local unos minutos cada hora**: el servidor da por vivo un token que Supabase ya rechazó, y después descarta el token renovado por "emitido en el futuro" | máquina local | **media** · sincronizar la hora de Windows (ver "Bloqueos") |
+| `proxy.ts` también trata cualquier fallo de `rol_efectivo()` como "sin perfil válido": deniega el acceso y registra un `acceso_denegado` falso, sin guardar la causa. Es el mismo patrón que se corrigió en `obtenerSesion()` en la sesión 016 | `proxy.ts` | baja · registrar el error y distinguir un fallo pasajero de un rol ausente |
 | En la sesión 004, el primer `update` de `perfiles.rol` con `service_role` no persistió y el error no se leyó; al repetirlo funcionó. No se reprodujo | script de prueba | baja · vigilar al escribir el endpoint de asignar rol |
 | El perfil de consultor real se edita solo en el store: nombre, descripción, portafolio y demás se pierden al recargar | `app/consultor/perfil` | media · entra con los endpoints de perfil (Sprint 2/5) |
 | La transición de estados de la postulación (RF-83) no se valida en la base: RLS deja a la dueña poner cualquier estado | `postulaciones` | media · validar en el endpoint o con trigger en el Sprint 2 |
@@ -209,7 +217,7 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | Los nombres con tilde en las descargas firmadas salían doblemente codificados (`T%C3%A9rminos.pdf`): `createSignedUrl({ download })` de storage-js codifica el nombre dos veces | `lib/supabase/descarga.ts` | **resuelto** en la sesión 017, también para el panel; si storage-js lo corrige, se puede volver a su opción |
 | "Vigente" se decidía con `current_date` de Postgres, que va en UTC: desde las 7 p. m. hora de Colombia, una convocatoria que cerraba ese día ya contaba como vencida | convocatorias | **resuelto** en la sesión 017: `privado.hoy_colombia()` en el cierre, postular, publicar, indicadores y el catálogo |
 | Las suscripciones también usan `current_date` en UTC (`crear_cuenta`, `tiene_suscripcion_vigente`, job 2): un trial o una suscripción vencen 5 horas antes en Colombia | suscripciones | media · aplicar `privado.hoy_colombia()` con el módulo de suscripciones (Sprint 5) |
-| **Editar una publicada permite poner una fecha de cierre ya pasada**: sigue publicada hasta que el job la cierra esa medianoche. Publicar sí rechaza una vencida (RN-03). Puede ser legítimo (la entidad cerró antes), pero hoy no se advierte ni se cierra en el momento. Así quedó la convocatoria de MinCiencias el 23-sep; el Product Owner la corrigió antes de que el job la cerrara | `guardar_convocatoria` | media · decisión del Product Owner: ¿rechazar, advertir o cerrar en el acto? |
+| ~~**Editar una publicada permite poner una fecha de cierre ya pasada**~~ **Resuelto en la sesión 017** con una advertencia, por decisión del Product Owner (CU-05 3e).: sigue publicada hasta que el job la cierra esa medianoche. Publicar sí rechaza una vencida (RN-03). Puede ser legítimo (la entidad cerró antes), pero hoy no se advierte ni se cierra en el momento. Así quedó la convocatoria de MinCiencias el 23-sep; el Product Owner la corrigió antes de que el job la cerrara | `guardar_convocatoria` | media · decisión del Product Owner: ¿rechazar, advertir o cerrar en el acto? |
 | `unstable_cache` (indicadores) está reemplazado por `use cache` en Next 16, pero `use cache` exige activar `cacheComponents` en todo el proyecto | `lib/catalogo.ts` | baja · migrar si se activa `cacheComponents` |
 | Las pruebas que crean convocatorias con `service_role` no invalidan la caché de indicadores: si la landing se calcula mientras corren, muestra hasta 1 hora cifras con datos de prueba (pasó el 23-sep). `prueba-catalogo-empresa.mjs` ya mide antes de crear contenido | pruebas | baja · tenerlo en cuenta al leer la landing en local |
 | `set role supabase_storage_admin` está negado al rol que corre las migraciones (42501), aunque ese mismo rol sí puede crear políticas sobre `storage.objects` | `supabase/migrations/` | baja · anotado en la migración |

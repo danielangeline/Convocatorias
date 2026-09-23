@@ -196,6 +196,13 @@ try {
   ok(intacta.json.datos.ubicacion === "Nacional" && intacta.json.datos.requisitos.length === 2 && intacta.json.datos.estado === "publicada",
     "la publicada sigue completa tras los intentos");
 
+  // CU-05 3e (sesion 017): una publicada con fecha ya pasada se permite, con aviso.
+  const fechaPasada = await api(adm, "PATCH", `/api/admin/convocatorias/${convId}`, { ...fichaCompleta, fechaCierre: enDias(-2) });
+  ok(fechaPasada.status === 200 && /medianoche/.test(fechaPasada.json?.aviso ?? "") && fechaPasada.json?.datos?.estado === "publicada",
+    `publicada con fecha pasada -> 200 con aviso y sigue publicada (${fechaPasada.status}: ${fechaPasada.json?.aviso})`);
+  const sinAviso = await api(adm, "PATCH", `/api/admin/convocatorias/${convId}`, fichaCompleta);
+  ok(sinAviso.status === 200 && sinAviso.json?.aviso === null, "con la fecha vigente otra vez -> sin aviso");
+
   // --- Despublicar (CU-05 3b) -----------------------------------------------------------
   const rDespub = await api(adm, "POST", despub, {});
   ok(rDespub.status === 200 && rDespub.json.datos.estado === "despublicada", `despublicar → 200 (${rDespub.json?.datos?.estado})`);

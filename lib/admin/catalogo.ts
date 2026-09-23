@@ -3,6 +3,7 @@ import type { PostgrestError } from "@supabase/supabase-js";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { leerMontoCOP } from "@/lib/montos";
 import { refrescarIndicadores } from "@/lib/catalogo";
+import { hoyColombia } from "@/lib/fechas";
 import type {
   CategoriaAdmin,
   ConvocatoriaAdmin,
@@ -470,6 +471,10 @@ export async function guardarConvocatoria(id: string, cuerpo: Cuerpo): Promise<R
   const guardada = await obtenerConvocatoria(id);
   if (!guardada) return { ok: false, status: 404, error: "La convocatoria no existe." };
   refrescarIndicadores();
+  // CU-05 3e: se permite (la entidad puede cerrar antes), pero se advierte.
+  if (guardada.estado === "publicada" && guardada.fechaCierre < hoyColombia()) {
+    return { ok: true, datos: guardada, aviso: "La fecha de cierre ya pasó: la convocatoria sigue publicada hasta la medianoche (hora de Colombia), cuando se cerrará automáticamente." };
+  }
   return { ok: true, datos: guardada };
 }
 

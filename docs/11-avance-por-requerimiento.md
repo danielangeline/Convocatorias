@@ -166,7 +166,7 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 |---|---|---|
 | RF-76 Revocación automática en cascada | pendiente | Sprint 5 |
 | RF-77 Validar cupo de la empresa dueña | pendiente | Sprint 4 |
-| RF-78 Vigencia verificada en servidor | pendiente | La política de insert de `postulaciones` ya exige convocatoria publicada y vigente (probado, sesión 003). Faltan los endpoints de postular y generar: Sprint 2 |
+| RF-78 Vigencia verificada en servidor | servidor | La política de insert de `postulaciones` ya exigía convocatoria publicada y vigente (sesión 003). **Sesión 017:** trigger `privado.exigir_convocatoria_vigente()` en `postulaciones` y `documentos_generados`, al crear y al cambiar de convocatoria, que **también frena a `service_role`**; clave `convocatoria_no_vigente`; "vigente" con la fecha de Colombia. Probado con `supabase/tests/vigencia_al_crear.sql` (14/14: vigente y que cierra hoy, sí; vencida, cerrada, despublicada y borrador, no; mover una postulación a una cerrada, no; editar lo ya creado, sí). **Los endpoints que lo traducen a 409 llegan con sus módulos**: postular (Sprint 3) y generar (Sprint 4) |
 | RF-79 Traza de lectura | pendiente | Sprint 5 |
 | RF-80 Contacto por pareja empresa-consultor | prototipo | El perfil cruza solo los encargos de la empresa de la sesión (sesión 002). **RLS lista (sesión 003):** permisos por columna + `contacto_consultor()`, activa = `pendiente`/`en_curso`; prueba cruzada E1/E2 pasada. El prototipo aún cuenta `completado`/`calificado` como activa. Falta el endpoint |
 
