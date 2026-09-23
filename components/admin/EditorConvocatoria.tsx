@@ -55,6 +55,12 @@ export function EditorConvocatoria({
     convocatoria.requisitos.map((r) => ({ ...r, clave: r.id ?? nuevaClave() }))
   );
   const [mensaje, setMensaje] = useState<{ tipo: "error" | "exito"; texto: string } | null>(null);
+  const [avisoDocumentos, setAvisoDocumentos] = useState<string | null>(null);
+  /** Cada acción nueva empieza sin los avisos de la anterior, sean de la ficha o de los documentos. */
+  const limpiarAvisos = () => {
+    setMensaje(null);
+    setAvisoDocumentos(null);
+  };
   const [guardando, setGuardando] = useState(false);
   const [estado, setEstado] = useState(convocatoria.estado);
   const [publicando, setPublicando] = useState(false);
@@ -88,7 +94,7 @@ export function EditorConvocatoria({
 
   const guardar = async () => {
     setGuardando(true);
-    setMensaje(null);
+    limpiarAvisos();
     const ok = await enviarFormulario();
     setGuardando(false);
     if (!ok) return;
@@ -107,7 +113,7 @@ export function EditorConvocatoria({
    */
   const cambiarPublicacion = async (publicar: boolean) => {
     setPublicando(true);
-    setMensaje(null);
+    limpiarAvisos();
     if (publicar && !(await enviarFormulario())) {
       setPublicando(false);
       return;
@@ -298,7 +304,12 @@ export function EditorConvocatoria({
         </Seccion>
 
         <Seccion titulo="Documentos">
-          <DocumentosConvocatoria convocatoriaId={convocatoria.id} documentos={convocatoria.documentos} />
+          <DocumentosConvocatoria
+            convocatoriaId={convocatoria.id}
+            documentos={convocatoria.documentos}
+            error={avisoDocumentos}
+            onError={(error) => (error === null ? limpiarAvisos() : setAvisoDocumentos(error))}
+          />
         </Seccion>
 
         <Seccion

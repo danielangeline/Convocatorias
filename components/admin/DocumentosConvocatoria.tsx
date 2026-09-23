@@ -45,11 +45,21 @@ export function DocumentosConvocatoria({
   convocatoriaId,
   documentos: iniciales,
   onCambio,
+  error,
+  onError,
 }: {
   convocatoriaId: string;
   documentos: DocumentoAdmin[];
   /** El editor necesita saber cuántos hay para advertir al publicar (CU-05 3d). */
   onCambio?: (documentos: DocumentoAdmin[]) => void;
+  /**
+   * El aviso de esta sección lo guarda el editor, que así puede borrarlo al
+   * guardar o publicar; y `onError(null)` al empezar cada acción le permite
+   * borrar el suyo. Antes cada uno tenía el propio y los dos se quedaban en
+   * pantalla aunque ya no aplicaran (hallazgo de la sesión 016).
+   */
+  error: string | null;
+  onError: (error: string | null) => void;
 }) {
   const [documentos, setDocumentosEstado] = useState(iniciales);
 
@@ -62,21 +72,20 @@ export function DocumentosConvocatoria({
   };
   const [tipo, setTipo] = useState<TipoDocumento>("TDR");
   const [subiendo, setSubiendo] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState<string | null>(null);
   const entrada = useRef<HTMLInputElement>(null);
 
   const base = `/api/admin/convocatorias/${convocatoriaId}/documentos`;
 
   const subir = async (archivo: File) => {
-    setError(null);
+    onError(null);
     const extension = extensionDe(archivo.name);
     if (!EXTENSIONES.includes(extension)) {
-      setError(`Formato no admitido. Se aceptan ${EXTENSIONES.join(", ")}.`);
+      onError(`Formato no admitido. Se aceptan ${EXTENSIONES.join(", ")}.`);
       return;
     }
     if (archivo.size > TAMANO_MAXIMO) {
-      setError("El archivo supera los 20 MB permitidos.");
+      onError("El archivo supera los 20 MB permitidos.");
       return;
     }
 
@@ -92,7 +101,7 @@ export function DocumentosConvocatoria({
     });
     if (!firma.ok) {
       setSubiendo(false);
-      setError(firma.error);
+      onError(firma.error);
       return;
     }
 
@@ -103,7 +112,7 @@ export function DocumentosConvocatoria({
       .uploadToSignedUrl(firma.datos.ruta, firma.datos.token, archivo, { contentType: archivo.type });
     if (eSubida) {
       setSubiendo(false);
-      setError("No pudimos subir el archivo. Revisa su tamaño y su formato e inténtalo otra vez.");
+      onError("No pudimos subir el archivo. Revisa su tamaño y su formato e inténtalo otra vez.");
       return;
     }
 
@@ -116,7 +125,7 @@ export function DocumentosConvocatoria({
     });
     setSubiendo(false);
     if (!registro.ok) {
-      setError(registro.error);
+      onError(registro.error);
       return;
     }
     setDocumentos([...documentos, registro.datos]);
@@ -126,24 +135,24 @@ export function DocumentosConvocatoria({
   const renombrar = async (doc: DocumentoAdmin) => {
     const nombre = window.prompt("Nombre descriptivo del documento", doc.nombre);
     if (nombre === null || nombre.trim() === doc.nombre) return;
-    setError(null);
+    onError(null);
     setOcupado(doc.id);
     const r = await peticionAdmin<DocumentoAdmin>(`${base}/${doc.id}`, "PATCH", { nombre });
     setOcupado(null);
     if (!r.ok) {
-      setError(r.error);
+      onError(r.error);
       return;
     }
     setDocumentos(documentos.map((d) => (d.id === doc.id ? r.datos : d)));
   };
 
   const cambiarTipo = async (doc: DocumentoAdmin, nuevo: TipoDocumento) => {
-    setError(null);
+    onError(null);
     setOcupado(doc.id);
     const r = await peticionAdmin<DocumentoAdmin>(`${base}/${doc.id}`, "PATCH", { tipo: nuevo });
     setOcupado(null);
     if (!r.ok) {
-      setError(r.error);
+      onError(r.error);
       return;
     }
     setDocumentos(documentos.map((d) => (d.id === doc.id ? r.datos : d)));
@@ -151,13 +160,13 @@ export function DocumentosConvocatoria({
 
   const quitar = async (doc: DocumentoAdmin) => {
     if (!window.confirm(`¿Quitar "${doc.nombre}"? El archivo se borra y no se puede recuperar.`)) return;
-    setError(null);
+    onError(null);
     setOcupado(doc.id);
     const respuesta = await fetch(`${base}/${doc.id}`, { method: "DELETE" });
     setOcupado(null);
     if (!respuesta.ok) {
       const json = await respuesta.json().catch(() => ({}));
-      setError(json.error ?? "No pudimos quitar el documento. Intenta de nuevo.");
+      onError(json.error ?? "No pudimos quitar el documento. Intenta de nuevo.");
       return;
     }
     setDocumentos(documentos.filter((d) => d.id !== doc.id));
@@ -165,13 +174,13 @@ export function DocumentosConvocatoria({
 
   // RNF-16: el enlace se pide en el momento y vive 15 minutos.
   const descargar = async (doc: DocumentoAdmin) => {
-    setError(null);
+    onError(null);
     setOcupado(doc.id);
     const respuesta = await fetch(`${base}/${doc.id}/enlace`);
     const json = await respuesta.json().catch(() => ({}));
     setOcupado(null);
     if (!respuesta.ok) {
-      setError(json.error ?? "No pudimos preparar la descarga. Intenta de nuevo.");
+      onError(json.error ?? "No pudimos preparar la descarga. Intenta de nuevo.");
       return;
     }
     window.open(json.datos.url as string, "_blank", "noopener,noreferrer");

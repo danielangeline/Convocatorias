@@ -2,6 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { forbidden, notFound, redirect } from "next/navigation";
 import { headers } from "next/headers";
+import { isAuthApiError, isAuthSessionMissingError, type AuthError } from "@supabase/supabase-js";
 import { ipDeCabeceras, registrarAccesoDenegado } from "./autorizacion/eventos";
 import { crearClienteServidor } from "./supabase/servidor";
 import type { DatosSesion, EstadoPerfilConsultor, ModalidadSuscripcion, EstadoSuscripcion, RolUsuario } from "./types";
@@ -12,24 +13,55 @@ import type { DatosSesion, EstadoPerfilConsultor, ModalidadSuscripcion, EstadoSu
  * sesión del propio usuario. Devuelve null si no hay sesión.
  * `cache` evita repetir las consultas entre layout y páginas de una petición.
  */
+/**
+ * Un fallo de red o un 5xx de Auth no dice nada sobre la sesión. Sin sesión, o
+ * con un token que Auth rechaza (4xx), sí es "no hay sesión".
+ */
+function esFalloPasajero(error: AuthError): boolean {
+  if (isAuthSessionMissingError(error)) return false;
+  return !(isAuthApiError(error) && error.status < 500);
+}
+
+/**
+ * Solo dice si hay una sesión, sin leer perfil ni suscripción: para pantallas
+ * públicas que cambian un botón (RF-84). Verifica el token igual que proxy.ts.
+ * No autoriza nada: quien necesita el rol usa obtenerSesion.
+ */
+export async function haySesion(): Promise<boolean> {
+  const supabase = await crearClienteServidor();
+  const { data } = await supabase.auth.getClaims();
+  return Boolean(data?.claims?.sub);
+}
+
 export const obtenerSesion = cache(async (): Promise<DatosSesion | null> => {
   const supabase = await crearClienteServidor();
 
   // getUser valida la sesión contra el servidor de Auth, no solo la cookie.
-  const { data: usuario } = await supabase.auth.getUser();
+  // Un fallo pasajero se reintenta una vez y se registra: tratarlo como "sin
+  // sesión" echaba a un administrador con sesión válida con un 404 y dejaba un
+  // acceso_denegado falso, sin rastro de la causa (hallazgo de la sesión 016).
+  let { data: usuario, error: eUsuario } = await supabase.auth.getUser();
+  if (eUsuario && esFalloPasajero(eUsuario)) {
+    console.error("Sesión: getUser falló, se reintenta", eUsuario.name, eUsuario.status ?? "", eUsuario.message);
+    await new Promise((listo) => setTimeout(listo, 300));
+    ({ data: usuario, error: eUsuario } = await supabase.auth.getUser());
+    if (eUsuario) console.error("Sesión: getUser volvió a fallar", eUsuario.name, eUsuario.status ?? "", eUsuario.message);
+  }
   if (!usuario.user) return null;
 
   const { data: nivel } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
 
-  const { data: perfil } = await supabase
+  const { data: perfil, error: ePerfil } = await supabase
     .from("perfiles")
     .select("id, nombre, rol, nombre_empresa, es_propietario")
     .eq("id", usuario.user.id)
     .maybeSingle();
+  if (ePerfil) console.error("Sesión: no se pudo leer el perfil", ePerfil.code, ePerfil.message);
   if (!perfil) return null;
   // Un administrador sin vigencia (revocado o con la invitación vencida) no
   // tiene sesión válida en ninguna parte (docs/05 §9.12, RF-87).
-  const { data: rolEfectivo } = await supabase.rpc("rol_efectivo");
+  const { data: rolEfectivo, error: eRol } = await supabase.rpc("rol_efectivo");
+  if (eRol) console.error("Sesión: no se pudo leer el rol efectivo", eRol.code, eRol.message);
   if (rolEfectivo !== perfil.rol) return null;
 
   const rol = perfil.rol as RolUsuario;

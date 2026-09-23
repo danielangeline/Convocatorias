@@ -11,6 +11,7 @@ import { convocatorias, consultores } from "@/lib/mock-data";
 import { diasRestantes } from "@/lib/utils";
 import { LinkButton } from "@/components/ui/Button";
 import { ContadorAnimado } from "@/components/ContadorAnimado";
+import { haySesion } from "@/lib/auth";
 
 const vigentes = convocatorias.filter((c) => c.estado === "publicada" && diasRestantes(c.fechaCierre) >= 0);
 
@@ -35,7 +36,9 @@ const PUERTAS = [
   },
 ] as const;
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const conSesion = await haySesion();
+
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <header className="border-b border-line-soft">
@@ -51,12 +54,21 @@ export default function LandingPage() {
             </span>
           </div>
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            <LinkButton href="/login" variant="ghost" size="sm" className="whitespace-nowrap">
-              Iniciar sesión
-            </LinkButton>
-            <LinkButton href="/registro" variant="primary" size="sm" className="whitespace-nowrap">
-              Crear cuenta
-            </LinkButton>
+            {conSesion ? (
+              // RF-84: /login lleva a cada cuenta al portal de su rol (y al administrador sin MFA, a /mfa).
+              <LinkButton href="/login" variant="primary" size="sm" className="whitespace-nowrap">
+                Ir a mi portal <ArrowRight className="h-4 w-4" />
+              </LinkButton>
+            ) : (
+              <>
+                <LinkButton href="/login" variant="ghost" size="sm" className="whitespace-nowrap">
+                  Iniciar sesión
+                </LinkButton>
+                <LinkButton href="/registro" variant="primary" size="sm" className="whitespace-nowrap">
+                  Crear cuenta
+                </LinkButton>
+              </>
+            )}
           </div>
         </div>
       </header>
