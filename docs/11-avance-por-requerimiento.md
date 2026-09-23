@@ -52,7 +52,7 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 
 | RF | Estado | Nota |
 |---|---|---|
-| RF-11 Catálogo, cerradas bajo filtro | servidor | **Sesión 017:** el catálogo lee de Supabase con la sesión de la empresa (`lib/catalogo.ts`, `GET /api/convocatorias`): publicadas y vigentes, sin borradores ni vencidas; visitante redirigido a `/login` y consultor con 403 (RN-33), verificado en `scripts/prueba-catalogo-empresa.mjs` (34 comprobaciones, todas pasan). **Falta el filtro explícito de cerradas** (paso 5): la RLS aún no deja leerlas, así que el control se retiró de la pantalla hasta entonces |
+| RF-11 Catálogo, cerradas bajo filtro | servidor | **Sesión 017:** el catálogo lee de Supabase con la sesión de la empresa (`lib/catalogo.ts`, `GET /api/convocatorias`): publicadas y vigentes, sin borradores ni vencidas; visitante redirigido a `/login` y consultor con 403 (RN-33), verificado en `scripts/prueba-catalogo-empresa.mjs` (34 comprobaciones, todas pasan). **Paso 5 (misma sesión):** la RLS deja a la empresa leer las cerradas (migración `20260923200000`) y el filtro explícito las trae detrás de las vigentes, marcadas como cerradas; en su ficha las tres acciones de CU-08 quedan deshabilitadas. Verificado en la suite (47 comprobaciones) y en `supabase/tests/rls_aislamiento.sql`. **Falta que el Product Owner mire la casilla en pantalla** para pasar a `verificado` |
 | RF-12 Filtros combinables | verificado | **Sesión 017:** texto libre sin tildes, tipo de proyecto, sector, entidad, ubicación, monto (formato colombiano) y cierre, en un solo módulo (`lib/catalogo-filtros.ts`) que usan la pantalla y el endpoint. 10 comprobaciones de filtros en `scripts/prueba-catalogo-empresa.mjs` (34 comprobaciones, todas pasan) |
 | RF-13 Ficha de detalle | verificado | **Sesión 017:** la ficha se lee en el servidor con la sesión de la empresa (un borrador da 404); requisitos, documentos y enlace oficial reales; **Descargar** pide una URL firmada de 15 min y baja el archivo exacto con su nombre descriptivo, tildes incluidas. Verificado en `scripts/prueba-catalogo-empresa.mjs` (34 comprobaciones, todas pasan) |
 | RF-14 Registrar proyectos | prototipo | Sin columna de propietario |
@@ -229,7 +229,7 @@ Las 30 reglas están documentadas; estas son las que todavía no se hacen cumpli
 | RN | Estado | Sprint |
 |---|---|---|
 | RN-01 Publicación con datos mínimos | prototipo (cliente) | 2 |
-| RN-02 Cerrada sale de catálogo y sugerencias | prototipo | 2 |
+| RN-02 Cerrada sale de catálogo y sugerencias | servidor | 2 | **Sesión 017:** fuera del catálogo por defecto y solo bajo el filtro explícito, en la consulta del servidor; una publicada vencida se presenta como cerrada aunque el job no haya corrido. Postular a una cerrada lo rechaza la RLS (RF-78), comprobado. **Las sugerencias** siguen en el prototipo (Sprint 3) y ya excluyen lo vencido en el cliente |
 | RN-03 No postular ni generar sobre cerradas | prototipo (solo UI) | 2 |
 | RN-17 Un crédito por generación exitosa | prototipo | 4 — RLS impide crear documentos y tocar el contador de ajustes o los créditos desde el cliente (sesión 003) |
 | RN-18 Reinicio mensual, sin acumular | pendiente | 4 |

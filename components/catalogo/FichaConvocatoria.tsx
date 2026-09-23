@@ -218,7 +218,8 @@ export function FichaConvocatoria({
               : "Al postularte crearás un expediente de seguimiento para esta convocatoria."}
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            {convocatoria.urlPostulacion && (
+            {/* RN-02: en una cerrada las tres acciones de CU-08 quedan deshabilitadas. */}
+            {convocatoria.urlPostulacion && !cerrada && (
               <a href={convocatoria.urlPostulacion} target="_blank" rel="noreferrer">
                 <Button variant="ghost" size="lg">
                   <ExternalLink className="h-4 w-4" /> Ir al portal de la entidad

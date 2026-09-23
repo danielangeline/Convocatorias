@@ -35,6 +35,8 @@ type Fila = {
 };
 
 const numero = (v: number | string | null) => (v === null ? null : Number(v));
+/** Mismo día que `current_date` de Postgres, que va en UTC (hallazgo de la sesión 017). */
+const hoy = () => new Date().toISOString().slice(0, 10);
 const extensionDe = (ruta: string) => ruta.slice(ruta.lastIndexOf(".") + 1).toLowerCase();
 
 function aConvocatoria(f: Fila): Convocatoria {
@@ -48,7 +50,9 @@ function aConvocatoria(f: Fila): Convocatoria {
     ubicacion: f.ubicacion_cobertura ?? "",
     fechaApertura: f.fecha_apertura,
     fechaCierre: f.fecha_cierre,
-    estado: f.estado,
+    // RN-02: para la empresa, una publicada cuya fecha ya pasó está cerrada
+    // aunque el job de RF-10 todavía no le haya cambiado el estado.
+    estado: f.estado === "publicada" && f.fecha_cierre < hoy() ? "cerrada" : f.estado,
     categorias: f.convocatoria_categoria.map((c) => c.categoria_id),
     requisitos: [...f.requisitos_convocatoria].sort((a, b) => a.orden - b.orden),
     documentos: f.documentos_convocatoria.map(
@@ -67,24 +71,27 @@ function aConvocatoria(f: Fila): Convocatoria {
 // `cache` de React: el layout y la página piden lo mismo en una petición.
 
 /**
- * RF-11 · Publicadas y vigentes, las que cierran antes primero. El filtro es
- * explícito aunque la RLS ya lo aplique: la empresa también ve las convocatorias
- * ligadas a sus postulaciones aunque hayan cerrado, y esas no son catálogo.
+ * RF-11, RN-02 · Por defecto, publicadas y vigentes, las que cierran antes
+ * primero. Con `incluirCerradas`, además las cerradas (estado `cerrada` o
+ * publicadas vencidas), detrás y de la más reciente a la más antigua. El filtro
+ * va en la consulta, no solo en la RLS: la RLS deja ver las cerradas para este
+ * filtro explícito y las despublicadas ligadas a las postulaciones de la
+ * empresa, y ninguna de las dos es el catálogo por defecto.
  */
-export const listarCatalogo = cache(async (): Promise<Convocatoria[]> => {
+export const listarCatalogo = cache(async (incluirCerradas: boolean = false): Promise<Convocatoria[]> => {
   const supabase = await crearClienteServidor();
-  const hoy = new Date().toISOString().slice(0, 10);
-  const { data, error } = await supabase
-    .from("convocatorias")
-    .select(COLUMNAS)
-    .eq("estado", "publicada")
-    .gte("fecha_cierre", hoy)
-    .order("fecha_cierre", { ascending: true });
+  const consulta = supabase.from("convocatorias").select(COLUMNAS);
+  const { data, error } = incluirCerradas
+    ? await consulta.in("estado", ["publicada", "cerrada"])
+    : await consulta.eq("estado", "publicada").gte("fecha_cierre", hoy());
   if (error) {
     console.error("Catálogo: no se pudo listar", error.code, error.message);
     return [];
   }
-  return (data as unknown as Fila[]).map(aConvocatoria);
+  const todas = (data as unknown as Fila[]).map(aConvocatoria);
+  const vigentes = todas.filter((c) => c.estado === "publicada").sort((a, b) => a.fechaCierre.localeCompare(b.fechaCierre));
+  const cerradas = todas.filter((c) => c.estado === "cerrada").sort((a, b) => b.fechaCierre.localeCompare(a.fechaCierre));
+  return [...vigentes, ...cerradas];
 });
 
 /** RF-13, CU-08 · La ficha que la sesión puede ver, o null si para ella no existe. */

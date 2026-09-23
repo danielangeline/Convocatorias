@@ -5,7 +5,8 @@ import { filtrarCatalogo } from "@/lib/catalogo-filtros";
 import { leerMontoCOP } from "@/lib/montos";
 
 // RF-11, RF-12, CU-07 · Catálogo de la empresa: publicadas y vigentes (RN-33),
-// con texto libre y filtros combinables. Las categorías van como ids separados
+// con texto libre y filtros combinables. Las cerradas solo con
+// incluirCerradas=true, detrás de las vigentes (RN-02). Las categorías van como ids separados
 // por comas; montoHasta en pesos, en formato colombiano (CU-02 2b).
 export async function GET(request: NextRequest) {
   return conEmpresa(async () => {
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "La fecha de cierre debe ir como AAAA-MM-DD." }, { status: 400 });
     }
 
-    const datos = filtrarCatalogo(await listarCatalogo(), {
+    const datos = filtrarCatalogo(await listarCatalogo(p.get("incluirCerradas") === "true"), {
       q: p.get("q") ?? "",
       tipoProyecto: lista("tipoProyecto"),
       sector: lista("sector"),

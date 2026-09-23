@@ -27,7 +27,7 @@ export function ConvocatoriaCard({ convocatoria, categorias }: { convocatoria: C
       href={`/convocatorias/${convocatoria.id}`}
       className={cn(
         "group relative flex flex-col overflow-hidden rounded-2xl border border-line bg-white transition-all hover:-translate-y-0.5 hover:border-primary-200 hover:shadow-[0_12px_32px_-16px_rgba(31,56,100,0.35)]",
-        esUrgente ? "border-l-4 border-l-gold-500" : "border-l-4 border-l-primary-800"
+        esUrgente ? "border-l-4 border-l-gold-500" : yaCerro ? "border-l-4 border-l-slate-300 bg-slate-50/60" : "border-l-4 border-l-primary-800"
       )}
     >
       <div className="flex flex-1 flex-col gap-3 p-5">
@@ -53,6 +53,8 @@ export function ConvocatoriaCard({ convocatoria, categorias }: { convocatoria: C
         </div>
 
         <p className="line-clamp-2 text-sm text-ink-soft">{convocatoria.descripcion}</p>
+        {/* RN-02: marcada como cerrada y sin acciones. */}
+        {yaCerro && <p className="text-xs font-medium text-slate-500">Ya no admite postulación.</p>}
 
         <div className="mt-auto flex flex-wrap gap-1.5 pt-1">
           {categoriasVisibles.map((cat) => (

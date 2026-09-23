@@ -17,6 +17,11 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 
 ## Lo último que se hizo
 
+- **Sesión 017, después: Sprint 2, paso 5 — cerradas fuera del listado salvo filtro explícito (RF-11, RN-02).**
+  - Migración `20260923200000_empresa_lee_cerradas`: la empresa lee las publicadas y las cerradas; borradores y despublicadas siguen invisibles. **Leer no es actuar**: postular a una cerrada lo sigue rechazando la RLS (RF-78), comprobado.
+  - El listado por defecto filtra las vigentes en la consulta; con `incluirCerradas=true` (o la casilla de la pantalla) vienen detrás, de la más reciente a la más antigua, marcadas como cerradas. Una publicada vencida se presenta como cerrada aunque el job de RF-10 no la haya cerrado. En la ficha de una cerrada se deshabilitan las tres acciones de CU-08, incluido "Ir al portal de la entidad".
+  - **La prueba de RLS estaba rota desde que hay contenido real**: suponía un catálogo vacío y una publicada que podía quedar incompleta. Se corrigió (línea base para los indicadores, comprobaciones limitadas a sus propias filas, y la prueba de RN-04 despublica antes de quitar un requisito) y se amplió con una cerrada y una despublicada. Pasa entera.
+  - Suite del catálogo: **47 comprobaciones**, todas pasan. Sin regresiones en adjuntos, catálogo del panel y publicar. RN-02 pasa a `servidor`; RF-11 espera que el Product Owner mire la casilla.
 - **Sesión 017: Sprint 2, paso 4 — el catálogo de la empresa contra datos reales (RF-11, 12, 13, 43, 44, RN-33).**
   - `lib/catalogo.ts` lee con la sesión de la empresa, así que **la RLS decide qué existe**. Endpoints `GET /api/convocatorias` (con filtros), `GET /api/convocatorias/[id]`, `GET .../documentos/[docId]/enlace` y `GET /api/indicadores` (público), declarados en la matriz (RNF-30) y con segunda barrera: 401 sin sesión, 403 con otro rol.
   - Catálogo y ficha son componentes de servidor que pasan los datos a la parte interactiva. Filtros en un solo módulo (`lib/catalogo-filtros.ts`) para pantalla y endpoint; chips derivados de lo vigente. El layout del portal entrega además el catálogo real al store, para que postular, generar y sugerencias trabajen con convocatorias y categorías reales.
@@ -76,7 +81,7 @@ Detalle en [`docs/bitacora/2026-09-23-sesion-017.md`](docs/bitacora/2026-09-23-s
 
 ## En curso
 
-Nada a medias. **El paso 4 está hecho**; lo único que depende de él y aún no existe es el filtro explícito de cerradas, que es el paso 5.
+Nada a medias. **Los pasos 4 y 5 están hechos.** Solo falta que el Product Owner mire en pantalla la casilla "Incluirlas en los resultados" para cerrar RF-11.
 
 ## Lo siguiente
 
@@ -86,7 +91,7 @@ Nada a medias. **El paso 4 está hecho**; lo único que depende de él y aún no
 2. ~~Storage: 3 buckets privados con URLs firmadas de 15 min y adjuntos de convocatoria (RF-07, RNF-16, RNF-18)~~ — **sesión 012**. Los archivos del perfil del consultor (foto y hoja de vida) tienen ya su bucket y sus políticas; la pantalla y sus endpoints van con el módulo de consultores.
 3. ~~Publicación validada en servidor (RF-09, RN-01, RNF-29), con la advertencia de CU-05 3d~~ — **sesión 013**; ficha completa en la 015; **verificado en la 016**.
 4. ~~Catálogo, filtros, chips e indicadores de la landing contra datos reales (RF-11, 12, 13, 43, 44), con `GET /api/convocatorias` para la empresa. **Solo cuentas de empresa** (RN-33): ni visitantes ni consultores.~~ — **sesión 017**.
-5. Cerradas fuera del listado salvo filtro explícito (RF-11, RN-02).
+5. ~~Cerradas fuera del listado salvo filtro explícito (RF-11, RN-02).~~ — **sesión 017**.
 6. Job diario de cierre (RF-10, CU-06).
 7. Vigencia verificada en servidor al postular y al generar (RF-78).
 

@@ -48,6 +48,11 @@ grant execute on all functions in schema pg_temp to anon, authenticated, service
 -- Datos (como postgres, sin RLS)
 -- ---------------------------------------------------------------------------
 
+-- Línea base de los indicadores: la base ya tiene contenido real (sesión 017),
+-- así que se comparan diferencias y no cifras absolutas.
+create temp table base_indicadores as select * from public.indicadores_catalogo();
+grant select on base_indicadores to anon, authenticated;
+
 -- Las cuentas nacen por el trigger de registro (RF-01, RF-37, RN-06, RN-11).
 insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000000e1', 'e1@prueba.co', '{"rol": "empresa", "nombre": "Empresa uno", "nombre_empresa": "Uno SAS"}'),
@@ -88,7 +93,9 @@ where usuario_id = '00000000-0000-0000-0000-0000000000e2';
 insert into public.convocatorias (id, nombre, entidad_convocante, fecha_cierre, estado, url_postulacion) values
   ('00000000-0000-0000-0000-00000000c001', 'Vigente', 'MinCiencias', current_date + 30, 'publicada', 'https://minciencias.gov.co/x'),
   ('00000000-0000-0000-0000-00000000c002', 'Borrador', 'iNNpulsa', current_date + 30, 'borrador', null),
-  ('00000000-0000-0000-0000-00000000c003', 'Vencida', 'SENA', current_date - 1, 'publicada', 'https://sena.edu.co/x');
+  ('00000000-0000-0000-0000-00000000c003', 'Vencida', 'SENA', current_date - 1, 'publicada', 'https://sena.edu.co/x'),
+  ('00000000-0000-0000-0000-00000000c004', 'Despublicada', 'SENA', current_date + 30, 'despublicada', 'https://sena.edu.co/y'),
+  ('00000000-0000-0000-0000-00000000c005', 'Cerrada', 'Bancóldex', current_date - 10, 'cerrada', 'https://bancoldex.com/x');
 
 insert into public.requisitos_convocatoria (convocatoria_id, descripcion, tipo, orden) values
   ('00000000-0000-0000-0000-00000000c001', 'RUT', 'documento', 1),
@@ -149,7 +156,10 @@ select pg_temp.ok(not exists (
 set local role anon;
 select pg_temp.ok((select count(*) from public.convocatorias) = 0, 'anon: no ve el catálogo (RN-33)');
 select pg_temp.ok((select count(*) from public.requisitos_convocatoria) = 0, 'anon: no ve requisitos (RN-33)');
-select pg_temp.ok((select convocatorias_vigentes = 1 and entidades = 1 and consultores_aprobados = 1 from public.indicadores_catalogo()),
+select pg_temp.ok((select i.convocatorias_vigentes = b.convocatorias_vigentes + 1
+                          and i.entidades between b.entidades and b.entidades + 1
+                          and i.consultores_aprobados = b.consultores_aprobados + 1
+                     from public.indicadores_catalogo() i, base_indicadores b),
   'anon: solo recibe los indicadores agregados (RF-44)');
 select pg_temp.ok((select count(*) from public.proyectos) = 0, 'anon: ningún proyecto');
 select pg_temp.ok((select count(*) from public.consultor_perfiles) = 1, 'anon: solo consultores aprobados');
@@ -173,10 +183,14 @@ select pg_temp.ok((select count(*) from public.suscripciones) = 1, 'E1: ve solo 
 select pg_temp.ok((select count(*) from public.perfiles) = 1, 'E1: ve solo su perfil');
 select pg_temp.ok((select count(*) from public.eventos_seguridad) = 0, 'E1: ningún evento de seguridad');
 select pg_temp.ok((select count(*) from public.fuentes) = 0, 'E1: no lee fuentes');
-select pg_temp.ok((select count(*) from public.convocatorias where estado = 'publicada' and fecha_cierre >= current_date) = 1
+select pg_temp.ok((select count(*) from public.convocatorias where id = '00000000-0000-0000-0000-00000000c001') = 1
                   and (select count(*) from public.convocatorias where id = '00000000-0000-0000-0000-00000000c002') = 0,
   'E1: la empresa ve el catálogo vigente y no los borradores (RN-33)');
-select pg_temp.ok((select count(*) from public.requisitos_convocatoria) = 2, 'E1: ve los requisitos de la vigente');
+select pg_temp.ok((select count(*) from public.convocatorias where id in ('00000000-0000-0000-0000-00000000c003', '00000000-0000-0000-0000-00000000c005')) = 2
+                  and (select count(*) from public.convocatorias where id = '00000000-0000-0000-0000-00000000c004') = 0,
+  'E1: ve las cerradas y las vencidas para el filtro explícito, no las despublicadas (RF-11, RN-02)');
+select pg_temp.rechaza($$insert into public.postulaciones (convocatoria_id) values ('00000000-0000-0000-0000-00000000c005')$$, 'E1 postula a una cerrada (RF-78)');
+select pg_temp.ok((select count(*) from public.requisitos_convocatoria where convocatoria_id = '00000000-0000-0000-0000-00000000c001') = 2, 'E1: ve los requisitos de la vigente');
 
 insert into public.postulaciones (convocatoria_id, proyecto_id)
 values ('00000000-0000-0000-0000-00000000c001', '00000000-0000-0000-0000-00000000b001');
@@ -272,7 +286,7 @@ select pg_temp.rechaza($$insert into public.fuentes (nombre) values ('x')$$, 'Ad
 select pg_temp.como('00000000-0000-0000-0000-0000000000ad', 'aal2');
 select pg_temp.ok((select count(*) from public.proyectos) = 2, 'Admin con MFA: lee todos los proyectos');
 select pg_temp.ok((select count(*) from public.eventos_seguridad) = (select n from total_eventos), 'Admin con MFA: lee todos los eventos de seguridad');
-select pg_temp.ok((select count(*) from public.convocatorias) = 3, 'Admin con MFA: lee borradores y vencidas');
+select pg_temp.ok((select count(*) from public.convocatorias where id::text like '00000000-0000-0000-0000-00000000c00%') = 5, 'Admin con MFA: lee borradores, despublicadas, cerradas y vencidas');
 select pg_temp.ok((select count(*) from public.contacto_consultor('00000000-0000-0000-0000-0000000000c2')) = 1, 'Admin con MFA: ve el contacto de un consultor');
 insert into public.fuentes (nombre) values ('Fuente admin');
 with r as (delete from public.convocatorias returning 1)
@@ -611,15 +625,21 @@ select pg_temp.rechaza($$select public.guardar_convocatoria('00000000-0000-0000-
   (select d || '{"nombre": "Vigente", "entidad_convocante": "MinCiencias"}' from datos_c002), '{}', '[]')$$,
   'Dejar una publicada sin requisitos (RN-01)');
 
--- Retirar un requisito de una publicada no altera el checklist ya copiado (RN-04).
+-- Retirar un requisito no altera el checklist ya copiado (RN-04). Desde la
+-- sesión 016 una publicada no puede quedar con menos de dos requisitos (RN-01),
+-- así que primero se despublica, que es el camino que la regla exige.
+reset role;
+update public.convocatorias set estado = 'despublicada' where id = '00000000-0000-0000-0000-00000000c001';
+set local role authenticated;
+select pg_temp.como('00000000-0000-0000-0000-0000000000ad', 'aal2');
 select public.guardar_convocatoria('00000000-0000-0000-0000-00000000c001',
   (select d || '{"nombre": "Vigente", "entidad_convocante": "MinCiencias", "url_postulacion": "https://minciencias.gov.co/x"}' from datos_c002),
   '{}',
   (select jsonb_build_array(jsonb_build_object('id', id, 'descripcion', descripcion, 'tipo', tipo))
    from public.requisitos_convocatoria where convocatoria_id = '00000000-0000-0000-0000-00000000c001' and orden = 1));
 select pg_temp.ok((select count(*) from public.requisitos_convocatoria where convocatoria_id = '00000000-0000-0000-0000-00000000c001') = 1
-                  and (select estado from public.convocatorias where id = '00000000-0000-0000-0000-00000000c001') = 'publicada',
-  'Admin con MFA: retira un requisito de una publicada y sigue publicada');
+                  and (select estado from public.convocatorias where id = '00000000-0000-0000-0000-00000000c001') = 'despublicada',
+  'Admin con MFA: retira un requisito de una despublicada');
 reset role;
 select pg_temp.ok((select count(*) from public.postulacion_checklist) = 2
                   and (select count(*) from public.postulacion_checklist where requisito_id is null) = 1,

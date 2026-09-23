@@ -1,12 +1,13 @@
 // Prueba del catálogo de la empresa contra Supabase real (RF-11, RF-12, RF-13,
-// RF-43, RF-44, CU-07, CU-08, RN-33, RNF-16, RNF-30 · Sprint 2 paso 4).
+// RF-43, RF-44, CU-07, CU-08, RN-02, RN-33, RNF-16, RNF-30 · Sprint 2 pasos 4 y 5).
 //
 //   npm run dev                                   (en otra terminal)
 //   node --env-file=.env.local scripts/prueba-catalogo-empresa.mjs
 //
 // Crea sus propias cuentas temporales (una empresa y un consultor) y, con
-// service_role, una fuente, dos categorías y tres convocatorias —publicada y
-// vigente con un adjunto real, borrador, y publicada pero vencida—. Borra todo
+// service_role, una fuente, dos categorías y cinco convocatorias —publicada y
+// vigente con un adjunto real, borrador, publicada pero vencida, cerrada y
+// despublicada—. Borra todo
 // al terminar, incluidos los objetos del bucket.
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
@@ -87,6 +88,8 @@ try {
   const pub = await crearConvocatoria(`Convocatoria pública ${sufijo}`, "publicada", enDias(20), { monto_min: 50000000, monto_max: 300000000 });
   const bor = await crearConvocatoria(`Convocatoria borrador ${sufijo}`, "borrador", enDias(20));
   const ven = await crearConvocatoria(`Convocatoria vencida ${sufijo}`, "publicada", enDias(-3));
+  const cer = await crearConvocatoria(`Convocatoria cerrada ${sufijo}`, "cerrada", enDias(-40));
+  const desp = await crearConvocatoria(`Convocatoria despublicada ${sufijo}`, "despublicada", enDias(20));
   await svc.from("convocatoria_categoria").insert([{ convocatoria_id: pub, categoria_id: sector.id }, { convocatoria_id: pub, categoria_id: tipoP.id }]);
   await svc.from("requisitos_convocatoria").insert([
     { convocatoria_id: pub, descripcion: "Cámara de comercio", tipo: "documento", obligatorio: true, orden: 1 },
@@ -124,6 +127,26 @@ try {
   const laPub = (lista.json?.datos ?? []).find((c) => c.id === pub);
   ok(laPub?.montoMin === 50000000 && laPub?.montoMax === 300000000 && laPub?.categorias?.length === 2,
     "empresa - trae montos y categorías reales");
+
+  ok(!ids.includes(cer) && !ids.includes(desp), "empresa - ni la cerrada ni la despublicada aparecen por defecto (RN-02)");
+
+  // --- RF-11, RN-02: cerradas solo bajo filtro explícito --------------------------------
+  const conCerradas = await pedir(emp, "/api/convocatorias?incluirCerradas=true");
+  const lc = conCerradas.json?.datos ?? [];
+  const pos = (id) => lc.findIndex((c) => c.id === id);
+  ok(conCerradas.status === 200 && pos(cer) >= 0 && pos(ven) >= 0, "incluirCerradas - aparecen la cerrada y la publicada vencida");
+  ok(lc.find((c) => c.id === ven)?.estado === "cerrada" && lc.find((c) => c.id === cer)?.estado === "cerrada",
+    "incluirCerradas - las dos vienen marcadas como cerradas");
+  ok(pos(pub) >= 0 && pos(pub) < pos(ven) && pos(ven) < pos(cer), "incluirCerradas - vigentes primero; cerradas de la más reciente a la más antigua");
+  ok(pos(bor) === -1 && pos(desp) === -1, "incluirCerradas - borrador y despublicada siguen sin aparecer (RN-33)");
+  const qCerradas = (await pedir(emp, `/api/convocatorias?incluirCerradas=true&q=${encodeURIComponent("cerrada " + sufijo)}`)).json?.datos ?? [];
+  ok(qCerradas.length === 1 && qCerradas[0].id === cer, "los filtros también se aplican a las cerradas");
+  ok((await pedir(con, "/api/convocatorias?incluirCerradas=true")).status === 403, "consultor - incluirCerradas -> 403");
+  const fichaCer = await pedir(emp, `/api/convocatorias/${cer}`);
+  ok(fichaCer.status === 200 && fichaCer.json.datos.estado === "cerrada", "empresa - la ficha de una cerrada se abre, marcada como cerrada");
+  ok((await pedir(emp, `/api/convocatorias/${desp}`)).status === 404, "empresa - la ficha de una despublicada -> 404");
+  const { error: ePost } = await emp.cliente.from("postulaciones").insert({ convocatoria_id: cer });
+  ok(Boolean(ePost), `empresa - postular a una cerrada directamente en la base -> rechazado (RF-78) (${ePost?.code ?? "sin error"})`);
 
   // --- RF-12: filtros -----------------------------------------------------------------
   const incluye = async (qs) => ((await pedir(emp, `/api/convocatorias?${qs}`)).json?.datos ?? []).some((c) => c.id === pub);
@@ -164,6 +187,14 @@ try {
   ok(pagina.status === 200 && pagina.texto.includes(`Convocatoria pública ${sufijo}`) && !pagina.texto.includes(`Convocatoria borrador ${sufijo}`),
     "empresa - /convocatorias muestra la real y no el borrador");
   ok(!pagina.texto.includes("Bogotá Reactiva"), "empresa - /convocatorias ya no muestra datos de ejemplo");
+  // Los datos de la cerrada viajan a la pantalla (la empresa puede leerla, para el
+  // filtro); lo que no debe haber es su tarjeta pintada.
+  ok(new RegExp(`<h3[^>]*>Convocatoria pública ${sufijo}</h3>`).test(pagina.texto)
+    && !new RegExp(`<h3[^>]*>Convocatoria cerrada ${sufijo}</h3>`).test(pagina.texto),
+    "empresa - /convocatorias pinta la vigente y no la cerrada sin el filtro");
+  const paginaCer = await pedir(emp, `/convocatorias/${cer}`);
+  ok(paginaCer.status === 200 && paginaCer.texto.includes("ya cerró") && !paginaCer.texto.includes("Ir al portal de la entidad"),
+    "empresa - la ficha de una cerrada avisa que cerró y no ofrece ir al portal");
   const paginaFicha = await pedir(emp, `/convocatorias/${pub}`);
   ok(paginaFicha.status === 200 && paginaFicha.texto.includes("Cámara de comercio"), "empresa - /convocatorias/[id] muestra los requisitos reales");
 

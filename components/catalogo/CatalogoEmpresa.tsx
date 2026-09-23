@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/Button";
 // no sirve aquí, porque en el servidor solo tiene su estado inicial, que son
 // datos de ejemplo (sesión 016). Aquí solo se filtra lo que ya se autorizó.
 
-export function CatalogoEmpresa({ convocatorias, categorias }: { convocatorias: Convocatoria[]; categorias: Categoria[] }) {
+export function CatalogoEmpresa({ convocatorias: todas, categorias }: { convocatorias: Convocatoria[]; categorias: Categoria[] }) {
   const tiposProyecto = useMemo(() => categorias.filter((c) => c.tipo === "tipo_proyecto"), [categorias]);
   const sectores = useMemo(() => categorias.filter((c) => c.tipo === "sector"), [categorias]);
   const [busqueda, setBusqueda] = useState("");
@@ -25,8 +25,13 @@ export function CatalogoEmpresa({ convocatorias, categorias }: { convocatorias: 
   const [ubicacionSel, setUbicacionSel] = useState<string>("");
   const [montoHasta, setMontoHasta] = useState<string>("");
   const [cierraAntesDe, setCierraAntesDe] = useState<string>("");
-  // RF-11 / RN-02: el filtro explícito de cerradas vuelve en el paso 5 del
-  // Sprint 2, cuando la RLS deje leerlas; hoy la empresa solo ve las vigentes.
+  // RF-11 / RN-02: las cerradas salen del listado por defecto y solo
+  // reaparecen bajo este filtro explícito, marcadas y sin acciones.
+  const [incluirCerradas, setIncluirCerradas] = useState(false);
+  const convocatorias = useMemo(
+    () => (incluirCerradas ? todas : todas.filter((c) => c.estado !== "cerrada")),
+    [todas, incluirCerradas]
+  );
   const [filtrosAbiertos, setFiltrosAbiertos] = useState(true);
 
   const entidades = useMemo(
@@ -38,7 +43,11 @@ export function CatalogoEmpresa({ convocatorias, categorias }: { convocatorias: 
     [convocatorias]
   );
   // RF-43: derivados de lo vigente, así que ninguno lleva a un resultado vacío.
-  const sugeridas = useMemo(() => chipsSugeridos(convocatorias, categorias), [convocatorias, categorias]);
+  // Los chips salen solo de lo vigente: una sugerencia que lleva a cerradas no ayuda.
+  const sugeridas = useMemo(
+    () => chipsSugeridos(todas.filter((c) => c.estado !== "cerrada"), categorias),
+    [todas, categorias]
+  );
   const lecturaMonto = leerMontoCOP(montoHasta);
   const montoValor = lecturaMonto.ok ? lecturaMonto.valor : null;
 
@@ -66,7 +75,8 @@ export function CatalogoEmpresa({ convocatorias, categorias }: { convocatorias: 
     !!entidadSel ||
     !!ubicacionSel ||
     !!montoHasta ||
-    !!cierraAntesDe;
+    !!cierraAntesDe ||
+    incluirCerradas;
 
   const limpiarFiltros = () => {
     setTipoProyectoSel([]);
@@ -75,6 +85,7 @@ export function CatalogoEmpresa({ convocatorias, categorias }: { convocatorias: 
     setUbicacionSel("");
     setMontoHasta("");
     setCierraAntesDe("");
+    setIncluirCerradas(false);
   };
 
   const aplicarBusquedaSugerida = ({ filtros }: ChipSugerido) => {
@@ -112,7 +123,7 @@ export function CatalogoEmpresa({ convocatorias, categorias }: { convocatorias: 
           className="sm:w-auto"
         >
           <SlidersHorizontal className="h-4 w-4" />
-          Filtros {hayFiltrosActivos && `(${tipoProyectoSel.length + sectorSel.length + [entidadSel, ubicacionSel, montoHasta, cierraAntesDe].filter(Boolean).length})`}
+          Filtros {hayFiltrosActivos && `(${tipoProyectoSel.length + sectorSel.length + [entidadSel, ubicacionSel, montoHasta, cierraAntesDe, incluirCerradas].filter(Boolean).length})`}
         </Button>
       </div>
 
@@ -214,7 +225,7 @@ export function CatalogoEmpresa({ convocatorias, categorias }: { convocatorias: 
               {!lecturaMonto.ok && <p className="mt-1 text-xs text-brick-700">El monto {lecturaMonto.error}</p>}
             </FiltroGrupo>
 
-            <FiltroGrupo titulo="Fecha de cierre" ultimo>
+            <FiltroGrupo titulo="Fecha de cierre">
               <input
                 type="date"
                 value={cierraAntesDe}
@@ -224,6 +235,23 @@ export function CatalogoEmpresa({ convocatorias, categorias }: { convocatorias: 
               <p className="mt-1 text-xs text-ink-faint">Mostrar convocatorias que cierran antes de esta fecha</p>
             </FiltroGrupo>
 
+            {/* RF-11 / RN-02: las cerradas solo entran bajo petición explícita. */}
+            <FiltroGrupo titulo="Convocatorias cerradas" ultimo>
+              <label className="flex cursor-pointer items-start gap-2">
+                <input
+                  type="checkbox"
+                  checked={incluirCerradas}
+                  onChange={(e) => setIncluirCerradas(e.target.checked)}
+                  className="mt-0.5"
+                />
+                <span>
+                  <span className="block text-sm text-ink">Incluirlas en los resultados</span>
+                  <span className="block text-xs text-ink-faint">
+                    Sirven de referencia sobre lo que suele abrirse, pero ya no admiten postulación.
+                  </span>
+                </span>
+              </label>
+            </FiltroGrupo>
           </aside>
         )}
 
