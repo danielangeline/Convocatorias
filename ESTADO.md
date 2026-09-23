@@ -21,7 +21,7 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
   - El job existía desde la sesión 003 y corre bien cada día (historial de `pg_cron`), pero nunca había tenido nada que cerrar. Ahora ejecuta `privado.cerrar_convocatorias_vencidas()`, que devuelve cuántas cerró.
   - **"Hoy" es el día en Colombia** (`privado.hoy_colombia()`): una convocatoria vence al terminar su día de cierre en hora de Bogotá. Antes el job ya lo cumplía por su horario (00:00 en Colombia), pero postular, publicar y los indicadores usaban `current_date` en UTC y la daban por vencida desde las 7 p. m. Resuelve el hallazgo de la sesión 017; RN-02 y CU-06 precisados.
   - Probado con `supabase/tests/cierre_convocatorias.sql` (7/7, se revierte sola). La prueba RLS, la del guardado y las suites de catálogo, publicar y panel pasan enteras. RF-11 pasa a `verificado` tras la revisión del Product Owner.
-  - **Pendiente:** ver una ejecución real que cierre algo (Hito 2). La convocatoria real de MinCiencias tiene hoy fecha de cierre 12-sep y sigue publicada, así que **el job de esta medianoche la cerraría**: se le preguntó al Product Owner antes de provocar el cierre.
+  - **Cierre real verificado:** el Product Owner devolvió su convocatoria de MinCiencias al 13-oct y se hizo la ejecución real el 23-sep: con la convocatoria de MinCiencias ya corregida, se creó una convocatoria temporal vencida y un job temporal de `pg_cron` que ejecutó la misma función como `postgres` (`succeeded`, 20:22 UTC); la temporal pasó a `cerrada`, la real siguió `publicada`; job y convocatoria retirados después. **RF-10 pasa a `verificado` y el Hito 2 queda cumplido.**
 - **Sesión 017, después: Sprint 2, paso 5 — cerradas fuera del listado salvo filtro explícito (RF-11, RN-02).**
   - Migración `20260923200000_empresa_lee_cerradas`: la empresa lee las publicadas y las cerradas; borradores y despublicadas siguen invisibles. **Leer no es actuar**: postular a una cerrada lo sigue rechazando la RLS (RF-78), comprobado.
   - El listado por defecto filtra las vigentes en la consulta; con `incluirCerradas=true` (o la casilla de la pantalla) vienen detrás, de la más reciente a la más antigua, marcadas como cerradas. Una publicada vencida se presenta como cerrada aunque el job de RF-10 no la haya cerrado. En la ficha de una cerrada se deshabilitan las tres acciones de CU-08, incluido "Ir al portal de la entidad".
@@ -86,7 +86,7 @@ Detalle en [`docs/bitacora/2026-09-23-sesion-017.md`](docs/bitacora/2026-09-23-s
 
 ## En curso
 
-**Paso 6, casi terminado:** el cierre está programado y probado, pero falta **ver una ejecución real que cierre algo**. Depende de lo que decida el Product Owner sobre su convocatoria de MinCiencias, que hoy tiene fecha de cierre pasada (ver "Lo último").
+Nada a medias. **Los pasos 4, 5 y 6 están hechos y el Hito 2 está cumplido.** Queda el paso 7 del Sprint 2.
 
 ## Lo siguiente
 
@@ -97,12 +97,12 @@ Detalle en [`docs/bitacora/2026-09-23-sesion-017.md`](docs/bitacora/2026-09-23-s
 3. ~~Publicación validada en servidor (RF-09, RN-01, RNF-29), con la advertencia de CU-05 3d~~ — **sesión 013**; ficha completa en la 015; **verificado en la 016**.
 4. ~~Catálogo, filtros, chips e indicadores de la landing contra datos reales (RF-11, 12, 13, 43, 44), con `GET /api/convocatorias` para la empresa. **Solo cuentas de empresa** (RN-33): ni visitantes ni consultores.~~ — **sesión 017**.
 5. ~~Cerradas fuera del listado salvo filtro explícito (RF-11, RN-02).~~ — **sesión 017**.
-6. Job diario de cierre (RF-10, CU-06).
+6. ~~Job diario de cierre (RF-10, CU-06).~~ — **sesión 017**, verificado con una ejecución real.
 7. Vigencia verificada en servidor al postular y al generar (RF-78).
 
 **Regla vigente:** toda pantalla o endpoint nuevo se declara en `lib/autorizacion/matriz.ts`; si no, responde 404. Los endpoints del catálogo del panel cuelgan de `/api/admin`, así que ya los cubre la regla del panel.
 
-**Hito 2 (día 12):** un administrador carga una convocatoria real de principio a fin —datos, adjuntos, requisitos, enlace— y aparece en el catálogo de las empresas —no para visitantes ni consultores, RN-33—; una vencida desaparece sola al correr el job. *Hoy* ya se carga la convocatoria entera, se publica **y aparece en el catálogo de las empresas** (no para visitantes ni consultores, verificado); falta ver correr el job de cierre (paso 6).
+**Hito 2 (día 12):** un administrador carga una convocatoria real de principio a fin —datos, adjuntos, requisitos, enlace— y aparece en el catálogo de las empresas —no para visitantes ni consultores, RN-33—; una vencida desaparece sola al correr el job. **Cumplido el 23-sep (sesión 017):** la convocatoria se carga entera, se publica, aparece en el catálogo de las empresas y no para visitantes ni consultores, y una vencida se cierra sola al correr el job (ejecución real de `pg_cron`).
 
 **Hito 1 (día 6) — cumplido** (sesión 010). Sigue vigente la condición: cada listado de empresa repite la prueba de aislamiento con dos empresas en pantalla al conectarse (proyectos y postulaciones en el Sprint 3; documentos y encargos en el Sprint 4).
 
@@ -209,7 +209,7 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | Los nombres con tilde en las descargas firmadas salían doblemente codificados (`T%C3%A9rminos.pdf`): `createSignedUrl({ download })` de storage-js codifica el nombre dos veces | `lib/supabase/descarga.ts` | **resuelto** en la sesión 017, también para el panel; si storage-js lo corrige, se puede volver a su opción |
 | "Vigente" se decidía con `current_date` de Postgres, que va en UTC: desde las 7 p. m. hora de Colombia, una convocatoria que cerraba ese día ya contaba como vencida | convocatorias | **resuelto** en la sesión 017: `privado.hoy_colombia()` en el cierre, postular, publicar, indicadores y el catálogo |
 | Las suscripciones también usan `current_date` en UTC (`crear_cuenta`, `tiene_suscripcion_vigente`, job 2): un trial o una suscripción vencen 5 horas antes en Colombia | suscripciones | media · aplicar `privado.hoy_colombia()` con el módulo de suscripciones (Sprint 5) |
-| **Editar una publicada permite poner una fecha de cierre ya pasada**: sigue publicada hasta que el job la cierra esa medianoche. Publicar sí rechaza una vencida (RN-03). Puede ser legítimo (la entidad cerró antes), pero hoy no se advierte ni se cierra en el momento. Así quedó la convocatoria de MinCiencias el 23-sep | `guardar_convocatoria` | media · decisión del Product Owner |
+| **Editar una publicada permite poner una fecha de cierre ya pasada**: sigue publicada hasta que el job la cierra esa medianoche. Publicar sí rechaza una vencida (RN-03). Puede ser legítimo (la entidad cerró antes), pero hoy no se advierte ni se cierra en el momento. Así quedó la convocatoria de MinCiencias el 23-sep; el Product Owner la corrigió antes de que el job la cerrara | `guardar_convocatoria` | media · decisión del Product Owner: ¿rechazar, advertir o cerrar en el acto? |
 | `unstable_cache` (indicadores) está reemplazado por `use cache` en Next 16, pero `use cache` exige activar `cacheComponents` en todo el proyecto | `lib/catalogo.ts` | baja · migrar si se activa `cacheComponents` |
 | Las pruebas que crean convocatorias con `service_role` no invalidan la caché de indicadores: si la landing se calcula mientras corren, muestra hasta 1 hora cifras con datos de prueba (pasó el 23-sep). `prueba-catalogo-empresa.mjs` ya mide antes de crear contenido | pruebas | baja · tenerlo en cuenta al leer la landing en local |
 | `set role supabase_storage_admin` está negado al rol que corre las migraciones (42501), aunque ese mismo rol sí puede crear políticas sobre `storage.objects` | `supabase/migrations/` | baja · anotado en la migración |
