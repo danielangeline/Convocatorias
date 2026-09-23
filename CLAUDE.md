@@ -22,10 +22,11 @@ El proyecto está en desarrollo activo con un plan de 30 días. **Antes de tocar
 
 El ritual completo y la definición de terminado están en `docs/10-plan-de-desarrollo.md §17`. **Sin ese cierre, la siguiente sesión empieza a ciegas y repite trabajo.**
 
-Dos reglas que se rompen con facilidad:
+Reglas que se rompen con facilidad:
 
 - **Un requerimiento no está hecho porque funcione en pantalla.** Si la regla vive en `lib/store.ts` y no en el servidor, su estado es `prototipo`, no `servidor` (RNF-20).
 - **Lo que aparece de paso no se arregla de paso.** Se anota en "Hallazgos no planificados" de `ESTADO.md` y se planifica.
+- **Ante un fallo que no se reproduce en un caso mínimo, descarta primero el entorno** antes de tocar código o migraciones: la red local (`scripts/diagnostico-red-supabase.mjs`) y el desfase del reloj frente a Supabase. Los dos costaron sesiones enteras en el Sprint 2 (`docs/incidentes/`).
 
 ---
 
