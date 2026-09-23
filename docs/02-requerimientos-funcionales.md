@@ -24,7 +24,7 @@
 | ID | Requerimiento | CU | Prioridad |
 |---|---|---|---|
 | RF-04 | Crear, editar y desactivar fuentes con nombre, tipo de entidad, URL y notas. **Dos fuentes no pueden llamarse igual: la comparación ignora tildes, mayúsculas y espacios sobrantes** *(añadido en v6, sesión 014)* | CU-01 | Must |
-| RF-05 | Crear convocatoria con nombre, entidad, descripción, monto, ubicación, fechas **y el enlace oficial de postulación (URL del portal de la entidad)** *(mod. v5)* | CU-02 | Must |
+| RF-05 | Crear convocatoria con nombre, entidad, descripción, monto, ubicación, fechas **y el enlace oficial de postulación (URL del portal de la entidad)** *(mod. v5)*. **Los montos se capturan en pesos enteros y en formato colombiano, con puntos de miles; un formato ambiguo se rechaza con mensaje (CU-02 2b)** *(mod. v6, sesión 016)* | CU-02 | Must |
 | RF-06 | Clasificar en categorías: tipo de proyecto, sector y tipo de entidad elegible. **Dos categorías del mismo tipo no pueden llamarse igual: la comparación ignora tildes, mayúsculas y espacios sobrantes** —`Transformación digital` y `Transformacion digital` son la misma—. **Una categoría que ninguna convocatoria usa sí se borra** (RN-07); una que ya clasifica algo solo se desactiva *(añadido en v6, sesión 014)* | CU-02 | Must |
 | RF-07 | Adjuntar documentos (TDR, términos, anexos, formatos) con nombre descriptivo | CU-03 | Must |
 | RF-08 | Registrar la lista de requisitos exigidos como ítems individuales | CU-04 | Must |

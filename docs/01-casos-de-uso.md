@@ -29,7 +29,7 @@
 | **Actor** | Administrador de Contenido |
 | **Precondiciones** | Existe al menos una fuente activa |
 | **Flujo principal** | 1. Crea la convocatoria asociada a una fuente. 2. Digita nombre, entidad convocante, descripción/objeto, monto mínimo y máximo, ubicación o cobertura, fecha de apertura y de cierre **y el enlace oficial de postulación (URL del portal de la entidad convocante)**. 3. Asigna categorías: tipo de proyecto, sector, tipo de entidad elegible. 4. Queda en estado **borrador** |
-| **Flujos alternos** | 2a. Guardar incompleta y continuar después |
+| **Flujos alternos** | 2a. Guardar incompleta y continuar después. **2b. Los montos se escriben en pesos enteros, en formato colombiano (`1.000.000`) o sin puntos (`1000000`); si el formato no es inequívoco —puntos mal agrupados, centavos, letras— se rechaza diciendo cómo escribirlo, nunca se interpreta a medias** *(mod. v6, sesión 016)* |
 | **Incluye** | CU-03 |
 
 #### CU-03 · Adjuntar documentos

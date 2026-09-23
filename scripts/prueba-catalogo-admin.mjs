@@ -141,6 +141,14 @@ try {
   ok(rCatInact.status === 400, `asignar categoría inactiva → 400 (${rCatInact.status} ${rCatInact.json?.error})`);
   const rMontos = await api(adm, "PATCH", `/api/admin/convocatorias/${convId}`, { ...ficha, montoMin: "9", montoMax: "1" });
   ok(rMontos.status === 400, `monto mínimo mayor que el máximo → 400 (${rMontos.status})`);
+  // CU-02 2b (sesión 016): formato colombiano; lo ambiguo se rechaza, nunca se lee a medias.
+  const rColombiano = await api(adm, "PATCH", `/api/admin/convocatorias/${convId}`, { ...ficha, montoMin: "1.000.000", montoMax: "$ 50.000.000" });
+  ok(rColombiano.status === 200 && rColombiano.json.datos.montoMin === 1000000 && rColombiano.json.datos.montoMax === 50000000,
+    `montos "1.000.000" y "$ 50.000.000" → 1000000 y 50000000 (${rColombiano.status} ${rColombiano.json?.datos?.montoMin})`);
+  for (const malo of ["1.000000", "1.5", "1.000,50", "1e9", "-5", "mil"]) {
+    const r = await api(adm, "PATCH", `/api/admin/convocatorias/${convId}`, { ...ficha, montoMin: malo });
+    ok(r.status === 400 && /monto mínimo/i.test(r.json?.error ?? ""), `monto "${malo}" → 400 nombrando el campo (${r.status} ${r.json?.error})`);
+  }
 
   const rGuardar = await api(adm, "PATCH", `/api/admin/convocatorias/${convId}`, { ...ficha, estado: "publicada" });
   const g = rGuardar.json?.datos;

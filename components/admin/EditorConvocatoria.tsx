@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Plus, Trash2, ArrowUp, ArrowDown, CheckCircle2 } from "lucide-react";
 import type { CategoriaAdmin, ConvocatoriaAdmin, FuenteAdmin, RequisitoAdmin, TipoCategoria, TipoRequisito } from "@/lib/types";
 import { peticionAdmin } from "@/lib/admin/peticion";
+import { formatearMontoCOP, leerMontoCOP } from "@/lib/montos";
 import { DocumentosConvocatoria } from "./DocumentosConvocatoria";
 import { cn, formatCOP, ESTADO_CONVOCATORIA_LABEL, ESTADO_CONVOCATORIA_ESTILO, TIPO_CATEGORIA_LABEL } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
@@ -44,8 +45,8 @@ export function EditorConvocatoria({
     descripcion: convocatoria.descripcion,
     ubicacion: convocatoria.ubicacion,
     urlPostulacion: convocatoria.urlPostulacion,
-    montoMin: convocatoria.montoMin === null ? "" : String(convocatoria.montoMin),
-    montoMax: convocatoria.montoMax === null ? "" : String(convocatoria.montoMax),
+    montoMin: formatearMontoCOP(convocatoria.montoMin),
+    montoMax: formatearMontoCOP(convocatoria.montoMax),
     fechaApertura: convocatoria.fechaApertura ?? "",
     fechaCierre: convocatoria.fechaCierre,
   });
@@ -141,8 +142,11 @@ export function EditorConvocatoria({
       return copia;
     });
 
-  const montoMin = Number(form.montoMin);
-  const montoMax = Number(form.montoMax);
+  // Solo para la vista previa del rango: quien decide es el servidor (CU-02 2b).
+  const lecturaMin = leerMontoCOP(form.montoMin);
+  const lecturaMax = leerMontoCOP(form.montoMax);
+  const montoMin = lecturaMin.ok ? lecturaMin.valor ?? 0 : 0;
+  const montoMax = lecturaMax.ok ? lecturaMax.valor ?? 0 : 0;
 
   return (
     <div>
@@ -224,10 +228,10 @@ export function EditorConvocatoria({
               <textarea {...campo("descripcion")} rows={4} className={`${claseCampo} resize-y`} maxLength={10000} />
             </Campo>
             <Campo etiqueta="Monto mínimo (COP)">
-              <input type="number" min={0} {...campo("montoMin")} className={claseCampo} />
+              <input type="text" inputMode="numeric" placeholder="Ej. 50.000.000" {...campo("montoMin")} className={claseCampo} />
             </Campo>
             <Campo etiqueta="Monto máximo (COP)">
-              <input type="number" min={0} {...campo("montoMax")} className={claseCampo} />
+              <input type="text" inputMode="numeric" placeholder="Ej. 500.000.000" {...campo("montoMax")} className={claseCampo} />
             </Campo>
             <Campo etiqueta="Fecha de apertura">
               <input type="date" {...campo("fechaApertura")} className={claseCampo} />

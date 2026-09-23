@@ -1,6 +1,7 @@
 import "server-only";
 import type { PostgrestError } from "@supabase/supabase-js";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
+import { leerMontoCOP } from "@/lib/montos";
 import type {
   CategoriaAdmin,
   ConvocatoriaAdmin,
@@ -100,11 +101,6 @@ function fechaValida(valor: string): boolean {
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === valor;
 }
 
-function monto(valor: unknown): number | null | undefined {
-  if (valor === null || valor === undefined || valor === "") return null;
-  const n = typeof valor === "number" ? valor : typeof valor === "string" ? Number(valor) : NaN;
-  return Number.isFinite(n) && n >= 0 && n <= 1e15 ? n : undefined;
-}
 
 // ---------------------------------------------------------------------------
 // Fuentes (CU-01, RF-04)
@@ -412,9 +408,13 @@ export async function guardarConvocatoria(id: string, cuerpo: Cuerpo): Promise<R
   const fuenteId = texto(cuerpo?.fuenteId, 36) ?? "";
   if (fuenteId && !UUID.test(fuenteId)) return invalido("Fuente no válida.");
 
-  const montoMin = monto(cuerpo?.montoMin);
-  const montoMax = monto(cuerpo?.montoMax);
-  if (montoMin === undefined || montoMax === undefined) return invalido("Los montos deben ser números positivos.");
+  // CU-02 2b: formato colombiano, sin interpretar a medias (lib/montos.ts).
+  const lecturaMin = leerMontoCOP(cuerpo?.montoMin);
+  if (!lecturaMin.ok) return invalido(`El monto mínimo ${lecturaMin.error}`);
+  const lecturaMax = leerMontoCOP(cuerpo?.montoMax);
+  if (!lecturaMax.ok) return invalido(`El monto máximo ${lecturaMax.error}`);
+  const montoMin = lecturaMin.valor;
+  const montoMax = lecturaMax.valor;
   if (montoMin !== null && montoMax !== null && montoMin > montoMax) {
     return invalido("El monto mínimo no puede ser mayor que el máximo.");
   }
