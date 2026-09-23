@@ -31,11 +31,13 @@ const b32 = (s) => { const a = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"; let bits = ""
 const desfase = new Date((await fetch(`${URL_}/auth/v1/health`, { headers: { apikey: ANON } })).headers.get("date")).getTime() - Date.now();
 const totp = (sec) => { const c = Buffer.alloc(8); c.writeBigUInt64BE(BigInt(Math.floor((Date.now() + desfase) / 30000))); const h = crypto.createHmac("sha1", b32(sec)).update(c).digest(); const k = h[h.length - 1] & 15; return String((h.readUInt32BE(k) & 0x7fffffff) % 1e6).padStart(6, "0"); };
 
-// Supabase corta los sockets keep-alive inactivos y el servidor puede reutilizar
-// uno ya muerto: la llamada muere con ECONNRESET tras ~20 s y responde 500
-// (hallazgo de la sesion 015, anotado en ESTADO.md). Mientras eso no se resuelva
-// en el cliente de servidor, aqui se reintenta una vez, y solo lo idempotente:
-// repetir un POST podria duplicar lo que el primero si llego a hacer.
+// En el equipo de desarrollo, ciertas peticiones hacia Supabase se pierden segun
+// su tamano exacto en bytes: la llamada muere con ECONNRESET tras ~19 s y el
+// endpoint responde 500 (docs/incidentes/2026-09-22-cuelgue-al-guardar-convocatoria.md,
+// diagnosticado en la sesion 016; se comprueba con scripts/diagnostico-red-supabase.mjs).
+// Reintentar repite los mismos bytes y casi nunca cura, pero se deja para que el
+// sintoma se vea en pantalla. Solo lo idempotente: repetir un POST podria duplicar
+// lo que el primero si llego a hacer.
 async function api(s, metodo, ruta, cuerpo, { origen = APP } = {}) {
   const headers = { "content-type": "application/json" };
   if (s) headers.cookie = s.cookie();

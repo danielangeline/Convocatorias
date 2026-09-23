@@ -5,7 +5,7 @@
 
 ---
 
-**Actualizado:** 22 de septiembre de 2026 · cierre de la sesión 015
+**Actualizado:** 22 de septiembre de 2026 · cierre de la sesión 016
 **Sprint:** 2 · día 8 de 30
 **Rama de trabajo:** `sprint-2`, abierta desde `main` en la sesión 011 y subida a `origin` (sin fusionar a `main`: producción todavía no tiene el catálogo del panel). **Migraciones nuevas ya aplicadas al remoto:** `20260917100000_guardar_convocatoria`, `20260917200000_storage_y_adjuntos` , `20260918100000_publicar_convocatoria` y `20260918200000_nombres_normalizados_y_borrar_categorias`. No rompen `main`, que no las llama
 
@@ -17,6 +17,11 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 
 ## Lo último que se hizo
 
+- **Sesión 016: diagnosticado el cuelgue al guardar convocatorias. No es el código: es la red de este equipo.** Ciertas peticiones HTTPS hacia Supabase se pierden según su tamaño exacto en bytes. Windows retransmite ~19 s y aborta con `ECONNRESET`.
+  - Se siguió el plan del reporte. Postgres **nunca** vio la llamada colgada: vigilante sin filtro cada 250 ms y `pg_stat_statements`, con 63 ms como máximo. Con `fetch` instrumentado solo fallaba esa RPC, y también fuera de Next. La prueba decisiva: **sin sesión, sin datos y sin pool**, un `POST` anónimo con 1 460 bytes de relleno muere 4 de cada 30 veces, con 1 000 ninguna, y con 10 bytes más pasan todas.
+  - `scripts/diagnostico-red-supabase.mjs` nuevo: lo reproduce en ~1 minuto sin tocar la base.
+  - **No se cambió código de la aplicación ni la base.** La instrumentación se retiró. Solo se corrigió el comentario equivocado de `prueba-publicar-convocatoria.mjs`.
+  - **Falta que el Product Owner lo confirme en otra red** (ver "Bloqueos"). Detalle en el §9 del reporte.
 - **Sesión 015: lo que el Product Owner encontró probando, y una verificación en el navegador** (no planificada).
   - **La pantalla engañaba al publicar:** el botón no miraba el formulario, sino lo último guardado. Ahora **Publicar guarda primero** y solo publica si ese guardado pasa (CU-05 3d).
   - **RN-01 ampliado por decisión del Product Owner:** publicar exige ubicación, descripción, ≥1 categoría, **≥1 documento adjunto** y **≥2 requisitos**, además del enlace. Lo del adjunto **revierte** la decisión de la 012, confirmado expresamente. El rechazo enumera de una vez todo lo que falta.
@@ -55,11 +60,11 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 - **Ya cerrada la sesión, a pedido del Product Owner:** no llegaba el correo de confirmación al crear una cuenta. Causa: registrarse con un correo que ya tiene cuenta devuelve éxito sin enviar nada (Supabase, para no revelar qué correos existen). Se borró la cuenta de administrador revocado `danielangeline322@gmail.com` y el Product Owner se registró con ella como empresa en producción: **RF-01 queda probado por el formulario con correo real**, con confirmación, perfil de empresa y trial de 3 créditos.
 - **Sesión 010:** entrada con dos puertas (RF-84) y recuperación de contraseña (RF-03). Cerró el Sprint 1.
 
-Detalle en [`docs/bitacora/2026-09-22-sesion-015.md`](docs/bitacora/2026-09-22-sesion-015.md).
+Detalle en [`docs/bitacora/2026-09-22-sesion-016.md`](docs/bitacora/2026-09-22-sesion-016.md).
 
 ## En curso
 
-**El paso 3 quedó a medias:** las reglas nuevas de publicación están puestas y probadas en su mayor parte, pero un cuelgue al guardar impide darlo por verificado y obliga a dejar un hueco al editar publicadas (ver "Bloqueos").
+**El paso 3 quedó a medias:** las reglas nuevas de publicación están puestas y probadas en su mayor parte. El cuelgue que impedía verificarlas ya tiene causa: la red de este equipo, no el código (sesión 016). Faltan dos cosas: **confirmarlo en otra red**, para dar el paso por verificado, y que el Product Owner decida si se **restaura la comprobación completa al guardar**, que cierra el hueco de editar publicadas (ver "Bloqueos").
 
 ## Lo siguiente
 
@@ -90,9 +95,15 @@ Detalle en [`docs/bitacora/2026-09-22-sesion-015.md`](docs/bitacora/2026-09-22-s
 
 ## Bloqueos
 
-**SÍ hay uno, nuevo (sesión 015): un guardado de convocatoria se queda ~20 s y muere** con `ECONNRESET`. Se ve en el navegador (más de 34 s sin respuesta) y deja 4 comprobaciones de `prueba-publicar-convocatoria.mjs` en rojo. **Es lo primero que hay que resolver**, antes del paso 4.
+**El cuelgue al guardar convocatorias (sesión 015) ya está diagnosticado (sesión 016): lo causa la red de este equipo, no la aplicación.** Ciertas peticiones hacia Supabase se pierden según su tamaño exacto en bytes. Sigue abierto hasta que el Product Owner haga esto:
 
-   **Reporte completo para retomarlo: [`docs/incidentes/2026-09-22-cuelgue-al-guardar-convocatoria.md`](docs/incidentes/2026-09-22-cuelgue-al-guardar-convocatoria.md)** — síntoma, cómo reproducirlo, las siete hipótesis descartadas con su prueba, **lo que quedó sin comprobar** y un plan de ataque en cuatro pasos. Empezar por ahí, no por cero.
+   1. **Correr `node --env-file=.env.local scripts/diagnostico-red-supabase.mjs` en otra red** (p. ej. con datos compartidos desde el celular). Si sale `RED LIMPIA` y en esa red `prueba-publicar-convocatoria.mjs` pasa entera, queda confirmado y el paso 3 del Sprint 2 se da por verificado.
+   2. **Decidir si se restaura la comprobación completa en `guardar_convocatoria`**. Esa comprobación cierra el hueco de editar publicadas, y se había revertido creyendo que ella causaba el cuelgue. Es la decisión pendiente del §8 del reporte.
+   3. Opcional, para trabajar en local sin sobresaltos: aislar la pieza que pierde los paquetes. Candidatas: el filtro de VirtualBox enganchado al Wi-Fi, el driver del MediaTek MT7902 y el router.
+
+   Reporte con la evidencia: [`docs/incidentes/2026-09-22-cuelgue-al-guardar-convocatoria.md`](docs/incidentes/2026-09-22-cuelgue-al-guardar-convocatoria.md), §9.
+
+   **Mientras tanto, en este equipo** cualquier guardado puede colgarse ~20 s si su petición cae en un tamaño "malo". No es un defecto que haya que buscar en el código.
 
 Para lo demás, nada impide programar. **Sí bloquea el registro real desde Vercel** el punto 1 de abajo.
 
@@ -174,8 +185,9 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | Registrarse con un correo que ya tiene cuenta devuelve éxito y no envía correo (Supabase lo hace a propósito, para no revelar qué correos existen), pero la pantalla dice "Te enviamos un enlace…". Comprobado el 17-sep: `signup` responde 200 con `identities: []` y sin correo | `lib/acciones/auth.ts` (`registrarse`) | media · redactar el mensaje sin afirmar el envío, p. ej. "Si ese correo no tenía cuenta, te enviamos un enlace" |
 | La cuenta `danielangeline322@gmail.com` (administrador revocado) se borró el 17-sep a pedido del Product Owner, para volver a registrarla como empresa. Sus 4 eventos de seguridad quedaron sin `usuario_id`; `admin_invitado` y `admin_revocado` conservan el correo en el texto | Supabase Auth | baja · queda anotado como contexto de la evidencia del Hito 1 |
 | RNF-06 admitía "carga admin hasta 50 MB" y contradecía a RNF-18 (20 MB, que es lo que el bucket hace cumplir) | `docs/03` RNF-06 | **resuelto** en la sesión 013: manda 20 MB, por decisión del Product Owner |
-| **Guardar una convocatoria se cuelga ~20 s y muere con `ECONNRESET`.** Reproducible en la suite larga, nunca en un caso mínimo. Descartados: bloqueo en Postgres, `ficha_publicable`, invoker/definer, la forma del cuerpo de la función, el adjunto, las llamadas a Storage y la intermitencia de red | `lib/admin/catalogo.ts` / Supabase | **alta · bloquea el Sprint 2** |
-| Editar una convocatoria **publicada** deja quitarle ubicación, descripción, categoría o adjunto: solo se protegen enlace y requisitos. Consecuencia de revertir la comprobación que colgaba | `guardar_convocatoria` | media · se cierra cuando se resuelva el cuelgue |
+| **Guardar una convocatoria se cuelga ~20 s y muere con `ECONNRESET`** | red de la máquina local | **diagnosticado** en la sesión 016: se pierden paquetes según su tamaño exacto; falta confirmarlo en otra red (ver "Bloqueos") |
+| Editar una convocatoria **publicada** deja quitarle ubicación, descripción, categoría o adjunto: solo se protegen enlace y requisitos. Consecuencia de revertir una comprobación que **no** era la causa del cuelgue (sesión 016) | `guardar_convocatoria` | media · decide el Product Owner si se restaura |
+| **Consultar la base remota sin migraciones temporales:** `npx supabase db query --linked "<sql>"` (o `-f archivo.sql`) va por la API de administración, con permisos para ver `pg_stat_activity` y `pg_stat_statements`. Tarda ~5 s por consulta; para muestrear, el bucle va dentro de un `do` con `pg_stat_clear_snapshot()` | herramienta | nota · la sesión 015 creó y retiró dos migraciones para lo mismo |
 | Los heredocs de este entorno se comen las barras invertidas: un `
 ` dentro de una cadena JavaScript se convierte en salto real y rompe el archivo. Pasó dos veces | herramienta | baja · escribir el parche a un archivo aparte |
 | No se puede **renombrar una categoría** desde la pantalla, aunque `PATCH /api/admin/categorias/[id]` lo admite desde la sesión 011. Con el botón de borrar el caso queda cubierto a medias (borrar y volver a crear) | `components/admin/GestionCategorias.tsx` | baja · exponer el renombrado |
