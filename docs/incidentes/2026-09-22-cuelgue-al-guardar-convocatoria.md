@@ -1,6 +1,6 @@
 # Incidente abierto · Guardar una convocatoria se cuelga ~20 s y muere
 
-**Abierto:** 22 de septiembre de 2026, sesión 015 · **Estado: diagnosticado en la sesión 016 — es la red de la máquina de desarrollo, no el código ni la base (ver §9)** · **Gravedad: alta en local; falta confirmar que fuera de este equipo no ocurre**
+**Abierto:** 22 de septiembre de 2026, sesión 015 · **Estado: cerrado en la sesión 016 — la causa es la red de casa del equipo de desarrollo (router o proveedor), no el código, la base ni el computador (ver §9 y §10)** · **Gravedad: alta solo en esa red**
 
 > Este archivo existe para que la próxima sesión **no repita el trabajo ya hecho**. Contiene el síntoma, cómo reproducirlo, lo que se descartó **con prueba**, lo que quedó sin comprobar y un plan de ataque ordenado.
 > Contexto de la sesión: [`../bitacora/2026-09-22-sesion-015.md`](../bitacora/2026-09-22-sesion-015.md).
@@ -145,3 +145,15 @@ Termina en `LA RED PIERDE PETICIONES` o en `RED LIMPIA`. Aquí, el 22-sep: 1 000
 - **§8 decidido por el Product Owner (sesión 016): se restauró la comprobación completa** en `guardar_convocatoria` (migración `20260922950000_guardar_con_ficha_completa`), verificada con `supabase/tests/guardar_publicada_completa.sql`. Lo que sigue es el razonamiento previo a la decisión. **La decisión pendiente de §8 cambia de base:** el cuelgue **no** lo causaba `privado.ficha_publicable`. Restaurar la comprobación completa en `guardar_convocatoria` (y cerrar el hueco de editar publicadas) vuelve a ser posible, pero lo decide el Product Owner. En este equipo seguirá fallando a veces, porque cualquier petición del tamaño "malo" falla, lleve o no esa comprobación.
 - **Las migraciones `…900000` a `…900006` fueron idas y vueltas de una hipótesis equivocada.** Se conservan como historial, tal como dice §7.
 - **El comentario de `scripts/prueba-publicar-convocatoria.mjs`** que atribuía el fallo a sockets keep-alive muertos estaba equivocado y se corrigió. Los reintentos se quedan, pero no curan nada: repiten los mismos bytes.
+
+---
+
+## 10. Confirmación y cierre (sesión 016)
+
+El 22-sep, en el punto de acceso Wi-Fi del iPhone del Product Owner (misma tarjeta MT7902 y mismo filtro de VirtualBox), `diagnostico-red-supabase.mjs` salió `RED LIMPIA` dos veces (180/180; en la red de casa fallaban 6 de 90) y `prueba-publicar-convocatoria.mjs` pasó **tres veces seguidas, 39/39, sin un solo reintento**. La suite incluye los casos que la red de casa nunca dejaba alcanzar.
+
+**Qué pieza es:** con el punto de acceso Wi-Fi el computador usa **la misma tarjeta y el mismo driver** que en casa, y el fallo desaparece. Así que **no son** el MediaTek MT7902, su driver ni el filtro de VirtualBox. Queda el tramo de la red de casa: **el router o el proveedor de internet**. Para separar esos dos haría falta probar otro router con el mismo proveedor; no bloquea nada.
+
+**Para trabajar en casa sin cuelgues**, en orden de esfuerzo: usar el punto de acceso del celular cuando haya que guardar muchas convocatorias; reiniciar el router y actualizar su firmware; bajar la MTU del adaptador Wi-Fi (por ejemplo a 1400) para que ningún segmento caiga en el tamaño problemático, y comprobarlo con `scripts/diagnostico-red-supabase.mjs`; o consultar al proveedor. Son cambios en la red o en el sistema del Product Owner, no en la aplicación.
+
+**Si vuelve a aparecer un cuelgue de ~20 s con `ECONNRESET`:** correr primero `scripts/diagnostico-red-supabase.mjs` antes de buscar en el código.

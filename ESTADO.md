@@ -21,7 +21,7 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
   - Se siguió el plan del reporte. Postgres **nunca** vio la llamada colgada: vigilante sin filtro cada 250 ms y `pg_stat_statements`, con 63 ms como máximo. Con `fetch` instrumentado solo fallaba esa RPC, y también fuera de Next. La prueba decisiva: **sin sesión, sin datos y sin pool**, un `POST` anónimo con 1 460 bytes de relleno muere 4 de cada 30 veces, con 1 000 ninguna, y con 10 bytes más pasan todas.
   - `scripts/diagnostico-red-supabase.mjs` nuevo: lo reproduce en ~1 minuto sin tocar la base.
   - **No se cambió código de la aplicación ni la base.** La instrumentación se retiró. Solo se corrigió el comentario equivocado de `prueba-publicar-convocatoria.mjs`.
-  - **Falta que el Product Owner lo confirme en otra red** (ver "Bloqueos"). Detalle en el §9 del reporte.
+  - **Confirmado en otra red y cerrado:** en el punto de acceso Wi-Fi del iPhone del Product Owner (misma tarjeta MT7902 y mismo filtro de VirtualBox), `diagnostico-red-supabase.mjs` salió `RED LIMPIA` dos veces (180/180; en la red de casa fallaban 6 de 90) y `prueba-publicar-convocatoria.mjs` pasó **tres veces seguidas, 39/39, sin un solo reintento**. No es el computador: es el router o el proveedor. Paso 3 del Sprint 2 y RF-07 pasan a `verificado`.
   - **Prueba como tester en el navegador**, con la sesión de administrador del Product Owner y sobre una convocatoria de prueba ya borrada: crear, validaciones, publicar incompleta y completa, editar una publicada, adjuntos, descarga, despublicar, 404 del panel sin sesión y la portada a 375 px. Salieron **cuatro hallazgos nuevos** (tabla de hallazgos). El más grave: **escribir `1.000.000` en un monto guarda 1 peso**.
   - **Los otros tres hallazgos de la prueba, resueltos:** la sesión ya no se da por perdida ante un fallo pasajero de Auth (se reintenta y se registra); los avisos del editor se limpian en cada acción nueva; la portada ofrece "Ir a mi portal" si hay sesión (RF-84). Verificado en el navegador y con las suites de catálogo, adjuntos y gestión de administradores, las tres enteras.
   - **Montos en formato colombiano** (CU-02 2b, RF-05), por decisión del Product Owner: `1.000.000` y `$ 50.000.000` se guardan bien, y lo ambiguo (`1.000000`, `1.5`, `1.000,50`, letras, negativos) se rechaza diciendo cómo escribirlo. El editor los muestra con puntos. Un solo lector, `lib/montos.ts`, para servidor y pantalla. Verificado con el teclado en el navegador y en `prueba-catalogo-admin.mjs`, que pasa entera.
@@ -69,7 +69,7 @@ Detalle en [`docs/bitacora/2026-09-22-sesion-016.md`](docs/bitacora/2026-09-22-s
 
 ## En curso
 
-**El paso 3 quedó a medias:** las reglas nuevas de publicación están puestas y probadas en su mayor parte. El cuelgue que impedía verificarlas ya tiene causa: la red de este equipo, no el código (sesión 016). La comprobación completa al guardar ya está restaurada y el último adjunto protegido (sesión 016). Falta **confirmar en otra red** que la suite de publicar pasa entera, para dar el paso por verificado (ver "Bloqueos"). El formato de los montos ya está corregido.
+**El paso 3 quedó a medias:** las reglas nuevas de publicación están puestas y probadas en su mayor parte. El cuelgue que impedía verificarlas ya tiene causa: la red de este equipo, no el código (sesión 016). Nada: el paso 3 quedó **verificado** en la sesión 016 (la suite de publicar pasa entera en una red sana) y se sigue por el paso 4.
 
 ## Lo siguiente
 
@@ -77,7 +77,7 @@ Detalle en [`docs/bitacora/2026-09-22-sesion-016.md`](docs/bitacora/2026-09-22-s
 
 1. ~~Endpoints de fuentes, convocatorias, categorías y requisitos (RF-04..06, 08)~~ — **sesión 011**. Los documentos adjuntos (RF-07) pasan al paso 2, que trae Storage.
 2. ~~Storage: 3 buckets privados con URLs firmadas de 15 min y adjuntos de convocatoria (RF-07, RNF-16, RNF-18)~~ — **sesión 012**. Los archivos del perfil del consultor (foto y hoja de vida) tienen ya su bucket y sus políticas; la pantalla y sus endpoints van con el módulo de consultores.
-3. ~~Publicación validada en servidor (RF-09, RN-01, RNF-29), con la advertencia de CU-05 3d~~ — **sesión 013**.
+3. ~~Publicación validada en servidor (RF-09, RN-01, RNF-29), con la advertencia de CU-05 3d~~ — **sesión 013**; ficha completa en la 015; **verificado en la 016**.
 4. Catálogo, filtros, chips e indicadores de la landing contra datos reales (RF-11, 12, 13, 43, 44), con `GET /api/convocatorias` para la empresa. **Solo cuentas de empresa** (RN-33): ni visitantes ni consultores.
 5. Cerradas fuera del listado salvo filtro explícito (RF-11, RN-02).
 6. Job diario de cierre (RF-10, CU-06).
@@ -100,15 +100,7 @@ Detalle en [`docs/bitacora/2026-09-22-sesion-016.md`](docs/bitacora/2026-09-22-s
 
 ## Bloqueos
 
-**El cuelgue al guardar convocatorias (sesión 015) ya está diagnosticado (sesión 016): lo causa la red de este equipo, no la aplicación.** Ciertas peticiones hacia Supabase se pierden según su tamaño exacto en bytes. Sigue abierto hasta que el Product Owner haga esto:
-
-   1. **Correr `node --env-file=.env.local scripts/diagnostico-red-supabase.mjs` en otra red** (p. ej. con datos compartidos desde el celular). Si sale `RED LIMPIA` y en esa red `prueba-publicar-convocatoria.mjs` pasa entera, queda confirmado y el paso 3 del Sprint 2 se da por verificado.
-   2. ~~Decidir si se restaura la comprobación completa en `guardar_convocatoria`~~ — **restaurada en la sesión 016** a pedido del Product Owner. El último adjunto de una publicada también quedó protegido en la sesión 016 (CU-03 1b).
-   3. Opcional, para trabajar en local sin sobresaltos: aislar la pieza que pierde los paquetes. Candidatas: el filtro de VirtualBox enganchado al Wi-Fi, el driver del MediaTek MT7902 y el router.
-
-   Reporte con la evidencia: [`docs/incidentes/2026-09-22-cuelgue-al-guardar-convocatoria.md`](docs/incidentes/2026-09-22-cuelgue-al-guardar-convocatoria.md), §9.
-
-   **Mientras tanto, en este equipo** cualquier guardado puede colgarse ~20 s si su petición cae en un tamaño "malo". No es un defecto que haya que buscar en el código.
+**Ninguno propio del Sprint 2.** El cuelgue al guardar convocatorias (sesión 015) quedó **cerrado** en la sesión 016: en el punto de acceso Wi-Fi del iPhone del Product Owner (misma tarjeta MT7902 y mismo filtro de VirtualBox), `diagnostico-red-supabase.mjs` salió `RED LIMPIA` dos veces (180/180; en la red de casa fallaban 6 de 90) y `prueba-publicar-convocatoria.mjs` pasó **tres veces seguidas, 39/39, sin un solo reintento**. La causa es el router o el proveedor de la red de casa: con la misma tarjeta Wi-Fi en otra red, no ocurre. En esa red, guardar puede seguir colgándose ~20 s; las opciones para evitarlo están en el §10 del [reporte](docs/incidentes/2026-09-22-cuelgue-al-guardar-convocatoria.md). **Ante un cuelgue así, correr primero `scripts/diagnostico-red-supabase.mjs`.**
 
 Para lo demás, nada impide programar. **Sí bloquea el registro real desde Vercel** el punto 1 de abajo.
 
@@ -190,7 +182,7 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | Registrarse con un correo que ya tiene cuenta devuelve éxito y no envía correo (Supabase lo hace a propósito, para no revelar qué correos existen), pero la pantalla dice "Te enviamos un enlace…". Comprobado el 17-sep: `signup` responde 200 con `identities: []` y sin correo | `lib/acciones/auth.ts` (`registrarse`) | media · redactar el mensaje sin afirmar el envío, p. ej. "Si ese correo no tenía cuenta, te enviamos un enlace" |
 | La cuenta `danielangeline322@gmail.com` (administrador revocado) se borró el 17-sep a pedido del Product Owner, para volver a registrarla como empresa. Sus 4 eventos de seguridad quedaron sin `usuario_id`; `admin_invitado` y `admin_revocado` conservan el correo en el texto | Supabase Auth | baja · queda anotado como contexto de la evidencia del Hito 1 |
 | RNF-06 admitía "carga admin hasta 50 MB" y contradecía a RNF-18 (20 MB, que es lo que el bucket hace cumplir) | `docs/03` RNF-06 | **resuelto** en la sesión 013: manda 20 MB, por decisión del Product Owner |
-| **Guardar una convocatoria se cuelga ~20 s y muere con `ECONNRESET`** | red de la máquina local | **diagnosticado** en la sesión 016: se pierden paquetes según su tamaño exacto; falta confirmarlo en otra red (ver "Bloqueos") |
+| **Guardar una convocatoria se cuelga ~20 s y muere con `ECONNRESET`** | red de casa (router o proveedor) | **cerrado** en la sesión 016: confirmado en otra red; ver §10 del reporte |
 | Editar una convocatoria **publicada** dejaba quitarle ubicación, descripción o categoría | `guardar_convocatoria` | **resuelto** en la sesión 016: comprobación completa restaurada |
 | Se podía **quitar el último adjunto** de una convocatoria publicada (se reprodujo en pantalla: quedó con cero) | `documentos_convocatoria` | **resuelto** en la sesión 016: trigger + 409 (CU-03 1b) |
 | ~~**Un monto escrito con puntos de miles se guarda mal sin avisar.**~~ **Resuelto en la sesión 016** (formato colombiano, CU-02 2b). El campo es `type="number"`: al teclear `1.000.000` el navegador lo deja en `1.000000` y se guarda **1 peso** con "Cambios guardados."; con `abc` se guarda vacío. Reproducido con el teclado en la sesión 016 y comprobado en la base (`monto_min = 1`). Los montos alimentan los filtros del catálogo (RF-12) | `lib/montos.ts` | **resuelto** en la sesión 016 |
