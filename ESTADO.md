@@ -33,7 +33,7 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
     - `scripts/prueba-revision-consultores.mjs` (nueva): **51/51, dos corridas**;
     - regresión en verde: SQL (RLS, perfil del consultor, postulaciones, sugerencias, vigencia, cierre y guardar publicada) y HTTP (perfil del consultor);
     - `tsc` y `eslint` limpios.
-  - **No verificado en el navegador**: el panel exige la cuenta del Propietario con su MFA (pendiente 15).
+  - **Pendiente 15 cerrado:** el Product Owner recorrió la bandeja y la lista con su cuenta de Propietario y confirmó que todo funciona; la base lo corrobora (perfil aprobado por el Propietario). RF-25, RF-34 y RF-35 pasan a `verificado`.
 - **Sesión 021, después: Sprint 4 paso 1a — perfil del consultor en Supabase (RF-22..25) y consentimiento de datos (RF-88, nuevo).**
   - **Decisiones del Product Owner antes de programar:**
     - hasta el Sprint 5, aprobar a un consultor no crea suscripción y el directorio no la exige (RN-08 y RN-11 transitorios, CU-25);
@@ -169,7 +169,7 @@ Detalle en [`docs/bitacora/2026-09-24-sesion-020.md`](docs/bitacora/2026-09-24-s
 
 ## En curso
 
-**Sprint 4, paso 1a hecho y visto en pantalla** (sesiones 021 y 022). **Paso 1b hecho en el servidor** (sesión 022); falta mirarlo en pantalla (pendiente 15). Sigue 1c.
+**Sprint 4, paso 1a hecho y visto en pantalla** (sesiones 021 y 022). **Paso 1b hecho y recorrido en pantalla por el Product Owner** (sesión 022). Sigue 1c.
 
 ## Lo siguiente
 
@@ -258,7 +258,7 @@ Pendiente del Product Owner:
     - "Mis encargos" debe mostrar "Tu perfil está siendo revisado".
 
     Con eso, RF-22 a RF-25 y RF-88 pasan a `verificado`. La cuenta sirve después para la bandeja del administrador (paso 1b).
-15. **Recorrer la bandeja de consultores con tu cuenta de Propietario** (Sprint 4 paso 1b). Tu cuenta de consultor de la sesión 022 está en revisión y te espera en `/admin/consultores/revision`. Ojo: **lo que hagas queda guardado**.
+15. ~~**Recorrer la bandeja de consultores con tu cuenta de Propietario**~~ — **hecho en la sesión 022**; RF-25, 34 y 35 a `verificado`. Referencia (Sprint 4 paso 1b). Tu cuenta de consultor de la sesión 022 está en revisión y te espera en `/admin/consultores/revision`. Ojo: **lo que hagas queda guardado**.
     - Abre "Ver" en la hoja de vida: debe abrir el PDF en otra pestaña.
     - Pulsa "Rechazar" sin escribir nada: el botón de confirmar no se habilita. Escribe un motivo y confirma: el perfil sale de la bandeja.
     - En la pestaña del consultor, recarga "Mi perfil": aparece el rechazo con tu motivo y "Reenviar a revisión". Reenvíalo.
