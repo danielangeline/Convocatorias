@@ -221,7 +221,7 @@ Cierra los vacíos detectados en la auditoría de seguridad de la arquitectura: 
 |---|---|
 | eventos_seguridad | Solo lectura para el rol administrador; sin acceso de lectura para empresa o consultor; escritura únicamente desde código de servidor (nunca desde el cliente) |
 
-> El conteo y bloqueo en tiempo real de RNF-27 (límite de tasa) vive en un almacén rápido fuera de Postgres (p. ej. Upstash Redis o Vercel Edge Config), para no sobrecargar la base con una escritura por request; solo el resultado — el bloqueo confirmado — se persiste en `eventos_seguridad` para auditoría y para que el administrador pueda liberarlo (CU-40).
+> El conteo y bloqueo en tiempo real de RNF-27 (límite de tasa) vive en un almacén rápido fuera de Postgres —**Upstash Redis** (elegido por el Product Owner en la sesión 021; Vercel Edge Config se descartó porque sus escrituras tardan hasta 10 s en propagarse y Vercel lo desaconseja para datos que cambian con frecuencia)—, para no sobrecargar la base con una escritura por request; solo el resultado — el bloqueo confirmado — se persiste en `eventos_seguridad` para auditoría y para que el administrador pueda liberarlo (CU-40).
 
 ### 9.9b Extensión v5 — contexto y contacto en encargos
 

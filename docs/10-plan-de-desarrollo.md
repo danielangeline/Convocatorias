@@ -144,14 +144,13 @@ Lo primero es lo que el prototipo no puede simular y lo que más caro sale corre
 
 ### Sprint 4 · Días 19–24 — Consultores, encargos y endurecimiento
 
-> **Orden cambiado en la sesión 021, por decisión del Product Owner:** este sprint era el 5. La generación con IA, los créditos y los planes con sus precios pasan al final, porque los costos todavía no están definidos. Lo que depende de un documento generado (autorización, revocación en cascada y traza de lectura) se va con ellos al Sprint 5.
+> **Orden cambiado en la sesión 021, por decisión del Product Owner:** este sprint era el 5. La generación con IA, los créditos y los planes con sus precios pasan al final, porque los costos todavía no están definidos; el límite de tasa se va con ellos. Lo que depende de un documento generado (autorización, revocación en cascada y traza de lectura) se va con ellos al Sprint 5.
 
 | Entregable | Requerimientos |
 |---|---|
 | Perfil del consultor, revisión y aprobación, directorio | RF-22..27, 34, 35, RN-08, RN-13 |
 | Visibilidad de contacto por pareja empresa-consultor | **RF-80**, RN-12 |
 | Encargos de punta a punta, contacto al aceptar, avances, calificación | RF-28..33, 68, 69, 70, RN-09, RN-26 |
-| Límite de tasa con comportamiento fail-closed | RNF-27, **RNF-33** |
 | Job de vencimiento de suscripciones | RF-39, CU-32 |
 | Pruebas de los RNF críticos | RNF-01..04, 09..12, 20, 25..34 |
 
@@ -175,6 +174,7 @@ El sprint con más riesgo técnico y el único que depende de un proveedor exter
 | Exportación **.docx real** (hoy es HTML disfrazado) | RF-60 |
 | Autorización de documentos y **revocación automática en cascada** | RF-71, 72, **76**, RN-27 |
 | Traza de lectura de documentos compartidos | **RF-79**, RNF-11 |
+| Límite de tasa con comportamiento fail-closed, sobre **Upstash Redis** *(movido del Sprint 4 en la sesión 021: protege sobre todo la generación con IA)* | RF-66, 67, RNF-27, **RNF-33** |
 | Despliegue a producción | — |
 
 **Hito 5 —** Un documento generado a partir de un proyecto incompleto, con los pendientes marcados y **ningún dato inventado**, editado, ajustado y exportado a Word, con su costo por generación registrado. Autorizado después a un consultor, que **pierde el acceso al documento sin que nadie intervenga** al suspenderlo.

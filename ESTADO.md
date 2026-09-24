@@ -17,7 +17,7 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 
 ## Lo último que se hizo
 
-- **Sesión 021: planning del Sprint 4 — orden de los sprints cambiado, por decisión del Product Owner.** Los costos de la IA y los precios de los planes no están definidos, así que la generación con IA, los créditos, los planes con sus precios y todo lo que depende de un documento generado (autorización al consultor, revocación en cascada, traza de lectura) pasan al **Sprint 5**. Consultores, encargos y endurecimiento suben al **Sprint 4**. La pasarela de pago (Wompi, fase E1) queda justo después del Sprint 5, fuera de los 30 días. **Riesgo aceptado:** la IA ya no tiene un sprint detrás que absorba un retraso. `docs/10 §18` y `docs/11` actualizados.
+- **Sesión 021: planning del Sprint 4 — orden de los sprints cambiado, por decisión del Product Owner.** Los costos de la IA y los precios de los planes no están definidos, así que la generación con IA, los créditos, los planes con sus precios y todo lo que depende de un documento generado (autorización al consultor, revocación en cascada, traza de lectura) pasan al **Sprint 5**. Consultores, encargos y endurecimiento suben al **Sprint 4**. La pasarela de pago (Wompi, fase E1) queda justo después del Sprint 5, fuera de los 30 días. **Riesgo aceptado:** la IA ya no tiene un sprint detrás que absorba un retraso. `docs/10 §18` y `docs/11` actualizados. **El límite de tasa también pasa al Sprint 5, con Upstash Redis como proveedor** (decisión del Product Owner: gratis hasta 500 000 operaciones al mes; Edge Config descartado porque tarda hasta 10 s en propagar una escritura). `docs/04 §8.3` y `docs/05` nombran ya a Upstash.
 - **Sesión 020: Sprint 3, pasos 3 y 4 — postulaciones con checklist (RF-17, RF-18, RF-19, RF-20, RF-21, RN-04) y grafo de estados en el servidor (RF-83). Regla nueva RN-35.**
   - **Decisiones del Product Owner antes de programar (RN-35):**
     - una sola postulación en curso (no cerrada) por par proyecto-convocatoria; si ya existe, "Postular" abre la existente;
@@ -153,12 +153,11 @@ Detalle en [`docs/bitacora/2026-09-24-sesion-020.md`](docs/bitacora/2026-09-24-s
 2. Contacto visible solo por pareja empresa-consultor (RF-80, RN-12).
 3. Encargos de punta a punta: solicitar, aceptar con revelación de contacto, avances, entrega y calificación (RF-28..33, 68, 69, 70, 74, 75, RN-09, RN-26, RN-29).
 4. Job de vencimiento de suscripciones (RF-39, CU-32), con la fecha de Colombia.
-5. Límite de tasa fail-closed (RNF-27, RNF-33) — **antes hay que elegir proveedor** (decisión abierta).
-6. Pruebas de los RNF críticos.
+5. Pruebas de los RNF críticos.
 
 **Hito 4 (día 24):** un encargo completo —solicitud, aceptación con revelación de contacto, avances, entrega y calificación—, aislado entre empresas en las pantallas; al suspender al consultor sale del directorio y sus encargos en curso se cancelan solos.
 
-**Después: Sprint 5 — generación con IA, créditos, planes y precios**, más autorización de documentos, revocación en cascada y traza de lectura. Necesita la clave de la API de Claude y TDR reales.
+**Después: Sprint 5 — generación con IA, créditos, planes y precios**, más autorización de documentos, revocación en cascada, traza de lectura y el límite de tasa sobre Upstash Redis. Necesita la clave de la API de Claude, las claves de Upstash y TDR reales.
 
 **Hito 3 (día 18):** una empresa registra un proyecto, recibe sugerencias ordenadas por compatibilidad, inicia una postulación y avanza su checklist. Todo persistido y aislado por RLS.
 
@@ -211,6 +210,7 @@ Pendiente del Product Owner:
     - Cerrar es opcional: una postulación cerrada no se reabre.
 
     Con esto, RF-17 a RF-21, RF-73 y RF-83 pasan a `verificado` y se cumple el Hito 3.
+13. **Antes del Sprint 5:** crear una cuenta gratuita en Upstash, una base Redis, y poner `UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN` en `.env.local` y en Vercel; y la clave de la API de Claude (`ANTHROPIC_API_KEY`) en los mismos dos sitios. **No pegarlas en el chat.**
 
 ## Decisiones abiertas
 
@@ -219,7 +219,7 @@ Esperan al Product Owner. No bloquean el Sprint 1.
 | Decisión | Contexto | Cuándo hace falta |
 |---|---|---|
 | **Precio del plan Consultor** | Quedó en COP $69.000 al retirarle el cupo de IA. `docs/07 §10.2` marca los planes como "a validar con los pilotos" | Antes de cobrar |
-| **Proveedor del límite de tasa** | RNF-27 pide un almacén fuera de Postgres (Upstash Redis o Vercel Edge Config); no está elegido | Sprint 4, paso 5 |
+| **Dónde se aplica el límite de tasa** | Recomendación del agente: solo en lo delicado (inicio de sesión, registro, recuperar contraseña, generar y ajustar con IA). Así el plan gratuito de Upstash (500 000 operaciones/mes) alcanza para unos 3 000 usuarios activos al mes; aplicado a todo, unos 150–200. RNF-27 hoy dice "los endpoints de la capa de aplicación" | Sprint 5 |
 | **Costo de la IA, créditos por plan y precios** | Decidido en la sesión 021 que va al final. Se fija con el costo medido sobre ≥10 TDR reales (RNF-21). Hace falta la clave de la API de Claude en `.env.local` y en Vercel | Sprint 5 |
 
 
