@@ -157,9 +157,8 @@ interface AppState {
   activarVersionPrompt: (id: string) => void;
 
   // Proyectos
-  agregarProyecto: (p: Omit<Proyecto, "id" | "usuarioId">) => Proyecto;
-  actualizarProyecto: (id: string, p: Omit<Proyecto, "id" | "usuarioId">) => void;
-  eliminarProyecto: (id: string) => void;
+  /** Sprint 3 paso 1: los proyectos reales de la empresa, leídos en el servidor (RN-30). */
+  hidratarProyectos: (proyectos: Proyecto[]) => void;
 
   // Postulaciones
   crearPostulacion: (convocatoriaId: string, proyectoId: string | null) => Postulacion;
@@ -334,25 +333,10 @@ export const useAppStore = create<AppState>((set, get) => ({
     });
   },
 
-  // RN-30: el propietario lo fija la sesión, nunca el formulario, y solo el
-  // dueño edita o elimina.
-  agregarProyecto: (p) => {
-    const nuevo: Proyecto = { ...p, id: nuevoId("proy"), usuarioId: usuarioSesion(get().sesion) };
-    set((s) => ({ proyectos: [...s.proyectos, nuevo] }));
-    return nuevo;
-  },
-  actualizarProyecto: (id, p) => {
-    const usuarioId = usuarioSesion(get().sesion);
-    set((s) => ({
-      proyectos: s.proyectos.map((pr) =>
-        pr.id === id && pr.usuarioId === usuarioId ? { ...pr, ...p, usuarioId: pr.usuarioId } : pr
-      ),
-    }));
-  },
-  eliminarProyecto: (id) => {
-    const usuarioId = usuarioSesion(get().sesion);
-    set((s) => ({ proyectos: s.proyectos.filter((p) => !(p.id === id && p.usuarioId === usuarioId)) }));
-  },
+  // Crear, editar y eliminar proyectos pasa por /api/proyectos (docs/05 §9.17):
+  // aquí solo se reciben los reales para las pantallas que aún leen del store
+  // (sugerencias, generar, postular, encargos).
+  hidratarProyectos: (proyectos) => set({ proyectos }),
 
   crearPostulacion: (convocatoriaId, proyectoId) => {
     const convocatoria = get().convocatorias.find((c) => c.id === convocatoriaId);

@@ -55,7 +55,7 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RF-11 Catálogo, cerradas bajo filtro | verificado | **Sesión 017:** el catálogo lee de Supabase con la sesión de la empresa (`lib/catalogo.ts`, `GET /api/convocatorias`): publicadas y vigentes, sin borradores ni vencidas; visitante redirigido a `/login` y consultor con 403 (RN-33), verificado en `scripts/prueba-catalogo-empresa.mjs` (34 comprobaciones, todas pasan). **Paso 5 (misma sesión):** la RLS deja a la empresa leer las cerradas (migración `20260923200000`) y el filtro explícito las trae detrás de las vigentes, marcadas como cerradas; en su ficha las tres acciones de CU-08 quedan deshabilitadas. Verificado en la suite (47 comprobaciones) y en `supabase/tests/rls_aislamiento.sql`. El Product Owner revisó la casilla en pantalla con su cuenta de empresa (23-sep): funciona |
 | RF-12 Filtros combinables | verificado | **Sesión 017:** texto libre sin tildes, tipo de proyecto, sector, entidad, ubicación, monto (formato colombiano) y cierre, en un solo módulo (`lib/catalogo-filtros.ts`) que usan la pantalla y el endpoint. 10 comprobaciones de filtros en `scripts/prueba-catalogo-empresa.mjs` (34 comprobaciones, todas pasan) |
 | RF-13 Ficha de detalle | verificado | **Sesión 017:** la ficha se lee en el servidor con la sesión de la empresa (un borrador da 404); requisitos, documentos y enlace oficial reales; **Descargar** pide una URL firmada de 15 min y baja el archivo exacto con su nombre descriptivo, tildes incluidas. Verificado en `scripts/prueba-catalogo-empresa.mjs` (34 comprobaciones, todas pasan) |
-| RF-14 Registrar proyectos | prototipo | Sin columna de propietario |
+| RF-14 Registrar proyectos | verificado | **Sesión 018:** `GET/POST /api/proyectos` y `GET/PATCH/DELETE /api/proyectos/[id]` con la sesión de la empresa; `guardar_proyecto` guarda datos y categorías juntos (docs/05 §9.17); el dueño lo fija la base aunque el cuerpo diga otro (RN-30). Otra empresa recibe 404 y 0 filas en la tabla; consultor, 403. Verificado en `scripts/prueba-proyectos.mjs` (43 comprobaciones, todas pasan) |
 | RF-15 Sugerencias, solo vigentes | prototipo | |
 | RF-16 Porcentaje de compatibilidad | prototipo | |
 | RF-43 Chips sugeridos | servidor | **Sesión 017:** se derivan del catálogo vigente (categorías y ubicaciones más frecuentes), así que ninguno lleva a un resultado vacío (RF-43 mod. v6) |
@@ -65,8 +65,8 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 
 | RF | Estado | Nota |
 |---|---|---|
-| RF-45 Datos de contenido | prototipo | |
-| RF-46 Indicador de completitud accionable | prototipo | |
+| RF-45 Datos de contenido | verificado | **Sesión 018:** los nueve campos de contenido se guardan en Supabase, con validación de forma en el servidor (longitudes, duración entera, montos en formato colombiano). Verificado en `scripts/prueba-proyectos.mjs` (43 comprobaciones, todas pasan) |
+| RF-46 Indicador de completitud accionable | servidor | **Sesión 018:** la completitud la calcula un trigger al guardar y no se puede falsear escribiéndola directamente (comprobado); `lib/proyectos.ts` enumera en pantalla los campos que faltan con la misma regla (0, 11, 44 y 100 comprobados). Falta mirar el indicador en pantalla con sesión de empresa |
 | RF-47 Generar sobre proyecto incompleto | prototipo | |
 
 ### 4.5 Postulación y seguimiento
@@ -174,7 +174,7 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 
 | RF | Estado | Nota |
 |---|---|---|
-| RF-81 Completitud accionable | prototipo | Implementado y verificado en navegador |
+| RF-81 Completitud accionable | servidor | Implementado y verificado en navegador (prototipo). **Sesión 018:** la edición desde la ficha guarda en el servidor (`PATCH /api/proyectos/[id]`). Falta repetir el recorrido en pantalla con sesión de empresa |
 | RF-82 Comparador con atributos reales | prototipo | Implementado y verificado en navegador |
 | RF-83 Grafo de transiciones | prototipo | Validado en store; falta en servidor |
 

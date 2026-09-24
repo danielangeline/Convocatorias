@@ -32,10 +32,13 @@ function evaluarCriterios(
   const sectorMatch = sectorProyecto.some((c) => convocatoria.categorias.includes(c));
   const tipoProyectoMatch = tipoProyectoProyecto.some((c) => convocatoria.categorias.includes(c));
   const tipoEntidadMatch = tipoEntidadProyecto.some((c) => convocatoria.categorias.includes(c));
-  // Un extremo que la entidad no informó no pone límite.
+  // Un extremo que la entidad no informó no pone límite; sin monto buscado no
+  // hay con qué comparar, así que el criterio no se cumple.
+  const buscado = proyecto.montoBuscado;
   const montoMatch =
-    (convocatoria.montoMin == null || proyecto.montoBuscado >= convocatoria.montoMin) &&
-    (convocatoria.montoMax == null || proyecto.montoBuscado <= convocatoria.montoMax);
+    buscado != null &&
+    (convocatoria.montoMin == null || buscado >= convocatoria.montoMin) &&
+    (convocatoria.montoMax == null || buscado <= convocatoria.montoMax);
   const ubicacionMatch =
     convocatoria.ubicacion.toLowerCase().includes("nacional") ||
     convocatoria.ubicacion.toLowerCase().includes(proyecto.ubicacion.toLowerCase()) ||

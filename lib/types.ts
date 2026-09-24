@@ -54,9 +54,12 @@ export interface Proyecto {
   usuarioId: string;
   nombre: string;
   descripcion: string;
-  montoBuscado: number;
+  // Nulo si la empresa no lo ha indicado: nunca se rellena con 0 (RNF-23).
+  montoBuscado: number | null;
   ubicacion: string;
   categorias: string[]; // Categoria ids
+  /** 0–100, calculada por la base al guardar (docs/05 §9.17); ausente en los datos de ejemplo. */
+  completitud?: number;
 
   // Contenido (para generación de documentos con IA) — todos opcionales,
   // determinan el indicador de completitud del proyecto.

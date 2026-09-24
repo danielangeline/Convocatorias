@@ -9,7 +9,7 @@ import { leerMontoCOP } from "@/lib/montos";
 // incluirCerradas=true, detrás de las vigentes (RN-02). Las categorías van como ids separados
 // por comas; montoHasta en pesos, en formato colombiano (CU-02 2b).
 export async function GET(request: NextRequest) {
-  return conEmpresa(async () => {
+  return conEmpresa(request, async () => {
     const p = request.nextUrl.searchParams;
     const lista = (clave: string) => (p.get(clave) ?? "").split(",").map((v) => v.trim()).filter(Boolean);
     const monto = leerMontoCOP(p.get("montoHasta") ?? "");

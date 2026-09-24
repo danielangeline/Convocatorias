@@ -57,6 +57,8 @@ const PREFIJOS: [string, Regla][] = [
   // Sprint 2 paso 4: catálogo de la empresa (RN-33) e indicadores públicos (RF-44).
   ["/api/convocatorias", EMPRESA],
   ["/api/indicadores", { tipo: "publica" }],
+  // Sprint 3: proyectos de la empresa (RN-30).
+  ["/api/proyectos", EMPRESA],
   ["/proyectos", EMPRESA],
   ["/documentos", EMPRESA],
   ["/postulaciones", EMPRESA],

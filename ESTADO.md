@@ -5,8 +5,8 @@
 
 ---
 
-**Actualizado:** 23 de septiembre de 2026 · cierre de la sesión 017
-**Sprint:** 2 · día 9 de 30
+**Actualizado:** 23 de septiembre de 2026 · cierre de la sesión 018
+**Sprint:** 3 · día 9 de 30 (el Sprint 2 terminó antes de su día 12)
 **Rama de trabajo:** `sprint-2`, abierta desde `main` en la sesión 011 y subida a `origin` (sin fusionar a `main`: producción todavía no tiene el catálogo del panel). **Migraciones nuevas ya aplicadas al remoto:** `20260917100000_guardar_convocatoria`, `20260917200000_storage_y_adjuntos` , `20260918100000_publicar_convocatoria` y `20260918200000_nombres_normalizados_y_borrar_categorias`. No rompen `main`, que no las llama
 
 ---
@@ -17,6 +17,13 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 
 ## Lo último que se hizo
 
+- **Sesión 018: Sprint 3, paso 1 — proyectos en Supabase (RF-14, RF-45, RF-46, RF-81, RN-30).**
+  - `guardar_proyecto` (datos y categorías en una transacción, con la RLS de la empresa) y un trigger que **calcula la completitud en la base**: la aplicación no puede fijarla. Migración `20260923500000`.
+  - `GET/POST /api/proyectos` y `GET/PATCH/DELETE /api/proyectos/[id]`: montos en formato colombiano (resuelve el hallazgo del monto del proyecto), validación de forma, borrar responde 409 si hay encargos y la pantalla avisa antes cuántos documentos generados se perderán. `conEmpresa` exige ahora mismo origen en las escrituras.
+  - Listado y ficha pasan a componentes de servidor; el formulario guarda por la API; el layout entrega los proyectos reales al store para sugerencias, generar y postular. Se retiraron las acciones de proyectos del store.
+  - El documento con IA ya no escribe un monto de proyecto que no existe: sin monto, `[COMPLETAR: …]` (RNF-23).
+  - Verificado con `scripts/prueba-proyectos.mjs`: **43 comprobaciones**, todas pasan, incluidas dos empresas aisladas en las pantallas (condición del Hito 1). RF-14 y RF-45 `verificado`; RF-46 y RF-81 `servidor`, a falta de mirarlos en pantalla.
+  - **La prueba RLS fallaba de noche:** sembraba sus convocatorias con `current_date` (UTC), y desde las 7 p. m. de Colombia la "vencida" seguía vigente. Pasa a `privado.hoy_colombia()`. Regresión completa en verde.
 - **Sesión 017, al final: Sprint 2, paso 7 (RF-78) y advertencia al editar (CU-05 3e). El Sprint 2 queda completo.**
   - **RF-78 en la base:** un trigger en `postulaciones` y `documentos_generados` impide crear una fila (o mover una existente) sobre una convocatoria que no esté publicada y vigente, **también con `service_role`**, que las políticas RLS no frenan. Clave estable `convocatoria_no_vigente` para que los endpoints de postular (Sprint 3) y generar (Sprint 4) respondan 409. Probado: `supabase/tests/vigencia_al_crear.sql`, 14/14.
   - **Advertencia (decisión del Product Owner):** guardar una publicada con fecha de cierre ya pasada se permite, pero la pantalla pide confirmación antes y muestra en ámbar que se cerrará a medianoche; el endpoint devuelve el `aviso`. Verificado en `prueba-publicar-convocatoria.mjs` y **en el navegador** con la sesión de administrador: cancelar no envía nada; aceptar guarda, deja la convocatoria publicada y muestra el aviso en ámbar (convocatoria de prueba borrada después).
@@ -87,7 +94,7 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 - **Ya cerrada la sesión, a pedido del Product Owner:** no llegaba el correo de confirmación al crear una cuenta. Causa: registrarse con un correo que ya tiene cuenta devuelve éxito sin enviar nada (Supabase, para no revelar qué correos existen). Se borró la cuenta de administrador revocado `danielangeline322@gmail.com` y el Product Owner se registró con ella como empresa en producción: **RF-01 queda probado por el formulario con correo real**, con confirmación, perfil de empresa y trial de 3 créditos.
 - **Sesión 010:** entrada con dos puertas (RF-84) y recuperación de contraseña (RF-03). Cerró el Sprint 1.
 
-Detalle en [`docs/bitacora/2026-09-23-sesion-017.md`](docs/bitacora/2026-09-23-sesion-017.md).
+Detalle en [`docs/bitacora/2026-09-23-sesion-018.md`](docs/bitacora/2026-09-23-sesion-018.md).
 
 ## En curso
 
@@ -95,15 +102,15 @@ Nada a medias. **El Sprint 2 está completo**, con el Hito 2 cumplido (día 9 de
 
 ## Lo siguiente
 
-**Sprint 2 — Catálogo y administración de contenido** (`docs/10 §Sprint 2`):
+**Sprint 3 — Proyectos, sugerencias y postulaciones** (`docs/10 §Sprint 3`). El Sprint 2 quedó completo en la sesión 017 (sus siete pasos y el Hito 2).
 
-1. ~~Endpoints de fuentes, convocatorias, categorías y requisitos (RF-04..06, 08)~~ — **sesión 011**. Los documentos adjuntos (RF-07) pasan al paso 2, que trae Storage.
-2. ~~Storage: 3 buckets privados con URLs firmadas de 15 min y adjuntos de convocatoria (RF-07, RNF-16, RNF-18)~~ — **sesión 012**. Los archivos del perfil del consultor (foto y hoja de vida) tienen ya su bucket y sus políticas; la pantalla y sus endpoints van con el módulo de consultores.
-3. ~~Publicación validada en servidor (RF-09, RN-01, RNF-29), con la advertencia de CU-05 3d~~ — **sesión 013**; ficha completa en la 015; **verificado en la 016**.
-4. ~~Catálogo, filtros, chips e indicadores de la landing contra datos reales (RF-11, 12, 13, 43, 44), con `GET /api/convocatorias` para la empresa. **Solo cuentas de empresa** (RN-33): ni visitantes ni consultores.~~ — **sesión 017**.
-5. ~~Cerradas fuera del listado salvo filtro explícito (RF-11, RN-02).~~ — **sesión 017**.
-6. ~~Job diario de cierre (RF-10, CU-06).~~ — **sesión 017**, verificado con una ejecución real.
-7. ~~Vigencia verificada en servidor al postular y al generar (RF-78).~~ — **sesión 017**: garantizada en la base por un trigger; los endpoints que la traducen a 409 llegan con postulaciones (Sprint 3) y generación (Sprint 4).
+1. ~~Proyectos con datos de contenido y completitud, filtrados por propietario (RF-14, 45, 46, 47, **81**)~~ — **sesión 018**. RF-47 (generar sobre un proyecto incompleto) se cierra con la generación, en el Sprint 4.
+2. Sugerencias con porcentaje y desglose, indexadas, solo vigentes (RF-15, 16, RN-05, RNF-05): `GET /api/proyectos/[id]/sugerencias`, cruce determinístico en el servidor.
+3. Postulaciones con checklist copiado de los requisitos (RF-17, 18, RN-04): `POST /api/postulaciones`, que traduce a 409 la clave `convocatoria_no_vigente` (RF-78).
+4. Estados según el grafo de transiciones, validados en servidor (**RF-83**).
+5. Enlace al portal de la entidad como acción primaria (**RF-73**, RN-19).
+
+**Hito 3 (día 18):** una empresa registra un proyecto, recibe sugerencias ordenadas por compatibilidad, inicia una postulación y avanza su checklist. Todo persistido y aislado por RLS.
 
 **Regla vigente:** toda pantalla o endpoint nuevo se declara en `lib/autorizacion/matriz.ts`; si no, responde 404. Los endpoints del catálogo del panel cuelgan de `/api/admin`, así que ya los cubre la regla del panel.
 
@@ -199,7 +206,7 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | Editar una convocatoria **publicada** dejaba quitarle ubicación, descripción o categoría | `guardar_convocatoria` | **resuelto** en la sesión 016: comprobación completa restaurada |
 | Se podía **quitar el último adjunto** de una convocatoria publicada (se reprodujo en pantalla: quedó con cero) | `documentos_convocatoria` | **resuelto** en la sesión 016: trigger + 409 (CU-03 1b) |
 | ~~**Un monto escrito con puntos de miles se guarda mal sin avisar.**~~ **Resuelto en la sesión 016** (formato colombiano, CU-02 2b). El campo es `type="number"`: al teclear `1.000.000` el navegador lo deja en `1.000000` y se guarda **1 peso** con "Cambios guardados."; con `abc` se guarda vacío. Reproducido con el teclado en la sesión 016 y comprobado en la base (`monto_min = 1`). Los montos alimentan los filtros del catálogo (RF-12) | `lib/montos.ts` | **resuelto** en la sesión 016 |
-| Otros campos de dinero siguen como `type="number"` o con `Number()`: el monto buscado del proyecto y los precios de los planes en el panel. Hoy viven en el store de Zustand, pero heredarán el mismo fallo al conectarse | `components/ProyectoFormModal.tsx`, `app/admin/planes/page.tsx` | media · usar `lib/montos.ts` al pasarlos a Supabase |
+| Otros campos de dinero seguían como `type="number"` o con `Number()`: el monto buscado del proyecto (**resuelto en la sesión 018**) y los precios de los planes en el panel. Hoy viven en el store de Zustand, pero heredarán el mismo fallo al conectarse | `components/ProyectoFormModal.tsx`, `app/admin/planes/page.tsx` | media · usar `lib/montos.ts` al pasarlos a Supabase |
 | La segunda barrera rechazó una vez a un administrador con sesión válida (404 "No encontrado." y un `acceso_denegado` sin usuario): `obtenerSesion()` trataba cualquier fallo de `getUser()` como "sin sesión" y no registraba el error | `lib/auth.ts` | **resuelto** en la sesión 016: un fallo pasajero (red o 5xx de Auth) se reintenta una vez y se registra en el log; sin sesión o con token rechazado sigue siendo "sin sesión". Lo mismo se registra si fallan el perfil o el rol efectivo. **La causa de aquel fallo no se conoce**: si vuelve a pasar, el log la dirá |
 | Los avisos del editor no se limpiaban: tras adjuntar seguía "falta al menos un documento adjunto", y tras despublicar convivían dos avisos | `components/admin/EditorConvocatoria.tsx`, `DocumentosConvocatoria.tsx` | **resuelto** en la sesión 016: el aviso de documentos lo guarda el editor, y cada acción nueva (guardar, publicar, adjuntar, renombrar, quitar, descargar) empieza sin los avisos anteriores |
 | La portada mostraba "Iniciar sesión" y "Crear cuenta" con una sesión abierta | `app/page.tsx` | **resuelto** en la sesión 016 (RF-84): con sesión muestra "Ir a mi portal", que pasa por `/login` y lleva al portal del rol |
@@ -220,6 +227,7 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | ~~**Editar una publicada permite poner una fecha de cierre ya pasada**~~ **Resuelto en la sesión 017** con una advertencia, por decisión del Product Owner (CU-05 3e).: sigue publicada hasta que el job la cierra esa medianoche. Publicar sí rechaza una vencida (RN-03). Puede ser legítimo (la entidad cerró antes), pero hoy no se advierte ni se cierra en el momento. Así quedó la convocatoria de MinCiencias el 23-sep; el Product Owner la corrigió antes de que el job la cerrara | `guardar_convocatoria` | media · decisión del Product Owner: ¿rechazar, advertir o cerrar en el acto? |
 | `unstable_cache` (indicadores) está reemplazado por `use cache` en Next 16, pero `use cache` exige activar `cacheComponents` en todo el proyecto | `lib/catalogo.ts` | baja · migrar si se activa `cacheComponents` |
 | Las pruebas que crean convocatorias con `service_role` no invalidan la caché de indicadores: si la landing se calcula mientras corren, muestra hasta 1 hora cifras con datos de prueba (pasó el 23-sep). `prueba-catalogo-empresa.mjs` ya mide antes de crear contenido | pruebas | baja · tenerlo en cuenta al leer la landing en local |
+| Las suites de JavaScript calculan las fechas de sus convocatorias en UTC (`enDias`); hoy no fallan porque usan márgenes de días enteros, pero una comprobación en el límite exacto de "hoy" fallaría de noche, como le pasó a la prueba RLS | `scripts/prueba-*.mjs` | baja · usar la fecha de Colombia al escribir la próxima que dependa de "hoy" |
 | `set role supabase_storage_admin` está negado al rol que corre las migraciones (42501), aunque ese mismo rol sí puede crear políticas sobre `storage.objects` | `supabase/migrations/` | baja · anotado en la migración |
 | Si la subida al bucket ocurre y el registro de la fila no, queda un objeto suelto. Es invisible (toda descarga parte de la fila) y la pantalla pide borrarlo, pero nadie barre los que queden de un navegador cerrado a media subida | `lib/admin/documentos.ts` | baja · valorar un job de limpieza antes de los pilotos |
 | Borrar una convocatoria arrastra sus filas de `documentos_convocatoria` por `on delete cascade`, pero **no** los objetos del bucket | `supabase/migrations/20260917200000` | baja · mismo job de limpieza |

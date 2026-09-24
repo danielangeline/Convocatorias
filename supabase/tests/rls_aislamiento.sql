@@ -90,12 +90,14 @@ delete from public.suscripciones where usuario_id = '00000000-0000-0000-0000-000
 update public.suscripciones set estado = 'vencida', fecha_inicio = current_date - 40, fecha_vencimiento = current_date - 33
 where usuario_id = '00000000-0000-0000-0000-0000000000e2';
 
+-- Fechas en hora de Colombia, como la vigencia (sesión 017): con current_date,
+-- que va en UTC, la "vencida" seguía vigente desde las 7 p. m. de Colombia.
 insert into public.convocatorias (id, nombre, entidad_convocante, fecha_cierre, estado, url_postulacion) values
-  ('00000000-0000-0000-0000-00000000c001', 'Vigente', 'MinCiencias', current_date + 30, 'publicada', 'https://minciencias.gov.co/x'),
-  ('00000000-0000-0000-0000-00000000c002', 'Borrador', 'iNNpulsa', current_date + 30, 'borrador', null),
-  ('00000000-0000-0000-0000-00000000c003', 'Vencida', 'SENA', current_date - 1, 'publicada', 'https://sena.edu.co/x'),
-  ('00000000-0000-0000-0000-00000000c004', 'Despublicada', 'SENA', current_date + 30, 'despublicada', 'https://sena.edu.co/y'),
-  ('00000000-0000-0000-0000-00000000c005', 'Cerrada', 'Bancóldex', current_date - 10, 'cerrada', 'https://bancoldex.com/x');
+  ('00000000-0000-0000-0000-00000000c001', 'Vigente', 'MinCiencias', privado.hoy_colombia() + 30, 'publicada', 'https://minciencias.gov.co/x'),
+  ('00000000-0000-0000-0000-00000000c002', 'Borrador', 'iNNpulsa', privado.hoy_colombia() + 30, 'borrador', null),
+  ('00000000-0000-0000-0000-00000000c003', 'Vencida', 'SENA', privado.hoy_colombia() - 1, 'publicada', 'https://sena.edu.co/x'),
+  ('00000000-0000-0000-0000-00000000c004', 'Despublicada', 'SENA', privado.hoy_colombia() + 30, 'despublicada', 'https://sena.edu.co/y'),
+  ('00000000-0000-0000-0000-00000000c005', 'Cerrada', 'Bancóldex', privado.hoy_colombia() - 10, 'cerrada', 'https://bancoldex.com/x');
 
 insert into public.requisitos_convocatoria (convocatoria_id, descripcion, tipo, orden) values
   ('00000000-0000-0000-0000-00000000c001', 'RUT', 'documento', 1),
@@ -578,8 +580,8 @@ insert into public.categorias (id, tipo, nombre, activa) values
 
 create temp table datos_c002 as select jsonb_build_object(
   'fuente_id', '00000000-0000-0000-0000-00000000f001', 'nombre', 'Borrador editado', 'entidad_convocante', 'iNNpulsa',
-  'monto_min', '1000', 'monto_max', '5000', 'fecha_apertura', current_date::text,
-  'fecha_cierre', (current_date + 30)::text, 'url_postulacion', 'https://innpulsa.gov.co/x') as d;
+  'monto_min', '1000', 'monto_max', '5000', 'fecha_apertura', privado.hoy_colombia()::text,
+  'fecha_cierre', (privado.hoy_colombia() + 30)::text, 'url_postulacion', 'https://innpulsa.gov.co/x') as d;
 grant select on datos_c002 to authenticated;
 
 set local role authenticated;

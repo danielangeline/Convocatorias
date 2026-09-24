@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Sparkles, X } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import type { Proyecto } from "@/lib/types";
 import type { CampoContenido } from "@/lib/proyectos";
+import { formatearMontoCOP } from "@/lib/montos";
 import { Button } from "./ui/Button";
 
 /**
@@ -54,7 +56,7 @@ function desdeProyecto(p: Proyecto): FormularioProyecto {
   return {
     nombre: p.nombre,
     descripcion: p.descripcion,
-    montoBuscado: String(p.montoBuscado),
+    montoBuscado: formatearMontoCOP(p.montoBuscado),
     ubicacion: p.ubicacion,
     categorias: p.categorias,
     problema: p.problema ?? "",
@@ -64,7 +66,7 @@ function desdeProyecto(p: Proyecto): FormularioProyecto {
     actividades: p.actividades ?? "",
     resultadosEsperados: p.resultadosEsperados ?? "",
     duracionMeses: p.duracionMeses ? String(p.duracionMeses) : "",
-    presupuestoEstimado: p.presupuestoEstimado ? String(p.presupuestoEstimado) : "",
+    presupuestoEstimado: formatearMontoCOP(p.presupuestoEstimado ?? null),
     experienciaEmpresa: p.experienciaEmpresa ?? "",
   };
 }
@@ -86,8 +88,9 @@ export function ProyectoFormModal({
 }) {
   // Sprint 2 paso 4: las categorías reales, para que las sugerencias crucen con las convocatorias.
   const categorias = useAppStore((s) => s.categorias);
-  const agregarProyecto = useAppStore((s) => s.agregarProyecto);
-  const actualizarProyecto = useAppStore((s) => s.actualizarProyecto);
+  const router = useRouter();
+  const [error, setError] = useState<string | null>(null);
+  const [guardando, setGuardando] = useState(false);
 
   const [form, setForm] = useState<FormularioProyecto>(() =>
     proyecto ? desdeProyecto(proyecto) : formularioVacio
@@ -122,32 +125,40 @@ export function ProyectoFormModal({
     }));
   };
 
-  const guardar = () => {
+  // RF-14, RF-45, RF-81 · Se guarda en el servidor (docs/05 §9.17): él valida la
+  // forma, lee los montos en formato colombiano y calcula la completitud.
+  const guardar = async () => {
     if (!form.nombre.trim()) return;
-    const datos = {
-      nombre: form.nombre.trim(),
-      descripcion: form.descripcion.trim(),
-      montoBuscado: Number(form.montoBuscado) || 0,
-      ubicacion: form.ubicacion.trim(),
+    setError(null);
+    setGuardando(true);
+    const cuerpo = {
+      nombre: form.nombre,
+      descripcion: form.descripcion,
+      montoBuscado: form.montoBuscado,
+      ubicacion: form.ubicacion,
       categorias: form.categorias,
-      problema: form.problema.trim() || undefined,
-      objetivoGeneral: form.objetivoGeneral.trim() || undefined,
-      objetivosEspecificos: form.objetivosEspecificos
-        .split("\n")
-        .map((o) => o.trim())
-        .filter(Boolean),
-      poblacionBeneficiaria: form.poblacionBeneficiaria.trim() || undefined,
-      actividades: form.actividades.trim() || undefined,
-      resultadosEsperados: form.resultadosEsperados.trim() || undefined,
-      duracionMeses: Number(form.duracionMeses) || undefined,
-      presupuestoEstimado: Number(form.presupuestoEstimado) || undefined,
-      experienciaEmpresa: form.experienciaEmpresa.trim() || undefined,
+      problema: form.problema,
+      objetivoGeneral: form.objetivoGeneral,
+      objetivosEspecificos: form.objetivosEspecificos.split("\n"),
+      poblacionBeneficiaria: form.poblacionBeneficiaria,
+      actividades: form.actividades,
+      resultadosEsperados: form.resultadosEsperados,
+      duracionMeses: form.duracionMeses,
+      presupuestoEstimado: form.presupuestoEstimado,
+      experienciaEmpresa: form.experienciaEmpresa,
     };
-    if (proyecto) {
-      actualizarProyecto(proyecto.id, datos);
-    } else {
-      agregarProyecto(datos);
+    const respuesta = await fetch(proyecto ? `/api/proyectos/${proyecto.id}` : "/api/proyectos", {
+      method: proyecto ? "PATCH" : "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(cuerpo),
+    });
+    const json = await respuesta.json().catch(() => ({}));
+    setGuardando(false);
+    if (!respuesta.ok) {
+      setError(json.error ?? "No pudimos guardar el proyecto. Intenta de nuevo.");
+      return;
     }
+    router.refresh();
     onClose();
   };
 
@@ -205,11 +216,12 @@ export function ProyectoFormModal({
             <Campo etiqueta="Monto buscado (COP)" htmlFor="campo-montoBuscado">
               <input
                 id="campo-montoBuscado"
-                type="number"
+                type="text"
+                inputMode="numeric"
                 value={form.montoBuscado}
                 onChange={(e) => setForm({ ...form, montoBuscado: e.target.value })}
                 className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500"
-                placeholder="Ej. 100000000"
+                placeholder="Ej. 100.000.000"
               />
             </Campo>
             <Campo etiqueta="Ubicación" htmlFor="campo-ubicacion">
@@ -293,6 +305,9 @@ export function ProyectoFormModal({
                   <input
                     id="campo-duracionMeses"
                     type="number"
+                    min={1}
+                    max={240}
+                    step={1}
                     value={form.duracionMeses}
                     onChange={(e) => setForm({ ...form, duracionMeses: e.target.value })}
                     className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-teal-500"
@@ -301,7 +316,9 @@ export function ProyectoFormModal({
                 <Campo etiqueta="Presupuesto estimado (COP)" htmlFor="campo-presupuestoEstimado">
                   <input
                     id="campo-presupuestoEstimado"
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="Ej. 250.000.000"
                     value={form.presupuestoEstimado}
                     onChange={(e) => setForm({ ...form, presupuestoEstimado: e.target.value })}
                     className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-teal-500"
@@ -315,12 +332,18 @@ export function ProyectoFormModal({
           </div>
         </div>
 
+        {error && (
+          <p role="alert" className="mt-4 rounded-lg bg-red-50 px-3 py-2.5 text-sm text-danger">
+            {error}
+          </p>
+        )}
+
         <div className="mt-6 flex justify-end gap-3">
           <Button variant="ghost" onClick={onClose}>
             Cancelar
           </Button>
-          <Button variant="primary" onClick={guardar} disabled={!form.nombre.trim()}>
-            {proyecto ? "Guardar cambios" : "Crear proyecto"}
+          <Button variant="primary" onClick={guardar} disabled={!form.nombre.trim() || guardando}>
+            {guardando ? "Guardando…" : proyecto ? "Guardar cambios" : "Crear proyecto"}
           </Button>
         </div>
       </div>

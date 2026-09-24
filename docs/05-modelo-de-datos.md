@@ -41,7 +41,7 @@ erDiagram
 | duracion_meses | int | |
 | presupuesto_estimado | numeric | |
 | experiencia_empresa | text | Trayectoria y capacidad |
-| completitud | int | 0–100, calculado sobre los campos de contenido (RF-46) |
+| completitud | int | 0–100, calculado sobre los campos de contenido (RF-46). **Lo calcula la base con un trigger al guardar** (§9.17); la aplicación no puede fijarlo |
 
 **PLANES** — se agrega `creditos_ia_mensuales` (int, RF-36). *(mod. v6, sesión 004)* Se agregan también `es_trial` (boolean, default false) y `dias_trial` (int, not null si y solo si `es_trial`): el trial es **un plan más**, con precio 0, rol `empresa`, 3 créditos y 7 días. Hay como máximo un plan trial (índice único parcial) y no aparece en el comparador de planes. Así el cupo del trial se calcula igual que el de cualquier plan, y el administrador puede ajustar sus créditos o su duración sin migración (RF-37, RN-11)
 
@@ -505,3 +505,20 @@ categorias: el administrador borra las no usadas
 Si ya clasifica algo, la política no encuentra la fila y el borrado devuelve **0 filas** — no un error. Por eso el endpoint cuenta el uso **antes** y responde 409 diciendo cuántas convocatorias la usan, en vez de un 404 que haría pensar que no existe. El listado del panel trae ese conteo, de modo que el botón de borrar solo aparece donde borrar es posible; el servidor lo vuelve a comprobar igual (RNF-20).
 
 `DELETE /api/admin/categorias/[id]`.
+
+---
+
+### 9.17 Proyectos de la empresa *(nuevo v6, sesión 018 — Sprint 3 paso 1)*
+
+Implementa RF-14, RF-45, RF-46 y RF-81 en el servidor (CU-09). La RLS de §9.10 ya limitaba `proyectos` y `proyecto_categoria` a su dueño (RN-30); aquí se añade cómo se guardan.
+
+**`public.guardar_proyecto(p_id uuid, p_datos jsonb, p_categorias uuid[]) returns uuid`**
+
+- **`security invoker`**: corre con la sesión de la empresa, así que la RLS decide. Con `p_id` nulo crea el proyecto (`usuario_id` lo fija la base con `auth.uid()`); con un id, lo edita si es suyo, y si no lo es responde `no_existe`, como si no existiera.
+- Una sola transacción para los datos y las categorías: se reemplazan por las recibidas. Solo admite categorías **activas** o que el proyecto ya tenía (`categoria_invalida`).
+- Rechazos con clave estable en `hint`: `no_existe` y `categoria_invalida`. La forma de los datos —longitudes, montos en formato colombiano (CU-02 2b), duración entera— la valida antes el endpoint.
+
+**`completitud` la calcula un trigger** (`before insert or update`) con la misma regla que `lib/proyectos.ts`: nueve campos de contenido; un texto cuenta si no está en blanco, `objetivos_especificos` si tiene alguno no vacío, duración y presupuesto si son mayores que cero; `round(completos × 100 / 9)`. Lo que envíe la aplicación en esa columna se ignora. `lib/proyectos.ts` sigue siendo quien enumera los campos que faltan en pantalla (RF-46, RF-81), y una prueba comprueba que las dos cuentas coinciden.
+
+**Borrar un proyecto** (CU-09 2a): `proyecto_categoria` y **`documentos_generados` se borran en cascada**, las postulaciones quedan sin proyecto (`on delete set null`) y **un proyecto con encargos no se puede borrar** (la clave foránea lo impide). El endpoint responde 409 con ese motivo y la pantalla, antes de confirmar, dice cuántos documentos generados se perderán.
+

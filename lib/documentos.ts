@@ -57,7 +57,7 @@ export function componerDocumento(proyecto: Proyecto, convocatoria: Convocatoria
       contenido:
         `${proyecto.nombre} presenta esta propuesta a la convocatoria "${convocatoria.nombre}", ` +
         `convocada por ${convocatoria.entidadConvocante}. ${campo(proyecto.descripcion, "una descripción general del proyecto")} ` +
-        `El proyecto busca una financiación de ${formatCOP(proyecto.montoBuscado)}` +
+        `El proyecto busca una financiación de ${campoNumerico(proyecto.montoBuscado ?? undefined, formatCOP, "el monto de financiación que busca el proyecto")}` +
         // RNF-23: si la entidad no informó el monto, no se menciona ningún rango.
         (convocatoria.montoMin == null && convocatoria.montoMax == null
           ? "."
@@ -94,7 +94,7 @@ export function componerDocumento(proyecto: Proyecto, convocatoria: Convocatoria
       id: "presupuesto",
       titulo: "Presupuesto",
       contenido:
-        `Monto solicitado a ${convocatoria.entidadConvocante}: ${formatCOP(proyecto.montoBuscado)}.\n` +
+        `Monto solicitado a ${convocatoria.entidadConvocante}: ${campoNumerico(proyecto.montoBuscado ?? undefined, formatCOP, "el monto que se solicita a la entidad")}.\n` +
         `Presupuesto estimado total del proyecto: ${campoNumerico(proyecto.presupuestoEstimado, formatCOP, "el presupuesto estimado total del proyecto, desglosado por rubros")}.`,
     },
     {
