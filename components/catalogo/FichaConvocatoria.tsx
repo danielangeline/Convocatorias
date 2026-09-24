@@ -32,6 +32,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Chip } from "@/components/ui/Chip";
 import { Button } from "@/components/ui/Button";
 import type { Categoria, Convocatoria } from "@/lib/types";
+import { textoCobertura } from "@/lib/departamentos";
 
 /**
  * CU-08 · Ficha de la convocatoria. Los datos llegan del servidor, leídos con la
@@ -127,8 +128,11 @@ export function FichaConvocatoria({
               {formatRangoCOP(convocatoria.montoMin, convocatoria.montoMax)}
             </span>
           </Dato>
-          <Dato icon={MapPin} etiqueta="Ubicación">
-            {convocatoria.ubicacion}
+          <Dato icon={MapPin} etiqueta="Cobertura">
+            {textoCobertura(convocatoria)}
+            {convocatoria.ubicacion && (
+              <span className="mt-0.5 block text-xs font-normal text-ink-faint">{convocatoria.ubicacion}</span>
+            )}
           </Dato>
           <Dato icon={Calendar} etiqueta="Fechas">
             {convocatoria.fechaApertura

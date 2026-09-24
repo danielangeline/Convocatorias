@@ -117,12 +117,12 @@ try {
   // --- RN-01: 400 enumerando de una vez todo lo que falta (lista de la sesion 015) ---
   const nombra = (t, ...partes) => partes.every((x) => new RegExp(x, "i").test(t ?? ""));
   const sinNada = await api(adm, "POST", pub, {});
-  ok(sinNada.status === 400 && nombra(sinNada.json.error, "ubicaci", "descripci", "enlace oficial", "categor", "documento adjunto", "requisito"),
+  ok(sinNada.status === 400 && nombra(sinNada.json.error, "cobertura", "descripci", "enlace oficial", "categor", "documento adjunto", "requisito"),
     `sin nada -> 400 nombrando las seis cosas que faltan ("${sinNada.json?.error}")`);
 
   // Todo menos el adjunto: debe nombrar solo el adjunto.
   await api(adm, "PATCH", `/api/admin/convocatorias/${convId}`, ficha({
-    ubicacion: "Nacional", descripcion: "Objeto de la convocatoria", urlPostulacion: "https://entidad.gov.co/x",
+    ubicacion: "Nacional", coberturaNacional: true, descripcion: "Objeto de la convocatoria", urlPostulacion: "https://entidad.gov.co/x",
     categorias: [rCat.json.datos.id], requisitos: dosRequisitos,
   }));
   const faltaAdjunto = await api(adm, "POST", pub, {});
@@ -133,7 +133,7 @@ try {
 
   // Con un solo requisito: RN-01 pide dos.
   await api(adm, "PATCH", `/api/admin/convocatorias/${convId}`, ficha({
-    ubicacion: "Nacional", descripcion: "Objeto de la convocatoria", urlPostulacion: "https://entidad.gov.co/x",
+    ubicacion: "Nacional", coberturaNacional: true, descripcion: "Objeto de la convocatoria", urlPostulacion: "https://entidad.gov.co/x",
     categorias: [rCat.json.datos.id], requisitos: requisito,
   }));
   const faltaSegundo = await api(adm, "POST", pub, {});
@@ -142,7 +142,7 @@ try {
 
   // Sin categoria.
   await api(adm, "PATCH", `/api/admin/convocatorias/${convId}`, ficha({
-    ubicacion: "Nacional", descripcion: "Objeto de la convocatoria", urlPostulacion: "https://entidad.gov.co/x",
+    ubicacion: "Nacional", coberturaNacional: true, descripcion: "Objeto de la convocatoria", urlPostulacion: "https://entidad.gov.co/x",
     categorias: [], requisitos: dosRequisitos,
   }));
   const faltaCategoria = await api(adm, "POST", pub, {});
@@ -155,7 +155,7 @@ try {
 
   // --- Publicar (CU-05) ---------------------------------------------------------------
   const fichaCompleta = ficha({
-    ubicacion: "Nacional", descripcion: "Objeto de la convocatoria", urlPostulacion: "https://entidad.gov.co/x",
+    ubicacion: "Nacional", coberturaNacional: true, descripcion: "Objeto de la convocatoria", urlPostulacion: "https://entidad.gov.co/x",
     categorias: [rCat.json.datos.id], requisitos: dosRequisitos,
   });
   await api(adm, "PATCH", `/api/admin/convocatorias/${convId}`, fichaCompleta);
@@ -178,7 +178,7 @@ try {
   ok(quitarReq.status === 409, `dejar sin requisitos a una publicada -> 409 (${quitarReq.status})`);
   // Sesion 016: guardar vuelve a exigir la ficha completa de RN-01 a una publicada.
   for (const [que, cambio] of [
-    ["la ubicacion", { ubicacion: "" }],
+    ["la cobertura", { coberturaNacional: false, departamentos: [] }],
     ["la descripcion", { descripcion: "" }],
     ["la categoria", { categorias: [] }],
     ["el segundo requisito", { requisitos: requisito }],
@@ -193,7 +193,7 @@ try {
   // Se deja como estaba para el resto de la prueba.
   await api(adm, "PATCH", `/api/admin/convocatorias/${convId}`, fichaCompleta);
   const intacta = await api(adm, "GET", `/api/admin/convocatorias/${convId}`);
-  ok(intacta.json.datos.ubicacion === "Nacional" && intacta.json.datos.requisitos.length === 2 && intacta.json.datos.estado === "publicada",
+  ok(intacta.json.datos.coberturaNacional === true && intacta.json.datos.requisitos.length === 2 && intacta.json.datos.estado === "publicada",
     "la publicada sigue completa tras los intentos");
 
   // CU-05 3e (sesion 017): una publicada con fecha ya pasada se permite, con aviso.

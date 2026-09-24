@@ -123,7 +123,7 @@ try {
 
   const ficha = {
     fuenteId: rF1.json.datos.id, nombre: base.nombre, entidadConvocante: "MinCiencias", descripcion: "Objeto de prueba",
-    ubicacion: "Nacional", urlPostulacion: "https://minciencias.gov.co/convocatoria", montoMin: "1000000", montoMax: "50000000",
+    ubicacion: "Nacional", coberturaNacional: true, urlPostulacion: "https://minciencias.gov.co/convocatoria", montoMin: "1000000", montoMax: "50000000",
     fechaApertura: "2026-09-17", fechaCierre: "2026-12-31",
     categorias: [rC1.json.datos.id, rC2.json.datos.id],
     requisitos: [
@@ -149,6 +149,15 @@ try {
     const r = await api(adm, "PATCH", `/api/admin/convocatorias/${convId}`, { ...ficha, montoMin: malo });
     ok(r.status === 400 && /monto mínimo/i.test(r.json?.error ?? ""), `monto "${malo}" → 400 nombrando el campo (${r.status} ${r.json?.error})`);
   }
+
+  // RN-34 (sesión 019): cobertura por departamentos de la lista oficial.
+  const rDepMalo = await api(adm, "PATCH", `/api/admin/convocatorias/${convId}`, { ...ficha, coberturaNacional: false, departamentos: ["05", "77"] });
+  ok(rDepMalo.status === 400 && /departamento/i.test(rDepMalo.json?.error ?? ""), `departamento fuera de la lista → 400 (${rDepMalo.status} ${rDepMalo.json?.error})`);
+  const rAmbas = await api(adm, "PATCH", `/api/admin/convocatorias/${convId}`, { ...ficha, departamentos: ["05"] });
+  ok(rAmbas.status === 400 && /nacional/i.test(rAmbas.json?.error ?? ""), `nacional y con departamentos a la vez → 400 (${rAmbas.status} ${rAmbas.json?.error})`);
+  const rDeps = await api(adm, "PATCH", `/api/admin/convocatorias/${convId}`, { ...ficha, coberturaNacional: false, departamentos: ["05", "08", "05"] });
+  ok(rDeps.status === 200 && !rDeps.json.datos.coberturaNacional && [...rDeps.json.datos.departamentos].sort().join(",") === "05,08",
+    `dos departamentos (uno repetido) → 200 con 05 y 08 (${rDeps.status} ${rDeps.json?.datos?.departamentos})`);
 
   const rGuardar = await api(adm, "PATCH", `/api/admin/convocatorias/${convId}`, { ...ficha, estado: "publicada" });
   const g = rGuardar.json?.datos;

@@ -4,6 +4,7 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { leerMontoCOP } from "@/lib/montos";
 import { refrescarIndicadores } from "@/lib/catalogo";
 import { hoyColombia } from "@/lib/fechas";
+import { esCodigoDepartamento } from "@/lib/departamentos";
 import type {
   CategoriaAdmin,
   ConvocatoriaAdmin,
@@ -43,11 +44,12 @@ const RECHAZOS: Record<string, { status: number; error: string }> = {
   no_existe: { status: 404, error: "La convocatoria no existe." },
   fuente_invalida: { status: 400, error: "La fuente no existe o está inactiva." },
   categoria_invalida: { status: 400, error: "Hay una categoría inexistente o inactiva." },
+  departamento_invalido: { status: 400, error: "Hay un departamento que no existe." },
   requisito_ajeno: { status: 400, error: "Uno de los requisitos no pertenece a esta convocatoria. Recarga la página." },
   publicada_incompleta: {
     status: 409,
     error:
-      "Una convocatoria publicada no puede quedar incompleta: necesita ubicación, descripción, enlace oficial, una categoría, un documento adjunto y dos requisitos. Despublícala antes de quitar alguno.",
+      "Una convocatoria publicada no puede quedar incompleta: necesita cobertura (nacional o algún departamento), descripción, enlace oficial, una categoría, un documento adjunto y dos requisitos. Despublícala antes de quitar alguno.",
   },
   ya_publicada: { status: 409, error: "La convocatoria ya está publicada." },
   no_publicada: { status: 409, error: "Solo se despublica una convocatoria publicada." },
@@ -307,7 +309,7 @@ export async function obtenerConvocatoria(id: string): Promise<ConvocatoriaAdmin
   const { data: c, error } = await supabase
     .from("convocatorias")
     .select(
-      "id, fuente_id, nombre, entidad_convocante, descripcion, monto_min, monto_max, ubicacion_cobertura, fecha_apertura, fecha_cierre, url_postulacion, estado, publicada_at, actualizado_at, convocatoria_categoria (categoria_id), requisitos_convocatoria (id, descripcion, tipo, obligatorio, orden), documentos_convocatoria (id, tipo_doc, nombre, tipo_mime, tamano_bytes, creado_at)"
+      "id, fuente_id, nombre, entidad_convocante, descripcion, monto_min, monto_max, ubicacion_cobertura, cobertura_nacional, fecha_apertura, fecha_cierre, url_postulacion, estado, publicada_at, actualizado_at, convocatoria_categoria (categoria_id), convocatoria_departamento (departamento_codigo), requisitos_convocatoria (id, descripcion, tipo, obligatorio, orden), documentos_convocatoria (id, tipo_doc, nombre, tipo_mime, tamano_bytes, creado_at)"
     )
     .eq("id", id)
     .maybeSingle();
@@ -343,6 +345,8 @@ export async function obtenerConvocatoria(id: string): Promise<ConvocatoriaAdmin
     descripcion: c.descripcion ?? "",
     montoMin: c.monto_min === null ? null : Number(c.monto_min),
     montoMax: c.monto_max === null ? null : Number(c.monto_max),
+    coberturaNacional: c.cobertura_nacional,
+    departamentos: (c.convocatoria_departamento ?? []).map((d) => d.departamento_codigo),
     ubicacion: c.ubicacion_cobertura ?? "",
     fechaApertura: c.fecha_apertura,
     fechaCierre: c.fecha_cierre,
@@ -435,6 +439,16 @@ export async function guardarConvocatoria(id: string, cuerpo: Cuerpo): Promise<R
     return invalido("Categorías no válidas.");
   }
 
+  // RN-34 · Cobertura: nacional, o uno o más departamentos de la lista oficial.
+  const coberturaNacional = cuerpo?.coberturaNacional === true;
+  const departamentos = cuerpo?.departamentos ?? [];
+  if (!Array.isArray(departamentos) || !departamentos.every((d) => typeof d === "string" && esCodigoDepartamento(d))) {
+    return invalido("Algún departamento no está en la lista oficial.");
+  }
+  if (coberturaNacional && departamentos.length > 0) {
+    return invalido("Una convocatoria nacional no lleva departamentos: marca una cosa o la otra.");
+  }
+
   const requisitosCrudos = cuerpo?.requisitos ?? [];
   if (!Array.isArray(requisitosCrudos) || requisitosCrudos.length > 200) return invalido("Requisitos no válidos.");
   const requisitos: RequisitoAdmin[] = [];
@@ -459,6 +473,8 @@ export async function guardarConvocatoria(id: string, cuerpo: Cuerpo): Promise<R
       monto_min: montoMin === null ? "" : String(montoMin),
       monto_max: montoMax === null ? "" : String(montoMax),
       ubicacion_cobertura: texto(cuerpo?.ubicacion, 300) ?? "",
+      cobertura_nacional: coberturaNacional,
+      departamentos: [...new Set(departamentos as string[])],
       fecha_apertura: apertura,
       fecha_cierre: cierre,
       url_postulacion: url.valor,
@@ -498,7 +514,7 @@ export async function cambiarPublicacion(id: string, publicar: boolean): Promise
     const falta: string[] = [];
     if (!ficha.nombre.trim()) falta.push("el nombre de la convocatoria");
     if (!ficha.entidadConvocante.trim()) falta.push("la entidad convocante");
-    if (!ficha.ubicacion.trim()) falta.push("la ubicación o cobertura");
+    if (!ficha.coberturaNacional && ficha.departamentos.length === 0) falta.push("la cobertura (nacional o al menos un departamento)");
     if (!ficha.descripcion.trim()) falta.push("la descripción u objeto");
     if (!ficha.urlPostulacion.trim()) falta.push("el enlace oficial de postulación");
     else if (!esUrlHttp(ficha.urlPostulacion)) falta.push("un enlace oficial válido que empiece por http:// o https://");

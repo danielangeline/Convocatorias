@@ -11,16 +11,26 @@ import { Chip } from "@/components/ui/Chip";
 import { Button, LinkButton } from "@/components/ui/Button";
 import { CompletitudDetalle } from "@/components/CompletitudProyecto";
 import { SolicitarConsultorModal } from "@/components/SolicitarConsultorModal";
-import { ProyectoFormModal } from "@/components/ProyectoFormModal";
+import { ProyectoFormModal, type CampoEditable } from "@/components/ProyectoFormModal";
 import type { CampoContenido } from "@/lib/proyectos";
 import type { Categoria, Proyecto } from "@/lib/types";
+import { textoUbicacionProyecto } from "@/lib/departamentos";
 
 /**
  * CU-09 · Ficha del proyecto. El proyecto llega del servidor, leído con la
  * sesión de la empresa (RN-30). RF-81: el indicador de completitud abre la
  * edición en el campo que falta.
  */
-export function FichaProyecto({ proyecto, categorias }: { proyecto: Proyecto | null; categorias: Categoria[] }) {
+export function FichaProyecto({
+  proyecto,
+  categorias,
+  editar = null,
+}: {
+  proyecto: Proyecto | null;
+  categorias: Categoria[];
+  /** CU-10 2a: las sugerencias llegan aquí con `?editar=<campo>` para completar el dato que falta. */
+  editar?: CampoEditable | null;
+}) {
   const categoriaPorId = (id: string) => categorias.find((c) => c.id === id);
   const router = useRouter();
   const todosLosEncargos = useEncargosPropios();
@@ -33,8 +43,8 @@ export function FichaProyecto({ proyecto, categorias }: { proyecto: Proyecto | n
   const [modalGenerarAbierto, setModalGenerarAbierto] = useState(false);
   // RF-81: edición del proyecto desde su propia ficha, opcionalmente situada
   // en el campo que el indicador de completitud señala como faltante.
-  const [modalEditarAbierto, setModalEditarAbierto] = useState(false);
-  const [campoAEditar, setCampoAEditar] = useState<CampoContenido["clave"] | null>(null);
+  const [modalEditarAbierto, setModalEditarAbierto] = useState(editar !== null);
+  const [campoAEditar, setCampoAEditar] = useState<CampoEditable | null>(editar);
 
   const abrirEdicion = (clave?: CampoContenido["clave"]) => {
     setCampoAEditar(clave ?? null);
@@ -118,7 +128,7 @@ export function FichaProyecto({ proyecto, categorias }: { proyecto: Proyecto | n
             <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-faint">
               <MapPin className="h-3.5 w-3.5" /> Ubicación
             </p>
-            <p className="mt-1 text-sm font-medium text-ink">{proyecto.ubicacion || "Sin ubicación"}</p>
+            <p className="mt-1 text-sm font-medium text-ink">{textoUbicacionProyecto(proyecto) || "Sin ubicación"}</p>
           </div>
         </div>
 

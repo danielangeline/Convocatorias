@@ -11,6 +11,7 @@ import {
 } from "@/lib/utils";
 import { Badge } from "./ui/Badge";
 import { Chip } from "./ui/Chip";
+import { textoCobertura } from "@/lib/departamentos";
 
 export function ConvocatoriaCard({ convocatoria, categorias }: { convocatoria: Convocatoria; categorias: Categoria[] }) {
   const dias = diasRestantes(convocatoria.fechaCierre);
@@ -71,7 +72,7 @@ export function ConvocatoriaCard({ convocatoria, categorias }: { convocatoria: C
             {formatRangoCOP(convocatoria.montoMin, convocatoria.montoMax)}
           </p>
           <p className="mt-0.5 flex items-center gap-1 text-xs text-ink-faint">
-            <MapPin className="h-3 w-3" /> {convocatoria.ubicacion}
+            <MapPin className="h-3 w-3" /> {textoCobertura(convocatoria)}
           </p>
         </div>
         <div className="text-right text-xs text-ink-faint">

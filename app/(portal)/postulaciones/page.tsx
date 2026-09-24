@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/Badge";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LinkButton } from "@/components/ui/Button";
+import { textoCobertura } from "@/lib/departamentos";
 
 export default function PostulacionesPage() {
   const postulaciones = usePostulacionesPropias();
@@ -72,7 +73,7 @@ export default function PostulacionesPage() {
                 {convocatoria && (
                   <div className="mt-4 flex items-center justify-between border-t border-line-soft pt-4 text-xs text-ink-faint">
                     <span className="flex items-center gap-1">
-                      <MapPin className="h-3.5 w-3.5" /> {convocatoria.ubicacion}
+                      <MapPin className="h-3.5 w-3.5" /> {textoCobertura(convocatoria)}
                     </span>
                     <span>Cierra: {formatFecha(convocatoria.fechaCierre)}</span>
                   </div>

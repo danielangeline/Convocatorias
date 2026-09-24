@@ -5,18 +5,25 @@
 
 ---
 
-**Actualizado:** 23 de septiembre de 2026 · cierre de la sesión 018
+**Actualizado:** 23 de septiembre de 2026 (noche) · cierre de la sesión 019
 **Sprint:** 3 · día 9 de 30 (el Sprint 2 terminó antes de su día 12)
-**Rama de trabajo:** `sprint-2`, abierta desde `main` en la sesión 011 y subida a `origin` (sin fusionar a `main`: producción todavía no tiene el catálogo del panel). **Migraciones nuevas ya aplicadas al remoto:** `20260917100000_guardar_convocatoria`, `20260917200000_storage_y_adjuntos` , `20260918100000_publicar_convocatoria` y `20260918200000_nombres_normalizados_y_borrar_categorias`. No rompen `main`, que no las llama
+**Rama de trabajo:** `sprint-2`, abierta desde `main` en la sesión 011 y subida a `origin` (sin fusionar a `main`: producción todavía no tiene el catálogo del panel). **Migraciones nuevas ya aplicadas al remoto:** `20260917100000_guardar_convocatoria`, `20260917200000_storage_y_adjuntos` , `20260918100000_publicar_convocatoria` y `20260918200000_nombres_normalizados_y_borrar_categorias`, y desde el Sprint 3 las de proyectos (`20260923500000`) y **departamentos y sugerencias (`20260924100000`)**. No rompen `main`, que no las llama
 
 ---
 
 ## Dónde vamos
 
-La especificación está cerrada en **v6**. **La base de datos existe en Supabase** (27 tablas con RLS, prueba cruzada pasada) y **la identidad ya es real**: registro, login, confirmación de correo y MFA del administrador con Supabase Auth. El `ModoDemo` desapareció. **Desde la sesión 011, el panel administra fuentes, categorías y convocatorias (datos y requisitos) contra Supabase**, con endpoints validados en el servidor, desde la 012 también los adjuntos, en Storage real —los 3 buckets existen, los tres privados, y todo archivo se entrega por URL firmada de 15 minutos— y **desde la 013 publica y despublica, validado en el servidor**. Con eso, el panel ya carga una convocatoria de principio a fin. Las tablas del catálogo siguen vacías: nadie ha cargado contenido real. Lo demás —el catálogo que ve la empresa, proyectos, postulaciones, documentos, encargos— sigue en datos de ejemplo de Zustand, filtrados por el `auth.uid()` real: una cuenta nueva empieza vacía y lo que crea se pierde al recargar.
+La especificación está cerrada en **v6**. **La base de datos existe en Supabase** (29 tablas con RLS, prueba cruzada pasada) y **la identidad ya es real**: registro, login, confirmación de correo y MFA del administrador con Supabase Auth. El `ModoDemo` desapareció. **Desde la sesión 011, el panel administra fuentes, categorías y convocatorias (datos y requisitos) contra Supabase**, con endpoints validados en el servidor, desde la 012 también los adjuntos, en Storage real —los 3 buckets existen, los tres privados, y todo archivo se entrega por URL firmada de 15 minutos— y **desde la 013 publica y despublica, validado en el servidor**. Con eso, el panel ya carga una convocatoria de principio a fin. Las tablas del catálogo siguen vacías: nadie ha cargado contenido real. Lo demás —el catálogo que ve la empresa, proyectos, postulaciones, documentos, encargos— sigue en datos de ejemplo de Zustand, filtrados por el `auth.uid()` real: una cuenta nueva empieza vacía y lo que crea se pierde al recargar.
 
 ## Lo último que se hizo
 
+- **Sesión 019: Sprint 3, paso 2 — sugerencias en el servidor (RF-15, RF-16, RN-05, RNF-05) y ubicación por departamentos (RN-34, nueva).**
+  - **Decisión del Product Owner antes de programar:** la ubicación deja de ser texto libre. Una convocatoria es de **cobertura nacional o cubre uno o más departamentos** de la lista oficial (33, código DANE); el proyecto se ejecuta en **un departamento**; el texto se conserva como detalle. El filtro del catálogo pasa a departamento e incluye siempre las nacionales. CU-02, 05, 07, 09 y 10, RF-05, 09, 12, 14 y 16, RN-01, RN-34 (nueva), docs/04, docs/05 (§9.6 reescrito y §9.18 nueva) y la trazabilidad, antes del código.
+  - **CU-10 2a, decisión del Product Owner:** sin ninguna coincidencia, primero los datos que le faltan al proyecto (con enlace que abre la edición en ese campo, RF-81) y después hasta 5 vigentes cercanas en 0 % con su desglose. La primera regla ("el criterio que menos se cumple") se descartó al escribirla: sin coincidencias los cinco empatan en cero.
+  - Migración `20260924100000` (ensayada y aplicada): `departamentos`, `convocatoria_departamento`, `cobertura_nacional`, `proyectos.departamento_codigo`, `guardar_convocatoria`/`guardar_proyecto`/`ficha_publicable` con cobertura y **`sugerencias_proyecto()`** (`security invoker`, exige suscripción). La convocatoria de MinCiencias quedó **nacional**; el proyecto del Product Owner ("Barranquilla") quedó **sin departamento** (pendiente 11).
+  - `GET /api/proyectos/[id]/sugerencias` (404 ajeno, 402 sin suscripción) y la pantalla como componente de servidor. Editor del panel con casilla nacional y departamentos; formulario del proyecto con departamento.
+  - Verificado: `supabase/tests/sugerencias.sql` **19/19**, `scripts/prueba-sugerencias.mjs` **35/35** (nueva) y regresión completa en verde (SQL: RLS, guardado, cierre, vigencia; HTTP: proyectos, catálogo empresa, catálogo panel, publicar, adjuntos). Editor del panel recorrido en el navegador sin guardar. RF-15, RF-16, RNF-05 a `servidor`; RN-05 y RN-34 a `servidor`.
+  - **RF-46 y RF-81 pasan a `verificado`:** el Product Owner hizo el recorrido del pendiente 10 con su cuenta de empresa.
 - **Sesión 018: Sprint 3, paso 1 — proyectos en Supabase (RF-14, RF-45, RF-46, RF-81, RN-30).**
   - `guardar_proyecto` (datos y categorías en una transacción, con la RLS de la empresa) y un trigger que **calcula la completitud en la base**: la aplicación no puede fijarla. Migración `20260923500000`.
   - `GET/POST /api/proyectos` y `GET/PATCH/DELETE /api/proyectos/[id]`: montos en formato colombiano (resuelve el hallazgo del monto del proyecto), validación de forma, borrar responde 409 si hay encargos y la pantalla avisa antes cuántos documentos generados se perderán. `conEmpresa` exige ahora mismo origen en las escrituras.
@@ -94,18 +101,18 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 - **Ya cerrada la sesión, a pedido del Product Owner:** no llegaba el correo de confirmación al crear una cuenta. Causa: registrarse con un correo que ya tiene cuenta devuelve éxito sin enviar nada (Supabase, para no revelar qué correos existen). Se borró la cuenta de administrador revocado `danielangeline322@gmail.com` y el Product Owner se registró con ella como empresa en producción: **RF-01 queda probado por el formulario con correo real**, con confirmación, perfil de empresa y trial de 3 créditos.
 - **Sesión 010:** entrada con dos puertas (RF-84) y recuperación de contraseña (RF-03). Cerró el Sprint 1.
 
-Detalle en [`docs/bitacora/2026-09-23-sesion-018.md`](docs/bitacora/2026-09-23-sesion-018.md).
+Detalle en [`docs/bitacora/2026-09-23-sesion-019.md`](docs/bitacora/2026-09-23-sesion-019.md).
 
 ## En curso
 
-Nada a medias. **El Sprint 2 está completo**, con el Hito 2 cumplido (día 9 de 12). Lo siguiente es el Sprint 3.
+Nada a medias. Sprint 3: pasos 1 y 2 hechos (sesiones 018 y 019).
 
 ## Lo siguiente
 
 **Sprint 3 — Proyectos, sugerencias y postulaciones** (`docs/10 §Sprint 3`). El Sprint 2 quedó completo en la sesión 017 (sus siete pasos y el Hito 2).
 
 1. ~~Proyectos con datos de contenido y completitud, filtrados por propietario (RF-14, 45, 46, 47, **81**)~~ — **sesión 018**. RF-47 (generar sobre un proyecto incompleto) se cierra con la generación, en el Sprint 4.
-2. Sugerencias con porcentaje y desglose, indexadas, solo vigentes (RF-15, 16, RN-05, RNF-05): `GET /api/proyectos/[id]/sugerencias`, cruce determinístico en el servidor.
+2. ~~Sugerencias con porcentaje y desglose, indexadas, solo vigentes (RF-15, 16, RN-05, RNF-05)~~ — **sesión 019**, junto con la ubicación por departamentos (RN-34).
 3. Postulaciones con checklist copiado de los requisitos (RF-17, 18, RN-04): `POST /api/postulaciones`, que traduce a 409 la clave `convocatoria_no_vigente` (RF-78).
 4. Estados según el grafo de transiciones, validados en servidor (**RF-83**).
 5. Enlace al portal de la entidad como acción primaria (**RF-73**, RN-19).
@@ -150,7 +157,8 @@ Pendiente del Product Owner:
 7. **Docker Desktop no arranca** en esta máquina: no bloquea, pero obliga a ensayar las migraciones contra el remoto. **Ojo con el método** (hallazgo de la sesión 012): `db push` corre cada migración en su propia transacción, así que para ensayar una hay que poner el `raise` que la revierte **dentro de ese mismo archivo**, nunca en uno posterior.
 8. ~~**Recorrer el catálogo del panel en el navegador**~~ — **hecho el 17-sep**, informado por el Product Owner al abrir la sesión 012: todo funciona.
 9. ~~**Recorrer la sección "Documentos" del editor en el navegador**~~ — **hecho**: el Product Owner la recorrió en la sesión 015 (19/19 pasos) y el agente la repitió en la 016. Uno de sus pasos quedó obsoleto: publicar sin adjuntos ya no se permite (RN-01).
-10. **Revisar los proyectos en pantalla con la cuenta de empresa** (sesión 018; el navegador del agente tiene la sesión de administrador): crear un proyecto con solo el nombre, abrirlo (completitud 0 %), pulsar un campo que falta y comprobar que abre la edición en ese campo (RF-81), completar algunos campos con un monto como `150.000.000`, guardar y **recargar** para ver que sigue ahí. Con eso RF-46 y RF-81 pasan a `verificado`.
+10. ~~**Revisar los proyectos en pantalla con la cuenta de empresa**~~ — **hecho** (informado al abrir la sesión 019): RF-46 y RF-81 a `verificado`.
+11. **Ponerle departamento a tu proyecto y mirar las sugerencias** (sesión 019): en "Mi Nuevo proyecto", editar y elegir **Atlántico** (el texto "Barranquilla" se conservó como detalle). Luego abrir "Ver sugerencias": la convocatoria de MinCiencias debe salir con su porcentaje y el desglose. Probar también un proyecto nuevo solo con nombre: debe decir qué datos faltan y el botón debe abrir la edición en ese campo. En el panel, la convocatoria de MinCiencias debe mostrar "Cobertura nacional" marcada. Con eso RF-15 y RF-16 pasan a `verificado`.
 
 ## Decisiones abiertas
 
@@ -226,6 +234,9 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | "Vigente" se decidía con `current_date` de Postgres, que va en UTC: desde las 7 p. m. hora de Colombia, una convocatoria que cerraba ese día ya contaba como vencida | convocatorias | **resuelto** en la sesión 017: `privado.hoy_colombia()` en el cierre, postular, publicar, indicadores y el catálogo |
 | Las suscripciones también usan `current_date` en UTC (`crear_cuenta`, `tiene_suscripcion_vigente`, job 2): un trial o una suscripción vencen 5 horas antes en Colombia | suscripciones | media · aplicar `privado.hoy_colombia()` con el módulo de suscripciones (Sprint 5) |
 | ~~**Editar una publicada permite poner una fecha de cierre ya pasada**~~ **Resuelto en la sesión 017** con una advertencia, por decisión del Product Owner (CU-05 3e).: sigue publicada hasta que el job la cierra esa medianoche. Publicar sí rechaza una vencida (RN-03). Puede ser legítimo (la entidad cerró antes), pero hoy no se advierte ni se cierra en el momento. Así quedó la convocatoria de MinCiencias el 23-sep; el Product Owner la corrigió antes de que el job la cerrara | `guardar_convocatoria` | media · decisión del Product Owner: ¿rechazar, advertir o cerrar en el acto? |
+| **Sin estadísticas, `sugerencias_proyecto` pasa de 141 ms a 46 s** con 2 000 convocatorias: el planificador recalcula el agregado de categorías por cada convocatoria (`loops=2005`) y la RLS añade una subconsulta por fila. En producción autovacuum mantiene las estadísticas, pero una carga masiva (p. ej. las 50 convocatorias reales) puede dejar un rato el plan malo | `supabase/migrations/20260924100000` | media · reescribir la consulta para que no dependa del plan (categorías del proyecto en un arreglo, `exists` indexados) antes de los pilotos |
+| `cambiarPublicacion` compara la fecha de cierre con `new Date().toISOString()` (UTC), no con `hoyColombia()`: de 7 p. m. a medianoche puede rechazar como vencida una que cierra hoy. La barrera SQL sí usa la hora de Colombia | `lib/admin/catalogo.ts` | baja · usar `hoyColombia()` |
+| La prueba RLS suponía que no había proyectos reales y falló al existir el del Product Owner | `supabase/tests/rls_aislamiento.sql` | **resuelto** en la sesión 019 (línea base, como las invitaciones) |
 | `unstable_cache` (indicadores) está reemplazado por `use cache` en Next 16, pero `use cache` exige activar `cacheComponents` en todo el proyecto | `lib/catalogo.ts` | baja · migrar si se activa `cacheComponents` |
 | Las pruebas que crean convocatorias con `service_role` no invalidan la caché de indicadores: si la landing se calcula mientras corren, muestra hasta 1 hora cifras con datos de prueba (pasó el 23-sep). `prueba-catalogo-empresa.mjs` ya mide antes de crear contenido | pruebas | baja · tenerlo en cuenta al leer la landing en local |
 | Las suites de JavaScript calculan las fechas de sus convocatorias en UTC (`enDias`); hoy no fallan porque usan márgenes de días enteros, pero una comprobación en el límite exacto de "hoy" fallaría de noche, como le pasó a la prueba RLS | `scripts/prueba-*.mjs` | baja · usar la fecha de Colombia al escribir la próxima que dependa de "hoy" |

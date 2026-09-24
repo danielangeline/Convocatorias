@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { SolicitarConsultorModal } from "@/components/SolicitarConsultorModal";
+import { textoCobertura } from "@/lib/departamentos";
 
 export default function DetallePostulacionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -192,7 +193,7 @@ export default function DetallePostulacionPage({ params }: { params: Promise<{ i
               </span>
             </span>
             <span className="flex items-center gap-1.5">
-              <MapPin className="h-4 w-4" /> {convocatoria.ubicacion}
+              <MapPin className="h-4 w-4" /> {textoCobertura(convocatoria)}
             </span>
             <span>Cierra el {formatFecha(convocatoria.fechaCierre)}</span>
           </div>

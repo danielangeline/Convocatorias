@@ -1,4 +1,5 @@
 import type { Categoria, Convocatoria } from "@/lib/types";
+import { nombreDepartamento, textoCobertura } from "@/lib/departamentos";
 
 /**
  * Filtros combinables del catálogo (RF-12, CU-07) y chips sugeridos (RF-43).
@@ -11,7 +12,8 @@ export interface FiltrosCatalogo {
   tipoProyecto?: string[];
   sector?: string[];
   entidad?: string;
-  ubicacion?: string;
+  /** Código DANE (RN-34): deja las de ese departamento y las de cobertura nacional. */
+  departamento?: string;
   /** Pesos: deja las convocatorias cuyo monto mínimo no pasa de aquí. */
   montoHasta?: number | null;
   /** AAAA-MM-DD: deja las que cierran ese día o antes. */
@@ -28,13 +30,13 @@ export function filtrarCatalogo(lista: Convocatoria[], f: FiltrosCatalogo): Conv
   const palabras = q ? q.split(/\s+/) : [];
   return lista.filter((c) => {
     if (palabras.length) {
-      const texto = normalizar(`${c.nombre} ${c.entidadConvocante} ${c.descripcion} ${c.ubicacion}`);
+      const texto = normalizar(`${c.nombre} ${c.entidadConvocante} ${c.descripcion} ${c.ubicacion} ${textoCobertura(c)}`);
       if (!palabras.every((p) => texto.includes(p))) return false;
     }
     if (f.tipoProyecto?.length && !f.tipoProyecto.some((id) => c.categorias.includes(id))) return false;
     if (f.sector?.length && !f.sector.some((id) => c.categorias.includes(id))) return false;
     if (f.entidad && c.entidadConvocante !== f.entidad) return false;
-    if (f.ubicacion && !normalizar(c.ubicacion).includes(normalizar(f.ubicacion))) return false;
+    if (f.departamento && !c.coberturaNacional && !c.departamentos.includes(f.departamento)) return false;
     // Sin monto mínimo informado no hay umbral que la excluya.
     if (f.montoHasta != null && c.montoMin != null && c.montoMin > f.montoHasta) return false;
     if (f.cierraAntesDe && c.fechaCierre > f.cierraAntesDe) return false;
@@ -50,7 +52,7 @@ export interface ChipSugerido {
 /**
  * RF-43 · Se derivan de lo vigente, así que ninguno lleva a un resultado vacío:
  * las categorías de tipo de proyecto y sector más frecuentes y, si hay espacio,
- * las ubicaciones más frecuentes.
+ * los departamentos más frecuentes (RN-34).
  */
 export function chipsSugeridos(lista: Convocatoria[], categorias: Categoria[], maximo = 5): ChipSugerido[] {
   const frecuencia = new Map<string, number>();
@@ -64,11 +66,13 @@ export function chipsSugeridos(lista: Convocatoria[], categorias: Categoria[], m
       filtros: cat.tipo === "tipo_proyecto" ? { tipoProyecto: [cat.id] } : { sector: [cat.id] },
     }));
 
-  const ubicaciones = new Map<string, number>();
-  for (const c of lista) if (c.ubicacion) ubicaciones.set(c.ubicacion, (ubicaciones.get(c.ubicacion) ?? 0) + 1);
-  const deUbicaciones = [...ubicaciones.entries()]
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "es"))
-    .map(([ubicacion]): ChipSugerido => ({ etiqueta: ubicacion, filtros: { ubicacion } }));
+  const departamentos = new Map<string, number>();
+  for (const c of lista) for (const d of c.departamentos) departamentos.set(d, (departamentos.get(d) ?? 0) + 1);
+  const deUbicaciones = [...departamentos.entries()]
+    .map(([codigo, n]) => ({ codigo, n, nombre: nombreDepartamento(codigo) }))
+    .filter((d) => d.nombre)
+    .sort((a, b) => b.n - a.n || a.nombre.localeCompare(b.nombre, "es"))
+    .map((d): ChipSugerido => ({ etiqueta: d.nombre, filtros: { departamento: d.codigo } }));
 
   return [...deCategorias, ...deUbicaciones].slice(0, maximo);
 }

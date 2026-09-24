@@ -3,6 +3,7 @@ import { cache } from "react";
 import type { PostgrestError } from "@supabase/supabase-js";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { leerMontoCOP } from "@/lib/montos";
+import { esCodigoDepartamento } from "@/lib/departamentos";
 import type { Proyecto } from "@/lib/types";
 
 /**
@@ -19,7 +20,7 @@ const invalido = (error: string) => ({ ok: false as const, status: 400, error })
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const COLUMNAS =
-  "id, usuario_id, nombre, descripcion, monto_buscado, ubicacion, problema, objetivo_general, objetivos_especificos, poblacion_beneficiaria, actividades, resultados_esperados, duracion_meses, presupuesto_estimado, experiencia_empresa, completitud, proyecto_categoria (categoria_id)";
+  "id, usuario_id, nombre, descripcion, monto_buscado, departamento_codigo, ubicacion, problema, objetivo_general, objetivos_especificos, poblacion_beneficiaria, actividades, resultados_esperados, duracion_meses, presupuesto_estimado, experiencia_empresa, completitud, proyecto_categoria (categoria_id)";
 
 type Fila = {
   id: string;
@@ -27,6 +28,7 @@ type Fila = {
   nombre: string;
   descripcion: string | null;
   monto_buscado: number | string | null;
+  departamento_codigo: string | null;
   ubicacion: string | null;
   problema: string | null;
   objetivo_general: string | null;
@@ -51,6 +53,7 @@ function aProyecto(f: Fila): Proyecto {
     nombre: f.nombre,
     descripcion: f.descripcion ?? "",
     montoBuscado: numero(f.monto_buscado),
+    departamento: f.departamento_codigo,
     ubicacion: f.ubicacion ?? "",
     categorias: f.proyecto_categoria.map((c) => c.categoria_id),
     problema: opcional(f.problema),
@@ -104,7 +107,7 @@ function texto(cuerpo: Cuerpo, campo: string, maximo: number): string | null {
 
 const ETIQUETAS: Record<string, string> = {
   descripcion: "La descripción",
-  ubicacion: "La ubicación",
+  ubicacion: "El municipio o detalle de ubicación",
   problema: "El problema",
   objetivoGeneral: "El objetivo general",
   poblacionBeneficiaria: "La población beneficiaria",
@@ -148,6 +151,12 @@ function datosDelProyecto(cuerpo: Cuerpo): { ok: true; datos: Record<string, unk
   const objetivos = (objetivosCrudos as string[]).map((o) => o.trim()).filter(Boolean);
   if (objetivos.some((o) => o.length > 1000)) return invalido("Cada objetivo específico puede tener hasta 1.000 caracteres.");
 
+  // RN-34 · El departamento sale de la lista oficial; vacío si aún no se indica.
+  const departamento = cuerpo?.departamento ?? "";
+  if (departamento !== "" && departamento !== null && (typeof departamento !== "string" || !esCodigoDepartamento(departamento))) {
+    return invalido("El departamento no está en la lista oficial.");
+  }
+
   const categorias = cuerpo?.categorias ?? [];
   if (!Array.isArray(categorias) || categorias.length > 50 || !categorias.every((c) => typeof c === "string" && UUID.test(c))) {
     return invalido("Categorías no válidas.");
@@ -160,6 +169,7 @@ function datosDelProyecto(cuerpo: Cuerpo): { ok: true; datos: Record<string, unk
       nombre,
       descripcion: textos.descripcion,
       monto_buscado: monto.valor === null ? "" : String(monto.valor),
+      departamento_codigo: departamento ?? "",
       ubicacion: textos.ubicacion,
       problema: textos.problema,
       objetivo_general: textos.objetivoGeneral,
@@ -177,6 +187,7 @@ function datosDelProyecto(cuerpo: Cuerpo): { ok: true; datos: Record<string, unk
 const RECHAZOS: Record<string, { status: number; error: string }> = {
   no_existe: { status: 404, error: "El proyecto no existe." },
   categoria_invalida: { status: 400, error: "Hay una categoría inexistente o inactiva." },
+  departamento_invalido: { status: 400, error: "El departamento no está en la lista oficial." },
 };
 
 function rechazo(error: PostgrestError, accion: string): { ok: false; status: number; error: string } {

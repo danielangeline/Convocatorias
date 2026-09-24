@@ -1,4 +1,4 @@
-# Modelo de datos (27 tablas)
+# Modelo de datos (29 tablas)
 
 > Parte de la especificación del MVP **v6** · Plataforma de Gestión de Convocatorias.
 > Índice general en `docs/README.md`. Contexto rápido en `CLAUDE.md`.
@@ -7,7 +7,7 @@
 
 ## 9. Modelo de datos
 
-**27 tablas**: 12 base de la v2 (incluida `perfiles`), 10 del módulo de consultores y suscripciones de la v3, 3 del módulo de IA y `eventos_seguridad` de la extensión de seguridad v5, más columnas nuevas en proyectos, planes, suscripciones y perfiles. *Hasta la sesión 003 el documento decía "24 tablas": la cifra no contaba `perfiles` ni `eventos_seguridad`; el conjunto de tablas no cambió.* *(v6, sesión 005: se agrega `invitaciones_admin`, §9.12)*
+**27 tablas**: 12 base de la v2 (incluida `perfiles`), 10 del módulo de consultores y suscripciones de la v3, 3 del módulo de IA y `eventos_seguridad` de la extensión de seguridad v5, más columnas nuevas en proyectos, planes, suscripciones y perfiles. *Hasta la sesión 003 el documento decía "24 tablas": la cifra no contaba `perfiles` ni `eventos_seguridad`; el conjunto de tablas no cambió.* *(v6, sesión 005: se agrega `invitaciones_admin`, §9.12)* *(v6, sesión 019: se agregan `departamentos` y `convocatoria_departamento`, §9.18; son 29)*
 
 ### 9.1 Diagrama entidad–relación (módulo de IA y su conexión)
 
@@ -116,27 +116,28 @@ erDiagram
 | documentos_generados | La empresa dueña (`usuario_id = auth.uid()`) lee y edita `titulo`, `contenido` y `pendientes`. **El consultor con `compartido_con_consultor_id = auth.uid()` y encargo `en_curso` sobre ese proyecto puede leer y editar `contenido`/`pendientes`, nunca exportar** (RN-22, RN-27, RF-71/72, *ampliado en v5*). **Crear el documento, `ajustes_usados`, `estado`, `version`, `plantilla_id` y la autorización del consultor los escribe solo el servidor** al generar, ajustar, exportar, compartir o revocar: si el cliente pudiera escribir el contador de ajustes, podría ponerlo en 0 y saltarse RN-17 *(precisado en v6, sesión 003)*; admin puede leer para soporte |
 | consumos_ia | Solo lectura del propio usuario; escritura desde el servidor; admin lee todo |
 
-### 9.6 Cálculo del porcentaje de compatibilidad (RF-16)
+### 9.6 Cálculo del porcentaje de compatibilidad (RF-16) *(reescrito en v6, sesión 019 — Sprint 3 paso 2)*
 
-```sql
--- Criterios evaluados: tipo_proyecto, sector, tipo_entidad, monto, ubicación
-WITH coincidencias AS (
-  SELECT c.id,
-         COUNT(*) FILTER (WHERE cat.tipo = 'tipo_proyecto') > 0 AS m_tipo,
-         COUNT(*) FILTER (WHERE cat.tipo = 'sector')        > 0 AS m_sector,
-         COUNT(*) FILTER (WHERE cat.tipo = 'tipo_entidad')  > 0 AS m_entidad
-  FROM convocatorias c
-  JOIN convocatoria_categoria cc ON cc.convocatoria_id = c.id
-  JOIN categorias cat            ON cat.id = cc.categoria_id
-  JOIN proyecto_categoria pc     ON pc.categoria_id = cc.categoria_id
-  WHERE pc.proyecto_id = :proyecto_id
-    AND c.estado = 'publicada' AND c.fecha_cierre >= CURRENT_DATE
-  GROUP BY c.id
-)
--- % = (criterios coincidentes / 5) * 100, sumando monto dentro de rango y ubicación
-```
+Implementa CU-10, RF-15 y RF-16 en el servidor. El cálculo es un cruce determinístico de atributos, **sin IA** (RN-05).
 
-El monto coincide si `monto_buscado` está dentro de `[monto_min, monto_max]`; la ubicación si es igual o la convocatoria es de cobertura nacional. El resultado se presenta como porcentaje con el desglose por criterio, y se acompaña siempre de la aclaración de RN-05.
+**`public.sugerencias_proyecto(p_proyecto uuid)`** devuelve una fila por convocatoria **publicada y vigente** (`fecha_cierre >= privado.hoy_colombia()`, RF-15: una vencida queda fuera aunque el job de RF-10 no la haya cerrado) con un booleano por criterio, `coincidencias` y `porcentaje`.
+
+- **`security invoker`**: corre con la sesión de la empresa. La RLS decide qué proyecto es suyo (uno ajeno responde `no_existe`, como si no existiera) y qué convocatorias puede ver (RN-33).
+- **Exige suscripción vigente** (CU-10, precondición; RNF-20) con `privado.tiene_suscripcion_vigente(auth.uid())`; sin ella rechaza con `hint = 'sin_suscripcion'` y el endpoint responde 402.
+- **Cinco criterios, siempre evaluados los cinco**; `porcentaje = round(coincidencias × 100 / 5)`:
+
+| Criterio | Coincide si |
+|---|---|
+| Tipo de proyecto, sector, tipo de entidad | el proyecto y la convocatoria comparten **al menos una categoría de ese tipo** |
+| Monto | `monto_buscado` no es nulo y cae en `[monto_min, monto_max]`; un extremo nulo no pone límite |
+| Ubicación | la convocatoria es de **cobertura nacional**, o su lista de departamentos incluye el **departamento del proyecto** (RN-34, §9.18) |
+
+- Un criterio sobre el que el proyecto **no tiene dato** (sin categoría de ese tipo, sin monto, sin departamento) **no coincide**. El endpoint lo distingue en el desglose (`sin_dato`) para decirle a la empresa qué completar.
+- Devuelve **también las convocatorias con 0 coincidencias**: el endpoint las usa para CU-10 2a y no las muestra. Orden: porcentaje de mayor a menor y, a igual porcentaje, la que cierra antes.
+- **CU-10 2a** lo arma el endpoint: si ninguna convocatoria tiene coincidencias, devuelve **los datos que le faltan al proyecto** (en el orden de la tabla) y **hasta 5 vigentes cercanas**, en 0 % y en el orden de la función. *Se descartó "el criterio que menos vigentes cumplen": sin coincidencias, los cinco empatan en cero.*
+- **Índices** (RNF-05, < 3 s): `convocatorias (estado, fecha_cierre)`, las claves primarias de `convocatoria_categoria` y `convocatoria_departamento` y la de `proyecto_categoria`. La prueba mide la función con 2 000 convocatorias.
+
+El resultado se acompaña siempre de la aclaración de RN-05: es un cálculo de coincidencias, no una predicción de éxito.
 
 ### 9.7 Jobs automáticos (pg_cron)
 
@@ -375,7 +376,7 @@ Implementa RF-05, RF-06 y RF-08 en el servidor. El editor de `/admin/convocatori
 
 - **`security invoker`**: corre con la sesión del administrador, así que la RLS de §9.10 sigue aplicando (administrador vigente con `aal2`). La función además lo comprueba al entrar y rechaza con `hint = 'no_es_admin'`.
 - Una sola transacción:
-  - actualiza las columnas editables (nombre, entidad convocante, descripción, montos, ubicación, fechas, enlace oficial y fuente). **No toca `estado`, `creado_por`, `publicado_por` ni `publicada_at`**: publicar y despublicar tienen su propio endpoint (RF-09);
+  - actualiza las columnas editables (nombre, entidad convocante, descripción, montos, cobertura —`cobertura_nacional` y el detalle `ubicacion_cobertura`—, fechas, enlace oficial y fuente) y **reemplaza los departamentos** por los de `p_datos -> 'departamentos'` (§9.18) *(sesión 019)*. **No toca `estado`, `creado_por`, `publicado_por` ni `publicada_at`**: publicar y despublicar tienen su propio endpoint (RF-09);
   - reemplaza las categorías (`convocatoria_categoria`) por las recibidas. Solo admite categorías **activas** o que la convocatoria ya tenía (una desactivada después sigue asignada hasta que se quite);
   - sincroniza los requisitos: actualiza los que traen `id` de esa convocatoria, inserta los nuevos y borra los que ya no vienen. El `orden` es la posición en la lista. Borrar un requisito no altera los checklists ya copiados (RN-04; `postulacion_checklist.requisito_id` es `on delete set null`).
 - Rechazos con clave estable en `hint`: `no_es_admin`, `no_existe`, `fuente_invalida` (la fuente no existe o está inactiva y no es la que ya tenía), `categoria_invalida`, `requisito_ajeno` (un `id` de requisito de otra convocatoria) y `publicada_incompleta`: una convocatoria `publicada` no puede quedar incompleta según RN-01. La comprobación va **al final**, sobre lo que quedó escrito, con la misma `privado.ficha_publicable` que usa publicar (§9.15), para que las dos reglas no puedan divergir *(restaurada en la sesión 016)*. Para quitarle algo, primero se despublica. Las restricciones de la tabla —montos, fechas, formato del enlace— siguen vigentes.
@@ -455,14 +456,14 @@ Implementa RF-09 y RN-01 en el servidor. Cambiar el estado es lo único que `gua
 - **`security invoker`**, igual que §9.13: corre con la sesión del administrador y la RLS sigue aplicando; la función lo comprueba además al entrar.
 - **Publicar** (`p_publicar = true`) exige, en una sola lectura con bloqueo de la fila, **la ficha completa de RN-01** *(lista ampliada en la sesión 015)*:
   - nombre y entidad convocante (la tabla ya los pide);
-  - **ubicación o cobertura** y **descripción u objeto**;
+  - **cobertura: nacional o al menos un departamento** (RN-34, §9.18; *hasta la sesión 018 se exigía el texto `ubicacion_cobertura`, que pasa a ser un detalle opcional*) y **descripción u objeto**;
   - **enlace oficial de postulación** presente y bien formado (RNF-29). La restricción `convocatorias_publicada_con_enlace` lo repite;
   - **al menos una categoría** en `convocatoria_categoria`;
   - **al menos un documento adjunto** en `documentos_convocatoria`;
   - **al menos dos requisitos** en `requisitos_convocatoria`;
   - **fecha de cierre no vencida**: no se publica algo que ya cerró, porque el job de RF-10 lo cerraría esa misma noche y porque RN-03 prohíbe postular sobre ello.
 
-  Ubicación y categorías son además los filtros del catálogo (RF-12): sin ellas la convocatoria no aparecería al filtrar. El adjunto **volvió a ser obligatorio** en la sesión 015, después de haber dejado de serlo en la 012.
+  Cobertura y categorías son además los filtros del catálogo (RF-12): sin ellas la convocatoria no aparecería al filtrar. El adjunto **volvió a ser obligatorio** en la sesión 015, después de haber dejado de serlo en la 012.
 
   Al publicar: `estado = 'publicada'`, `publicada_at = now()` y `publicado_por = auth.uid()` (RNF-11). Se puede publicar desde **cualquier** estado que no sea `publicada`, incluido `cerrada` — si alguien corrige la fecha de cierre de una cerrada, debe poder volver a publicarla sin quedarse sin salida.
 - **Despublicar** (`p_publicar = false`) exige que esté `publicada` y la deja en `despublicada`, conservando `publicada_at` y `publicado_por` como rastro de que estuvo publicada. No se borra nada (RN-07). A partir de ahí no se puede postular ni generar sobre ella (RN-03), y las postulaciones ya iniciadas conservan su checklist (RN-04).
@@ -521,4 +522,40 @@ Implementa RF-14, RF-45, RF-46 y RF-81 en el servidor (CU-09). La RLS de §9.10 
 **`completitud` la calcula un trigger** (`before insert or update`) con la misma regla que `lib/proyectos.ts`: nueve campos de contenido; un texto cuenta si no está en blanco, `objetivos_especificos` si tiene alguno no vacío, duración y presupuesto si son mayores que cero; `round(completos × 100 / 9)`. Lo que envíe la aplicación en esa columna se ignora. `lib/proyectos.ts` sigue siendo quien enumera los campos que faltan en pantalla (RF-46, RF-81), y una prueba comprueba que las dos cuentas coinciden.
 
 **Borrar un proyecto** (CU-09 2a): `proyecto_categoria` y **`documentos_generados` se borran en cascada**, las postulaciones quedan sin proyecto (`on delete set null`) y **un proyecto con encargos no se puede borrar** (la clave foránea lo impide). El endpoint responde 409 con ese motivo y la pantalla, antes de confirmar, dice cuántos documentos generados se perderán.
+
+---
+
+### 9.18 Departamentos y cobertura *(nuevo v6, sesión 019 — RN-34)*
+
+Hasta la sesión 018 la ubicación era texto libre en los dos lados (`Colombia (nacional)` frente a `Barranquilla`), y ni el filtro del catálogo ni la compatibilidad podían compararla de forma confiable. Por decisión del Product Owner pasa a la lista oficial de departamentos.
+
+**DEPARTAMENTOS** — catálogo fijo, sembrado por la migración (los 32 departamentos y Bogotá D.C.):
+
+| Campo | Tipo | Restricción |
+|---|---|---|
+| codigo | text | PK, código DANE de dos cifras (`'05'` Antioquia … `'99'` Vichada) |
+| nombre | text | not null, unique |
+
+RLS: lectura para `authenticated`; **ninguna política de escritura**: la lista solo cambia por migración. `lib/departamentos.ts` tiene la misma lista para las pantallas, y una prueba comprueba que coinciden.
+
+**CONVOCATORIA_DEPARTAMENTO** — `convocatoria_id` (FK, `on delete cascade`) + `departamento_codigo` (FK), PK compuesta, índice por `departamento_codigo`. Las mismas políticas que `convocatoria_categoria`: se ve con su convocatoria; escribe solo el administrador.
+
+**Columnas nuevas**
+
+| Tabla | Campo | Tipo | Nota |
+|---|---|---|---|
+| convocatorias | cobertura_nacional | boolean not null default false | Si es verdadero, la convocatoria no lleva departamentos |
+| proyectos | departamento_codigo | text null, FK a `departamentos` | Donde se ejecuta el proyecto. Nulo mientras la empresa no lo indique |
+
+`convocatorias.ubicacion_cobertura` y `proyectos.ubicacion` **se conservan como detalle en texto** (municipios, zona): se muestran y alimentan el documento con IA, pero **nunca se comparan**.
+
+**Escritura**
+
+- `guardar_convocatoria` (§9.13) lee `p_datos ->> 'cobertura_nacional'` y `p_datos -> 'departamentos'` (arreglo de códigos). Con cobertura nacional **borra los departamentos**; un código inexistente rechaza con `hint = 'departamento_invalido'`. El endpoint rechaza antes con 400 si llegan las dos cosas o un código que no está en la lista.
+- `guardar_proyecto` (§9.17) lee `p_datos ->> 'departamento_codigo'`; un código inexistente rechaza con `departamento_invalido`.
+- `privado.ficha_publicable` exige `cobertura_nacional` **o** al menos un departamento, en lugar del texto (RN-01).
+
+**Datos existentes.** La migración marca como nacional la convocatoria cuyo detalle dice "nacional", asigna los departamentos que el texto nombre (comparando sin tildes ni mayúsculas) y hace lo mismo con el departamento de los proyectos. Lo que no se pueda deducir queda sin departamento, a la vista del usuario para completarlo.
+
+**Filtro del catálogo (RF-12).** `departamento=<código>` trae las convocatorias con ese departamento **y todas las de cobertura nacional**.
 

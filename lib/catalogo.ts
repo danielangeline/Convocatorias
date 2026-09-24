@@ -14,7 +14,7 @@ import type { Categoria, Convocatoria, Documento, EstadoConvocatoria, TipoCatego
  */
 
 const COLUMNAS =
-  "id, nombre, entidad_convocante, descripcion, monto_min, monto_max, ubicacion_cobertura, fecha_apertura, fecha_cierre, url_postulacion, estado, convocatoria_categoria (categoria_id), requisitos_convocatoria (id, descripcion, tipo, obligatorio, orden), documentos_convocatoria (id, tipo_doc, nombre, storage_path, tamano_bytes)";
+  "id, nombre, entidad_convocante, descripcion, monto_min, monto_max, ubicacion_cobertura, cobertura_nacional, fecha_apertura, fecha_cierre, url_postulacion, estado, convocatoria_categoria (categoria_id), convocatoria_departamento (departamento_codigo), requisitos_convocatoria (id, descripcion, tipo, obligatorio, orden), documentos_convocatoria (id, tipo_doc, nombre, storage_path, tamano_bytes)";
 
 const BUCKET = "documentos-convocatorias";
 
@@ -26,11 +26,13 @@ type Fila = {
   monto_min: number | string | null;
   monto_max: number | string | null;
   ubicacion_cobertura: string | null;
+  cobertura_nacional: boolean;
   fecha_apertura: string | null;
   fecha_cierre: string;
   url_postulacion: string | null;
   estado: EstadoConvocatoria;
   convocatoria_categoria: { categoria_id: string }[];
+  convocatoria_departamento: { departamento_codigo: string }[];
   requisitos_convocatoria: { id: string; descripcion: string; tipo: TipoRequisito; obligatorio: boolean; orden: number }[];
   documentos_convocatoria: { id: string; tipo_doc: TipoDocumento; nombre: string; storage_path: string; tamano_bytes: number | null }[];
 };
@@ -47,6 +49,8 @@ function aConvocatoria(f: Fila): Convocatoria {
     descripcion: f.descripcion ?? "",
     montoMin: numero(f.monto_min),
     montoMax: numero(f.monto_max),
+    coberturaNacional: f.cobertura_nacional,
+    departamentos: f.convocatoria_departamento.map((d) => d.departamento_codigo),
     ubicacion: f.ubicacion_cobertura ?? "",
     fechaApertura: f.fecha_apertura,
     fechaCierre: f.fecha_cierre,

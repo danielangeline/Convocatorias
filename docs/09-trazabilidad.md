@@ -10,15 +10,15 @@
 | Caso de uso | RF | RNF / RN |
 |---|---|---|
 | CU-01 Parametrizar fuente | RF-04 | RN-07 |
-| CU-02 Cargar convocatoria *(v5: enlace oficial)* | RF-05, 06 | RNF-11, 14, 29 |
+| CU-02 Cargar convocatoria *(v5: enlace oficial; v6 sesión 019: cobertura por departamentos)* | RF-05, 06 | RNF-11, 14, 29, **RN-34** |
 | CU-03 Adjuntar documentos | RF-07 | RNF-02, 06, **RNF-16, RNF-18**, **RN-01** *(v6, sesion 016: una publicada no pierde su ultimo adjunto)*, *(v6, sesion 012: los adjuntos viven en un bucket privado y se entregan por URL firmada de 15 min; tipos y tamano validados en cliente, en servidor y en el propio bucket)* |
 | CU-04 Definir requisitos | RF-08 | RN-04 |
-| CU-05 Publicar *(v5: exige enlace válido)* | RF-09 | RN-01, RNF-11, 29 |
+| CU-05 Publicar *(v5: exige enlace válido; v6 sesión 019: exige cobertura)* | RF-09 | RN-01, RNF-11, 29, **RN-34** |
 | CU-06 Cierre automático | RF-10 | RN-02, RNF-12 |
-| CU-07 Catálogo y chips *(v6: cerradas fuera del listado por defecto; solo empresas; sesión 016: chips derivados del catálogo vigente)* | RF-11, 12, 43 | RNF-04, **RN-02, RN-33** |
+| CU-07 Catálogo y chips *(v6: cerradas fuera del listado por defecto; solo empresas; sesión 016: chips derivados del catálogo vigente; sesión 019: filtro por departamento)* | RF-11, 12, 43 | RNF-04, **RN-02, RN-33, RN-34** |
 | CU-08 Detalle y descargas *(v5: enlace al portal; v6: solo empresas; sesión 016: descarga por URL firmada heredando la visibilidad de la fila)* | RF-13, **73** | RNF-06, **RNF-16**, **RN-33** |
-| CU-09 Proyecto enriquecido *(v6: completitud accionable)* | RF-14, 45, 46, 47, **81** | RN-21, RNF-03, **RNF-07** |
-| CU-10 Sugerencias con % *(v6: solo vigentes)* | RF-15, 16 | RN-05, RNF-05, **RN-02** |
+| CU-09 Proyecto enriquecido *(v6: completitud accionable; sesión 019: departamento)* | RF-14, 45, 46, 47, **81** | RN-21, RNF-03, **RNF-07**, **RN-34** |
+| CU-10 Sugerencias con % *(v6: solo vigentes; sesión 019: cálculo en servidor, ubicación por departamento, 2a y 2b)* | RF-15, 16, **81** | RN-05, RNF-05, **RN-02**, **RNF-20**, **RN-34** |
 | CU-11 Iniciar postulación *(v6: vigencia verificada en servidor)* | RF-17, 21, **78** | RN-03, 04, 19, **RNF-20** |
 | CU-12 Checklist | RF-18, 20 | — |
 | CU-13 Estados *(v5: generar/editar documento, enlace al portal, solicitar consultor; v6: grafo de transiciones y jerarquía del portal)* | RF-19, 20, 28, 53, 73, **83** | RNF-11, 12, **RN-19** |

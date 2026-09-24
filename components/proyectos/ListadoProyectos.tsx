@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { CompletitudBadge } from "@/components/CompletitudProyecto";
 import { SolicitarConsultorModal } from "@/components/SolicitarConsultorModal";
 import { ProyectoFormModal } from "@/components/ProyectoFormModal";
+import { textoUbicacionProyecto } from "@/lib/departamentos";
 
 /**
  * CU-09 · Listado de proyectos. Los datos llegan del servidor, leídos con la
@@ -141,7 +142,7 @@ export function ListadoProyectos({ proyectos, categorias }: { proyectos: Proyect
                   <span className="font-tabular font-medium text-ink">{p.montoBuscado != null ? formatCOP(p.montoBuscado) : "Monto sin definir"}</span>
                 </p>
                 <p className="flex items-center gap-1.5 text-ink-soft">
-                  <MapPin className="h-3.5 w-3.5" /> {p.ubicacion || "Sin ubicación"}
+                  <MapPin className="h-3.5 w-3.5" /> {textoUbicacionProyecto(p) || "Sin ubicación"}
                 </p>
               </div>
 

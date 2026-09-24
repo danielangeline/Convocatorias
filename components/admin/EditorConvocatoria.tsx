@@ -13,6 +13,7 @@ import { cn, formatCOP, ESTADO_CONVOCATORIA_LABEL, ESTADO_CONVOCATORIA_ESTILO, T
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Aviso } from "@/components/identidad/Campo";
+import { DEPARTAMENTOS } from "@/lib/departamentos";
 
 const claseCampo =
   "w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500";
@@ -52,6 +53,11 @@ export function EditorConvocatoria({
     fechaCierre: convocatoria.fechaCierre,
   });
   const [categoriasSel, setCategoriasSel] = useState<string[]>(convocatoria.categorias);
+  // RN-34 · Cobertura: nacional, o uno o más departamentos de la lista oficial.
+  const [coberturaNacional, setCoberturaNacional] = useState(convocatoria.coberturaNacional);
+  const [departamentosSel, setDepartamentosSel] = useState<string[]>(convocatoria.departamentos);
+  const alternarDepartamento = (codigo: string) =>
+    setDepartamentosSel((prev) => (prev.includes(codigo) ? prev.filter((d) => d !== codigo) : [...prev, codigo]));
   const [requisitos, setRequisitos] = useState<RequisitoEditable[]>(() =>
     convocatoria.requisitos.map((r) => ({ ...r, clave: r.id ?? nuevaClave() }))
   );
@@ -81,6 +87,8 @@ export function EditorConvocatoria({
     const r = await peticionAdmin<ConvocatoriaAdmin>(`/api/admin/convocatorias/${convocatoria.id}`, "PATCH", {
       ...form,
       categorias: categoriasSel,
+      coberturaNacional,
+      departamentos: coberturaNacional ? [] : departamentosSel,
       requisitos: requisitos.map(({ id, descripcion, tipo, obligatorio }) => ({ id, descripcion, tipo, obligatorio })),
     });
     if (!r.ok) {
@@ -228,8 +236,53 @@ export function EditorConvocatoria({
             <Campo etiqueta="Entidad convocante">
               <input {...campo("entidadConvocante")} className={claseCampo} required maxLength={200} />
             </Campo>
-            <Campo etiqueta="Ubicación o cobertura" span2>
-              <input {...campo("ubicacion")} className={claseCampo} maxLength={300} />
+            <Campo etiqueta="Cobertura" span2>
+              <label className="flex items-center gap-2 text-sm text-ink">
+                <input
+                  type="checkbox"
+                  checked={coberturaNacional}
+                  onChange={(e) => setCoberturaNacional(e.target.checked)}
+                  className="h-4 w-4 rounded border-line text-primary-700"
+                />
+                Cobertura nacional
+              </label>
+              {!coberturaNacional && (
+                <fieldset className="mt-2">
+                  <legend className="mb-1.5 text-xs text-ink-faint">
+                    Departamentos que cubre{departamentosSel.length > 0 ? ` (${departamentosSel.length})` : ""}. Obligatorio para publicar si no es nacional.
+                  </legend>
+                  <div className="flex flex-wrap gap-1.5">
+                    {DEPARTAMENTOS.map((d) => {
+                      const activo = departamentosSel.includes(d.codigo);
+                      return (
+                        <button
+                          key={d.codigo}
+                          type="button"
+                          onClick={() => alternarDepartamento(d.codigo)}
+                          aria-pressed={activo}
+                          className={cn(
+                            "rounded-md px-2.5 py-1 text-xs font-medium ring-1 ring-inset transition-colors",
+                            activo
+                              ? "bg-primary-800 text-white ring-primary-800"
+                              : "bg-white text-ink-soft ring-line hover:bg-slate-50"
+                          )}
+                        >
+                          {d.nombre}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </fieldset>
+              )}
+            </Campo>
+            <Campo etiqueta="Detalle de la cobertura (opcional)" span2>
+              <input
+                {...campo("ubicacion")}
+                placeholder="Ej. municipios PDET, zona rural de Montes de María"
+                className={claseCampo}
+                maxLength={300}
+              />
+              <p className="mt-1 text-xs text-ink-faint">Se muestra en la ficha; no se usa para filtrar ni para las sugerencias.</p>
             </Campo>
             <Campo etiqueta="Enlace oficial de postulación (URL del portal de la entidad)" span2>
               <input

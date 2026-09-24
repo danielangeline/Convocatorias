@@ -83,6 +83,9 @@ try {
     }).select("id").single();
     if (error) throw error;
     convocatorias.push(data.id);
+    // RN-34 · cobertura por departamento: Antioquia (05).
+    const { error: eDep } = await svc.from("convocatoria_departamento").insert({ convocatoria_id: data.id, departamento_codigo: "05" });
+    if (eDep) throw eDep;
     return data.id;
   };
   const pub = await crearConvocatoria(`Convocatoria pública ${sufijo}`, "publicada", enDias(20), { monto_min: 50000000, monto_max: 300000000 });
@@ -158,7 +161,9 @@ try {
   ok(await incluye(`montoHasta=${encodeURIComponent("50.000.000")}`), "monto mínimo hasta 50.000.000 la incluye");
   ok(!(await incluye(`montoHasta=${encodeURIComponent("49.999.999")}`)), "monto mínimo hasta 49.999.999 la excluye");
   ok((await pedir(emp, "/api/convocatorias?montoHasta=1.5")).status === 400, "monto ambiguo en el filtro -> 400");
-  ok(await incluye(`ubicacion=antioquia`), "ubicación sin mayúsculas la incluye");
+  ok(await incluye(`departamento=05`), "filtro por su departamento (Antioquia, 05) la incluye (RN-34)");
+  ok(!(await incluye(`departamento=08`)), "filtro por otro departamento (Atlántico, 08) la excluye");
+  ok((await pedir(emp, "/api/convocatorias?departamento=antioquia")).status === 400, "departamento que no es código DANE -> 400");
   ok(await incluye(`cierraAntesDe=${enDias(20)}`) && !(await incluye(`cierraAntesDe=${enDias(19)}`)), "cierre antes de una fecha, en el límite exacto");
 
   // --- RF-13, CU-08: ficha y descarga -------------------------------------------------

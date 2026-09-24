@@ -136,12 +136,15 @@ grant select on total_eventos to authenticated;
 -- La base remota puede tener invitaciones reales (sesión 011): se cuentan aparte.
 create temp table invitaciones_previas as select count(*) as n from public.invitaciones_admin;
 grant select on invitaciones_previas to authenticated;
+-- Y proyectos reales de empresas (sesión 019): también se cuentan aparte.
+create temp table proyectos_previos as select count(*) - 2 as n from public.proyectos;
+grant select on proyectos_previos to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- 0 · Cobertura (RNF-25): toda tabla de public con RLS y al menos una política
 -- ---------------------------------------------------------------------------
 
-select pg_temp.ok(count(*) = 27, 'hay 27 tablas en public') from pg_tables where schemaname = 'public';
+select pg_temp.ok(count(*) = 29, 'hay 29 tablas en public (27 + departamentos y convocatoria_departamento, sesión 019)') from pg_tables where schemaname = 'public';
 select pg_temp.ok(bool_and(c.relrowsecurity), 'todas las tablas tienen RLS habilitado')
 from pg_class c join pg_namespace n on n.oid = c.relnamespace
 where n.nspname = 'public' and c.relkind = 'r';
@@ -286,7 +289,7 @@ select pg_temp.ok((select count(*) from public.eventos_seguridad) = 0, 'Admin si
 select pg_temp.rechaza($$insert into public.fuentes (nombre) values ('x')$$, 'Admin sin MFA crea una fuente');
 
 select pg_temp.como('00000000-0000-0000-0000-0000000000ad', 'aal2');
-select pg_temp.ok((select count(*) from public.proyectos) = 2, 'Admin con MFA: lee todos los proyectos');
+select pg_temp.ok((select count(*) from public.proyectos) = 2 + (select n from proyectos_previos), 'Admin con MFA: lee todos los proyectos');
 select pg_temp.ok((select count(*) from public.eventos_seguridad) = (select n from total_eventos), 'Admin con MFA: lee todos los eventos de seguridad');
 select pg_temp.ok((select count(*) from public.convocatorias where id::text like '00000000-0000-0000-0000-00000000c00%') = 5, 'Admin con MFA: lee borradores, despublicadas, cerradas y vencidas');
 select pg_temp.ok((select count(*) from public.contacto_consultor('00000000-0000-0000-0000-0000000000c2')) = 1, 'Admin con MFA: ve el contacto de un consultor');

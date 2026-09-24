@@ -36,6 +36,10 @@ export interface Convocatoria {
   // Nulos cuando la entidad no los informa: nunca se rellenan con 0 (RNF-23).
   montoMin: number | null;
   montoMax: number | null;
+  /** Cobertura (RN-34): nacional, o los departamentos por código DANE. */
+  coberturaNacional: boolean;
+  departamentos: string[];
+  /** Detalle en texto (municipios, zona): se muestra, nunca se compara. */
   ubicacion: string;
   fechaApertura: string | null; // ISO date
   fechaCierre: string; // ISO date
@@ -56,6 +60,9 @@ export interface Proyecto {
   descripcion: string;
   // Nulo si la empresa no lo ha indicado: nunca se rellena con 0 (RNF-23).
   montoBuscado: number | null;
+  /** Departamento donde se ejecuta (código DANE, RN-34); nulo si no se ha indicado. */
+  departamento: string | null;
+  /** Municipio o detalle en texto: se muestra, nunca se compara. */
   ubicacion: string;
   categorias: string[]; // Categoria ids
   /** 0–100, calculada por la base al guardar (docs/05 §9.17); ausente en los datos de ejemplo. */
@@ -446,6 +453,8 @@ export interface ConvocatoriaAdmin {
   descripcion: string;
   montoMin: number | null;
   montoMax: number | null;
+  coberturaNacional: boolean;
+  departamentos: string[];
   ubicacion: string;
   fechaApertura: string | null;
   fechaCierre: string;

@@ -28,7 +28,7 @@
 |---|---|
 | **Actor** | Administrador de Contenido |
 | **Precondiciones** | Existe al menos una fuente activa |
-| **Flujo principal** | 1. Crea la convocatoria asociada a una fuente. 2. Digita nombre, entidad convocante, descripción/objeto, monto mínimo y máximo, ubicación o cobertura, fecha de apertura y de cierre **y el enlace oficial de postulación (URL del portal de la entidad convocante)**. 3. Asigna categorías: tipo de proyecto, sector, tipo de entidad elegible. 4. Queda en estado **borrador** |
+| **Flujo principal** | 1. Crea la convocatoria asociada a una fuente. 2. Digita nombre, entidad convocante, descripción/objeto, monto mínimo y máximo, **cobertura —nacional, o uno o más departamentos de la lista oficial (RN-34)— y, si hace falta, el detalle en texto (municipios, zona)** *(mod. v6, sesión 019)*, fecha de apertura y de cierre **y el enlace oficial de postulación (URL del portal de la entidad convocante)**. 3. Asigna categorías: tipo de proyecto, sector, tipo de entidad elegible. 4. Queda en estado **borrador** |
 | **Flujos alternos** | 2a. Guardar incompleta y continuar después. **2b. Los montos se escriben en pesos enteros, en formato colombiano (`1.000.000`) o sin puntos (`1000000`); si el formato no es inequívoco —puntos mal agrupados, centavos, letras— se rechaza diciendo cómo escribirlo, nunca se interpreta a medias** *(mod. v6, sesión 016)* |
 | **Incluye** | CU-03 |
 
@@ -54,7 +54,7 @@
 
 | Campo | Contenido |
 |---|---|
-| **Precondiciones** | La ficha completa según RN-01: nombre, entidad convocante, ubicación o cobertura, descripción u objeto, enlace oficial de postulación, **≥1 categoría**, **≥1 documento adjunto (CU-03)**, **≥2 requisitos (CU-04)** y fecha de cierre no vencida *(lista fijada en v6, sesión 015)* |
+| **Precondiciones** | La ficha completa según RN-01: nombre, entidad convocante, **cobertura (nacional o ≥1 departamento)** *(mod. v6, sesión 019)*, descripción u objeto, enlace oficial de postulación, **≥1 categoría**, **≥1 documento adjunto (CU-03)**, **≥2 requisitos (CU-04)** y fecha de cierre no vencida *(lista fijada en v6, sesión 015)* |
 | **Flujo principal** | 1. Revisa la ficha. 2. "Publicar". 3. **El sistema guarda primero lo que hay en el formulario**; si el guardado pasa, valida la ficha y cambia a **publicada** registrando quién y cuándo |
 | **Flujos alternos** | 3a. Falla la validación → **enumera de una vez todo lo que falta**, incluido un enlace de postulación faltante o inválido. **3d. Falla el guardado previo → no se publica nada y se muestra el error del guardado** *(nuevo v6, sesión 015)*. 3b. Despublicar. 3c. Editar (auditado). **3e. Editar una publicada poniéndole una fecha de cierre ya pasada → se advierte antes de guardar y, si se confirma, sigue publicada hasta la medianoche de Colombia, cuando el cierre diario la cierra (CU-06). Cubre a la entidad que cierra antes de lo anunciado; para retirarla en el acto se despublica** *(nuevo v6, sesión 017)* |
 
@@ -74,8 +74,8 @@
 | **Actor** | Usuario Empresa |
 | **Descripción** | Camino directo de búsqueda, navegable sin suscripción activa (modo consulta) |
 | **Precondiciones** | Sesión iniciada con cuenta de **empresa o entidad**. Visitantes y consultores no acceden al catálogo (RN-33) *(mod. v6)* |
-| **Flujo principal** | 1. Abre el catálogo (publicadas y vigentes). 2. Busca por texto libre. 3. Aplica filtros combinables: tipo de proyecto, sector, entidad, rango de monto, ubicación, fecha de cierre. 4. Resultados en < 2 s |
-| **Flujos alternos** | 2a. **Chips de búsqueda sugerida** clickeables ("innovación agro Antioquia", "cooperación internacional ambiental") que precargan filtros y enseñan a usar la herramienta *(nuevo v4)*. **Se derivan del catálogo vigente —las categorías y ubicaciones más frecuentes entre las publicadas— para que ningún chip lleve a un resultado vacío** *(mod. v6, sesión 016)*. 4a. Sin resultados → chips alternativos y sugerencia de relajar filtros |
+| **Flujo principal** | 1. Abre el catálogo (publicadas y vigentes). 2. Busca por texto libre. 3. Aplica filtros combinables: tipo de proyecto, sector, entidad, rango de monto, **departamento —trae las convocatorias de ese departamento y las de cobertura nacional—** *(mod. v6, sesión 019)*, fecha de cierre. 4. Resultados en < 2 s |
+| **Flujos alternos** | 2a. **Chips de búsqueda sugerida** clickeables ("innovación agro Antioquia", "cooperación internacional ambiental") que precargan filtros y enseñan a usar la herramienta *(nuevo v4)*. **Se derivan del catálogo vigente —las categorías y los departamentos más frecuentes entre las publicadas— para que ningún chip lleve a un resultado vacío** *(mod. v6, sesión 016)*. 4a. Sin resultados → chips alternativos y sugerencia de relajar filtros |
 
 #### CU-08 · Ver detalle y descargar documentos *(mod. v4, mod. v5)*
 
@@ -90,7 +90,7 @@
 |---|---|
 | **Actor** | Usuario Empresa |
 | **Descripción** | El proyecto deja de ser solo un conjunto de atributos de filtrado y pasa a ser **el insumo de contenido de la generación con IA**. Se llena una vez y se reutiliza en todas las postulaciones |
-| **Flujo principal** | 1. **Datos de clasificación** (los que alimentan filtros y sugerencias): nombre, monto buscado, ubicación, categorías (tipo de proyecto, sector, tipo de entidad). 2. **Datos de contenido** (los que alimentan la IA): problema que resuelve, objetivo general, objetivos específicos, población beneficiaria, actividades principales, resultados esperados, duración en meses, presupuesto estimado y experiencia o trayectoria de la empresa. 3. El sistema calcula y muestra un **indicador de completitud del proyecto**, advirtiendo que a mayor completitud, mejor el documento generado |
+| **Flujo principal** | 1. **Datos de clasificación** (los que alimentan filtros y sugerencias): nombre, monto buscado, **departamento donde se ejecuta (uno, de la lista oficial, RN-34) y, opcional, el municipio o detalle en texto** *(mod. v6, sesión 019)*, categorías (tipo de proyecto, sector, tipo de entidad). 2. **Datos de contenido** (los que alimentan la IA): problema que resuelve, objetivo general, objetivos específicos, población beneficiaria, actividades principales, resultados esperados, duración en meses, presupuesto estimado y experiencia o trayectoria de la empresa. 3. El sistema calcula y muestra un **indicador de completitud del proyecto**, advirtiendo que a mayor completitud, mejor el documento generado |
 | **Flujos alternos** | 1a. Guardar con solo los datos de clasificación: sirve para buscar, pero al generar documento el sistema avisa qué falta. 2a. Editar o eliminar un proyecto propio. **Al eliminar se avisa antes de que se perderán sus documentos generados; un proyecto con encargos no se puede eliminar.** **Los montos (monto buscado, presupuesto) se escriben en formato colombiano, como en CU-02 2b** *(mod. v6, sesión 018)* |
 | **Postcondiciones** | Proyecto disponible para sugerencias (CU-10), generación con IA (CU-33) y solicitud de consultor (CU-19). **Los campos que el indicador de completitud señala como faltantes se pueden diligenciar desde la propia ficha, sin volver al listado (RF-81)** *(ampliado en v6)* |
 
@@ -99,8 +99,8 @@
 | Campo | Contenido |
 |---|---|
 | **Precondiciones** | Proyecto registrado + suscripción activa o trial |
-| **Flujo principal** | 1. Abre "Sugerencias" desde su proyecto. 2. El sistema cruza categorías proyecto × convocatoria vigente, más monto y ubicación. 3. Presenta cada resultado con un **porcentaje de compatibilidad** (criterios coincidentes sobre criterios evaluados) y el desglose de qué coincide y qué no. 4. Ordena de mayor a menor compatibilidad. 5. Responde en < 3 s |
-| **Flujos alternos** | 2a. Sin coincidencias → indica qué atributo restringe más |
+| **Flujo principal** | 1. Abre "Sugerencias" desde su proyecto. 2. El sistema cruza categorías proyecto × convocatoria vigente, más monto y ubicación. **La ubicación coincide si la convocatoria es de cobertura nacional o si incluye el departamento del proyecto; el monto, si el monto buscado cae dentro del rango (un extremo que la entidad no informó no pone límite). Un criterio sobre el que el proyecto no tiene dato no coincide** *(mod. v6, sesión 019)*. 3. Presenta cada resultado con un **porcentaje de compatibilidad** (criterios coincidentes sobre criterios evaluados) y el desglose de qué coincide y qué no. 4. Ordena de mayor a menor compatibilidad. 5. Responde en < 3 s |
+| **Flujos alternos** | 2a. Sin coincidencias → indica qué atributo restringe más: **primero, los datos que le faltan al proyecto (categoría de algún tipo, monto o departamento), con el enlace para completarlos (RF-81); después, las convocatorias vigentes más cercanas —hasta 5, las que cierran antes— en 0 % y con su desglose, para que se vea por qué no coinciden. Si al proyecto no le falta nada, lo dice así: ninguna vigente coincide en ningún criterio** *(mod. v6, sesión 019)*. *Se descartó "el criterio que menos vigentes cumplen": sin ninguna coincidencia los cinco empatan en cero (decisión del Product Owner, sesión 019).* 2b. Sin suscripción vigente → no se calculan; se ofrece suscribirse |
 | **Nota** | El porcentaje es presentación del mismo cálculo determinístico de coincidencias: **no interviene IA** y así se comunica al usuario (RN-05) |
 
 #### CU-36 · Ver indicadores públicos del catálogo *(nuevo v4)*

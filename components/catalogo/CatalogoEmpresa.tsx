@@ -5,6 +5,7 @@ import { Search, SlidersHorizontal, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { chipsSugeridos, filtrarCatalogo, type ChipSugerido } from "@/lib/catalogo-filtros";
 import { leerMontoCOP } from "@/lib/montos";
+import { DEPARTAMENTOS } from "@/lib/departamentos";
 import type { Categoria, Convocatoria } from "@/lib/types";
 import { ConvocatoriaCard } from "@/components/ConvocatoriaCard";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -22,7 +23,7 @@ export function CatalogoEmpresa({ convocatorias: todas, categorias }: { convocat
   const [tipoProyectoSel, setTipoProyectoSel] = useState<string[]>([]);
   const [sectorSel, setSectorSel] = useState<string[]>([]);
   const [entidadSel, setEntidadSel] = useState<string>("");
-  const [ubicacionSel, setUbicacionSel] = useState<string>("");
+  const [departamentoSel, setDepartamentoSel] = useState<string>("");
   const [montoHasta, setMontoHasta] = useState<string>("");
   const [cierraAntesDe, setCierraAntesDe] = useState<string>("");
   // RF-11 / RN-02: las cerradas salen del listado por defecto y solo
@@ -36,10 +37,6 @@ export function CatalogoEmpresa({ convocatorias: todas, categorias }: { convocat
 
   const entidades = useMemo(
     () => Array.from(new Set(convocatorias.map((c) => c.entidadConvocante))).sort(),
-    [convocatorias]
-  );
-  const ubicaciones = useMemo(
-    () => Array.from(new Set(convocatorias.map((c) => c.ubicacion).filter(Boolean))).sort(),
     [convocatorias]
   );
   // RF-43: derivados de lo vigente, así que ninguno lleva a un resultado vacío.
@@ -62,18 +59,18 @@ export function CatalogoEmpresa({ convocatorias: todas, categorias }: { convocat
         tipoProyecto: tipoProyectoSel,
         sector: sectorSel,
         entidad: entidadSel,
-        ubicacion: ubicacionSel,
+        departamento: departamentoSel,
         montoHasta: montoValor,
         cierraAntesDe,
       }),
-    [convocatorias, busqueda, tipoProyectoSel, sectorSel, entidadSel, ubicacionSel, montoValor, cierraAntesDe]
+    [convocatorias, busqueda, tipoProyectoSel, sectorSel, entidadSel, departamentoSel, montoValor, cierraAntesDe]
   );
 
   const hayFiltrosActivos =
     tipoProyectoSel.length > 0 ||
     sectorSel.length > 0 ||
     !!entidadSel ||
-    !!ubicacionSel ||
+    !!departamentoSel ||
     !!montoHasta ||
     !!cierraAntesDe ||
     incluirCerradas;
@@ -82,7 +79,7 @@ export function CatalogoEmpresa({ convocatorias: todas, categorias }: { convocat
     setTipoProyectoSel([]);
     setSectorSel([]);
     setEntidadSel("");
-    setUbicacionSel("");
+    setDepartamentoSel("");
     setMontoHasta("");
     setCierraAntesDe("");
     setIncluirCerradas(false);
@@ -93,7 +90,7 @@ export function CatalogoEmpresa({ convocatorias: todas, categorias }: { convocat
     setBusqueda(filtros.q ?? "");
     setTipoProyectoSel(filtros.tipoProyecto ?? []);
     setSectorSel(filtros.sector ?? []);
-    setUbicacionSel(filtros.ubicacion ?? "");
+    setDepartamentoSel(filtros.departamento ?? "");
     setFiltrosAbiertos(true);
   };
 
@@ -123,7 +120,7 @@ export function CatalogoEmpresa({ convocatorias: todas, categorias }: { convocat
           className="sm:w-auto"
         >
           <SlidersHorizontal className="h-4 w-4" />
-          Filtros {hayFiltrosActivos && `(${tipoProyectoSel.length + sectorSel.length + [entidadSel, ubicacionSel, montoHasta, cierraAntesDe, incluirCerradas].filter(Boolean).length})`}
+          Filtros {hayFiltrosActivos && `(${tipoProyectoSel.length + sectorSel.length + [entidadSel, departamentoSel, montoHasta, cierraAntesDe, incluirCerradas].filter(Boolean).length})`}
         </Button>
       </div>
 
@@ -194,19 +191,24 @@ export function CatalogoEmpresa({ convocatorias: todas, categorias }: { convocat
               </select>
             </FiltroGrupo>
 
-            <FiltroGrupo titulo="Ubicación">
+            {/* RF-12, RN-34: el departamento trae también las de cobertura nacional. */}
+            <FiltroGrupo titulo="Departamento">
               <select
-                value={ubicacionSel}
-                onChange={(e) => setUbicacionSel(e.target.value)}
+                value={departamentoSel}
+                onChange={(e) => setDepartamentoSel(e.target.value)}
+                aria-label="Departamento"
                 className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500"
               >
-                <option value="">Todas las ubicaciones</option>
-                {ubicaciones.map((u) => (
-                  <option key={u} value={u}>
-                    {u}
+                <option value="">Todos los departamentos</option>
+                {DEPARTAMENTOS.map((d) => (
+                  <option key={d.codigo} value={d.codigo}>
+                    {d.nombre}
                   </option>
                 ))}
               </select>
+              {departamentoSel && (
+                <p className="mt-1.5 text-xs text-ink-faint">Incluye las convocatorias de cobertura nacional.</p>
+              )}
             </FiltroGrupo>
 
             <FiltroGrupo titulo="Monto mínimo exigido hasta">

@@ -7,6 +7,7 @@ import { useAppStore } from "@/lib/store";
 import type { Proyecto } from "@/lib/types";
 import type { CampoContenido } from "@/lib/proyectos";
 import { formatearMontoCOP } from "@/lib/montos";
+import { DEPARTAMENTOS } from "@/lib/departamentos";
 import { Button } from "./ui/Button";
 
 /**
@@ -17,11 +18,14 @@ import { Button } from "./ui/Button";
  */
 
 type ClaveContenido = CampoContenido["clave"];
+/** Campos a los que se puede saltar: los de contenido (RF-81) y los de clasificación que piden las sugerencias (CU-10 2a). */
+export type CampoEditable = ClaveContenido | "montoBuscado" | "departamento" | "categorias";
 
 type FormularioProyecto = {
   nombre: string;
   descripcion: string;
   montoBuscado: string;
+  departamento: string;
   ubicacion: string;
   categorias: string[];
   problema: string;
@@ -39,6 +43,7 @@ const formularioVacio: FormularioProyecto = {
   nombre: "",
   descripcion: "",
   montoBuscado: "",
+  departamento: "",
   ubicacion: "",
   categorias: [],
   problema: "",
@@ -57,6 +62,7 @@ function desdeProyecto(p: Proyecto): FormularioProyecto {
     nombre: p.nombre,
     descripcion: p.descripcion,
     montoBuscado: formatearMontoCOP(p.montoBuscado),
+    departamento: p.departamento ?? "",
     ubicacion: p.ubicacion,
     categorias: p.categorias,
     problema: p.problema ?? "",
@@ -82,8 +88,8 @@ export function ProyectoFormModal({
 }: {
   /** `null` crea un proyecto nuevo; un proyecto lo edita. */
   proyecto: Proyecto | null;
-  /** Campo de contenido al que saltar al abrir (RF-81). */
-  campoInicial?: ClaveContenido | null;
+  /** Campo al que saltar al abrir (RF-81, CU-10 2a). */
+  campoInicial?: CampoEditable | null;
   onClose: () => void;
 }) {
   // Sprint 2 paso 4: las categorías reales, para que las sugerencias crucen con las convocatorias.
@@ -135,6 +141,7 @@ export function ProyectoFormModal({
       nombre: form.nombre,
       descripcion: form.descripcion,
       montoBuscado: form.montoBuscado,
+      departamento: form.departamento,
       ubicacion: form.ubicacion,
       categorias: form.categorias,
       problema: form.problema,
@@ -224,19 +231,36 @@ export function ProyectoFormModal({
                 placeholder="Ej. 100.000.000"
               />
             </Campo>
-            <Campo etiqueta="Ubicación" htmlFor="campo-ubicacion">
-              <input
-                id="campo-ubicacion"
-                value={form.ubicacion}
-                onChange={(e) => setForm({ ...form, ubicacion: e.target.value })}
+            {/* RN-34: el departamento es el que cuenta para sugerencias; el detalle solo se muestra. */}
+            <Campo etiqueta="Departamento donde se ejecuta" htmlFor="campo-departamento">
+              <select
+                id="campo-departamento"
+                value={form.departamento}
+                onChange={(e) => setForm({ ...form, departamento: e.target.value })}
                 className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500"
-                placeholder="Ej. Bogotá D.C."
-              />
+              >
+                <option value="">Sin indicar</option>
+                {DEPARTAMENTOS.map((d) => (
+                  <option key={d.codigo} value={d.codigo}>
+                    {d.nombre}
+                  </option>
+                ))}
+              </select>
             </Campo>
           </div>
+          <Campo etiqueta="Municipio o detalle de ubicación (opcional)" htmlFor="campo-ubicacion">
+            <input
+              id="campo-ubicacion"
+              value={form.ubicacion}
+              onChange={(e) => setForm({ ...form, ubicacion: e.target.value })}
+              className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500"
+              placeholder="Ej. Barranquilla, zona rural de Sabanalarga"
+              maxLength={300}
+            />
+          </Campo>
 
           <Campo etiqueta="Categorías">
-            <div className="max-h-48 space-y-3 overflow-y-auto rounded-lg border border-line-soft p-3">
+            <div id="campo-categorias" tabIndex={-1} className="max-h-48 space-y-3 overflow-y-auto rounded-lg border border-line-soft p-3 outline-none">
               {(["tipo_proyecto", "sector", "tipo_entidad"] as const).map((tipo) => (
                 <div key={tipo}>
                   <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-ink-faint">
