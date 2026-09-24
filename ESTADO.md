@@ -150,6 +150,7 @@ Pendiente del Product Owner:
 7. **Docker Desktop no arranca** en esta máquina: no bloquea, pero obliga a ensayar las migraciones contra el remoto. **Ojo con el método** (hallazgo de la sesión 012): `db push` corre cada migración en su propia transacción, así que para ensayar una hay que poner el `raise` que la revierte **dentro de ese mismo archivo**, nunca en uno posterior.
 8. ~~**Recorrer el catálogo del panel en el navegador**~~ — **hecho el 17-sep**, informado por el Product Owner al abrir la sesión 012: todo funciona.
 9. ~~**Recorrer la sección "Documentos" del editor en el navegador**~~ — **hecho**: el Product Owner la recorrió en la sesión 015 (19/19 pasos) y el agente la repitió en la 016. Uno de sus pasos quedó obsoleto: publicar sin adjuntos ya no se permite (RN-01).
+10. **Revisar los proyectos en pantalla con la cuenta de empresa** (sesión 018; el navegador del agente tiene la sesión de administrador): crear un proyecto con solo el nombre, abrirlo (completitud 0 %), pulsar un campo que falta y comprobar que abre la edición en ese campo (RF-81), completar algunos campos con un monto como `150.000.000`, guardar y **recargar** para ver que sigue ahí. Con eso RF-46 y RF-81 pasan a `verificado`.
 
 ## Decisiones abiertas
 
