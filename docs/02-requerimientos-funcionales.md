@@ -98,7 +98,7 @@
 | ID | Requerimiento | CU | Prioridad |
 |---|---|---|---|
 | RF-34 | Bandeja de revisión con aprobar o rechazar con motivo obligatorio | CU-25 | Must |
-| RF-35 | Suspender y reactivar conservando historial. **Al suspender, cancela de inmediato los encargos `en_curso` del consultor y registra el motivo; reactivar no los revive** *(mod. v5)* | CU-27 | Should |
+| RF-35 | Suspender y reactivar conservando historial. **Al suspender, cancela de inmediato los encargos `en_curso` del consultor y registra el motivo; reactivar no los revive** *(mod. v5)*. **Suspender exige un motivo que ve el consultor, y cancela también las solicitudes `pendiente`** *(mod. v6, sesión 022)* | CU-27 | Should |
 
 ### 4.9 Suscripciones y créditos
 

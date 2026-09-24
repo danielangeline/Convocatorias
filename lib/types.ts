@@ -214,8 +214,34 @@ export interface PerfilConsultorPropio {
   tieneHojaDeVida: boolean;
   estadoPerfil: EstadoPerfilConsultor;
   motivoRechazo: string | null;
+  // CU-27: el consultor ve por qué lo suspendieron (sesión 022).
+  motivoSuspension: string | null;
   // RF-88: sin fecha, el editor pide aceptar antes de guardar.
   consentimientoDatos: boolean;
+}
+
+// Consultor visto desde el panel (CU-25, CU-27 · docs/05 §9.21). La hoja de
+// vida no viaja aquí: se pide por URL firmada al abrirla (RNF-16).
+export interface ConsultorAdmin {
+  id: string;
+  nombreProfesional: string;
+  descripcion: string;
+  sitioWeb: string;
+  fotoUrl: string | null;
+  tieneHojaDeVida: boolean;
+  estadoPerfil: EstadoPerfilConsultor;
+  motivoRechazo: string | null;
+  motivoSuspension: string | null;
+  suspendidoAt: string | null;
+  revisadoAt: string | null;
+  esEquipoInterno: boolean;
+  ratingPromedio: number;
+  totalEncargosCompletados: number;
+  encargosActivos: number;
+  especialidades: { id: string; nombre: string; tipo: TipoCategoria }[];
+  redes: Omit<RedSocial, "id">[];
+  portafolio: ItemPortafolioPropio[];
+  actualizadoAt: string;
 }
 
 // ---------------------------------------------------------------------------

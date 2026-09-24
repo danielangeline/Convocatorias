@@ -236,6 +236,8 @@
 |---|---|
 | **Flujo principal** | 1. Bandeja de perfiles `en_revision`. 2. Revisa información, portafolio y hoja de vida. 3. **Aprueba** (entra al directorio y comienza su suscripción) o **rechaza con motivo obligatorio** |
 | **Nota** *(sesión 021)* | **Mientras no existan planes con precio (Sprint 5), aprobar no crea suscripción y el directorio no la exige** (RN-08, decisión del Product Owner). La suscripción desde la aprobación vuelve con los planes |
+| **Detalle** *(mod. v6, sesión 022)* | 2. La bandeja muestra, por perfil: foto, nombre, descripción, especialidades, portafolio, sitio web, redes, **el motivo del rechazo anterior si es un reenvío** y la hoja de vida, que el administrador abre por **URL firmada de 15 minutos** (RNF-16). 3. Aprobar o rechazar se valida en la base: solo se revisa un perfil `en_revision`, y se registra quién y cuándo (`revisado_por`, `revisado_at`). Aprobar borra el motivo del rechazo anterior |
+| **Flujos alternos** *(nuevo v6, sesión 022)* | **3a.** Otro administrador ya lo revisó (el perfil dejó de estar `en_revision`): la acción se rechaza con aviso y la bandeja se recarga. **3b.** Rechazo sin motivo: no se permite (RN-13) |
 
 #### CU-26 · Atender solicitudes de asignación interna *(mod. v5)*
 
@@ -249,6 +251,7 @@
 |---|---|
 | **Flujo principal** | 1. Lista con estado, rating y encargos. 2. **Suspende** (sale del directorio, conserva historial) o **reactiva**. **3. Al suspender, sus encargos `en_curso` pasan a `cancelado` de inmediato, con un motivo registrado ("Consultor suspendido por el administrador"); el historial y las calificaciones ya emitidas no se alteran (RN-29). 4. La misma acción revoca en cascada las autorizaciones de documento que tuviera sobre esos encargos, de modo que pierde el acceso al instante sin que la empresa tenga que intervenir (RF-76, RN-27)** |
 | **Flujos alternos** | **3a.** Reactivar el perfil no revive los encargos cancelados — la empresa debe solicitar de nuevo si quiere retomar el trabajo con ese consultor |
+| **Detalle** *(mod. v6, sesión 022, decisiones del Product Owner)* | **Suspender exige un motivo escrito por el administrador**, que se guarda en el perfil y que el consultor ve en su portal; los encargos cancelados llevan el texto fijo del paso 3. **Al suspender se cancelan también las solicitudes `pendiente`** (enviadas y aún sin respuesta), con el mismo motivo: la empresa no queda esperando a quien ya no puede aceptar, y deja de ver el contacto del consultor (RF-80). Solo se suspende un perfil `aprobado` y solo se reactiva uno `suspendido`; reactivar lo devuelve a `aprobado` y borra el motivo de la suspensión. Todo ocurre en una sola transacción en la base |
 
 ### Módulo H — Suscripciones y créditos
 

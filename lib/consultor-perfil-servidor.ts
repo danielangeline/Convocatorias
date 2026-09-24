@@ -77,7 +77,7 @@ function traducir(error: PostgrestError, contexto: string): { ok: false; status:
 
 export async function obtenerPerfilPropio(usuarioId: string): Promise<PerfilConsultorPropio | null> {
   const supabase = await crearClienteServidor();
-  const [perfil, cuenta, contacto, especialidades, redes, portafolio] = await Promise.all([
+  const [perfil, cuenta, contacto, suspension, especialidades, redes, portafolio] = await Promise.all([
     supabase
       .from("consultor_perfiles")
       .select("id, nombre_profesional, descripcion, foto_path, estado_perfil, motivo_rechazo")
@@ -86,6 +86,8 @@ export async function obtenerPerfilPropio(usuarioId: string): Promise<PerfilCons
     supabase.from("perfiles").select("consentimiento_datos_at").eq("id", usuarioId).maybeSingle(),
     // sitio_web y cv_path no se leen de la tabla: los da esta función (docs/05 §9.11 punto 4).
     supabase.rpc("contacto_consultor", { p_consultor: usuarioId }).maybeSingle(),
+    // El motivo de la suspensión tampoco se lee de la tabla (docs/05 §9.21).
+    supabase.rpc("suspension_consultor", { p_consultor: usuarioId }).maybeSingle(),
     supabase.from("consultor_especialidades").select("categoria_id").eq("consultor_id", usuarioId),
     supabase.from("consultor_redes").select("tipo, url").eq("consultor_id", usuarioId),
     supabase
@@ -94,7 +96,7 @@ export async function obtenerPerfilPropio(usuarioId: string): Promise<PerfilCons
       .eq("consultor_id", usuarioId)
       .order("orden"),
   ]);
-  for (const r of [perfil, cuenta, contacto, especialidades, redes, portafolio]) {
+  for (const r of [perfil, cuenta, contacto, suspension, especialidades, redes, portafolio]) {
     if (r.error) console.error("Perfil de consultor: no se pudo leer", r.error.code, r.error.message);
   }
   if (!perfil.data) return null;
@@ -124,6 +126,7 @@ export async function obtenerPerfilPropio(usuarioId: string): Promise<PerfilCons
     tieneHojaDeVida: Boolean(c?.cv_path),
     estadoPerfil: perfil.data.estado_perfil as EstadoPerfilConsultor,
     motivoRechazo: perfil.data.motivo_rechazo,
+    motivoSuspension: (suspension.data as { motivo_suspension: string | null } | null)?.motivo_suspension ?? null,
     consentimientoDatos: Boolean(cuenta.data?.consentimiento_datos_at),
   };
 }

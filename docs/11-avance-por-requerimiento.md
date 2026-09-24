@@ -84,10 +84,10 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 
 | RF | Estado | Nota |
 |---|---|---|
-| RF-22 Registro en perfil incompleto | servidor | El trigger de registro crea `consultor_perfiles` en `incompleto` desde la sesión 004. **Sesión 021:** el editor lee el perfil real y `GuardaConsultor` usa el estado real (el store lo reemplaza con el del servidor). Comprobado en `prueba-perfil-consultor.mjs`. Falta mirarlo en pantalla con una cuenta de consultor |
-| RF-23 Perfil completo con CV | servidor | **Sesión 021:** `guardar_perfil_consultor()` (datos, especialidades, redes y portafolio en una transacción, docs/05 §9.20). Foto y hoja de vida en Storage real: URL firmada de subida con la ruta que decide el servidor, registro solo si el objeto existe con su tipo y tamaño reales, y el anterior se borra. Una ruta solo puede ser de la carpeta propia (trigger, RN-12). `supabase/tests/perfil_consultor.sql` 25/25 y `scripts/prueba-perfil-consultor.mjs` 48/48, con subida y descarga de verdad |
-| RF-24 Envío a revisión | servidor | **Sesión 021:** `enviar_perfil_a_revision()` exige en la base los mínimos de CU-17 —y que la foto y la hoja de vida existan en Storage— y enumera lo que falta (409). En revisión o aprobado no se pueden vaciar (CU-16 1a) |
-| RF-25 Motivo de rechazo y reenvío | servidor | **Sesión 021:** el consultor ve el motivo y reenvía desde `rechazado`; el motivo se conserva para el administrador. El rechazo con motivo desde la bandeja llega en el paso 1b (RF-34) |
+| RF-22 Registro en perfil incompleto | verificado | El trigger de registro crea `consultor_perfiles` en `incompleto` desde la sesión 004. **Sesión 021:** el editor lee el perfil real y `GuardaConsultor` usa el estado real (el store lo reemplaza con el del servidor). Comprobado en `prueba-perfil-consultor.mjs`. **Sesión 022:** visto en el navegador con la cuenta de consultor del Product Owner: el editor abre en `Incompleto` con la lista de lo que falta |
+| RF-23 Perfil completo con CV | verificado | **Sesión 021:** `guardar_perfil_consultor()` (datos, especialidades, redes y portafolio en una transacción, docs/05 §9.20). Foto y hoja de vida en Storage real: URL firmada de subida con la ruta que decide el servidor, registro solo si el objeto existe con su tipo y tamaño reales, y el anterior se borra. Una ruta solo puede ser de la carpeta propia (trigger, RN-12). `supabase/tests/perfil_consultor.sql` 25/25 y `scripts/prueba-perfil-consultor.mjs` 48/48, con subida y descarga de verdad. **Sesión 022, en el navegador:** datos, especialidades, red y portafolio persisten al recargar; foto PNG y hoja de vida PDF suben a Storage, y "Ver" abre una URL firmada de `hojas-de-vida/{uid}/` que descarga el mismo archivo |
+| RF-24 Envío a revisión | verificado | **Sesión 021:** `enviar_perfil_a_revision()` exige en la base los mínimos de CU-17 —y que la foto y la hoja de vida existan en Storage— y enumera lo que falta (409). En revisión o aprobado no se pueden vaciar (CU-16 1a). **Sesión 022, en el navegador:** "Enviar a revisión" deshabilitado y con la lista de lo que falta hasta subir los archivos; al enviar, aviso "en revisión"; quitar todas las especialidades y guardar lo rechaza el servidor; "Mis encargos" muestra "Tu perfil está siendo revisado" |
+| RF-25 Motivo de rechazo y reenvío | servidor | **Sesión 021:** el consultor ve el motivo y reenvía desde `rechazado`; el motivo se conserva para el administrador. El rechazo con motivo desde la bandeja llega en el paso 1b (RF-34). Se verifica en pantalla cuando exista la bandeja |
 
 ### 4.7 Directorio y encargos
 
@@ -114,8 +114,8 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 
 | RF | Estado | Nota |
 |---|---|---|
-| RF-34 Aprobar/rechazar perfiles | prototipo | |
-| RF-35 Suspender y reactivar | prototipo | |
+| RF-34 Aprobar/rechazar perfiles | servidor | **Sesión 022:** `revisar_perfil_consultor()` (docs/05 §9.21): solo desde `en_revision`, con la fila bloqueada, revisor y fecha; rechazar exige motivo (RN-13); aprobar no crea suscripción (RN-11 transitorio). Bandeja como componente de servidor con sitio web, redes, portafolio, el motivo del rechazo anterior en un reenvío y la hoja de vida por URL firmada (RNF-16). `revision_consultores.sql` 29/29 y `prueba-revision-consultores.mjs` 51/51, dos corridas. Falta recorrerla en pantalla con la cuenta del Propietario (pendiente 15) |
+| RF-35 Suspender y reactivar | servidor | **Sesión 022:** `suspender_consultor()` con motivo obligatorio que ve el consultor, y `reactivar_consultor()`, que no revive encargos (CU-27 3a). El motivo no es legible para la empresa. Mismas pruebas que RF-34. Falta mirarlo en pantalla (pendiente 15) |
 
 ### 4.9 Suscripciones y créditos
 
@@ -247,7 +247,7 @@ Las reglas están documentadas (RN-34 desde la sesión 019); estas son las que t
 | RN-26 Contacto solo en `en_curso` | prototipo | 4 |
 | RN-27 Autorización derivada | pendiente | 5 — política derivada (autorización ∧ encargo `en_curso`) lista y probada en RLS (sesión 003); faltan los endpoints de compartir y revocar |
 | RN-28 Sin cupo propio del consultor | prototipo | 5 — el crédito se resuelve por el propietario del documento, sin respaldo al consultor |
-| RN-29 Suspender cancela encargos | prototipo | 4 |
+| RN-29 Suspender cancela encargos | servidor | 4 — **sesión 022:** en la misma transacción que la suspensión, los encargos `en_curso` y `pendiente` (decisión del Product Owner) pasan a `cancelado` con el motivo fijo de CU-27; el historial y las calificaciones no cambian. Probado con encargos sembrados: los encargos siguen en el store hasta el paso 3. El disparador del vencimiento de la suscripción (CU-32) llega con el paso 4 |
 | **RN-30 Propiedad explícita del dato** | prototipo | **1** — columnas y filtro en `lib/store.ts`/`lib/hooks.ts`; migración y RLS hechas y probadas (sesión 003); falta que la aplicación lea de Supabase |
 
 ---

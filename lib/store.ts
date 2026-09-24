@@ -187,12 +187,6 @@ interface AppState {
   calificarEncargo: (encargoId: string, estrellas: number, comentario: string) => void;
   asignarConsultorInterno: (encargoId: string, consultorId: string) => void;
 
-  // Perfiles de consultor
-  aprobarPerfil: (consultorId: string) => void;
-  rechazarPerfil: (consultorId: string, motivo: string) => void;
-  suspenderConsultor: (consultorId: string) => void;
-  reactivarConsultor: (consultorId: string) => void;
-
   // Planes
   agregarPlan: (p: Omit<Plan, "id">) => void;
   actualizarPlan: (id: string, p: Omit<Plan, "id">) => void;
@@ -508,42 +502,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     }));
   },
 
-  // -------------------------------------------------------------------------
-  // Perfiles de consultor
-  // -------------------------------------------------------------------------
-
-  aprobarPerfil: (consultorId) => {
-    set((s) => ({
-      consultores: s.consultores.map((c) =>
-        c.id === consultorId ? { ...c, estadoPerfil: "aprobado", motivoRechazo: undefined } : c
-      ),
-    }));
-  },
-  rechazarPerfil: (consultorId, motivo) => {
-    set((s) => ({
-      consultores: s.consultores.map((c) =>
-        c.id === consultorId ? { ...c, estadoPerfil: "rechazado", motivoRechazo: motivo } : c
-      ),
-    }));
-  },
-  suspenderConsultor: (consultorId) => {
-    // RN-29 (nuevo v5): al suspender, sus encargos en_curso se cancelan de
-    // inmediato con motivo registrado — el historial y calificaciones ya
-    // emitidas no se tocan.
-    set((s) => ({
-      consultores: s.consultores.map((c) => (c.id === consultorId ? { ...c, estadoPerfil: "suspendido" } : c)),
-      encargos: s.encargos.map((e) =>
-        e.consultorId === consultorId && e.estado === "en_curso"
-          ? { ...e, estado: "cancelado" as EstadoEncargo, motivoCancelacion: "Consultor suspendido por el administrador" }
-          : e
-      ),
-    }));
-  },
-  reactivarConsultor: (consultorId) => {
-    set((s) => ({
-      consultores: s.consultores.map((c) => (c.id === consultorId ? { ...c, estadoPerfil: "aprobado" } : c)),
-    }));
-  },
+  // Perfiles de consultor: revisar, suspender y reactivar viven en el
+  // servidor desde la sesión 022 (docs/05 §9.21, /api/admin/consultores).
 
   // -------------------------------------------------------------------------
   // Planes

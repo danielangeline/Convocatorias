@@ -226,6 +226,7 @@ export function EditorPerfil({
         <BannerEstado
           estado={perfil.estadoPerfil}
           motivoRechazo={perfil.motivoRechazo}
+          motivoSuspension={perfil.motivoSuspension}
           faltan={faltan}
           enviando={ocupado === "enviar"}
           deshabilitado={ocupado !== null}
@@ -581,6 +582,7 @@ function Campo({
 function BannerEstado({
   estado,
   motivoRechazo,
+  motivoSuspension,
   faltan,
   enviando,
   deshabilitado,
@@ -588,6 +590,7 @@ function BannerEstado({
 }: {
   estado: PerfilConsultorPropio["estadoPerfil"];
   motivoRechazo: string | null;
+  motivoSuspension: string | null;
   faltan: string[];
   enviando: boolean;
   deshabilitado: boolean;
@@ -626,6 +629,8 @@ function BannerEstado({
         <Lock className="h-5 w-5 shrink-0 text-ink-soft" />
         <div>
           <p className="text-sm font-semibold text-ink">Tu perfil está suspendido</p>
+          {/* CU-27: el consultor ve por qué (sesión 022). */}
+          {motivoSuspension && <p className="text-sm text-ink-soft">Motivo: {motivoSuspension}</p>}
           <p className="text-xs text-ink-soft">No apareces en el directorio. Contacta al equipo de la plataforma.</p>
         </div>
       </div>

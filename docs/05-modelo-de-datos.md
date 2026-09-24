@@ -621,3 +621,26 @@ Implementa RF-22, RF-23, RF-24, RF-25 y RF-88 en el servidor (CU-15, CU-16, CU-1
 | Una ruta de archivo solo puede apuntar a la carpeta propia | `privado.guardar_columnas_consultor()` rechaza un `foto_path` o `cv_path` que no empiece por `{id}/`. Si no, un consultor podría apuntar su hoja de vida a la de otro, y la empresa con solicitud activa la descargaría (RN-12) |
 | No se vacían los mínimos de un perfil en revisión o aprobado | El mismo trigger rechaza dejar en nulo la foto, la hoja de vida o la descripción en esos estados. Las especialidades las cuida `guardar_perfil_consultor`. **Límite conocido:** un `delete` directo sobre `consultor_especialidades` con la API de datos podría dejar cero; la pantalla no lo hace. Queda anotado |
 | El consentimiento lo fija la base | Trigger sobre `perfiles`: el cliente no puede cambiar `consentimiento_datos_at` |
+
+### 9.21 Revisión, suspensión y reactivación de consultores *(nuevo v6, sesión 022 — Sprint 4 paso 1b)*
+
+Implementa RF-34 y RF-35 en el servidor (CU-25, CU-27, RN-13, RN-29). Migración `20260927100000_revision_consultores`.
+
+**Columnas nuevas en `consultor_perfiles`**
+
+| Columna | Tipo | Regla |
+|---|---|---|
+| `motivo_suspension` | `text` | Obligatorio si `estado_perfil = 'suspendido'`, nulo en cualquier otro estado (check). Lo escribe el administrador al suspender; se borra al reactivar |
+| `suspendido_at` | `timestamptz` | Cuándo se suspendió; mismo check que el motivo |
+
+Las dos se suman a las columnas protegidas de §9.11 punto 2. **No tienen permiso de lectura por columna** para `authenticated`: la empresa que tuvo encargos con el consultor ve su perfil aunque esté suspendido (RN-15), y no debe leer por qué. El consultor y el administrador las leen con `public.suspension_consultor(p_consultor)` (`security definer`; cero filas para cualquier otro).
+
+**Funciones** — las cuatro son `security definer` (cambian `estado_perfil`, que el trigger le niega a todo cliente, también al administrador), empiezan exigiendo `privado.es_admin()` (rol, cuenta no revocada y `aal2`) y bloquean la fila con `for update`, así que dos administradores no revisan el mismo perfil a la vez. Rechazos con clave estable en `hint`: `no_es_admin`, `no_existe`, `estado_no_permite` (el perfil ya no está en el estado de origen, CU-25 3a) y `motivo_vacio`.
+
+| Función | De → a | Qué más hace |
+|---|---|---|
+| `revisar_perfil_consultor(p_id, p_aprobar, p_motivo)` | `en_revision` → `aprobado` o `rechazado` | Fija `revisado_por` y `revisado_at`. Rechazar exige motivo (RN-13); aprobar borra el del rechazo anterior. **Aprobar no crea suscripción** hasta el Sprint 5 (RN-08, RN-11 transitorios) |
+| `suspender_consultor(p_id, p_motivo)` | `aprobado` → `suspendido` | Guarda motivo y fecha. En la misma transacción pasa a `cancelado` los encargos del consultor en `en_curso` y `pendiente`, con `motivo_cancelacion = 'Consultor suspendido por el administrador'` (RN-29, CU-27). El trigger de §9.3 revoca las autorizaciones de documento de los que estaban `en_curso` (RF-76). Devuelve cuántos encargos canceló |
+| `reactivar_consultor(p_id)` | `suspendido` → `aprobado` | Borra motivo y fecha de la suspensión. **No revive** ningún encargo (CU-27 3a) |
+
+**Hoja de vida y foto para el administrador.** Dos políticas de lectura sobre `storage.objects`, una por bucket (`fotos-consultores`, `hojas-de-vida`), con `privado.es_admin()`. El servidor firma con la sesión del administrador una URL de 15 minutos (RNF-16); el administrador no sube ni borra en esos buckets.
