@@ -163,7 +163,7 @@
 | **Precondiciones** | Consentimiento de tratamiento de datos aceptado. **Se da al registrarse (CU-14, RF-88)**; una cuenta creada antes de que existiera la casilla lo acepta en el editor antes de su primer guardado, y el servidor rechaza guardar sin él *(sesión 021)* |
 | **Flujo principal** | 1. Foto, nombre profesional, descripción. 2. Especialidades del catálogo de categorías. 3. Página web y redes (LinkedIn, Instagram, Facebook, otras). 4. Portafolio: proyectos previos con nombre, entidad, año, descripción y resultado. 5. Hoja de vida en PDF |
 | **Flujos alternos** | Cambios de portafolio o redes tras la aprobación no requieren re-aprobación. **1a.** Con el perfil `en_revision` o `aprobado`, el servidor rechaza un guardado que lo deje sin alguno de los mínimos de CU-17 (foto, descripción, ≥1 especialidad, hoja de vida): lo que la revisión aprobó no se puede vaciar después *(sesión 021)*. **1b.** El nombre profesional no puede quedar vacío: es lo que identifica al consultor en el directorio *(sesión 021)* |
-| **Nota** *(v5)* | El consultor los carga y el administrador los usa para verificar veracidad en CU-25; **la empresa solo los ve si tiene una solicitud activa con ese consultor** (RN-12, CU-21) |
+| **Nota** *(v5)* | El consultor los carga y el administrador los usa para verificar veracidad en CU-25; **la empresa solo los ve si tiene una solicitud activa —aceptada, encargo `en_curso`— con ese consultor** (RN-12, CU-21) |
 
 #### CU-17 · Enviar perfil a revisión
 
@@ -197,6 +197,7 @@
 |---|---|
 | **Descripción** | Solo consultores aprobados, activos y con suscripción vigente |
 | **Flujo principal** | 1. Tarjetas con foto, nombre, rating, especialidades y encargos completados. 2. Filtra por especialidad y rating. 3. Entra al perfil de un consultor (CU-21), desde donde puede solicitarlo directamente sin depender de haber iniciado la solicitud desde CU-19 **(RF-74, nuevo v5)** |
+| **Detalle** *(mod. v6, sesión 022, decisiones del Product Owner)* | Los consultores del **equipo interno no aparecen** en el directorio: llegan solo por asignación del administrador (CU-26). Mientras no existan planes con precio (Sprint 5), no se exige la suscripción vigente (RN-08 transitorio). El orden es por rating y, a igualdad, por encargos completados. La foto se sirve por URL firmada (RNF-16) |
 | **Flujos alternos** | 1a. Directorio vacío → ofrece directamente la asignación interna. **1b. Si ya inició una solicitud desde la ficha de un proyecto (CU-19), un aviso lo recuerda y cada tarjeta lleva directo a confirmarla en el perfil elegido** |
 
 #### CU-21 · Ver perfil del consultor *(mod. v5)*
@@ -205,6 +206,7 @@
 |---|---|
 | **Flujo principal** | 1. Rating con reseñas, descripción, portafolio. **2. Sitio web, redes y hoja de vida solo si existe una solicitud activa entre ese consultor y la empresa que está mirando (RN-12, RF-80) — que otra empresa tenga una solicitud abierta con él no habilita a las demás; sin solicitud propia, esos campos aparecen ocultos con una nota de por qué. 3. Botón "Solicitar a este consultor": elige un proyecto propio (y, si aplica, el tipo de ayuda y la convocatoria — con buscador por nombre, RF-75 — igual que CU-19) o una postulación propia ya vinculada a un proyecto — la postulación resuelve proyecto y convocatoria en un solo paso. 4. Describe la tarea y confirma: crea el encargo `pendiente` vía directorio, el mismo resultado que CU-22, sin pasar antes por CU-19/CU-20 (RF-74, nuevo v5)** |
 | **Flujos alternos** | **3a.** Si ya trae una solicitud iniciada desde su proyecto (CU-19 → CU-20), el botón pasa a ser "Solicitar para mi tarea" y usa esos datos en vez de abrir el selector. **3b.** Sin proyectos ni postulaciones propias → invita a crear un proyecto primero |
+| **Detalle** *(mod. v6, sesión 022, decisión del Product Owner)* | **Antes de que el consultor acepte, el perfil muestra solo foto, nombre, descripción, especialidades, rating con reseñas y portafolio: ningún dato de contacto.** Una solicitud `pendiente` no revela nada. **Cuando el consultor acepta** (encargo `en_curso`, CU-23), la empresa de ese encargo ve sitio web, redes y hoja de vida (por URL firmada de 15 minutos), además del correo que revela RF-70. Al cerrarse el encargo, se vuelven a ocultar (RF-80). Un consultor que no está aprobado, o que es del equipo interno, responde "no encontrado" en el perfil del directorio |
 | **Nota** | La restricción de redes protege el sentido de la suscripción del consultor: si fueran públicas desde el perfil, la empresa podría contactarlo por fuera sin pasar nunca por la plataforma |
 
 #### CU-22 · Enviar solicitud a un consultor *(mod. v5)*
@@ -251,7 +253,7 @@
 |---|---|
 | **Flujo principal** | 1. Lista con estado, rating y encargos. 2. **Suspende** (sale del directorio, conserva historial) o **reactiva**. **3. Al suspender, sus encargos `en_curso` pasan a `cancelado` de inmediato, con un motivo registrado ("Consultor suspendido por el administrador"); el historial y las calificaciones ya emitidas no se alteran (RN-29). 4. La misma acción revoca en cascada las autorizaciones de documento que tuviera sobre esos encargos, de modo que pierde el acceso al instante sin que la empresa tenga que intervenir (RF-76, RN-27)** |
 | **Flujos alternos** | **3a.** Reactivar el perfil no revive los encargos cancelados — la empresa debe solicitar de nuevo si quiere retomar el trabajo con ese consultor |
-| **Detalle** *(mod. v6, sesión 022, decisiones del Product Owner)* | **Suspender exige un motivo escrito por el administrador**, que se guarda en el perfil y que el consultor ve en su portal; los encargos cancelados llevan el texto fijo del paso 3. **Al suspender se cancelan también las solicitudes `pendiente`** (enviadas y aún sin respuesta), con el mismo motivo: la empresa no queda esperando a quien ya no puede aceptar, y deja de ver el contacto del consultor (RF-80). Solo se suspende un perfil `aprobado` y solo se reactiva uno `suspendido`; reactivar lo devuelve a `aprobado` y borra el motivo de la suspensión. Todo ocurre en una sola transacción en la base |
+| **Detalle** *(mod. v6, sesión 022, decisiones del Product Owner)* | **Suspender exige un motivo escrito por el administrador**, que se guarda en el perfil y que el consultor ve en su portal; los encargos cancelados llevan el texto fijo del paso 3. **Al suspender se cancelan también las solicitudes `pendiente`** (enviadas y aún sin respuesta), con el mismo motivo: la empresa no queda esperando a quien ya no puede aceptar. Solo se suspende un perfil `aprobado` y solo se reactiva uno `suspendido`; reactivar lo devuelve a `aprobado` y borra el motivo de la suspensión. Todo ocurre en una sola transacción en la base |
 
 ### Módulo H — Suscripciones y créditos
 

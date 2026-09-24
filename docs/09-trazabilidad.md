@@ -25,7 +25,7 @@
 | CU-14 Cuenta *(v6: dos puertas, panel oculto; sesión 021: consentimiento)* | RF-01, 02, 03, **84, 85, 88** | RNF-01, **30, 35**, RN-06, **32** |
 | CU-15..17 Perfil consultor *(sesión 021: consentimiento, mínimos en el servidor)* | RF-22..25, **88** | RN-13, RNF-16, 18 |
 | CU-18 Encargos (consultor) *(v5: contexto, contacto)* | RF-30, 32, **68, 69, 70** | RN-10, **29**, RN-25, RN-26, RF-40 |
-| CU-19..23 Contratación *(v5: contexto, tipo de ayuda, contacto, solicitud directa, buscador; v6: visibilidad por pareja empresa-consultor)* | RF-26, 28..31, 68, 69, 70, 74, 75, **80** | RN-08, 12, 25, 26, RNF-19, **RNF-16, 30** |
+| CU-19..23 Contratación *(v5: contexto, tipo de ayuda, contacto, solicitud directa, buscador; v6: visibilidad por pareja empresa-consultor; sesión 022: contacto solo tras aceptar, sin equipo interno en el directorio)* | RF-26, **27**, 28..31, 68, 69, 70, 74, 75, **80** | RN-08, 12, 25, 26, RNF-19, **RNF-16, 30** |
 | CU-24 Calificar *(v6: contador al completar)* | RF-33 | RN-09, RNF-17 |
 | CU-25..27 Gestión consultores *(CU-26 v5: contacto; CU-27 v5: cancela encargos en curso; v6: revoca autorizaciones en cascada; sesión 022: motivo de suspensión y cancelación de las solicitudes pendientes)* | RF-34, 35, 70, **76**, **80** | RN-08, 13, 15, 26, 29, RNF-11, **16**, **RN-27** |
 | CU-28..30 Suscripción *(v6: comparador con atributos reales)* | RF-37, 38, 41, **82** | RN-11, 16, **RNF-14** |

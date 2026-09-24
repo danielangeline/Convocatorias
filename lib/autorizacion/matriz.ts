@@ -66,6 +66,8 @@ const PREFIJOS: [string, Regla][] = [
   ["/api/postulaciones", EMPRESA],
   ["/api/checklist", EMPRESA],
   ["/postulaciones", EMPRESA],
+  // Sprint 4 paso 1c: directorio y perfil público (RF-26, RF-27, RF-80).
+  ["/api/consultores", EMPRESA],
   ["/consultores", EMPRESA],
   ["/encargos", EMPRESA],
   ["/suscripcion", EMPRESA],

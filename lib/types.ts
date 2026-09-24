@@ -244,6 +244,25 @@ export interface ConsultorAdmin {
   actualizadoAt: string;
 }
 
+// Directorio de consultores visto por la empresa (CU-20, CU-21 · docs/05
+// §9.22). Antes de la aceptación no trae ningún dato de contacto.
+export interface ConsultorDirectorio {
+  id: string;
+  nombreProfesional: string;
+  fotoUrl: string | null;
+  ratingPromedio: number;
+  totalEncargosCompletados: number;
+  especialidades: { id: string; nombre: string; tipo: TipoCategoria }[];
+}
+
+export interface PerfilConsultorPublico extends ConsultorDirectorio {
+  descripcion: string;
+  portafolio: ItemPortafolioPropio[];
+  resenas: { estrellas: number; comentario: string | null; fecha: string }[];
+  // RF-80: solo con un encargo en curso de la empresa de la sesión.
+  contacto: { sitioWeb: string; redes: Omit<RedSocial, "id">[]; tieneHojaDeVida: boolean } | null;
+}
+
 // ---------------------------------------------------------------------------
 // Encargos
 // ---------------------------------------------------------------------------

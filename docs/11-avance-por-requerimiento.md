@@ -93,8 +93,8 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 
 | RF | Estado | Nota |
 |---|---|---|
-| RF-26 Directorio filtrado | prototipo | |
-| RF-27 Visibilidad del perfil | prototipo | Ver RF-80 |
+| RF-26 Directorio filtrado | servidor | **Sesión 022:** `GET /api/consultores` y la pantalla como componente de servidor: aprobados y sin el equipo interno (decisión del Product Owner), suscripción no exigida hasta el Sprint 5 (RN-08 transitorio); filtros por especialidad, rating y nombre; foto por URL firmada, solo la vigente de un aprobado. `directorio_consultores.sql` 14/14 y `prueba-directorio-consultores.mjs` 38/38, dos corridas. Falta mirarlo en pantalla con una cuenta de empresa (pendiente 16) |
+| RF-27 Visibilidad del perfil | servidor | **Sesión 022:** `GET /api/consultores/[id]` y la pantalla como componente de servidor. Antes de aceptar: foto, nombre, descripción, especialidades, rating, reseñas (sin la empresa que calificó) y portafolio, sin ningún dato de contacto (decisión del Product Owner). 404 fuera del directorio. La solicitud (RF-74) sigue en el store hasta el paso 3. Ver RF-80 |
 | RF-28 Solicitar consultor | prototipo | |
 | RF-29 Ciclo de estados del encargo | prototipo | |
 | RF-30 Aceptar o rechazar | prototipo | |
@@ -169,7 +169,7 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RF-77 Validar cupo de la empresa dueña | pendiente | Sprint 5 |
 | RF-78 Vigencia verificada en servidor | servidor | La política de insert de `postulaciones` ya exigía convocatoria publicada y vigente (sesión 003). **Sesión 017:** trigger `privado.exigir_convocatoria_vigente()` en `postulaciones` y `documentos_generados`, al crear y al cambiar de convocatoria, que **también frena a `service_role`**; clave `convocatoria_no_vigente`; "vigente" con la fecha de Colombia. Probado con `supabase/tests/vigencia_al_crear.sql` (14/14: vigente y que cierra hoy, sí; vencida, cerrada, despublicada y borrador, no; mover una postulación a una cerrada, no; editar lo ya creado, sí). **Los endpoints que lo traducen a 409 llegan con sus módulos**: postular (Sprint 3) y generar (Sprint 5) |
 | RF-79 Traza de lectura | pendiente | Sprint 5 |
-| RF-80 Contacto por pareja empresa-consultor | prototipo | El perfil cruza solo los encargos de la empresa de la sesión (sesión 002). **RLS lista (sesión 003):** permisos por columna + `contacto_consultor()`, activa = `pendiente`/`en_curso`; prueba cruzada E1/E2 pasada. El prototipo aún cuenta `completado`/`calificado` como activa. Falta el endpoint |
+| RF-80 Contacto por pareja empresa-consultor | servidor | **Mod. sesión 022 (Product Owner): el contacto se revela al aceptar, con el encargo `en_curso`; la solicitud `pendiente` ya no revela nada.** `privado.solicitud_activa()` cuenta solo `en_curso`, y con ella `contacto_consultor()`, la política de `consultor_redes` y la nueva de Storage para la hoja de vida (solo el `cv_path` vigente). `GET /api/consultores/[id]/cv` firma 15 minutos. Probado en SQL y HTTP con encargos sembrados: pendiente no revela, en curso sí y solo a esa empresa, al completarse se oculta. La aceptación real llega con el paso 3 |
 
 ### 4.13 Usabilidad de los flujos *(v6)*
 

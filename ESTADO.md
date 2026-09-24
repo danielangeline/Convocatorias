@@ -7,7 +7,7 @@
 
 **Actualizado:** 24 de septiembre de 2026 · cierre de la sesión 022
 **Sprint:** 4 · día 10 de 30 (los sprints 2 y 3 terminaron antes de su plazo). **Orden de los sprints 4 y 5 intercambiado en la sesión 021**: la IA, los créditos, los planes y los precios van al final
-**Rama de trabajo:** `sprint-2`, abierta desde `main` en la sesión 011 y subida a `origin` (sin fusionar a `main`: producción todavía no tiene el catálogo del panel). **Migraciones nuevas ya aplicadas al remoto:** `20260917100000_guardar_convocatoria`, `20260917200000_storage_y_adjuntos` , `20260918100000_publicar_convocatoria` y `20260918200000_nombres_normalizados_y_borrar_categorias`, y desde el Sprint 3 las de proyectos (`20260923500000`) y departamentos y sugerencias (`20260924100000`), y **postulaciones (`20260925100000` y `20260925200000`)**, y desde el Sprint 4 **perfil del consultor (`20260926100000` y `20260926110000`)** y **revisión de consultores (`20260927100000`)**. No rompen `main`, que no las llama
+**Rama de trabajo:** `sprint-2`, abierta desde `main` en la sesión 011 y subida a `origin` (sin fusionar a `main`: producción todavía no tiene el catálogo del panel). **Migraciones nuevas ya aplicadas al remoto:** `20260917100000_guardar_convocatoria`, `20260917200000_storage_y_adjuntos` , `20260918100000_publicar_convocatoria` y `20260918200000_nombres_normalizados_y_borrar_categorias`, y desde el Sprint 3 las de proyectos (`20260923500000`) y departamentos y sugerencias (`20260924100000`), y **postulaciones (`20260925100000` y `20260925200000`)**, y desde el Sprint 4 **perfil del consultor (`20260926100000` y `20260926110000`)** y **revisión de consultores (`20260927100000`)** y **directorio (`20260927200000`)**. No rompen `main`, que no las llama
 
 ---
 
@@ -17,6 +17,22 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 
 ## Lo último que se hizo
 
+- **Sesión 022, después: Sprint 4 paso 1c — directorio y perfil público (RF-26, RF-27), con RF-80 (el paso 2) cambiado y hecho.**
+  - **Decisiones del Product Owner antes de programar:**
+    - el equipo interno no aparece en el directorio;
+    - el perfil público muestra foto, nombre, descripción, especialidades, rating con reseñas y portafolio, y ningún dato de contacto;
+    - **el contacto (correo, sitio web, redes y hoja de vida) se revela solo cuando el consultor acepta**, con el encargo `en_curso`. Antes también lo revelaba la solicitud `pendiente`: RF-80 y RN-12 cambiaron.
+  - La especificación se escribió primero: CU-20, CU-21 y CU-27, RF-26, RF-80, RN-12, docs/04, docs/05 (§9.11 punto 5 y §9.22, nueva) y la trazabilidad.
+  - **Migración `20260927200000`** (ensayada y aplicada): `solicitud_activa()` cuenta solo `en_curso`; la empresa firma la foto vigente de un aprobado y, con un encargo en curso, la hoja de vida vigente.
+  - `GET /api/consultores`, `GET /api/consultores/[id]` y `.../cv`, declarados en la matriz. Directorio y perfil como componentes de servidor. La solicitud sigue en el store hasta el paso 3; el store recuerda al consultor real para que el encargo lo muestre.
+  - Verificado:
+    - `supabase/tests/directorio_consultores.sql` (nueva): **14/14**;
+    - `scripts/prueba-directorio-consultores.mjs` (nueva): **38/38, dos corridas**;
+    - regresión en verde: SQL (RLS, revisión, perfil, postulaciones, sugerencias, vigencia, cierre y guardar publicada) y HTTP (revisión, perfil, proyectos, postulaciones y catálogo de la empresa);
+    - `tsc` y `eslint` limpios.
+  - **La prueba de RLS volvió a fallar por la prueba:** contaba los consultores aprobados de toda la base, y tu perfil aprobado sumó uno. Pasa a la línea base.
+  - **Una corrida de la regresión dio 11 fallas en el catálogo de la empresa.** Se descartó el entorno primero: `diagnostico-red-supabase.mjs` salió limpio, y la suite pasó entera al repetirla sola. No se tocó código.
+  - **No verificado en el navegador como empresa**: la pestaña tiene tu sesión de consultor (pendiente 16). Como consultor, `/consultores` responde "Acceso denegado".
 - **Sesión 022: Sprint 4 paso 1b — bandeja del administrador (RF-34, RF-35, RN-13, RN-29). Antes, el pendiente 14.**
   - **Pendiente 14 cerrado:** el agente recorrió el editor de perfil con la cuenta de consultor que abrió el Product Owner. RF-22, 23 y 24 pasan a `verificado`. Esa cuenta quedó **en revisión**: es la que verá el Propietario en la bandeja (pendiente 15).
   - **Decisiones del Product Owner antes de programar:**
@@ -169,7 +185,7 @@ Detalle en [`docs/bitacora/2026-09-24-sesion-020.md`](docs/bitacora/2026-09-24-s
 
 ## En curso
 
-**Sprint 4, paso 1a hecho y visto en pantalla** (sesiones 021 y 022). **Paso 1b hecho y recorrido en pantalla por el Product Owner** (sesión 022). Sigue 1c.
+**Sprint 4, paso 1a hecho y visto en pantalla** (sesiones 021 y 022). **Paso 1b hecho y recorrido en pantalla por el Product Owner** (sesión 022). **Pasos 1c y 2 hechos en el servidor** (sesión 022); falta mirarlos como empresa (pendiente 16). Sigue el paso 3, encargos.
 
 ## Lo siguiente
 
@@ -188,8 +204,8 @@ Detalle en [`docs/bitacora/2026-09-24-sesion-020.md`](docs/bitacora/2026-09-24-s
 1. Perfil del consultor, revisión y directorio (RF-22..27, 34, 35, RN-08, RN-13), en tres partes:
    - ~~**1a.** Perfil propio, foto y hoja de vida en Storage, envío a revisión y consentimiento (RF-22..25, RF-88)~~ — **sesión 021**;
    - ~~**1b.** Bandeja del administrador: aprobar, rechazar con motivo, suspender y reactivar (RF-34, RF-35, RN-13, RN-29). La hoja de vida del consultor la abre el administrador por URL firmada. Suspender cancela los encargos `en_curso` (RN-29): los encargos siguen en el store hasta el paso 3, así que la cancelación en la base se prueba con filas sembradas~~ — **sesión 022**, con las pendientes también canceladas y el motivo obligatorio;
-   - **1c.** Directorio y perfil público para la empresa (RF-26, RF-27, RN-08 transitorio). La foto se sirve por URL firmada.
-2. Contacto visible solo por pareja empresa-consultor (RF-80, RN-12).
+   - ~~**1c.** Directorio y perfil público para la empresa (RF-26, RF-27, RN-08 transitorio). La foto se sirve por URL firmada~~ — **sesión 022**, sin el equipo interno.
+2. ~~Contacto visible solo por pareja empresa-consultor (RF-80, RN-12)~~ — **sesión 022**, cambiado: se revela al aceptar (encargo `en_curso`), no con la solicitud pendiente.
 3. Encargos de punta a punta: solicitar, aceptar con revelación de contacto, avances, entrega y calificación (RF-28..33, 68, 69, 70, 74, 75, RN-09, RN-26, RN-29).
 4. Job de vencimiento de suscripciones (RF-39, CU-32), con la fecha de Colombia.
 5. Pruebas de los RNF críticos.
@@ -266,6 +282,11 @@ Pendiente del Product Owner:
     - En `/admin/consultores`, suspéndelo con un motivo (dice que no tiene encargos activos) y mira el motivo en su "Mi perfil". Después, reactívalo.
 
     Con eso, RF-34 y RF-35 pasan a `verificado`, y RF-25 también (el rechazo con motivo, visto por el consultor).
+16. **Mirar el directorio con tu cuenta de empresa** (Sprint 4 pasos 1c y 2). Entra a "Consultores" con la cuenta de empresa:
+    - tu perfil de consultor ("Daniel Bohorquez") aparece con foto, rating y especialidad; prueba el filtro por especialidad y la búsqueda por nombre;
+    - abre el perfil: foto, descripción, especialidades, portafolio y reseñas, y **ningún** dato de contacto, con la nota "se muestran cuando el consultor acepte tu solicitud".
+
+    La parte del contacto tras la aceptación no se puede ver todavía en pantalla: la aceptación de encargos llega en el paso 3. Con esto, RF-26 y RF-27 pasan a `verificado`.
 
 ## Decisiones abiertas
 
@@ -361,6 +382,7 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | Si la subida al bucket ocurre y el registro de la fila no, queda un objeto suelto. Es invisible (toda descarga parte de la fila) y la pantalla pide borrarlo, pero nadie barre los que queden de un navegador cerrado a media subida | `lib/admin/documentos.ts` | baja · valorar un job de limpieza antes de los pilotos |
 | Borrar una convocatoria arrastra sus filas de `documentos_convocatoria` por `on delete cascade`, pero **no** los objetos del bucket | `supabase/migrations/20260917200000` | baja · mismo job de limpieza |
 | `allowed_mime_types` del bucket se compara con el tipo que **declara** el cliente. El servidor lo compensa exigiendo que el tipo que reporta Storage case con la extensión de la ruta, pero nadie inspecciona el contenido del archivo | Storage | baja · valorar antivirus o comprobación de firma antes de los pilotos |
+| CU-20 1a pide que el directorio vacío ofrezca directamente la asignación interna; hoy remite a "Mis proyectos", porque la asignación interna sigue en el store | `components/consultores/DirectorioConsultores.tsx` | baja · se resuelve con el paso 3 |
 | El dashboard del panel cuenta los "perfiles de consultor en revisión" del store, no de la base: con la bandeja ya real, el número no coincide | `app/admin/page.tsx:34` | media · conectar el dashboard |
 | `motivo_rechazo` tiene lectura por columna para `authenticated`: la empresa que tuvo encargos con un consultor (RN-15) puede leer el motivo de un rechazo posterior. `motivo_suspension` ya no la tiene (sesión 022) | `supabase/migrations/20260916120400` | baja · moverlo a `suspension_consultor()` o a una función hermana |
 | A un administrador sin MFA, `/api/admin/...` responde 307 a `/mfa`, no 404. Es lo que hace `proxy.ts` desde la sesión 007 y no le entrega datos, pero un `fetch` sigue la redirección y recibe HTML | `proxy.ts` | baja · valorar un 401 JSON para `/api` si molesta al cliente |

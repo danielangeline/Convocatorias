@@ -178,6 +178,9 @@ interface AppState {
   cancelarSolicitudConsultor: () => void;
   crearEncargoEsperandoAsignacion: () => Encargo | null;
   crearEncargoDesdeDirectorio: (consultorId: string) => Encargo | null;
+  // Puente hasta el paso 3 del Sprint 4: el directorio ya es real y los
+  // encargos siguen aquí; el encargo necesita al consultor para mostrarlo.
+  recordarConsultor: (consultor: PerfilConsultor) => void;
 
   // Encargos
   aceptarEncargo: (encargoId: string) => void;
@@ -385,6 +388,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     set((s) => ({ encargos: [...s.encargos, nuevo], solicitudConsultorEnCurso: null }));
     return nuevo;
   },
+
+  recordarConsultor: (consultor) =>
+    set((s) => ({ consultores: [...s.consultores.filter((c) => c.id !== consultor.id), consultor] })),
 
   crearEncargoDesdeDirectorio: (consultorId) => {
     const solicitud = get().solicitudConsultorEnCurso;

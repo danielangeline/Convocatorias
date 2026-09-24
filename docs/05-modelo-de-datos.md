@@ -261,7 +261,7 @@ Hasta v4 solo estaba documentada la política de las tablas nuevas del módulo d
 | categorias | Lectura pública de las activas (las usan el registro del consultor y los filtros); escritura exclusiva del administrador |
 | proyecto_categoria | Sigue la misma regla que `proyectos`: visible y editable solo por el dueño del proyecto asociado |
 | postulaciones y su checklist/historial | Solo la empresa dueña de la postulación (`usuario_id = auth.uid()`); el administrador lee para soporte (RN-04, RNF-03) |
-| perfil de consultor (portafolio, especialidades, descripción) | Lectura pública si `estado_perfil = aprobado`; edición solo por el propio consultor. **Sitio web, redes y hoja de vida quedan excluidos de la lectura pública en todos los casos: solo administrador, o la empresa que tenga una solicitud activa con ese consultor — la condición se evalúa sobre la pareja (empresa de la sesión, consultor), no sobre la existencia de cualquier solicitud** (RN-12, RF-80, RNF-16, *ampliado en v5; precisado en v6*) |
+| perfil de consultor (portafolio, especialidades, descripción) | Lectura pública si `estado_perfil = aprobado`; edición solo por el propio consultor. **Sitio web, redes y hoja de vida quedan excluidos de la lectura pública en todos los casos: solo administrador, o la empresa que tenga una solicitud activa —aceptada, encargo `en_curso`, sesión 022— con ese consultor — la condición se evalúa sobre la pareja (empresa de la sesión, consultor), no sobre la existencia de cualquier solicitud** (RN-12, RF-80, RNF-16, *ampliado en v5; precisado en v6*) |
 | encargos y sus avances | Visibles solo para la empresa y el consultor del encargo; el administrador lee todos (RN-08, RN-10, RNF-03) |
 | calificaciones | Lectura pública (componen el rating); escritura solo por la empresa dueña del encargo calificado, una única vez, inmutable (RN-09, RNF-17) |
 | planes | Lectura pública; escritura exclusiva del administrador |
@@ -275,7 +275,7 @@ Decisiones de mecanismo tomadas al escribir las migraciones (`supabase/migration
 2. **Columnas protegidas en filas editables.** Donde el usuario puede editar su propia fila, un trigger rechaza el cambio de las columnas que no le corresponden: en `perfiles`, `rol`, `mfa_habilitado`, `es_propietario`, `admin_revocado_at` y `admin_revocado_por`; en `consultor_perfiles`, `estado_perfil`, `motivo_rechazo`, `es_equipo_interno`, `revisado_por`/`revisado_at`, `rating_promedio` y `total_encargos_completados`; en `proyectos` y `postulaciones`, el propietario; en `documentos_generados`, todo salvo `titulo` (solo dueño), `contenido` y `pendientes`. El `service_role` no queda sujeto a estos triggers.
 3. **Administrador = rol + MFA verificado + acceso no revocado.** Toda política que concede algo al administrador exige además `aal2` en el JWT de la sesión (RNF-28, RN-24) y `admin_revocado_at is null` en su perfil (RF-87, *sesión 005*). Un administrador sin segundo factor verificado, o revocado, se trata como un usuario sin privilegios. **Propietario = administrador + `es_propietario`.**
 4. **Contacto del consultor por columna.** RLS filtra filas, no columnas. `sitio_web` y `cv_path` quedan sin permiso de lectura directa para `anon` y `authenticated`, y se leen con la función `public.contacto_consultor(consultor_id)`, que los devuelve solo al propio consultor, al administrador o a la empresa con solicitud activa con él (RF-80). `consultor_redes` sigue la misma condición con RLS por fila.
-5. **Solicitud activa** (RF-80) = existe un encargo de la pareja (empresa de la sesión, consultor) en estado `pendiente` o `en_curso`.
+5. **Solicitud activa** (RF-80) = existe un encargo de la pareja (empresa de la sesión, consultor) en estado `en_curso`, es decir, aceptado por el consultor. *(Sesión 022, decisión del Product Owner: hasta entonces también contaba `pendiente`. Lo aplica `privado.solicitud_activa()`, migración `20260927200000`.)*
 6. **Acceso derivado del consultor a documentos** (RN-27): la política no se fía de `compartido_con_consultor_id` sola; exige además un encargo `en_curso` de ese consultor sobre el proyecto del documento, evaluado en cada consulta.
 7. **Lecturas agregadas por necesidad.** La empresa sigue viendo las convocatorias cerradas o despublicadas que están vinculadas a sus postulaciones, encargos o documentos, porque si no su historial quedaría sin nombre. También ve el perfil de los consultores con los que tuvo encargos, aunque estén suspendidos (RN-15). Estos vínculos se resuelven con funciones `security definer` para evitar recursión entre políticas.
 8. **`fuentes` solo para el administrador.** Son configuración interna (notas de parametrización) y el portal público no las muestra; la "lectura pública" de §9.10 aplica a convocatorias, categorías y a las tablas hijas de la convocatoria.
@@ -644,3 +644,22 @@ Las dos se suman a las columnas protegidas de §9.11 punto 2. **No tienen permis
 | `reactivar_consultor(p_id)` | `suspendido` → `aprobado` | Borra motivo y fecha de la suspensión. **No revive** ningún encargo (CU-27 3a) |
 
 **Hoja de vida y foto para el administrador.** Dos políticas de lectura sobre `storage.objects`, una por bucket (`fotos-consultores`, `hojas-de-vida`), con `privado.es_admin()`. El servidor firma con la sesión del administrador una URL de 15 minutos (RNF-16); el administrador no sube ni borra en esos buckets.
+
+### 9.22 Directorio de consultores y perfil público *(nuevo v6, sesión 022 — Sprint 4 paso 1c)*
+
+Implementa RF-26, RF-27 y RF-80 en el servidor (CU-20, CU-21, RN-08 transitorio, RN-12). Migración `20260927200000_directorio_consultores`.
+
+**Quién está en el directorio.** `estado_perfil = 'aprobado'` y `es_equipo_interno = false`. La suscripción vigente no se exige hasta el Sprint 5 (RN-08 transitorio). La lectura la hace la empresa con su sesión: la política "lectura pública de los aprobados" (§9.10) ya limita las filas; el filtro del equipo interno lo aplica la consulta del servidor, porque ese dato no es secreto, solo no se lista.
+
+**Qué ve la empresa antes de la aceptación** (CU-21): foto, nombre, descripción, especialidades, rating, encargos completados, reseñas (estrellas, comentario y fecha, sin el nombre de la empresa que calificó) y portafolio. Nada de contacto.
+
+**Solicitud activa = encargo `en_curso`.** `privado.solicitud_activa(p_empresa, p_consultor)` pasa a contar solo `en_curso`. Como la usan `contacto_consultor()` y la política de lectura de `consultor_redes`, el cambio cubre a la vez sitio web, hoja de vida y redes.
+
+**Storage**
+
+| Política | Condición |
+|---|---|
+| `consultor: la empresa ve la foto de los aprobados` (select en `fotos-consultores`) | Rol `empresa` y el objeto es **exactamente** el `foto_path` vigente de un perfil `aprobado`. Una foto anterior o la de un perfil suspendido no se firma |
+| `consultor: la empresa ve la hoja de vida con encargo aceptado` (select en `hojas-de-vida`) | El objeto es el `cv_path` vigente de un consultor con el que la empresa de la sesión tiene un encargo `en_curso` |
+
+Las dos resuelven la condición con funciones `security definer` (`privado.foto_visible_para_empresa`, `privado.cv_visible_para_empresa`), para no depender de los permisos por columna de `consultor_perfiles`. Todo archivo se entrega por URL firmada de 15 minutos (RNF-16).

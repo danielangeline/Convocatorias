@@ -167,7 +167,9 @@ select pg_temp.ok((select i.convocatorias_vigentes = b.convocatorias_vigentes + 
                      from public.indicadores_catalogo() i, base_indicadores b),
   'anon: solo recibe los indicadores agregados (RF-44)');
 select pg_temp.ok((select count(*) from public.proyectos) = 0, 'anon: ningún proyecto');
-select pg_temp.ok((select count(*) from public.consultor_perfiles) = 1, 'anon: solo consultores aprobados');
+-- Contra la línea base: desde la sesión 022 hay un consultor real aprobado.
+select pg_temp.ok((select count(*) from public.consultor_perfiles) = (select consultores_aprobados + 1 from base_indicadores),
+  'anon: solo consultores aprobados');
 select pg_temp.ok((select count(*) from public.consultor_redes) = 0, 'anon: ninguna red social');
 select pg_temp.ok((select count(*) from public.eventos_seguridad) = 0, 'anon: ningún evento de seguridad');
 select pg_temp.rechaza('select sitio_web from public.consultor_perfiles', 'anon lee sitio_web');
