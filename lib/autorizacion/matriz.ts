@@ -70,6 +70,8 @@ const PREFIJOS: [string, Regla][] = [
   ["/encargos", EMPRESA],
   ["/suscripcion", EMPRESA],
   // Portal Consultor
+  // Sprint 4 paso 1a: perfil propio, archivos y envío a revisión (CU-16, CU-17).
+  ["/api/consultor", CONSULTOR],
   ["/consultor", CONSULTOR],
 ];
 

@@ -190,6 +190,34 @@ export interface PerfilConsultor {
   correo: string;
 }
 
+export interface ItemPortafolioPropio {
+  nombreProyecto: string;
+  entidad: string;
+  anio: number | null;
+  descripcion: string;
+  resultado: string;
+}
+
+/**
+ * El perfil tal como lo ve y edita su dueño (CU-16, docs/05 §9.20). La foto y
+ * la hoja de vida llegan como URL firmada de 15 minutos, no como ruta.
+ */
+export interface PerfilConsultorPropio {
+  id: string;
+  nombreProfesional: string;
+  descripcion: string;
+  sitioWeb: string;
+  especialidades: string[];
+  redes: Omit<RedSocial, "id">[];
+  portafolio: ItemPortafolioPropio[];
+  fotoUrl: string | null;
+  tieneHojaDeVida: boolean;
+  estadoPerfil: EstadoPerfilConsultor;
+  motivoRechazo: string | null;
+  // RF-88: sin fecha, el editor pide aceptar antes de guardar.
+  consentimientoDatos: boolean;
+}
+
 // ---------------------------------------------------------------------------
 // Encargos
 // ---------------------------------------------------------------------------

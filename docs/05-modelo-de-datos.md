@@ -51,6 +51,7 @@ erDiagram
 - la fila de `perfiles`, con el rol leído de los metadatos del registro. **Solo `consultor` produce consultor; cualquier otro valor —incluido `administrador`— produce `empresa`** (RN-06). La cuenta invitada como administrador también nace así y el servidor la convierte después con `aceptar_invitacion_admin` (§9.12, *rediseñado en la sesión 008*);
 - si es empresa: la suscripción trial contra el plan trial (RF-37). Si no existe plan trial activo, el registro **falla** en lugar de crear una empresa sin trial;
 - si es consultor: la fila de `consultor_perfiles` en estado `incompleto`, sin suscripción (RN-11, CU-14).
+- *(sesión 021, RF-88)* `perfiles.consentimiento_datos_at` (timestamptz, nullable) con `now()` si los metadatos traen `consentimiento_datos = true`. El formulario lo exige; una cuenta creada por otra vía (una invitación de administrador, un registro directo contra Auth) nace sin él. Lo fija solo la base: un trigger impide que el cliente lo cambie; se pone por primera vez con `aceptar_consentimiento_datos()`.
 
 ### 9.3 Tablas nuevas
 
@@ -399,8 +400,8 @@ Los tres son **privados** (`public = false`): ningún archivo se sirve por una U
 | Bucket | Contenido | Límite | Tipos admitidos | Ruta del objeto |
 |---|---|---|---|---|
 | `documentos-convocatorias` | TDR, términos, anexos y formatos (RF-07) | 20 MB | PDF, Word (`.doc`, `.docx`), Excel (`.xls`, `.xlsx`), ZIP | `{convocatoria_id}/{documento_id}.{ext}` |
-| `fotos-consultores` | Foto del perfil (RF-22) | 5 MB | JPG, PNG | `{perfil_id}/foto.{ext}` |
-| `hojas-de-vida` | Hoja de vida del consultor (RNF-16) | 10 MB | PDF | `{perfil_id}/hoja-de-vida.pdf` |
+| `fotos-consultores` | Foto del perfil (RF-22) | 5 MB | JPG, PNG | `{perfil_id}/foto-{uuid}.{ext}` *(sesión 021: un nombre nuevo por subida; el anterior se borra al registrar el nuevo)* |
+| `hojas-de-vida` | Hoja de vida del consultor (RNF-16) | 10 MB | PDF | `{perfil_id}/hoja-de-vida-{uuid}.pdf` *(ídem)* |
 
 El **tamaño máximo y la lista de tipos se declaran en el bucket**, no solo en el código: una subida que los incumpla la rechaza Storage aunque nadie la haya revisado antes (RNF-18). El nombre del objeto **no es** el nombre del archivo original —así ningún nombre raro llega a la ruta—; el nombre descriptivo que ve el usuario vive en la columna `nombre` y se le devuelve al descargar.
 
@@ -587,3 +588,36 @@ Grafo: `en_preparacion → presentada | cerrada` · `presentada → en_evaluacio
 
 **La confirmación de las transiciones terminales** (RF-83) la pide la pantalla y la exige también el endpoint: cerrar sin `confirmado: true` responde 400.
 
+### 9.20 Perfil del consultor: guardar, archivos y envío a revisión *(nuevo v6, sesión 021 — Sprint 4 paso 1a)*
+
+Implementa RF-22, RF-23, RF-24, RF-25 y RF-88 en el servidor (CU-15, CU-16, CU-17). Las tablas y la RLS existen desde el Sprint 0 (§9.10, §9.11 puntos 2 y 4); los buckets, desde la sesión 012 (§9.14). Migración `20260926100000_perfil_consultor`.
+
+**`public.guardar_perfil_consultor(p_datos jsonb, p_especialidades uuid[], p_redes jsonb, p_portafolio jsonb)`**
+
+- **`security invoker`**: corre con la sesión del consultor; la RLS decide qué fila es suya.
+- Actualiza `nombre_profesional`, `descripcion` y `sitio_web`, y **reemplaza** especialidades, redes y portafolio, todo en una transacción.
+- Rechazos con clave estable en `hint`: `no_es_consultor`, `sin_consentimiento` (RF-88), `nombre_vacio` (CU-16 1b), `categoria_invalida` (inexistente o inactiva) y `minimos_incompletos` (CU-16 1a: con el perfil `en_revision` o `aprobado`, el resultado tiene que conservar los mínimos de CU-17).
+- La foto y la hoja de vida **no** pasan por aquí: tienen su propio flujo.
+
+**`public.enviar_perfil_a_revision()`**
+
+- **`security definer`**, porque cambia `estado_perfil`, que el trigger de §9.11 punto 2 le niega al cliente. Actúa solo sobre `auth.uid()`.
+- Solo desde `incompleto` o `rechazado` (CU-17 3a); en otro estado, `hint = 'estado_no_permite'`.
+- Exige los mínimos: foto, descripción, ≥1 especialidad activa y hoja de vida, **y que los dos objetos existan en Storage**. Si falta algo, `hint = 'minimos_incompletos'` y el mensaje enumera todo lo que falta.
+- Pasa a `en_revision`. El motivo del rechazo anterior se conserva para que el administrador lo vea (RN-13).
+
+**`public.aceptar_consentimiento_datos()`** — fija `perfiles.consentimiento_datos_at = now()` si está vacío. Nunca lo cambia ni lo borra.
+
+**Archivos** (foto y hoja de vida)
+
+1. `POST /api/consultor/perfil/archivos/subida` valida tipo y tamaño (foto JPG o PNG hasta 5 MB; hoja de vida PDF hasta 10 MB) y firma la subida a `{perfil_id}/foto-{uuid}.{ext}` o `{perfil_id}/hoja-de-vida-{uuid}.pdf`.
+2. El navegador sube directo al bucket. Las políticas de Storage ya exigen que la carpeta sea la del consultor.
+3. `POST /api/consultor/perfil/archivos` comprueba que el objeto exista, relee de Storage su tamaño y su tipo, y guarda la ruta en `foto_path` o `cv_path`. Después borra el archivo anterior.
+
+**Reglas en la base**
+
+| Regla | Cómo |
+|---|---|
+| Una ruta de archivo solo puede apuntar a la carpeta propia | `privado.guardar_columnas_consultor()` rechaza un `foto_path` o `cv_path` que no empiece por `{id}/`. Si no, un consultor podría apuntar su hoja de vida a la de otro, y la empresa con solicitud activa la descargaría (RN-12) |
+| No se vacían los mínimos de un perfil en revisión o aprobado | El mismo trigger rechaza dejar en nulo la foto, la hoja de vida o la descripción en esos estados. Las especialidades las cuida `guardar_perfil_consultor`. **Límite conocido:** un `delete` directo sobre `consultor_especialidades` con la API de datos podría dejar cero; la pantalla no lo hace. Queda anotado |
+| El consentimiento lo fija la base | Trigger sobre `perfiles`: el cliente no puede cambiar `consentimiento_datos_at` |

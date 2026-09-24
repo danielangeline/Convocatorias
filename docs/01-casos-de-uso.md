@@ -139,12 +139,12 @@
 
 ### Módulo D — Cuenta
 
-#### CU-14 · Registrarse / iniciar sesión *(mod. v6)*
+#### CU-14 · Registrarse / iniciar sesión *(mod. v6; mod. v6, sesión 021)*
 
 | Campo | Contenido |
 |---|---|
 | **Actor** | Visitante (futura empresa o entidad, o consultor) |
-| **Flujo principal** | 1. La entrada (landing, registro e inicio de sesión) muestra **dos puertas: "Soy empresa o entidad" y "Soy consultor"**. Ninguna pantalla pública ofrece el rol administrador (RF-84, RF-85). 2. **Registro:** elige la puerta, escribe correo y contraseña y confirma su correo; la puerta fija el rol de la cuenta. 3. Empresa → portal Empresa con trial de **7 días** y 3 créditos de IA. Consultor → portal Consultor con perfil "incompleto". 4. **Inicio de sesión:** correo y contraseña desde cualquiera de las dos puertas; la cuenta entra siempre al portal de su rol. 5. Recuperación de contraseña |
+| **Flujo principal** | 1. La entrada (landing, registro e inicio de sesión) muestra **dos puertas: "Soy empresa o entidad" y "Soy consultor"**. Ninguna pantalla pública ofrece el rol administrador (RF-84, RF-85). 2. **Registro:** elige la puerta, escribe correo y contraseña, **marca la casilla obligatoria de autorización del tratamiento de sus datos personales (Ley 1581 de 2012, RF-88)** *(mod. v6, sesión 021)* y confirma su correo; la puerta fija el rol de la cuenta. 3. Empresa → portal Empresa con trial de **7 días** y 3 créditos de IA. Consultor → portal Consultor con perfil "incompleto". 4. **Inicio de sesión:** correo y contraseña desde cualquiera de las dos puertas; la cuenta entra siempre al portal de su rol. 5. Recuperación de contraseña |
 | **Flujos alternos** | 2a. El correo ya tiene cuenta → no se crea otra; se ofrece iniciar sesión. 4a. La puerta elegida no coincide con el rol de la cuenta → se le lleva a su portal real con el aviso "Tu cuenta es de empresa" / "Tu cuenta es de consultor". 4b. La cuenta es de administrador → pasa directo a la verificación en dos pasos (CU-38), sin ningún aviso que delate la existencia del panel |
 | **Postcondiciones** | Cada cuenta tiene un único rol, fijado al registrarse. Este caso de uso **nunca** produce un administrador: ese rol solo nace de CU-41 (RN-06, RN-32) |
 
@@ -156,13 +156,13 @@
 |---|---|
 | **Flujo principal** | 1. Se registra por la puerta **"Soy consultor"** (CU-14) *(mod. v6)*. 2. Se crea la cuenta y el perfil vacío. 3. Solo accede a la edición de su perfil hasta ser aprobado |
 
-#### CU-16 · Crear y editar perfil de consultor
+#### CU-16 · Crear y editar perfil de consultor *(mod. v6, sesión 021)*
 
 | Campo | Contenido |
 |---|---|
-| **Precondiciones** | Consentimiento de tratamiento de datos aceptado |
+| **Precondiciones** | Consentimiento de tratamiento de datos aceptado. **Se da al registrarse (CU-14, RF-88)**; una cuenta creada antes de que existiera la casilla lo acepta en el editor antes de su primer guardado, y el servidor rechaza guardar sin él *(sesión 021)* |
 | **Flujo principal** | 1. Foto, nombre profesional, descripción. 2. Especialidades del catálogo de categorías. 3. Página web y redes (LinkedIn, Instagram, Facebook, otras). 4. Portafolio: proyectos previos con nombre, entidad, año, descripción y resultado. 5. Hoja de vida en PDF |
-| **Flujos alternos** | Cambios de portafolio o redes tras la aprobación no requieren re-aprobación |
+| **Flujos alternos** | Cambios de portafolio o redes tras la aprobación no requieren re-aprobación. **1a.** Con el perfil `en_revision` o `aprobado`, el servidor rechaza un guardado que lo deje sin alguno de los mínimos de CU-17 (foto, descripción, ≥1 especialidad, hoja de vida): lo que la revisión aprobó no se puede vaciar después *(sesión 021)*. **1b.** El nombre profesional no puede quedar vacío: es lo que identifica al consultor en el directorio *(sesión 021)* |
 | **Nota** *(v5)* | El consultor los carga y el administrador los usa para verificar veracidad en CU-25; **la empresa solo los ve si tiene una solicitud activa con ese consultor** (RN-12, CU-21) |
 
 #### CU-17 · Enviar perfil a revisión
@@ -170,7 +170,7 @@
 | Campo | Contenido |
 |---|---|
 | **Precondiciones** | Mínimos: foto, descripción, ≥1 especialidad y hoja de vida |
-| **Flujo principal** | 1. "Enviar a revisión". 2. Pasa a `en_revision` y entra a la bandeja de administradores. 3. Ve el estado de su solicitud |
+| **Flujo principal** | 1. "Enviar a revisión". 2. **El servidor comprueba los mínimos —y que la foto y la hoja de vida existan de verdad en Storage— y rechaza enumerando lo que falta** *(sesión 021)*. 3. Pasa a `en_revision` y entra a la bandeja de administradores. 4. Ve el estado de su solicitud |
 | **Flujos alternos** | 3a. Rechazado → ve el motivo, corrige y reenvía sin límite |
 
 #### CU-18 · Gestionar encargos *(mod. v5)*
@@ -235,6 +235,7 @@
 | Campo | Contenido |
 |---|---|
 | **Flujo principal** | 1. Bandeja de perfiles `en_revision`. 2. Revisa información, portafolio y hoja de vida. 3. **Aprueba** (entra al directorio y comienza su suscripción) o **rechaza con motivo obligatorio** |
+| **Nota** *(sesión 021)* | **Mientras no existan planes con precio (Sprint 5), aprobar no crea suscripción y el directorio no la exige** (RN-08, decisión del Product Owner). La suscripción desde la aprobación vuelve con los planes |
 
 #### CU-26 · Atender solicitudes de asignación interna *(mod. v5)*
 

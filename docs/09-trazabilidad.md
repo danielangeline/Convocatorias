@@ -22,8 +22,8 @@
 | CU-11 Iniciar postulación *(v6: vigencia verificada en servidor; sesión 020: una en curso por par)* | RF-17, 21, **78** | RN-03, 04, 19, **RNF-20**, **RN-35** |
 | CU-12 Checklist *(sesión 020: solo lectura si está cerrada)* | RF-18, 20 | **RN-35** |
 | CU-13 Estados *(v5: generar/editar documento, enlace al portal, solicitar consultor; v6: grafo de transiciones y jerarquía del portal)* | RF-19, 20, 28, 53, 73, **83** | RNF-11, 12, **RN-19**, **RN-35** |
-| CU-14 Cuenta *(v6: dos puertas, panel oculto)* | RF-01, 02, 03, **84, 85** | RNF-01, **30, 35**, RN-06, **32** |
-| CU-15..17 Perfil consultor | RF-22..25 | RN-13, RNF-16, 18 |
+| CU-14 Cuenta *(v6: dos puertas, panel oculto; sesión 021: consentimiento)* | RF-01, 02, 03, **84, 85, 88** | RNF-01, **30, 35**, RN-06, **32** |
+| CU-15..17 Perfil consultor *(sesión 021: consentimiento, mínimos en el servidor)* | RF-22..25, **88** | RN-13, RNF-16, 18 |
 | CU-18 Encargos (consultor) *(v5: contexto, contacto)* | RF-30, 32, **68, 69, 70** | RN-10, **29**, RN-25, RN-26, RF-40 |
 | CU-19..23 Contratación *(v5: contexto, tipo de ayuda, contacto, solicitud directa, buscador; v6: visibilidad por pareja empresa-consultor)* | RF-26, 28..31, 68, 69, 70, 74, 75, **80** | RN-08, 12, 25, 26, RNF-19, **RNF-16, 30** |
 | CU-24 Calificar *(v6: contador al completar)* | RF-33 | RN-09, RNF-17 |

@@ -5,9 +5,9 @@
 
 ---
 
-**Actualizado:** 24 de septiembre de 2026 · sesión 021 (planning del Sprint 4)
+**Actualizado:** 24 de septiembre de 2026 · cierre de la sesión 021
 **Sprint:** 4 · día 10 de 30 (los sprints 2 y 3 terminaron antes de su plazo). **Orden de los sprints 4 y 5 intercambiado en la sesión 021**: la IA, los créditos, los planes y los precios van al final
-**Rama de trabajo:** `sprint-2`, abierta desde `main` en la sesión 011 y subida a `origin` (sin fusionar a `main`: producción todavía no tiene el catálogo del panel). **Migraciones nuevas ya aplicadas al remoto:** `20260917100000_guardar_convocatoria`, `20260917200000_storage_y_adjuntos` , `20260918100000_publicar_convocatoria` y `20260918200000_nombres_normalizados_y_borrar_categorias`, y desde el Sprint 3 las de proyectos (`20260923500000`) y departamentos y sugerencias (`20260924100000`), y **postulaciones (`20260925100000` y `20260925200000`)**. No rompen `main`, que no las llama
+**Rama de trabajo:** `sprint-2`, abierta desde `main` en la sesión 011 y subida a `origin` (sin fusionar a `main`: producción todavía no tiene el catálogo del panel). **Migraciones nuevas ya aplicadas al remoto:** `20260917100000_guardar_convocatoria`, `20260917200000_storage_y_adjuntos` , `20260918100000_publicar_convocatoria` y `20260918200000_nombres_normalizados_y_borrar_categorias`, y desde el Sprint 3 las de proyectos (`20260923500000`) y departamentos y sugerencias (`20260924100000`), y **postulaciones (`20260925100000` y `20260925200000`)**, y desde el Sprint 4 **perfil del consultor (`20260926100000` y `20260926110000`)**. No rompen `main`, que no las llama
 
 ---
 
@@ -17,6 +17,25 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 
 ## Lo último que se hizo
 
+- **Sesión 021, después: Sprint 4 paso 1a — perfil del consultor en Supabase (RF-22..25) y consentimiento de datos (RF-88, nuevo).**
+  - **Decisiones del Product Owner antes de programar:**
+    - hasta el Sprint 5, aprobar a un consultor no crea suscripción y el directorio no la exige (RN-08 y RN-11 transitorios, CU-25);
+    - la autorización de tratamiento de datos (Ley 1581) es una casilla obligatoria en el registro de las dos puertas (RF-88).
+  - La especificación se escribió primero: CU-14, 16, 17 y 25, RF-88, RN-08, RN-11, docs/04, docs/05 §9.20 (nueva) y la trazabilidad.
+  - **Migración `20260926100000`** (ensayada y aplicada):
+    - `consentimiento_datos_at`, que solo fija la base;
+    - `guardar_perfil_consultor()` y `enviar_perfil_a_revision()`, esta última con los mínimos comprobados en la base, incluido que los archivos existan en Storage;
+    - un archivo solo puede apuntar a la carpeta propia (RN-12);
+    - en revisión o aprobado no se vacían los mínimos.
+  - **Migración `20260926110000`**: corrige el armado de la lista de lo que falta, que fallaba con "malformed array literal". Lo encontró la prueba SQL.
+  - Endpoints bajo `/api/consultor/perfil` (declarados en la matriz). El editor es un componente de servidor más un formulario que guarda por la API y sube foto y hoja de vida a Storage real. Se retiraron del store ocho acciones del perfil.
+  - Verificado:
+    - `supabase/tests/perfil_consultor.sql` (nueva): **25/25**;
+    - `scripts/prueba-perfil-consultor.mjs` (nueva): **48/48, dos corridas**;
+    - regresión en verde: SQL (RLS, guardar publicada, cierre, vigencia, sugerencias, postulaciones) y HTTP (proyectos 43, postulaciones 52, catálogo empresa 49, sugerencias 35);
+    - `tsc` y `eslint` limpios.
+  - **La prueba de RLS estaba rota** por dos defectos de la prueba, no de la aplicación: sembraba hojas de vida fuera de la carpeta del consultor (la regla nueva lo rechaza) y contaba el checklist de toda la base (tu postulación real de la sesión 020 añadió 13 ítems). Corregida.
+  - **No verificado en el navegador**: el editor necesita una cuenta de consultor (pendiente 14).
 - **Sesión 021: planning del Sprint 4 — orden de los sprints cambiado, por decisión del Product Owner.** Los costos de la IA y los precios de los planes no están definidos, así que la generación con IA, los créditos, los planes con sus precios y todo lo que depende de un documento generado (autorización al consultor, revocación en cascada, traza de lectura) pasan al **Sprint 5**. Consultores, encargos y endurecimiento suben al **Sprint 4**. La pasarela de pago (Wompi, fase E1) queda justo después del Sprint 5, fuera de los 30 días. **Riesgo aceptado:** la IA ya no tiene un sprint detrás que absorba un retraso. `docs/10 §18` y `docs/11` actualizados. **El límite de tasa también pasa al Sprint 5, con Upstash Redis como proveedor** (decisión del Product Owner: gratis hasta 500 000 operaciones al mes; Edge Config descartado porque tarda hasta 10 s en propagar una escritura). `docs/04 §8.3` y `docs/05` nombran ya a Upstash.
 - **Sesión 020: Sprint 3, pasos 3 y 4 — postulaciones con checklist (RF-17, RF-18, RF-19, RF-20, RF-21, RN-04) y grafo de estados en el servidor (RF-83). Regla nueva RN-35.**
   - **Decisiones del Product Owner antes de programar (RN-35):**
@@ -133,7 +152,7 @@ Detalle en [`docs/bitacora/2026-09-24-sesion-020.md`](docs/bitacora/2026-09-24-s
 
 ## En curso
 
-**Sprint 4 planificado (sesión 021)**; aún sin código. El Sprint 3 está completo y el Hito 3, cumplido.
+**Sprint 4, paso 1a hecho en el servidor** (sesión 021); falta mirarlo en pantalla (pendiente 14). Siguen 1b y 1c.
 
 ## Lo siguiente
 
@@ -149,7 +168,10 @@ Detalle en [`docs/bitacora/2026-09-24-sesion-020.md`](docs/bitacora/2026-09-24-s
 
 **Siguiente: Sprint 4 — consultores, encargos y endurecimiento** (`docs/10 §Sprint 4`; era el Sprint 5 hasta la sesión 021). Pasos:
 
-1. Perfil del consultor, envío a revisión, aprobación/rechazo/suspensión y directorio (RF-22..27, 34, 35, RN-08, RN-13). Incluye la hoja de vida en Storage.
+1. Perfil del consultor, revisión y directorio (RF-22..27, 34, 35, RN-08, RN-13), en tres partes:
+   - ~~**1a.** Perfil propio, foto y hoja de vida en Storage, envío a revisión y consentimiento (RF-22..25, RF-88)~~ — **sesión 021**;
+   - **1b.** Bandeja del administrador: aprobar, rechazar con motivo, suspender y reactivar (RF-34, RF-35, RN-13, RN-29). La hoja de vida del consultor la abre el administrador por URL firmada. Suspender cancela los encargos `en_curso` (RN-29): los encargos siguen en el store hasta el paso 3, así que la cancelación en la base se prueba con filas sembradas;
+   - **1c.** Directorio y perfil público para la empresa (RF-26, RF-27, RN-08 transitorio). La foto se sirve por URL firmada.
 2. Contacto visible solo por pareja empresa-consultor (RF-80, RN-12).
 3. Encargos de punta a punta: solicitar, aceptar con revelación de contacto, avances, entrega y calificación (RF-28..33, 68, 69, 70, 74, 75, RN-09, RN-26, RN-29).
 4. Job de vencimiento de suscripciones (RF-39, CU-32), con la fecha de Colombia.
@@ -211,6 +233,14 @@ Pendiente del Product Owner:
 
     Con esto, RF-17 a RF-21, RF-73 y RF-83 pasan a `verificado` y se cumple el Hito 3.
 13. **Antes del Sprint 5:** crear una cuenta gratuita en Upstash, una base Redis, y poner `UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN` en `.env.local` y en Vercel; y la clave de la API de Claude (`ANTHROPIC_API_KEY`) en los mismos dos sitios. **No pegarlas en el chat.**
+14. **Recorrer el perfil de consultor en pantalla** (Sprint 4 paso 1a). Crea una cuenta de consultor con otro correo tuyo desde `/registro?puerta=consultor`: así también ves la casilla de datos (RF-88), que es obligatoria. Después:
+    - completa nombre, descripción, especialidades, una red y un proyecto de portafolio, y pulsa "Guardar cambios"; recarga y comprueba que todo sigue ahí;
+    - sube una foto (JPG o PNG, hasta 5 MB) y una hoja de vida en PDF, y pulsa "Ver" en la hoja de vida;
+    - antes de subir los archivos, "Enviar a revisión" debe estar deshabilitado y decir qué falta; con todo completo, envía y mira el aviso "en revisión";
+    - en revisión, intenta quitar todas las especialidades y guardar: debe rechazarlo;
+    - "Mis encargos" debe mostrar "Tu perfil está siendo revisado".
+
+    Con eso, RF-22 a RF-25 y RF-88 pasan a `verificado`. La cuenta sirve después para la bandeja del administrador (paso 1b).
 
 ## Decisiones abiertas
 
@@ -256,6 +286,9 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | En la ficha de la convocatoria, los botones "Descargar" de adjuntos con nombre largo desbordaban a lo ancho a ~600 px (la página medía 653 px en un visor de 606) | `components/catalogo/FichaConvocatoria.tsx` | **resuelto** en la sesión 020, a pedido del Product Owner: el nombre se parte (`min-w-0`, `overflow-wrap:anywhere`) y en móvil el botón es solo el ícono. Medido: 606 = 606 y 375 = 375 |
 | El aviso "Ya tenías esta postulación en curso" seguía visible después de marcar o cambiar el estado, porque vivía en `?existente=1` | `components/postulaciones/DetallePostulacion.tsx` | **resuelto** en la sesión 020: se quita el parámetro al mostrarlo y la primera acción lo oculta. Comprobado en el navegador |
 | En móvil, la barra de acciones del final de la ficha (texto informativo, "Ir al portal", "Generar", "Postular") queda apretada: el texto se reduce a una columna estrecha al lado de los botones. No desborda, pero se lee mal | `components/catalogo/FichaConvocatoria.tsx` | baja · apilar el texto sobre los botones por debajo de `sm` |
+| No hay página de política de tratamiento de datos: la casilla del registro (RF-88) cita la Ley 1581 pero no enlaza a una política. La ley pide informar la finalidad y los derechos del titular | `components/identidad/FormularioRegistro.tsx` | media · redactar la política antes de los pilotos |
+| Las cuentas creadas antes de la sesión 021 no tienen consentimiento. El consultor lo acepta en el editor; **la empresa no tiene dónde aceptarlo** (tu cuenta de empresa, por ejemplo) | `perfiles.consentimiento_datos_at` | media · decidir si la empresa lo acepta al entrar |
+| Un `delete` directo sobre `consultor_especialidades` con la API de datos podría dejar sin especialidades un perfil en revisión o aprobado: la regla vive en `guardar_perfil_consultor`, no en un trigger (docs/05 §9.20) | `consultor_especialidades` | baja · la pantalla no lo hace; resolver con un trigger si se vuelve un problema |
 | Los historiales de postulación son `timestamptz` y la pantalla solo muestra el día (en hora de Colombia, `fechaColombia`). Si se quiere la hora del cambio, hace falta otro formato | `components/postulaciones/DetallePostulacion.tsx` | baja |
 | `/admin/seguridad` sigue leyendo eventos del mock: los eventos reales (`admin_invitado`, `admin_revocado`, `acceso_denegado`…) no se ven en el panel | `app/admin/seguridad/page.tsx` | media · entra con CU-39 |
 | Si `inviteUserByEmail` falla después de crear la cuenta en Auth, el endpoint borra la invitación pero no puede borrar esa cuenta (no conoce su id): queda una empresa con trial que ocupa el correo. Se registra en el log del servidor. No se ha observado; Auth suele deshacer la cuenta si el envío falla | `lib/admin/administradores.ts` | baja · resolver con una función que devuelva el id por correo si ocurre |

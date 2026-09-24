@@ -103,9 +103,9 @@ insert into public.requisitos_convocatoria (convocatoria_id, descripcion, tipo, 
   ('00000000-0000-0000-0000-00000000c001', 'RUT', 'documento', 1),
   ('00000000-0000-0000-0000-00000000c001', 'Cámara de comercio', 'documento', 2);
 
-update public.consultor_perfiles set estado_perfil = 'aprobado', sitio_web = 'https://uno.co', cv_path = 'cv/c1.pdf'
+update public.consultor_perfiles set estado_perfil = 'aprobado', sitio_web = 'https://uno.co', cv_path = '00000000-0000-0000-0000-0000000000c1/hoja-de-vida-c1.pdf'
 where id = '00000000-0000-0000-0000-0000000000c1';
-update public.consultor_perfiles set estado_perfil = 'en_revision', sitio_web = 'https://dos.co', cv_path = 'cv/c2.pdf'
+update public.consultor_perfiles set estado_perfil = 'en_revision', sitio_web = 'https://dos.co', cv_path = '00000000-0000-0000-0000-0000000000c2/hoja-de-vida-c2.pdf'
 where id = '00000000-0000-0000-0000-0000000000c2';
 
 insert into public.consultor_redes (consultor_id, tipo, url) values
@@ -646,8 +646,13 @@ select pg_temp.ok((select count(*) from public.requisitos_convocatoria where con
                   and (select estado from public.convocatorias where id = '00000000-0000-0000-0000-00000000c001') = 'despublicada',
   'Admin con MFA: retira un requisito de una despublicada');
 reset role;
-select pg_temp.ok((select count(*) from public.postulacion_checklist) = 2
-                  and (select count(*) from public.postulacion_checklist where requisito_id is null) = 1,
+-- Solo el checklist de esta prueba: la base ya tiene postulaciones reales (sesión 020).
+create temp view checklist_prueba as
+  select pc.* from public.postulacion_checklist pc
+  join public.postulaciones p on p.id = pc.postulacion_id
+  where p.convocatoria_id = '00000000-0000-0000-0000-00000000c001';
+select pg_temp.ok((select count(*) from checklist_prueba) = 2
+                  and (select count(*) from checklist_prueba where requisito_id is null) = 1,
   'El checklist ya copiado conserva sus 2 ítems (RN-04)');
 
 select 'TODAS LAS COMPROBACIONES PASARON' as resultado;

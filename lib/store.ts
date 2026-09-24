@@ -33,7 +33,6 @@ import type {
   EstadoEncargo,
   EventoSeguridad,
   Fuente,
-  ItemPortafolio,
   DatosSesion,
   ModalidadSuscripcion,
   Pago,
@@ -42,7 +41,6 @@ import type {
   Postulacion,
   PromptVersion,
   Proyecto,
-  RedSocial,
   SeccionDocumento,
   Suscripcion,
   TipoAyudaEncargo,
@@ -190,18 +188,10 @@ interface AppState {
   asignarConsultorInterno: (encargoId: string, consultorId: string) => void;
 
   // Perfiles de consultor
-  actualizarPerfilConsultor: (consultorId: string, cambios: Partial<PerfilConsultor>) => void;
-  enviarPerfilARevision: (consultorId: string) => void;
   aprobarPerfil: (consultorId: string) => void;
   rechazarPerfil: (consultorId: string, motivo: string) => void;
   suspenderConsultor: (consultorId: string) => void;
   reactivarConsultor: (consultorId: string) => void;
-  agregarPortafolioItem: (consultorId: string, item: Omit<ItemPortafolio, "id">) => void;
-  actualizarPortafolioItem: (consultorId: string, itemId: string, cambios: Partial<ItemPortafolio>) => void;
-  eliminarPortafolioItem: (consultorId: string, itemId: string) => void;
-  agregarRed: (consultorId: string, red: Omit<RedSocial, "id">) => void;
-  actualizarRed: (consultorId: string, redId: string, cambios: Partial<RedSocial>) => void;
-  eliminarRed: (consultorId: string, redId: string) => void;
 
   // Planes
   agregarPlan: (p: Omit<Plan, "id">) => void;
@@ -249,11 +239,11 @@ export const useAppStore = create<AppState>((set, get) => ({
       const suscripciones = datos.suscripcion
         ? [...s.suscripciones.filter((x) => x.id !== datos.suscripcion!.id), datos.suscripcion]
         : s.suscripciones;
-      // El perfil de consultor se agrega una vez: las ediciones locales se conservan.
-      const consultores =
-        datos.consultor && !s.consultores.some((c) => c.id === datos.consultor!.id)
-          ? [...s.consultores, datos.consultor]
-          : s.consultores;
+      // El perfil de consultor real reemplaza al local: desde el Sprint 4 se
+      // edita por la API (docs/05 §9.20) y el servidor es la fuente de verdad.
+      const consultores = datos.consultor
+        ? [...s.consultores.filter((c) => c.id !== datos.consultor!.id), datos.consultor]
+        : s.consultores;
       return { sesion: datos.sesion, planes, suscripciones, consultores };
     });
   },
@@ -522,18 +512,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   // Perfiles de consultor
   // -------------------------------------------------------------------------
 
-  actualizarPerfilConsultor: (consultorId, cambios) => {
-    set((s) => ({
-      consultores: s.consultores.map((c) => (c.id === consultorId ? { ...c, ...cambios } : c)),
-    }));
-  },
-  enviarPerfilARevision: (consultorId) => {
-    set((s) => ({
-      consultores: s.consultores.map((c) =>
-        c.id === consultorId ? { ...c, estadoPerfil: "en_revision", motivoRechazo: undefined } : c
-      ),
-    }));
-  },
   aprobarPerfil: (consultorId) => {
     set((s) => ({
       consultores: s.consultores.map((c) =>
@@ -564,52 +542,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   reactivarConsultor: (consultorId) => {
     set((s) => ({
       consultores: s.consultores.map((c) => (c.id === consultorId ? { ...c, estadoPerfil: "aprobado" } : c)),
-    }));
-  },
-  agregarPortafolioItem: (consultorId, item) => {
-    set((s) => ({
-      consultores: s.consultores.map((c) =>
-        c.id === consultorId ? { ...c, portafolio: [...c.portafolio, { ...item, id: nuevoId("port") }] } : c
-      ),
-    }));
-  },
-  actualizarPortafolioItem: (consultorId, itemId, cambios) => {
-    set((s) => ({
-      consultores: s.consultores.map((c) =>
-        c.id === consultorId
-          ? { ...c, portafolio: c.portafolio.map((it) => (it.id === itemId ? { ...it, ...cambios } : it)) }
-          : c
-      ),
-    }));
-  },
-  eliminarPortafolioItem: (consultorId, itemId) => {
-    set((s) => ({
-      consultores: s.consultores.map((c) =>
-        c.id === consultorId ? { ...c, portafolio: c.portafolio.filter((it) => it.id !== itemId) } : c
-      ),
-    }));
-  },
-  agregarRed: (consultorId, red) => {
-    set((s) => ({
-      consultores: s.consultores.map((c) =>
-        c.id === consultorId ? { ...c, redes: [...c.redes, { ...red, id: nuevoId("red") }] } : c
-      ),
-    }));
-  },
-  actualizarRed: (consultorId, redId, cambios) => {
-    set((s) => ({
-      consultores: s.consultores.map((c) =>
-        c.id === consultorId
-          ? { ...c, redes: c.redes.map((r) => (r.id === redId ? { ...r, ...cambios } : r)) }
-          : c
-      ),
-    }));
-  },
-  eliminarRed: (consultorId, redId) => {
-    set((s) => ({
-      consultores: s.consultores.map((c) =>
-        c.id === consultorId ? { ...c, redes: c.redes.filter((r) => r.id !== redId) } : c
-      ),
     }));
   },
 

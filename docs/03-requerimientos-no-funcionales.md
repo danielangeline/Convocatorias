@@ -92,10 +92,10 @@
 | RN-05 | El porcentaje de compatibilidad es un cálculo determinístico de coincidencias, no una predicción de éxito ni un resultado de IA, y así se comunica; la decisión de postular es del usuario |
 | RN-06 | El rol administrador **solo lo otorga el Propietario de la plataforma, por invitación** (CU-41). Todo registro de autoservicio nace como empresa o consultor, y ningún dato enviado por el usuario al registrarse puede producir un administrador *(mod. v6)* |
 | RN-07 | Fuentes y convocatorias no se eliminan físicamente: se desactivan o despublican. **Una categoría es la excepción mientras no la use ninguna convocatoria: entonces no es historia, es un error de tecleo, y se borra. En cuanto clasifica algo, deja de poder borrarse y solo se desactiva** *(precisado en v6, sesión 014)* |
-| RN-08 | Un consultor aparece en el directorio solo si: perfil aprobado + no suspendido + suscripción activa |
+| RN-08 | Un consultor aparece en el directorio solo si: perfil aprobado + no suspendido + suscripción activa. **Transitorio** *(sesión 021, decisión del Product Owner)*: **hasta que existan planes con precio (Sprint 5), la condición de suscripción no se exige**; basta perfil aprobado y no suspendido. Vuelve a exigirse con los planes |
 | RN-09 | Una calificación por encargo completado, emitida solo por la empresa de ese encargo, inmutable |
 | RN-10 | Consultor con suscripción vencida termina sus encargos en curso pero no recibe nuevos |
-| RN-11 | Trial de **7 días** *(mod. v6)* con 3 créditos, único por cuenta de empresa; el consultor paga desde su aprobación; los administradores no pagan |
+| RN-11 | Trial de **7 días** *(mod. v6)* con 3 créditos, único por cuenta de empresa; el consultor paga desde su aprobación —**transitorio** *(sesión 021)*: hasta el Sprint 5, aprobar no crea suscripción (RN-08)—; los administradores no pagan |
 | RN-12 | La hoja de vida, **el sitio web y las redes sociales** solo son visibles para administradores y para **la empresa que tiene la solicitud activa con ese consultor** — la visibilidad es por pareja empresa-consultor, nunca global: que otra empresa tenga una solicitud abierta no habilita a las demás. Sin solicitud propia, la empresa solo ve descripción, especialidades, portafolio (sin links de contacto) y rating *(ampliado en v5; precisado en v6)* |
 | RN-13 | Todo rechazo de perfil lleva motivo obligatorio; reenvíos sin límite |
 | RN-14 | El pago del servicio de consultoría se acuerda entre empresa y consultor fuera de la plataforma; los ingresos vienen de las suscripciones |

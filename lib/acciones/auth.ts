@@ -58,6 +58,10 @@ export async function registrarse(_previo: ResultadoFormulario, formulario: Form
   if (!nombre || !correo) return { error: "Escribe tu nombre y tu correo." };
   if (rol === "empresa" && !nombreEmpresa) return { error: "Escribe el nombre de la empresa o entidad." };
   if (contrasena.length < 8) return { error: "La contraseña debe tener al menos 8 caracteres." };
+  // RF-88: la casilla es obligatoria; la base guarda la fecha al crear el perfil.
+  if (formulario.get("consentimiento_datos") !== "si") {
+    return { error: "Para crear la cuenta debes autorizar el tratamiento de tus datos personales." };
+  }
 
   const supabase = await crearClienteServidor();
   const { data, error } = await supabase.auth.signUp({
@@ -65,7 +69,7 @@ export async function registrarse(_previo: ResultadoFormulario, formulario: Form
     password: contrasena,
     options: {
       emailRedirectTo: `${await origenDeLaPeticion()}/auth/confirmar`,
-      data: { rol, nombre, nombre_empresa: rol === "empresa" ? nombreEmpresa : null },
+      data: { rol, nombre, nombre_empresa: rol === "empresa" ? nombreEmpresa : null, consentimiento_datos: true },
     },
   });
 
