@@ -113,6 +113,16 @@ export interface Postulacion {
   historial: HistorialItem[];
 }
 
+/**
+ * La postulación como la entrega el servidor, con su convocatoria (Sprint 3
+ * paso 3). La convocatoria puede ser una cerrada o despublicada: la empresa la
+ * sigue viendo porque está ligada a su postulación (docs/05 §9.11, punto 7).
+ */
+export interface PostulacionConConvocatoria extends Postulacion {
+  convocatoria: Convocatoria | null;
+  creadaAt: string;
+}
+
 export interface Fuente {
   id: string;
   nombre: string;

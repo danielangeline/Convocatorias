@@ -114,27 +114,28 @@
 
 ### Módulo C — Postulación y seguimiento (Usuario Empresa)
 
-#### CU-11 · Iniciar postulación
+#### CU-11 · Iniciar postulación *(mod. v6, sesión 020)*
 
 | Campo | Contenido |
 |---|---|
 | **Precondiciones** | Convocatoria publicada y vigente + suscripción activa o trial |
-| **Flujo principal** | 1. "Postular" desde la ficha. 2. Opcionalmente vincula un proyecto. 3. Se crea la postulación **en preparación** y se **copian** los requisitos como checklist |
-| **Flujos alternos** | 1a. Cerrada o despublicada → bloqueado. 1b. Sin suscripción → modal de suscripción |
+| **Flujo principal** | 1. "Postular" desde la ficha. 2. Opcionalmente vincula un proyecto. 3. Se crea la postulación **en preparación** —siempre en ese estado, lo fija el servidor— y se **copian** los requisitos como checklist |
+| **Flujos alternos** | 1a. Cerrada o despublicada → bloqueado. 1b. Sin suscripción → modal de suscripción. **1c. Ya existe una postulación en curso (no cerrada) de la empresa para ese mismo par proyecto-convocatoria —o sin proyecto, si no eligió ninguno— → no se crea otra: se abre la existente (RN-35)** |
 | **Nota** | La postulación es un **expediente de preparación**: la radicación se hace en el portal de la entidad (RN-19) |
 
-#### CU-12 · Gestionar checklist
+#### CU-12 · Gestionar checklist *(mod. v6, sesión 020)*
 
 | Campo | Contenido |
 |---|---|
 | **Flujo principal** | 1. Abre la postulación. 2. Marca ítems completados o pendientes. 3. El sistema recalcula el porcentaje de avance |
+| **Flujos alternos** | **2a. La postulación está cerrada → el checklist se muestra solo para lectura y el servidor rechaza cualquier cambio. En los demás estados, incluso después de presentada, se sigue marcando (RN-35)** |
 
-#### CU-13 · Actualizar estado de postulación *(mod. v5)*
+#### CU-13 · Actualizar estado de postulación *(mod. v5; mod. v6, sesión 020)*
 
 | Campo | Contenido |
 |---|---|
-| **Flujo principal** | 1. Cambia el estado siguiendo el grafo declarado (RF-83): en preparación → presentada → en evaluación → aprobada/rechazada → cerrada; **solo se ofrecen los estados alcanzables desde el actual, y las transiciones terminales piden confirmación**. 2. Cada transición queda en el historial con quién y cuándo. **3. El detalle de la postulación ofrece "Generar documento con IA" (CU-33) si aún no existe un documento para ese proyecto-convocatoria, o "Editar documento" (CU-34) si ya existe. 4. Botón "Ir al portal de la entidad", que abre el enlace oficial de postulación en una pestaña nueva — refuerza que la radicación se hace ahí, no en la plataforma (RN-19). 5. Botón "Solicitar consultor" (CU-19), con el proyecto y la convocatoria de la postulación ya preseleccionados (tipo de ayuda fijo en "convocatoria específica") (RF-28)** |
-| **Flujos alternos** | 1a. Panel con todas las postulaciones activas, avance y fechas. **3a. Si la postulación no tiene un proyecto vinculado (CU-11, flujo 2), el botón primero pide elegir o vincular uno antes de continuar a la generación. 5a. Igual restricción aplica a "Solicitar consultor": sin proyecto vinculado, primero pide elegir o vincularlo** |
+| **Flujo principal** | 1. Cambia el estado siguiendo el grafo declarado (RF-83): en preparación → presentada → en evaluación → aprobada/rechazada → cerrada, y desde cualquier estado no cerrado se puede cerrar; **solo se ofrecen los estados alcanzables desde el actual, y las transiciones terminales piden confirmación**. Una cerrada no se reabre. 2. Cada transición queda en el historial con quién y cuándo. **3. El detalle de la postulación ofrece "Generar documento con IA" (CU-33) si aún no existe un documento para ese proyecto-convocatoria, o "Editar documento" (CU-34) si ya existe. 4. Botón "Ir al portal de la entidad", que abre el enlace oficial de postulación en una pestaña nueva — refuerza que la radicación se hace ahí, no en la plataforma (RN-19). 5. Botón "Solicitar consultor" (CU-19), con el proyecto y la convocatoria de la postulación ya preseleccionados (tipo de ayuda fijo en "convocatoria específica") (RF-28)** |
+| **Flujos alternos** | 1a. Panel con todas las postulaciones activas, avance y fechas. **3a. Si la postulación no tiene un proyecto vinculado (CU-11, flujo 2), el botón primero pide elegir o vincular uno antes de continuar a la generación. El proyecto se vincula una sola vez: una postulación que ya tiene proyecto no lo cambia, y no se puede vincular un proyecto que ya tenga otra postulación en curso sobre la misma convocatoria (RN-35, sesión 020). 5a. Igual restricción aplica a "Solicitar consultor": sin proyecto vinculado, primero pide elegir o vincularlo** |
 
 ### Módulo D — Cuenta
 

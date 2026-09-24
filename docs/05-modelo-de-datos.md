@@ -559,3 +559,31 @@ RLS: lectura para `authenticated`; **ninguna política de escritura**: la lista 
 
 **Filtro del catálogo (RF-12).** `departamento=<código>` trae las convocatorias con ese departamento **y todas las de cobertura nacional**.
 
+---
+
+### 9.19 Postulaciones: iniciar, checklist y estados *(nuevo v6, sesión 020 — Sprint 3 pasos 3 y 4)*
+
+Implementa RF-17, RF-18, RF-19 y RF-83 en el servidor (CU-11, CU-12, CU-13), con RN-35 (decisión del Product Owner en la sesión 020). Las tablas, la copia del checklist (RN-04), el historial y la vigencia al crear (RF-78, §9.7) existen desde el Sprint 0 y la sesión 017; aquí se añade lo que faltaba. Migraciones `20260925100000_iniciar_postulacion` y `20260925200000_transiciones_postulacion`.
+
+**`public.iniciar_postulacion(p_convocatoria uuid, p_proyecto uuid) returns table (id uuid, creada boolean)`**
+
+- **`security invoker`**: corre con la sesión de la empresa, así que la RLS decide.
+- Rechazos con clave estable en `hint`: `no_es_empresa`, `sin_suscripcion` (CU-11 1b), `convocatoria_no_existe` (lo que la sesión no ve, p. ej. un borrador, RN-33), `proyecto_no_existe` (uno ajeno, RN-30) y, desde el trigger de §9.7, `convocatoria_no_vigente` (RF-78, RF-21).
+- **CU-11 1c, RN-35:** si la empresa ya tiene una postulación **no cerrada** para ese par proyecto-convocatoria —o sin proyecto, si `p_proyecto` es nulo—, la devuelve con `creada = false` en lugar de crear otra. Un `pg_advisory_xact_lock` por par evita que dos clics seguidos creen dos.
+- Si no existe, la inserta; el checklist lo copia el trigger de siempre.
+
+**Reglas en la base**
+
+| Regla | Cómo |
+|---|---|
+| Nace en `en_preparacion` (CU-11) | La política de inserción exige `estado = 'en_preparacion'`: insertar directamente otro estado lo rechaza la RLS |
+| Una en curso por par con proyecto (RN-35) | Índice único parcial `postulaciones_una_en_curso_por_par` sobre `(usuario_id, convocatoria_id, proyecto_id) where estado <> 'cerrada' and proyecto_id is not null` |
+| Una en curso sin proyecto (RN-35) | Se comprueba en `iniciar_postulacion`, **no con un índice**: al borrar un proyecto sus postulaciones pasan a sin proyecto (`on delete set null`), y un índice sobre esas filas impediría borrarlo |
+| El proyecto se vincula una vez (RN-35, CU-13 3a) | `privado.guardar_columnas_postulacion()` rechaza con `hint = 'proyecto_fijo'` que el cliente cambie o quite un `proyecto_id` ya puesto. El `set null` de la clave foránea corre como dueño de la tabla y no lo frena |
+| Checklist de solo lectura en una cerrada (RN-35, CU-12 2a) | `privado.guardar_columnas_checklist()` rechaza con `hint = 'postulacion_cerrada'` |
+| Grafo de estados (RF-83) | Trigger `postulaciones_exigir_transicion` con `privado.transicion_postulacion_permitida(desde, hacia)`; fuera del grafo, `hint = 'transicion_invalida'`. **Vale también para `service_role`**. El grafo es el de `TRANSICIONES_POSTULACION` en `lib/utils.ts`, que decide qué ofrece la pantalla; `supabase/tests/postulaciones.sql` recorre los 36 pares para que no diverjan |
+
+Grafo: `en_preparacion → presentada | cerrada` · `presentada → en_evaluacion | cerrada` · `en_evaluacion → aprobada | rechazada | cerrada` · `aprobada → cerrada` · `rechazada → cerrada` · `cerrada →` ninguno. Cada transición queda en `postulacion_historial` con quién y cuándo (trigger de §9.10, RF-19).
+
+**La confirmación de las transiciones terminales** (RF-83) la pide la pantalla y la exige también el endpoint: cerrar sin `confirmado: true` responde 400.
+

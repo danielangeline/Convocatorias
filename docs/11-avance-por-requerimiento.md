@@ -56,8 +56,8 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RF-12 Filtros combinables | verificado | **Sesión 017:** texto libre sin tildes, tipo de proyecto, sector, entidad, ubicación, monto (formato colombiano) y cierre, en un solo módulo (`lib/catalogo-filtros.ts`) que usan la pantalla y el endpoint. 10 comprobaciones de filtros en `scripts/prueba-catalogo-empresa.mjs` (34 comprobaciones, todas pasan) **Sesión 019:** el filtro de ubicación pasa a **departamento** (código DANE) e incluye siempre las de cobertura nacional (RN-34); chips por departamento. `prueba-catalogo-empresa.mjs` y `prueba-sugerencias.mjs` en verde |
 | RF-13 Ficha de detalle | verificado | **Sesión 017:** la ficha se lee en el servidor con la sesión de la empresa (un borrador da 404); requisitos, documentos y enlace oficial reales; **Descargar** pide una URL firmada de 15 min y baja el archivo exacto con su nombre descriptivo, tildes incluidas. Verificado en `scripts/prueba-catalogo-empresa.mjs` (34 comprobaciones, todas pasan) |
 | RF-14 Registrar proyectos | verificado | **Sesión 018:** `GET/POST /api/proyectos` y `GET/PATCH/DELETE /api/proyectos/[id]` con la sesión de la empresa; `guardar_proyecto` guarda datos y categorías juntos (docs/05 §9.17); el dueño lo fija la base aunque el cuerpo diga otro (RN-30). Otra empresa recibe 404 y 0 filas en la tabla; consultor, 403. Verificado en `scripts/prueba-proyectos.mjs` (43 comprobaciones, todas pasan) **Sesión 019:** departamento del proyecto (lista oficial, RN-34) y la ubicación en texto queda como detalle |
-| RF-15 Sugerencias, solo vigentes | servidor | **Sesión 019:** `sugerencias_proyecto()` en la base (`security invoker`, docs/05 §9.6): solo publicadas con cierre ≥ hoy en Colombia, aunque el job de RF-10 no las haya cerrado; exige suscripción vigente (402) y un proyecto ajeno no existe (404). `GET /api/proyectos/[id]/sugerencias` y la pantalla, como componente de servidor. Verificado con `supabase/tests/sugerencias.sql` (19/19) y `scripts/prueba-sugerencias.mjs` (35/35), con la pantalla comprobada por su HTML. Falta mirarla en pantalla con sesión de empresa |
-| RF-16 Porcentaje de compatibilidad | servidor | **Sesión 019:** cinco criterios fijos, `round(coincidencias × 100 / 5)`, ubicación por departamento (RN-34); el desglose distingue `sin_dato`. Sin coincidencias: los datos que faltan con enlace a completarlos (`?editar=`, RF-81) y hasta 5 vigentes cercanas (CU-10 2a, decisión del Product Owner). Probado 100/40/20 %, orden y desempate. Falta mirarla en pantalla con sesión de empresa |
+| RF-15 Sugerencias, solo vigentes | verificado | **Sesión 019:** `sugerencias_proyecto()` en la base (`security invoker`, docs/05 §9.6): solo publicadas con cierre ≥ hoy en Colombia, aunque el job de RF-10 no las haya cerrado; exige suscripción vigente (402) y un proyecto ajeno no existe (404). `GET /api/proyectos/[id]/sugerencias` y la pantalla, como componente de servidor. Verificado con `supabase/tests/sugerencias.sql` (19/19) y `scripts/prueba-sugerencias.mjs` (35/35), con la pantalla comprobada por su HTML. **Sesión 020:** el Product Owner la revisó en pantalla con su cuenta de empresa (pendiente 11) |
+| RF-16 Porcentaje de compatibilidad | verificado | **Sesión 019:** cinco criterios fijos, `round(coincidencias × 100 / 5)`, ubicación por departamento (RN-34); el desglose distingue `sin_dato`. Sin coincidencias: los datos que faltan con enlace a completarlos (`?editar=`, RF-81) y hasta 5 vigentes cercanas (CU-10 2a, decisión del Product Owner). Probado 100/40/20 %, orden y desempate. **Sesión 020:** revisado en pantalla por el Product Owner (pendiente 11) |
 | RF-43 Chips sugeridos | servidor | **Sesión 017:** se derivan del catálogo vigente (categorías y ubicaciones más frecuentes), así que ninguno lleva a un resultado vacío (RF-43 mod. v6) |
 | RF-44 Indicadores de la landing | verificado | Cifra correcta en el primer fotograma. Sesión 006: `public.indicadores_catalogo()` ya da los agregados a `anon`. **Sesión 017:** la landing y `GET /api/indicadores` los leen en vivo con caché de 1 hora, que se invalida al publicar, despublicar o editar una convocatoria; si no se pueden calcular, no se muestran. Verificado en `scripts/prueba-catalogo-empresa.mjs` (34 comprobaciones, todas pasan) y en el navegador |
 
@@ -73,11 +73,11 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 
 | RF | Estado | Nota |
 |---|---|---|
-| RF-17 Iniciar postulación con checklist | prototipo | |
-| RF-18 Marcar checklist y avance | prototipo | |
-| RF-19 Estados con historial | prototipo | |
-| RF-20 Panel de postulaciones | prototipo | |
-| RF-21 Impedir sobre cerradas | prototipo | Solo deshabilita el botón; ver RF-78 |
+| RF-17 Iniciar postulación con checklist | servidor | **Sesión 020:** `POST /api/postulaciones` con `iniciar_postulacion()` (`security invoker`, docs/05 §9.19): exige suscripción (402), convocatoria visible (404) y vigente (409, RF-78), proyecto propio (404); nace en `en_preparacion` (la RLS rechaza otro estado) y el checklist lo copia el trigger (RN-04). Si el par ya tiene una en curso, devuelve esa (200, CU-11 1c, RN-35). Verificado con `supabase/tests/postulaciones.sql` (31/31) y `scripts/prueba-postulaciones.mjs` (52/52), con las pantallas comprobadas por su HTML. Falta recorrerlo en el navegador con sesión de empresa (pendiente 12) |
+| RF-18 Marcar checklist y avance | servidor | **Sesión 020:** `PATCH /api/checklist/[itemId]`; la empresa solo cambia `completado` (trigger) y en una cerrada responde 409 (RN-35). El avance es completados sobre total. Verificado con `supabase/tests/postulaciones.sql` (31/31) y `scripts/prueba-postulaciones.mjs` (52/52), con las pantallas comprobadas por su HTML. Falta recorrerlo en el navegador con sesión de empresa (pendiente 12) |
+| RF-19 Estados con historial | servidor | **Sesión 020:** `POST /api/postulaciones/[id]/estado`; cada transición queda en `postulacion_historial` con quién y cuándo (trigger del Sprint 0), y la línea de tiempo la lee del servidor. Verificado con `supabase/tests/postulaciones.sql` (31/31) y `scripts/prueba-postulaciones.mjs` (52/52), con las pantallas comprobadas por su HTML. Falta recorrerlo en el navegador con sesión de empresa (pendiente 12) |
+| RF-20 Panel de postulaciones | servidor | **Sesión 020:** `/postulaciones` es componente de servidor, con la RLS de la empresa: sus postulaciones con convocatoria, proyecto, avance y cierre. Aislamiento de dos empresas comprobado en la pantalla (condición del Hito 1). Falta mirarlo en el navegador (pendiente 12) |
+| RF-21 Impedir sobre cerradas | servidor | **Sesión 020:** postular a una cerrada, vencida o despublicada responde 409 desde el trigger de RF-78, comprobado por HTTP y en SQL. Generar sobre ellas llega en el Sprint 4 |
 
 ### 4.6 Perfil del consultor
 
@@ -105,7 +105,7 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RF-70 Revelar contacto al aceptar | prototipo | |
 | RF-71 Autorizar documento al consultor | prototipo | |
 | RF-72 Bloquear exportación en servidor | pendiente | Hoy solo se oculta el botón |
-| RF-73 Ir al portal como acción primaria | prototipo | |
+| RF-73 Ir al portal como acción primaria | servidor | **Sesión 020:** el detalle de la postulación lee del servidor el enlace oficial (validado al guardar, RNF-29) y lo presenta como botón primario, antes de "Solicitar consultor"; comprobado en el HTML por `prueba-postulaciones.mjs`. Falta mirar la jerarquía visual en el navegador (pendiente 12) |
 | RF-74 Solicitud directa desde el perfil | prototipo | |
 | RF-75 Buscador de convocatorias en el selector | prototipo | |
 
@@ -176,7 +176,7 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 |---|---|---|
 | RF-81 Completitud accionable | verificado | Implementado y verificado en navegador (prototipo). **Sesión 018:** la edición desde la ficha guarda en el servidor (`PATCH /api/proyectos/[id]`). **Sesión 019:** el Product Owner repitió el recorrido con su cuenta de empresa (crear solo con nombre, abrir el campo que falta, monto `150.000.000`, recargar): funciona |
 | RF-82 Comparador con atributos reales | prototipo | Implementado y verificado en navegador |
-| RF-83 Grafo de transiciones | prototipo | Validado en store; falta en servidor |
+| RF-83 Grafo de transiciones | servidor | **Sesión 020:** trigger en la base (`privado.transicion_postulacion_permitida`, también para `service_role`) y comprobación previa en el endpoint con el mismo grafo de `lib/utils.ts`; la prueba SQL recorre los 36 pares. Cerrar exige `confirmado: true` en el endpoint además del diálogo. Verificado con `supabase/tests/postulaciones.sql` (31/31) y `scripts/prueba-postulaciones.mjs` (52/52), con las pantallas comprobadas por su HTML. Falta recorrerlo en el navegador con sesión de empresa (pendiente 12) |
 
 ---
 
@@ -233,6 +233,7 @@ Las reglas están documentadas (RN-34 desde la sesión 019); estas son las que t
 | RN-05 Compatibilidad determinística, sin IA | servidor | 3 — **Sesión 019:** cruce de atributos en SQL (`sugerencias_proyecto`), sin IA, y la pantalla lo aclara ("no es una predicción de éxito"), comprobado en la suite |
 | RN-34 Ubicación por departamentos *(v6, sesión 019)* | servidor | 3 — tabla `departamentos` (33, código DANE) sin escritura desde la app, cobertura de la convocatoria y departamento del proyecto; se compara solo por código. Probado en SQL y HTTP |
 | RN-03 No postular ni generar sobre cerradas | prototipo (solo UI) | 2 |
+| RN-35 Una postulación en curso por par; proyecto fijo; checklist hasta cerrar *(v6, sesión 020)* | servidor | 3 — índice único parcial por par con proyecto, comprobación en `iniciar_postulacion` para el par sin proyecto, trigger `proyecto_fijo` y trigger del checklist cerrado. Probado en SQL y HTTP, incluido que borrar un proyecto sigue funcionando |
 | RN-17 Un crédito por generación exitosa | prototipo | 4 — RLS impide crear documentos y tocar el contador de ajustes o los créditos desde el cliente (sesión 003) |
 | RN-18 Reinicio mensual, sin acumular | pendiente | 4 |
 | RN-23 Saneamiento del TDR | pendiente | 4 |

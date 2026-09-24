@@ -5,18 +5,38 @@
 
 ---
 
-**Actualizado:** 23 de septiembre de 2026 (noche) · cierre de la sesión 019
-**Sprint:** 3 · día 9 de 30 (el Sprint 2 terminó antes de su día 12)
-**Rama de trabajo:** `sprint-2`, abierta desde `main` en la sesión 011 y subida a `origin` (sin fusionar a `main`: producción todavía no tiene el catálogo del panel). **Migraciones nuevas ya aplicadas al remoto:** `20260917100000_guardar_convocatoria`, `20260917200000_storage_y_adjuntos` , `20260918100000_publicar_convocatoria` y `20260918200000_nombres_normalizados_y_borrar_categorias`, y desde el Sprint 3 las de proyectos (`20260923500000`) y **departamentos y sugerencias (`20260924100000`)**. No rompen `main`, que no las llama
+**Actualizado:** 24 de septiembre de 2026 · cierre de la sesión 020
+**Sprint:** 3 · día 10 de 30 (el Sprint 2 terminó antes de su día 12)
+**Rama de trabajo:** `sprint-2`, abierta desde `main` en la sesión 011 y subida a `origin` (sin fusionar a `main`: producción todavía no tiene el catálogo del panel). **Migraciones nuevas ya aplicadas al remoto:** `20260917100000_guardar_convocatoria`, `20260917200000_storage_y_adjuntos` , `20260918100000_publicar_convocatoria` y `20260918200000_nombres_normalizados_y_borrar_categorias`, y desde el Sprint 3 las de proyectos (`20260923500000`) y departamentos y sugerencias (`20260924100000`), y **postulaciones (`20260925100000` y `20260925200000`)**. No rompen `main`, que no las llama
 
 ---
 
 ## Dónde vamos
 
-La especificación está cerrada en **v6**. **La base de datos existe en Supabase** (29 tablas con RLS, prueba cruzada pasada) y **la identidad ya es real**: registro, login, confirmación de correo y MFA del administrador con Supabase Auth. El `ModoDemo` desapareció. **Desde la sesión 011, el panel administra fuentes, categorías y convocatorias (datos y requisitos) contra Supabase**, con endpoints validados en el servidor, desde la 012 también los adjuntos, en Storage real —los 3 buckets existen, los tres privados, y todo archivo se entrega por URL firmada de 15 minutos— y **desde la 013 publica y despublica, validado en el servidor**. Con eso, el panel ya carga una convocatoria de principio a fin. Las tablas del catálogo siguen vacías: nadie ha cargado contenido real. Lo demás —el catálogo que ve la empresa, proyectos, postulaciones, documentos, encargos— sigue en datos de ejemplo de Zustand, filtrados por el `auth.uid()` real: una cuenta nueva empieza vacía y lo que crea se pierde al recargar.
+La especificación está cerrada en **v6**. **La base de datos existe en Supabase** (29 tablas con RLS, prueba cruzada pasada) y **la identidad ya es real**: registro, login, confirmación de correo y MFA del administrador con Supabase Auth. El `ModoDemo` desapareció. **Desde la sesión 011, el panel administra fuentes, categorías y convocatorias (datos y requisitos) contra Supabase**, con endpoints validados en el servidor, desde la 012 también los adjuntos, en Storage real —los 3 buckets existen, los tres privados, y todo archivo se entrega por URL firmada de 15 minutos— y **desde la 013 publica y despublica, validado en el servidor**. Con eso, el panel ya carga una convocatoria de principio a fin. Las tablas del catálogo siguen vacías: nadie ha cargado contenido real. Desde el Sprint 2 el catálogo de la empresa es real, y desde el Sprint 3 también lo son sus proyectos, sugerencias y **postulaciones (sesión 020)**. Lo demás —documentos, encargos— sigue en datos de ejemplo de Zustand, filtrados por el `auth.uid()` real: una cuenta nueva empieza vacía y lo que crea se pierde al recargar.
 
 ## Lo último que se hizo
 
+- **Sesión 020: Sprint 3, pasos 3 y 4 — postulaciones con checklist (RF-17, RF-18, RF-19, RF-20, RF-21, RN-04) y grafo de estados en el servidor (RF-83). Regla nueva RN-35.**
+  - **Decisiones del Product Owner antes de programar (RN-35):**
+    - una sola postulación en curso (no cerrada) por par proyecto-convocatoria; si ya existe, "Postular" abre la existente;
+    - el checklist se sigue marcando hasta que la postulación se cierra;
+    - el proyecto se vincula una sola vez.
+  - La especificación se escribió primero: CU-11, 12 y 13, RF-17 y 18, RN-35, docs/04, docs/05 §9.19 (nueva) y la trazabilidad.
+  - **Migración `20260925100000`** (ensayada y aplicada):
+    - `iniciar_postulacion()`, que crea la postulación o devuelve la que ya está en curso;
+    - la postulación nace siempre en `en_preparacion`. Antes la RLS dejaba insertarla directamente como `aprobada`: era un hueco;
+    - índice único por par con proyecto;
+    - triggers de proyecto fijo y de checklist cerrado.
+  - **Migración `20260925200000`** (ensayada y aplicada): el grafo de estados en la base, también para `service_role`. Resuelve el hallazgo de RF-83 abierto desde la sesión 004.
+  - Endpoints `GET/POST /api/postulaciones`, `GET/PATCH /api/postulaciones/[id]`, `POST .../estado` y `PATCH /api/checklist/[itemId]`, declarados en la matriz. El listado y el detalle pasan a componentes de servidor; la ficha de la convocatoria postula por la API. Se retiraron del store las cuatro acciones de postulaciones.
+  - Verificado:
+    - `supabase/tests/postulaciones.sql`: **31/31**;
+    - `scripts/prueba-postulaciones.mjs` (nueva): **52/52**, dos corridas seguidas, con aislamiento de dos empresas en las pantallas (condición del Hito 1);
+    - regresión completa en verde: 5 pruebas SQL y 6 suites HTTP (280 comprobaciones);
+    - `tsc` y `eslint` limpios.
+  - **No verificado en el navegador:** la pestaña tiene la sesión de administrador. Queda como pendiente 12.
+  - Al abrir, el Product Owner confirmó el pendiente 11 (RF-15 y RF-16 pasan a `verificado`) y la hora de Windows sincronizada (desfase medido: 1 s). `diagnostico-red-supabase.mjs`: red limpia.
 - **Sesión 019: Sprint 3, paso 2 — sugerencias en el servidor (RF-15, RF-16, RN-05, RNF-05) y ubicación por departamentos (RN-34, nueva).**
   - **Decisión del Product Owner antes de programar:** la ubicación deja de ser texto libre. Una convocatoria es de **cobertura nacional o cubre uno o más departamentos** de la lista oficial (33, código DANE); el proyecto se ejecuta en **un departamento**; el texto se conserva como detalle. El filtro del catálogo pasa a departamento e incluye siempre las nacionales. CU-02, 05, 07, 09 y 10, RF-05, 09, 12, 14 y 16, RN-01, RN-34 (nueva), docs/04, docs/05 (§9.6 reescrito y §9.18 nueva) y la trazabilidad, antes del código.
   - **CU-10 2a, decisión del Product Owner:** sin ninguna coincidencia, primero los datos que le faltan al proyecto (con enlace que abre la edición en ese campo, RF-81) y después hasta 5 vigentes cercanas en 0 % con su desglose. La primera regla ("el criterio que menos se cumple") se descartó al escribirla: sin coincidencias los cinco empatan en cero.
@@ -101,11 +121,11 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 - **Ya cerrada la sesión, a pedido del Product Owner:** no llegaba el correo de confirmación al crear una cuenta. Causa: registrarse con un correo que ya tiene cuenta devuelve éxito sin enviar nada (Supabase, para no revelar qué correos existen). Se borró la cuenta de administrador revocado `danielangeline322@gmail.com` y el Product Owner se registró con ella como empresa en producción: **RF-01 queda probado por el formulario con correo real**, con confirmación, perfil de empresa y trial de 3 créditos.
 - **Sesión 010:** entrada con dos puertas (RF-84) y recuperación de contraseña (RF-03). Cerró el Sprint 1.
 
-Detalle en [`docs/bitacora/2026-09-23-sesion-019.md`](docs/bitacora/2026-09-23-sesion-019.md).
+Detalle en [`docs/bitacora/2026-09-24-sesion-020.md`](docs/bitacora/2026-09-24-sesion-020.md).
 
 ## En curso
 
-Nada a medias. Sprint 3: pasos 1 y 2 hechos (sesiones 018 y 019).
+Nada a medias. Sprint 3: pasos 1 a 4 hechos (sesiones 018, 019 y 020); el 5 ya está en pantalla y solo falta mirarlo.
 
 ## Lo siguiente
 
@@ -113,9 +133,11 @@ Nada a medias. Sprint 3: pasos 1 y 2 hechos (sesiones 018 y 019).
 
 1. ~~Proyectos con datos de contenido y completitud, filtrados por propietario (RF-14, 45, 46, 47, **81**)~~ — **sesión 018**. RF-47 (generar sobre un proyecto incompleto) se cierra con la generación, en el Sprint 4.
 2. ~~Sugerencias con porcentaje y desglose, indexadas, solo vigentes (RF-15, 16, RN-05, RNF-05)~~ — **sesión 019**, junto con la ubicación por departamentos (RN-34).
-3. Postulaciones con checklist copiado de los requisitos (RF-17, 18, RN-04): `POST /api/postulaciones`, que traduce a 409 la clave `convocatoria_no_vigente` (RF-78).
-4. Estados según el grafo de transiciones, validados en servidor (**RF-83**).
-5. Enlace al portal de la entidad como acción primaria (**RF-73**, RN-19).
+3. ~~Postulaciones con checklist copiado de los requisitos (RF-17, 18, RN-04)~~ — **sesión 020**, con RN-35.
+4. ~~Estados según el grafo de transiciones, validados en servidor (**RF-83**)~~ — **sesión 020**.
+5. Enlace al portal de la entidad como acción primaria (**RF-73**, RN-19): el detalle ya lo lee del servidor y lo presenta primero, y el HTML lo comprueba. **Falta mirar la jerarquía visual en el navegador (pendiente 12).** Con eso y el recorrido del pendiente 12, el **Hito 3** queda cumplido.
+
+Después del Sprint 3: **Sprint 4 — generación con IA, créditos y suscripciones** (`docs/10 §Sprint 4`). El generador sigue leyendo postulaciones del store (ya sincronizado con las reales) para autovincular el documento.
 
 **Hito 3 (día 18):** una empresa registra un proyecto, recibe sugerencias ordenadas por compatibilidad, inicia una postulación y avanza su checklist. Todo persistido y aislado por RLS.
 
@@ -138,7 +160,7 @@ Nada a medias. Sprint 3: pasos 1 y 2 hechos (sesiones 018 y 019).
 
 **Ninguno propio del Sprint 2.** El cuelgue al guardar convocatorias (sesión 015) quedó **cerrado** en la sesión 016: en el punto de acceso Wi-Fi del iPhone del Product Owner (misma tarjeta MT7902 y mismo filtro de VirtualBox), `diagnostico-red-supabase.mjs` salió `RED LIMPIA` dos veces (180/180; en la red de casa fallaban 6 de 90) y `prueba-publicar-convocatoria.mjs` pasó **tres veces seguidas, 39/39, sin un solo reintento**. La causa es el router o el proveedor de la red de casa: con la misma tarjeta Wi-Fi en otra red, no ocurre. En esa red, guardar puede seguir colgándose ~20 s; las opciones para evitarlo están en el §10 del [reporte](docs/incidentes/2026-09-22-cuelgue-al-guardar-convocatoria.md). **Ante un cuelgue así, correr primero `scripts/diagnostico-red-supabase.mjs`.**
 
-**Para trabajar en local, sincronizar la hora de Windows** (Product Owner): el reloj va 140 s atrasado y el servicio "Hora de Windows" está detenido. Síntoma: durante unos minutos cada hora, el servidor local rechaza sesiones válidas ("Acceso denegado" o vuelta a `/login`) y los códigos TOTP generados en este equipo fallan. Configuración → Hora e idioma → Fecha y hora → activar "Establecer la hora automáticamente" y pulsar "Sincronizar ahora". No afecta a producción.
+~~**Sincronizar la hora de Windows**~~ — **hecho** (confirmado al abrir la sesión 020): el reloj va a 1 s de Supabase. Si vuelven los rechazos de sesión en local cada hora o fallan los TOTP, revisar primero la hora.
 
 Para lo demás, nada impide programar.
 
@@ -158,7 +180,16 @@ Pendiente del Product Owner:
 8. ~~**Recorrer el catálogo del panel en el navegador**~~ — **hecho el 17-sep**, informado por el Product Owner al abrir la sesión 012: todo funciona.
 9. ~~**Recorrer la sección "Documentos" del editor en el navegador**~~ — **hecho**: el Product Owner la recorrió en la sesión 015 (19/19 pasos) y el agente la repitió en la 016. Uno de sus pasos quedó obsoleto: publicar sin adjuntos ya no se permite (RN-01).
 10. ~~**Revisar los proyectos en pantalla con la cuenta de empresa**~~ — **hecho** (informado al abrir la sesión 019): RF-46 y RF-81 a `verificado`.
-11. **Ponerle departamento a tu proyecto y mirar las sugerencias** (sesión 019): en "Mi Nuevo proyecto", editar y elegir **Atlántico** (el texto "Barranquilla" se conservó como detalle). Luego abrir "Ver sugerencias": la convocatoria de MinCiencias debe salir con su porcentaje y el desglose. Probar también un proyecto nuevo solo con nombre: debe decir qué datos faltan y el botón debe abrir la edición en ese campo. En el panel, la convocatoria de MinCiencias debe mostrar "Cobertura nacional" marcada. Con eso RF-15 y RF-16 pasan a `verificado`.
+11. ~~**Ponerle departamento a tu proyecto y mirar las sugerencias**~~ — **hecho** (informado al abrir la sesión 020): RF-15 y RF-16 a `verificado`.
+12. **Recorrer las postulaciones con tu cuenta de empresa** (sesión 020). Ojo: **lo que crees queda guardado**, porque las postulaciones no se borran (son registro auditado).
+    - En la convocatoria de MinCiencias, pulsa "Postular" con tu proyecto: se abre el detalle con el checklist copiado de los requisitos.
+    - Vuelve a postular con el mismo proyecto: debe abrir la misma postulación, con el aviso "Ya tenías esta postulación en curso".
+    - Marca y desmarca ítems y recarga la página: el avance se conserva.
+    - Cambia a "Presentada": el selector solo ofrece los estados alcanzables, y la línea de tiempo lo registra.
+    - Mira que "Ir al portal de la entidad" sea el botón más visible de la pantalla (RF-73).
+    - Cerrar es opcional: una postulación cerrada no se reabre.
+
+    Con esto, RF-17 a RF-21, RF-73 y RF-83 pasan a `verificado` y se cumple el Hito 3.
 
 ## Decisiones abiertas
 
@@ -193,11 +224,14 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | La segunda barrera (`exigirRol` en los layouts) no se ejercitó por separado: el proxy corta antes | `lib/auth.ts` | baja · probarla desactivando el proxy en un entorno de prueba |
 | Las pruebas de la sesión 007 dejaron ~120 eventos `acceso_denegado` reales en `eventos_seguridad` | Supabase remoto | baja · son evidencia; limpiar antes de los pilotos |
 | Quedan 2 cuentas de prueba (`empresa.s004@example.com`, `consultor.s004@example.com`) en la base remota; `admin.s004` se borró en la sesión 006 | Supabase remoto | baja · borrarlas antes de los pilotos |
-| El reloj de esta máquina va ~140 s atrasado frente a Supabase y el servicio "Hora de Windows" está detenido (medido el 23-sep). Además de los TOTP, **rompe las sesiones en local unos minutos cada hora**: el servidor da por vivo un token que Supabase ya rechazó, y después descarta el token renovado por "emitido en el futuro" | máquina local | **media** · sincronizar la hora de Windows (ver "Bloqueos") |
+| El reloj de esta máquina va ~140 s atrasado frente a Supabase y el servicio "Hora de Windows" está detenido (medido el 23-sep). Además de los TOTP, **rompe las sesiones en local unos minutos cada hora**: el servidor da por vivo un token que Supabase ya rechazó, y después descarta el token renovado por "emitido en el futuro" | máquina local | **resuelto** antes de la sesión 020: el Product Owner sincronizó la hora (desfase medido: 1 s) |
 | `proxy.ts` también trata cualquier fallo de `rol_efectivo()` como "sin perfil válido": deniega el acceso y registra un `acceso_denegado` falso, sin guardar la causa. Es el mismo patrón que se corrigió en `obtenerSesion()` en la sesión 016 | `proxy.ts` | baja · registrar el error y distinguir un fallo pasajero de un rol ausente |
 | En la sesión 004, el primer `update` de `perfiles.rol` con `service_role` no persistió y el error no se leyó; al repetirlo funcionó. No se reprodujo | script de prueba | baja · vigilar al escribir el endpoint de asignar rol |
 | El perfil de consultor real se edita solo en el store: nombre, descripción, portafolio y demás se pierden al recargar | `app/consultor/perfil` | media · entra con los endpoints de perfil (Sprint 2/5) |
-| La transición de estados de la postulación (RF-83) no se valida en la base: RLS deja a la dueña poner cualquier estado | `postulaciones` | media · validar en el endpoint o con trigger en el Sprint 2 |
+| La transición de estados de la postulación (RF-83) no se valida en la base: RLS deja a la dueña poner cualquier estado | `postulaciones` | **resuelto** en la sesión 020: trigger del grafo (`20260925200000`) y comprobación en el endpoint |
+| La política de inserción de postulaciones no fijaba el estado inicial: una empresa podía crear una directamente como `aprobada` | `postulaciones` | **resuelto** en la sesión 020 (exige `en_preparacion`, CU-11) |
+| Si se borra un proyecto, su postulación en curso pasa a "sin proyecto" y puede convivir con otra sin proyecto en la misma convocatoria. Se aceptó a propósito: un índice lo habría impedido y habría bloqueado el borrado del proyecto (docs/05 §9.19) | `postulaciones` | baja · solo afecta a la unicidad del par "sin proyecto" |
+| Los historiales de postulación son `timestamptz` y la pantalla solo muestra el día (en hora de Colombia, `fechaColombia`). Si se quiere la hora del cambio, hace falta otro formato | `components/postulaciones/DetallePostulacion.tsx` | baja |
 | `/admin/seguridad` sigue leyendo eventos del mock: los eventos reales (`admin_invitado`, `admin_revocado`, `acceso_denegado`…) no se ven en el panel | `app/admin/seguridad/page.tsx` | media · entra con CU-39 |
 | Si `inviteUserByEmail` falla después de crear la cuenta en Auth, el endpoint borra la invitación pero no puede borrar esa cuenta (no conoce su id): queda una empresa con trial que ocupa el correo. Se registra en el log del servidor. No se ha observado; Auth suele deshacer la cuenta si el envío falla | `lib/admin/administradores.ts` | baja · resolver con una función que devuelva el id por correo si ocurre |
 | La segunda barrera de la gestión de administradores (`sesionDePropietario`) tampoco se ejercitó por separado: el proxy corta antes | `lib/auth.ts` | baja · mismo caso que `exigirRol` |

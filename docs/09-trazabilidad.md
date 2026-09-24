@@ -19,9 +19,9 @@
 | CU-08 Detalle y descargas *(v5: enlace al portal; v6: solo empresas; sesión 016: descarga por URL firmada heredando la visibilidad de la fila)* | RF-13, **73** | RNF-06, **RNF-16**, **RN-33** |
 | CU-09 Proyecto enriquecido *(v6: completitud accionable; sesión 019: departamento)* | RF-14, 45, 46, 47, **81** | RN-21, RNF-03, **RNF-07**, **RN-34** |
 | CU-10 Sugerencias con % *(v6: solo vigentes; sesión 019: cálculo en servidor, ubicación por departamento, 2a y 2b)* | RF-15, 16, **81** | RN-05, RNF-05, **RN-02**, **RNF-20**, **RN-34** |
-| CU-11 Iniciar postulación *(v6: vigencia verificada en servidor)* | RF-17, 21, **78** | RN-03, 04, 19, **RNF-20** |
-| CU-12 Checklist | RF-18, 20 | — |
-| CU-13 Estados *(v5: generar/editar documento, enlace al portal, solicitar consultor; v6: grafo de transiciones y jerarquía del portal)* | RF-19, 20, 28, 53, 73, **83** | RNF-11, 12, **RN-19** |
+| CU-11 Iniciar postulación *(v6: vigencia verificada en servidor; sesión 020: una en curso por par)* | RF-17, 21, **78** | RN-03, 04, 19, **RNF-20**, **RN-35** |
+| CU-12 Checklist *(sesión 020: solo lectura si está cerrada)* | RF-18, 20 | **RN-35** |
+| CU-13 Estados *(v5: generar/editar documento, enlace al portal, solicitar consultor; v6: grafo de transiciones y jerarquía del portal)* | RF-19, 20, 28, 53, 73, **83** | RNF-11, 12, **RN-19**, **RN-35** |
 | CU-14 Cuenta *(v6: dos puertas, panel oculto)* | RF-01, 02, 03, **84, 85** | RNF-01, **30, 35**, RN-06, **32** |
 | CU-15..17 Perfil consultor | RF-22..25 | RN-13, RNF-16, 18 |
 | CU-18 Encargos (consultor) *(v5: contexto, contacto)* | RF-30, 32, **68, 69, 70** | RN-10, **29**, RN-25, RN-26, RF-40 |

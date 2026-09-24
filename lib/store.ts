@@ -22,18 +22,15 @@ import {
   suscripciones as suscripcionesIniciales,
 } from "./mock-data";
 import { componerDocumento, aplicarAjusteTexto, postulacionParaProyectoConv } from "./documentos";
-import { transicionPermitida } from "./utils";
 import type {
   Calificacion,
   Categoria,
-  ChecklistItem,
   Convocatoria,
   DocumentoGenerado,
   Empresa,
   Encargo,
   EstadisticasIA,
   EstadoEncargo,
-  EstadoPostulacion,
   EventoSeguridad,
   Fuente,
   ItemPortafolio,
@@ -161,10 +158,7 @@ interface AppState {
   hidratarProyectos: (proyectos: Proyecto[]) => void;
 
   // Postulaciones
-  crearPostulacion: (convocatoriaId: string, proyectoId: string | null) => Postulacion;
-  toggleChecklistItem: (postulacionId: string, itemId: string) => void;
-  cambiarEstadoPostulacion: (postulacionId: string, nuevoEstado: EstadoPostulacion) => void;
-  vincularProyectoAPostulacion: (postulacionId: string, proyectoId: string) => void;
+  hidratarPostulaciones: (postulaciones: Postulacion[]) => void;
 
   // Fuentes
   agregarFuente: (f: Omit<Fuente, "id">) => void;
@@ -338,81 +332,11 @@ export const useAppStore = create<AppState>((set, get) => ({
   // (sugerencias, generar, postular, encargos).
   hidratarProyectos: (proyectos) => set({ proyectos }),
 
-  crearPostulacion: (convocatoriaId, proyectoId) => {
-    const convocatoria = get().convocatorias.find((c) => c.id === convocatoriaId);
-    const checklist: ChecklistItem[] = (convocatoria?.requisitos ?? []).map((r) => ({
-      id: nuevoId("chk"),
-      descripcion: r.descripcion,
-      obligatorio: r.obligatorio,
-      completado: false,
-    }));
-    const nueva: Postulacion = {
-      id: nuevoId("post"),
-      usuarioId: usuarioSesion(get().sesion),
-      convocatoriaId,
-      proyectoId,
-      estado: "en_preparacion",
-      checklist,
-      historial: [
-        { id: nuevoId("hist"), estadoAnterior: null, estadoNuevo: "en_preparacion", fecha: hoyIso() },
-      ],
-    };
-    set((s) => ({ postulaciones: [...s.postulaciones, nueva] }));
-    return nueva;
-  },
-
-  toggleChecklistItem: (postulacionId, itemId) => {
-    const usuarioId = usuarioSesion(get().sesion);
-    set((s) => ({
-      postulaciones: s.postulaciones.map((p) =>
-        p.id === postulacionId && p.usuarioId === usuarioId
-          ? {
-              ...p,
-              checklist: p.checklist.map((item) =>
-                item.id === itemId ? { ...item, completado: !item.completado } : item
-              ),
-            }
-          : p
-      ),
-    }));
-  },
-
-  cambiarEstadoPostulacion: (postulacionId, nuevoEstado) => {
-    const usuarioId = usuarioSesion(get().sesion);
-    set((s) => ({
-      postulaciones: s.postulaciones.map((p) => {
-        if (p.id !== postulacionId || p.usuarioId !== usuarioId || p.estado === nuevoEstado) return p;
-        // RF-83: la transición se valida aquí, no solo en el selector. Al
-        // conectar el backend esta comprobación se traslada a la API route.
-        if (!transicionPermitida(p.estado, nuevoEstado)) return p;
-        return {
-          ...p,
-          estado: nuevoEstado,
-          historial: [
-            ...p.historial,
-            {
-              id: nuevoId("hist"),
-              estadoAnterior: p.estado,
-              estadoNuevo: nuevoEstado,
-              fecha: hoyIso(),
-            },
-          ],
-        };
-      }),
-    }));
-  },
-
-  vincularProyectoAPostulacion: (postulacionId, proyectoId) => {
-    const usuarioId = usuarioSesion(get().sesion);
-    // RN-30: solo se vincula un proyecto propio a una postulación propia.
-    const proyectoPropio = get().proyectos.some((pr) => pr.id === proyectoId && pr.usuarioId === usuarioId);
-    if (!proyectoPropio) return;
-    set((s) => ({
-      postulaciones: s.postulaciones.map((p) =>
-        p.id === postulacionId && p.usuarioId === usuarioId ? { ...p, proyectoId } : p
-      ),
-    }));
-  },
+  // Iniciar, marcar el checklist, cambiar el estado y vincular el proyecto
+  // pasan por /api/postulaciones y /api/checklist (docs/05 §9.19): aquí solo
+  // se reciben las reales para las pantallas que aún leen del store (generar,
+  // documentos, encargos).
+  hidratarPostulaciones: (postulaciones) => set({ postulaciones }),
 
   agregarFuente: (f) => {
     set((s) => ({ fuentes: [...s.fuentes, { ...f, id: nuevoId("fuente") }] }));

@@ -62,6 +62,9 @@ const PREFIJOS: [string, Regla][] = [
   ["/api/proyectos", EMPRESA],
   ["/proyectos", EMPRESA],
   ["/documentos", EMPRESA],
+  // Sprint 3 pasos 3 y 4: postulaciones, su checklist y su estado (RN-30, RF-83).
+  ["/api/postulaciones", EMPRESA],
+  ["/api/checklist", EMPRESA],
   ["/postulaciones", EMPRESA],
   ["/consultores", EMPRESA],
   ["/encargos", EMPRESA],

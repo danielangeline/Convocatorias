@@ -56,8 +56,8 @@
 
 | ID | Requerimiento | CU | Prioridad |
 |---|---|---|---|
-| RF-17 | Iniciar postulación generando el checklist automáticamente. Requiere suscripción | CU-11 | Must |
-| RF-18 | Marcar ítems del checklist y mostrar porcentaje de avance | CU-12 | Must |
+| RF-17 | Iniciar postulación generando el checklist automáticamente. Requiere suscripción. **Nace siempre en `en_preparacion` y no duplica una postulación en curso del mismo par proyecto-convocatoria: si existe, se devuelve esa (RN-35)** *(mod. v6, sesión 020)* | CU-11 | Must |
+| RF-18 | Marcar ítems del checklist y mostrar porcentaje de avance (ítems completados sobre el total). **Se marca en cualquier estado salvo `cerrada`; el servidor rechaza el cambio en una cerrada (RN-35)** *(mod. v6, sesión 020)* | CU-12 | Must |
 | RF-19 | Estados de la postulación con historial fechado, **según el grafo de transiciones declarado en RF-83** *(mod. v6)* | CU-13 | Must |
 | RF-20 | Panel del usuario con postulaciones activas, avance y fechas de cierre | CU-12, 13 | Should |
 | RF-21 | Impedir postulaciones sobre convocatorias cerradas o despublicadas | CU-06, 11 | Must |

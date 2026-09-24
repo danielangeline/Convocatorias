@@ -18,7 +18,6 @@ import {
   X,
   ExternalLink,
 } from "lucide-react";
-import { useAppStore } from "@/lib/store";
 import { useAccesoSuscripcion, useProyectosPropios } from "@/lib/hooks";
 import {
   diasRestantes,
@@ -48,11 +47,12 @@ export function FichaConvocatoria({
 }) {
   const router = useRouter();
   const proyectos = useProyectosPropios();
-  const crearPostulacion = useAppStore((s) => s.crearPostulacion);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [proyectoSel, setProyectoSel] = useState<string>("");
   const [descargando, setDescargando] = useState<string | null>(null);
   const [errorDescarga, setErrorDescarga] = useState<string | null>(null);
+  const [postulando, setPostulando] = useState(false);
+  const [errorPostular, setErrorPostular] = useState<string | null>(null);
   const { requerirAcceso } = useAccesoSuscripcion();
 
   if (!convocatoria) {
@@ -86,10 +86,26 @@ export function FichaConvocatoria({
     window.open(json.datos.url as string, "_blank", "noopener,noreferrer");
   };
 
-  const confirmarPostulacion = () => {
-    const nueva = crearPostulacion(convocatoria.id, proyectoSel || null);
+  // RF-17, CU-11 · La crea el servidor, que exige suscripción y vigencia
+  // (RF-78) y, si el par ya tiene una en curso, devuelve esa (CU-11 1c, RN-35).
+  const confirmarPostulacion = async () => {
+    setErrorPostular(null);
+    setPostulando(true);
+    const respuesta = await fetch("/api/postulaciones", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ convocatoriaId: convocatoria.id, proyectoId: proyectoSel || null }),
+    }).catch(() => null);
+    const json = respuesta ? await respuesta.json().catch(() => ({})) : {};
+    setPostulando(false);
+    if (!respuesta?.ok) {
+      setErrorPostular(json.error ?? "No pudimos crear la postulación. Intenta de nuevo.");
+      return;
+    }
     setModalAbierto(false);
-    router.push(`/postulaciones/${nueva.id}`);
+    const { id, creada } = json.datos as { id: string; creada: boolean };
+    router.push(`/postulaciones/${id}${creada ? "" : "?existente=1"}`);
+    router.refresh();
   };
 
   return (
@@ -247,6 +263,7 @@ export function FichaConvocatoria({
               disabled={cerrada}
               onClick={() => {
                 if (!requerirAcceso("postularte a esta convocatoria")) return;
+                setErrorPostular(null);
                 setModalAbierto(true);
               }}
             >
@@ -261,13 +278,14 @@ export function FichaConvocatoria({
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="font-display text-lg font-semibold text-ink">Confirmar postulación</h3>
-              <button onClick={() => setModalAbierto(false)} className="text-ink-faint hover:text-ink">
+              <button onClick={() => setModalAbierto(false)} className="text-ink-faint hover:text-ink" aria-label="Cerrar">
                 <X className="h-5 w-5" />
               </button>
             </div>
             <p className="text-sm text-ink-soft">
               Vas a crear una postulación a <strong>{convocatoria.nombre}</strong>. Puedes asociarla a
-              uno de tus proyectos existentes o dejarla sin proyecto por ahora.
+              uno de tus proyectos existentes o dejarla sin proyecto por ahora. Si ya tienes una en curso
+              con ese mismo proyecto, te llevaremos a ella.
             </p>
             <label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
               Proyecto (opcional)
@@ -284,12 +302,17 @@ export function FichaConvocatoria({
                 </option>
               ))}
             </select>
+            {errorPostular && (
+              <p role="alert" className="mt-4 rounded-lg bg-brick-50 px-3 py-2 text-sm text-brick-700">
+                {errorPostular}
+              </p>
+            )}
             <div className="mt-6 flex justify-end gap-3">
               <Button variant="ghost" onClick={() => setModalAbierto(false)}>
                 Cancelar
               </Button>
-              <Button variant="primary" onClick={confirmarPostulacion}>
-                Crear postulación
+              <Button variant="primary" onClick={confirmarPostulacion} disabled={postulando}>
+                {postulando ? "Creando…" : "Crear postulación"}
               </Button>
             </div>
           </div>

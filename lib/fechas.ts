@@ -4,5 +4,10 @@
  * `privado.hoy_colombia()`. Sirve en el servidor y en el navegador.
  */
 export function hoyColombia(): string {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Bogota" }).format(new Date());
+  return fechaColombia(new Date());
+}
+
+/** El día en Colombia, AAAA-MM-DD, de un instante (p. ej. un `timestamptz` de la base). */
+export function fechaColombia(instante: Date | string): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Bogota" }).format(new Date(instante));
 }

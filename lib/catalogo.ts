@@ -13,12 +13,12 @@ import type { Categoria, Convocatoria, Documento, EstadoConvocatoria, TipoCatego
  * existe** (RN-33, docs/05 §9.10) y aquí no hay otra lista de permisos.
  */
 
-const COLUMNAS =
+export const COLUMNAS_CONVOCATORIA =
   "id, nombre, entidad_convocante, descripcion, monto_min, monto_max, ubicacion_cobertura, cobertura_nacional, fecha_apertura, fecha_cierre, url_postulacion, estado, convocatoria_categoria (categoria_id), convocatoria_departamento (departamento_codigo), requisitos_convocatoria (id, descripcion, tipo, obligatorio, orden), documentos_convocatoria (id, tipo_doc, nombre, storage_path, tamano_bytes)";
 
 const BUCKET = "documentos-convocatorias";
 
-type Fila = {
+export type FilaConvocatoria = {
   id: string;
   nombre: string;
   entidad_convocante: string;
@@ -41,7 +41,7 @@ const numero = (v: number | string | null) => (v === null ? null : Number(v));
 const hoy = hoyColombia;
 const extensionDe = (ruta: string) => ruta.slice(ruta.lastIndexOf(".") + 1).toLowerCase();
 
-function aConvocatoria(f: Fila): Convocatoria {
+export function aConvocatoria(f: FilaConvocatoria): Convocatoria {
   return {
     id: f.id,
     nombre: f.nombre,
@@ -84,7 +84,7 @@ function aConvocatoria(f: Fila): Convocatoria {
  */
 export const listarCatalogo = cache(async (incluirCerradas: boolean = false): Promise<Convocatoria[]> => {
   const supabase = await crearClienteServidor();
-  const consulta = supabase.from("convocatorias").select(COLUMNAS);
+  const consulta = supabase.from("convocatorias").select(COLUMNAS_CONVOCATORIA);
   const { data, error } = incluirCerradas
     ? await consulta.in("estado", ["publicada", "cerrada"])
     : await consulta.eq("estado", "publicada").gte("fecha_cierre", hoy());
@@ -92,7 +92,7 @@ export const listarCatalogo = cache(async (incluirCerradas: boolean = false): Pr
     console.error("Catálogo: no se pudo listar", error.code, error.message);
     return [];
   }
-  const todas = (data as unknown as Fila[]).map(aConvocatoria);
+  const todas = (data as unknown as FilaConvocatoria[]).map(aConvocatoria);
   const vigentes = todas.filter((c) => c.estado === "publicada").sort((a, b) => a.fechaCierre.localeCompare(b.fechaCierre));
   const cerradas = todas.filter((c) => c.estado === "cerrada").sort((a, b) => b.fechaCierre.localeCompare(a.fechaCierre));
   return [...vigentes, ...cerradas];
@@ -101,9 +101,9 @@ export const listarCatalogo = cache(async (incluirCerradas: boolean = false): Pr
 /** RF-13, CU-08 · La ficha que la sesión puede ver, o null si para ella no existe. */
 export const obtenerFicha = cache(async (id: string): Promise<Convocatoria | null> => {
   const supabase = await crearClienteServidor();
-  const { data, error } = await supabase.from("convocatorias").select(COLUMNAS).eq("id", id).maybeSingle();
+  const { data, error } = await supabase.from("convocatorias").select(COLUMNAS_CONVOCATORIA).eq("id", id).maybeSingle();
   if (error) console.error("Catálogo: no se pudo leer la ficha", error.code, error.message);
-  return data ? aConvocatoria(data as unknown as Fila) : null;
+  return data ? aConvocatoria(data as unknown as FilaConvocatoria) : null;
 });
 
 /** Categorías activas, para los filtros y los chips (RF-12, RF-43). */

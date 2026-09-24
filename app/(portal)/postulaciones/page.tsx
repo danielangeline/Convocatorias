@@ -1,9 +1,7 @@
-"use client";
-
 import Link from "next/link";
 import { ClipboardList, MapPin } from "lucide-react";
-import { useAppStore } from "@/lib/store";
-import { usePostulacionesPropias, useProyectosPropios } from "@/lib/hooks";
+import { listarPostulaciones } from "@/lib/postulaciones-servidor";
+import { listarProyectos } from "@/lib/proyectos-servidor";
 import { formatFecha, ESTADO_POSTULACION_LABEL, ESTADO_POSTULACION_ESTILO } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 import { ProgressBar } from "@/components/ui/ProgressBar";
@@ -11,10 +9,10 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { LinkButton } from "@/components/ui/Button";
 import { textoCobertura } from "@/lib/departamentos";
 
-export default function PostulacionesPage() {
-  const postulaciones = usePostulacionesPropias();
-  const convocatorias = useAppStore((s) => s.convocatorias);
-  const proyectos = useProyectosPropios();
+// CU-13 1a · Panel de postulaciones, leído con la sesión de la empresa: la RLS
+// solo deja ver las suyas (RN-30), con su convocatoria aunque ya esté cerrada.
+export default async function PostulacionesPage() {
+  const [postulaciones, proyectos] = await Promise.all([listarPostulaciones(), listarProyectos()]);
 
   return (
     <div>
@@ -37,7 +35,7 @@ export default function PostulacionesPage() {
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {postulaciones.map((post) => {
-            const convocatoria = convocatorias.find((c) => c.id === post.convocatoriaId);
+            const convocatoria = post.convocatoria;
             const proyecto = proyectos.find((p) => p.id === post.proyectoId);
             const total = post.checklist.length;
             const completados = post.checklist.filter((i) => i.completado).length;
