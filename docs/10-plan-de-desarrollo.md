@@ -20,7 +20,7 @@ Tres cosas no dependen de la velocidad de programación y conviene decirlas ante
 
 | Riesgo | Por qué no se resuelve programando más rápido | Mitigación en el plan |
 |---|---|---|
-| **Medir el costo real de IA sobre 20 generaciones con TDR colombianos** (RNF-21, `docs/07 §10.3`) | Requiere 20 TDR reales y juicio experto sobre la calidad del resultado | Se reserva el Sprint 4 completo y se aceptan 10 TDR como mínimo viable; el precio definitivo queda como decisión abierta |
+| **Medir el costo real de IA sobre 20 generaciones con TDR colombianos** (RNF-21, `docs/07 §10.3`) | Requiere 20 TDR reales y juicio experto sobre la calidad del resultado | Se reserva el Sprint 5 completo *(era el 4; movido en la sesión 021)* y se aceptan 10 TDR como mínimo viable; el precio definitivo queda como decisión abierta |
 | **Piloto con 3 usuarios reales** (RNF-07) y **≥50 convocatorias publicadas** (métrica de éxito) | Depende de personas y de carga manual de contenido, no de código | Se saca del plazo de 30 días: el día 30 entrega la plataforma en producción, no el piloto ejecutado |
 | **Auditoría de veracidad sobre 10 documentos** (RNF-23) | Necesita revisión experta, no automatizable | Se ejecuta en el Sprint 5 con proyectos deliberadamente incompletos |
 
@@ -108,7 +108,7 @@ Lo primero es lo que el prototipo no puede simular y lo que más caro sale corre
 
 **Hito 1 —** Un consultor autenticado recibe **404** en `/admin` —igual que un anónimo y que una ruta inventada— y **403** en `/convocatorias/[id]/generar`; solo el Propietario convierte a alguien en administrador; dos empresas distintas no ven nada la una de la otra en ninguno de los cuatro listados. Ambas cosas probadas, no supuestas.
 
-*Cumplido (sesión 010, decisión del Product Owner):* el aislamiento entre empresas se acepta con la prueba de RLS. **Condición:** cada listado, al conectarse a Supabase —proyectos y postulaciones en el Sprint 3, documentos y encargos en el Sprint 4—, repite la prueba con dos empresas en pantalla antes de darse por terminado.
+*Cumplido (sesión 010, decisión del Product Owner):* el aislamiento entre empresas se acepta con la prueba de RLS. **Condición:** cada listado, al conectarse a Supabase —proyectos y postulaciones en el Sprint 3, encargos en el Sprint 4 y documentos en el Sprint 5—, repite la prueba con dos empresas en pantalla antes de darse por terminado.
 
 ---
 
@@ -142,39 +142,44 @@ Lo primero es lo que el prototipo no puede simular y lo que más caro sale corre
 
 ---
 
-### Sprint 4 · Días 19–24 — Generación con IA, créditos y suscripciones
+### Sprint 4 · Días 19–24 — Consultores, encargos y endurecimiento
 
-El sprint con más riesgo técnico y el único que depende de un proveedor externo.
-
-| Entregable | Requerimientos |
-|---|---|
-| Servicio de generación **aislado tras interfaz propia** | RNF-22 |
-| Claude API con la plantilla versionada y las reglas de veracidad | RF-53..57, 62, 63, RNF-23 |
-| Saneamiento del texto del TDR antes del prompt | RN-23, **RNF-31** |
-| Créditos: consumo por generación exitosa, cupos, ajustes gratis, reinicio mensual | RF-48..52, RN-17, RN-18 |
-| Validación del cupo de la empresa dueña en los ajustes del consultor | **RF-77** |
-| Planes con sus atributos diferenciadores leídos del dato | **RF-82**, RNF-14 |
-| Exportación **.docx real** (hoy es HTML disfrazado) | RF-60 |
-| Medición de costo y tokens sobre generaciones reales | RF-52, RNF-24, RNF-21 |
-
-**Hito 4 —** Un documento generado a partir de un proyecto incompleto, con los pendientes marcados y **ningún dato inventado**, editado, ajustado y exportado a Word; con su costo por generación registrado.
-
----
-
-### Sprint 5 · Días 25–30 — Consultores, encargos y endurecimiento
+> **Orden cambiado en la sesión 021, por decisión del Product Owner:** este sprint era el 5. La generación con IA, los créditos y los planes con sus precios pasan al final, porque los costos todavía no están definidos. Lo que depende de un documento generado (autorización, revocación en cascada y traza de lectura) se va con ellos al Sprint 5.
 
 | Entregable | Requerimientos |
 |---|---|
 | Perfil del consultor, revisión y aprobación, directorio | RF-22..27, 34, 35, RN-08, RN-13 |
 | Visibilidad de contacto por pareja empresa-consultor | **RF-80**, RN-12 |
 | Encargos de punta a punta, contacto al aceptar, avances, calificación | RF-28..33, 68, 69, 70, RN-09, RN-26 |
+| Límite de tasa con comportamiento fail-closed | RNF-27, **RNF-33** |
+| Job de vencimiento de suscripciones | RF-39, CU-32 |
+| Pruebas de los RNF críticos | RNF-01..04, 09..12, 20, 25..34 |
+
+**Hito 4 —** Un encargo completo: solicitud, aceptación con revelación de contacto, avances, entrega y calificación, aislado entre empresas en las pantallas. Y al suspender a ese consultor, **sale del directorio y sus encargos en curso se cancelan sin que nadie intervenga**.
+
+---
+
+### Sprint 5 · Días 25–30 — Generación con IA, créditos, planes y precios
+
+El sprint con más riesgo técnico y el único que depende de un proveedor externo. **Riesgo aceptado por el Product Owner (sesión 021):** al ir último, no queda sprint detrás que absorba un retraso de la IA; un retraso aquí mueve el día 30.
+
+| Entregable | Requerimientos |
+|---|---|
+| Servicio de generación **aislado tras interfaz propia** | RNF-22 |
+| Claude API con la plantilla versionada y las reglas de veracidad | RF-53..57, 62, 63, RNF-23 |
+| Saneamiento del texto del TDR antes del prompt | RN-23, **RNF-31** |
+| Medición de costo y tokens sobre generaciones reales | RF-52, RNF-24, RNF-21 |
+| Créditos: consumo por generación exitosa, cupos, ajustes gratis, reinicio mensual (job) | RF-48..52, RN-17, RN-18, CU-35 |
+| Validación del cupo de la empresa dueña en los ajustes del consultor | **RF-77** |
+| Planes con sus atributos diferenciadores leídos del dato, **con los precios que el Product Owner fije a partir del costo medido** | **RF-82**, RNF-14 |
+| Exportación **.docx real** (hoy es HTML disfrazado) | RF-60 |
 | Autorización de documentos y **revocación automática en cascada** | RF-71, 72, **76**, RN-27 |
 | Traza de lectura de documentos compartidos | **RF-79**, RNF-11 |
-| Límite de tasa con comportamiento fail-closed | RNF-27, **RNF-33** |
-| Jobs de vencimiento de suscripciones y reinicio de créditos | RF-39, CU-32, CU-35 |
-| Pruebas de los RNF críticos y despliegue a producción | RNF-01..04, 09..12, 20, 25..34 |
+| Despliegue a producción | — |
 
-**Hito 5 —** Un encargo completo: solicitud, aceptación con revelación de contacto, documento autorizado y editado por el consultor, entrega y calificación. Y al suspender a ese consultor, **pierde el acceso al documento sin que nadie intervenga**.
+**Hito 5 —** Un documento generado a partir de un proyecto incompleto, con los pendientes marcados y **ningún dato inventado**, editado, ajustado y exportado a Word, con su costo por generación registrado. Autorizado después a un consultor, que **pierde el acceso al documento sin que nadie intervenga** al suspenderlo.
+
+**Justo después, fuera de los 30 días:** la pasarela de pago (Wompi, fase E1 de `docs/08-roadmap.md §14`), sobre los planes y precios ya fijados. Sigue fuera del MVP (`docs/00`): meterla dentro del plazo exige especificarla antes (CU-28/29, RF nuevos).
 
 ---
 
@@ -185,7 +190,7 @@ No por falta de tiempo, sino porque no es construcción de software:
 - **Carga de ≥50 convocatorias reales** — trabajo de contenido del administrador, en paralelo desde el Sprint 2.
 - **Piloto con 3 empresas y 5 consultores** — empieza cuando la plataforma esté en producción.
 - **Conversión de trial a pago, encargos completados** — métricas que necesitan usuarios y semanas.
-- **Todo lo de `docs/08-roadmap.md §14`** (fases E1–E10): pasarela Wompi, alertas por correo, extracción de TDR, matching semántico, scraping.
+- **Todo lo de `docs/08-roadmap.md §14`** (fases E1–E10): pasarela Wompi (la primera, justo después del Sprint 5), alertas por correo, extracción de TDR, matching semántico, scraping.
 
 ---
 

@@ -5,8 +5,8 @@
 
 ---
 
-**Actualizado:** 24 de septiembre de 2026 · cierre de la sesión 020
-**Sprint:** 3 · día 10 de 30 (el Sprint 2 terminó antes de su día 12)
+**Actualizado:** 24 de septiembre de 2026 · sesión 021 (planning del Sprint 4)
+**Sprint:** 4 · día 10 de 30 (los sprints 2 y 3 terminaron antes de su plazo). **Orden de los sprints 4 y 5 intercambiado en la sesión 021**: la IA, los créditos, los planes y los precios van al final
 **Rama de trabajo:** `sprint-2`, abierta desde `main` en la sesión 011 y subida a `origin` (sin fusionar a `main`: producción todavía no tiene el catálogo del panel). **Migraciones nuevas ya aplicadas al remoto:** `20260917100000_guardar_convocatoria`, `20260917200000_storage_y_adjuntos` , `20260918100000_publicar_convocatoria` y `20260918200000_nombres_normalizados_y_borrar_categorias`, y desde el Sprint 3 las de proyectos (`20260923500000`) y departamentos y sugerencias (`20260924100000`), y **postulaciones (`20260925100000` y `20260925200000`)**. No rompen `main`, que no las llama
 
 ---
@@ -17,6 +17,7 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 
 ## Lo último que se hizo
 
+- **Sesión 021: planning del Sprint 4 — orden de los sprints cambiado, por decisión del Product Owner.** Los costos de la IA y los precios de los planes no están definidos, así que la generación con IA, los créditos, los planes con sus precios y todo lo que depende de un documento generado (autorización al consultor, revocación en cascada, traza de lectura) pasan al **Sprint 5**. Consultores, encargos y endurecimiento suben al **Sprint 4**. La pasarela de pago (Wompi, fase E1) queda justo después del Sprint 5, fuera de los 30 días. **Riesgo aceptado:** la IA ya no tiene un sprint detrás que absorba un retraso. `docs/10 §18` y `docs/11` actualizados.
 - **Sesión 020: Sprint 3, pasos 3 y 4 — postulaciones con checklist (RF-17, RF-18, RF-19, RF-20, RF-21, RN-04) y grafo de estados en el servidor (RF-83). Regla nueva RN-35.**
   - **Decisiones del Product Owner antes de programar (RN-35):**
     - una sola postulación en curso (no cerrada) por par proyecto-convocatoria; si ya existe, "Postular" abre la existente;
@@ -132,13 +133,13 @@ Detalle en [`docs/bitacora/2026-09-24-sesion-020.md`](docs/bitacora/2026-09-24-s
 
 ## En curso
 
-Nada a medias. **El Sprint 3 está completo** (sesiones 018, 019 y 020) y el Hito 3, cumplido.
+**Sprint 4 planificado (sesión 021)**; aún sin código. El Sprint 3 está completo y el Hito 3, cumplido.
 
 ## Lo siguiente
 
 **Sprint 3 — Proyectos, sugerencias y postulaciones** (`docs/10 §Sprint 3`). El Sprint 2 quedó completo en la sesión 017 (sus siete pasos y el Hito 2).
 
-1. ~~Proyectos con datos de contenido y completitud, filtrados por propietario (RF-14, 45, 46, 47, **81**)~~ — **sesión 018**. RF-47 (generar sobre un proyecto incompleto) se cierra con la generación, en el Sprint 4.
+1. ~~Proyectos con datos de contenido y completitud, filtrados por propietario (RF-14, 45, 46, 47, **81**)~~ — **sesión 018**. RF-47 (generar sobre un proyecto incompleto) se cierra con la generación, en el Sprint 5.
 2. ~~Sugerencias con porcentaje y desglose, indexadas, solo vigentes (RF-15, 16, RN-05, RNF-05)~~ — **sesión 019**, junto con la ubicación por departamentos (RN-34).
 3. ~~Postulaciones con checklist copiado de los requisitos (RF-17, 18, RN-04)~~ — **sesión 020**, con RN-35.
 4. ~~Estados según el grafo de transiciones, validados en servidor (**RF-83**)~~ — **sesión 020**.
@@ -146,7 +147,18 @@ Nada a medias. **El Sprint 3 está completo** (sesiones 018, 019 y 020) y el Hit
 
 **Hito 3 — cumplido el 24-sep (sesión 020):** en el navegador, con la cuenta de empresa del Product Owner, el proyecto con departamento recibe sugerencias (pendiente 11), inicia una postulación y avanza su checklist. Todo persiste al recargar y está aislado por RLS, comprobado con dos empresas en las pantallas.
 
-**Siguiente: Sprint 4 — generación con IA, créditos y suscripciones** (`docs/10 §Sprint 4`). Empieza por el servicio de generación aislado tras una interfaz propia (RNF-22) y la plantilla con las reglas de veracidad (RF-53..57, RNF-23). El generador sigue leyendo postulaciones del store (ya sincronizado con las reales) para autovincular el documento.
+**Siguiente: Sprint 4 — consultores, encargos y endurecimiento** (`docs/10 §Sprint 4`; era el Sprint 5 hasta la sesión 021). Pasos:
+
+1. Perfil del consultor, envío a revisión, aprobación/rechazo/suspensión y directorio (RF-22..27, 34, 35, RN-08, RN-13). Incluye la hoja de vida en Storage.
+2. Contacto visible solo por pareja empresa-consultor (RF-80, RN-12).
+3. Encargos de punta a punta: solicitar, aceptar con revelación de contacto, avances, entrega y calificación (RF-28..33, 68, 69, 70, 74, 75, RN-09, RN-26, RN-29).
+4. Job de vencimiento de suscripciones (RF-39, CU-32), con la fecha de Colombia.
+5. Límite de tasa fail-closed (RNF-27, RNF-33) — **antes hay que elegir proveedor** (decisión abierta).
+6. Pruebas de los RNF críticos.
+
+**Hito 4 (día 24):** un encargo completo —solicitud, aceptación con revelación de contacto, avances, entrega y calificación—, aislado entre empresas en las pantallas; al suspender al consultor sale del directorio y sus encargos en curso se cancelan solos.
+
+**Después: Sprint 5 — generación con IA, créditos, planes y precios**, más autorización de documentos, revocación en cascada y traza de lectura. Necesita la clave de la API de Claude y TDR reales.
 
 **Hito 3 (día 18):** una empresa registra un proyecto, recibe sugerencias ordenadas por compatibilidad, inicia una postulación y avanza su checklist. Todo persistido y aislado por RLS.
 
@@ -154,7 +166,7 @@ Nada a medias. **El Sprint 3 está completo** (sesiones 018, 019 y 020) y el Hit
 
 **Hito 2 (día 12):** un administrador carga una convocatoria real de principio a fin —datos, adjuntos, requisitos, enlace— y aparece en el catálogo de las empresas —no para visitantes ni consultores, RN-33—; una vencida desaparece sola al correr el job. **Cumplido el 23-sep (sesión 017):** la convocatoria se carga entera, se publica, aparece en el catálogo de las empresas y no para visitantes ni consultores, y una vencida se cierra sola al correr el job (ejecución real de `pg_cron`).
 
-**Hito 1 (día 6) — cumplido** (sesión 010). Sigue vigente la condición: cada listado de empresa repite la prueba de aislamiento con dos empresas en pantalla al conectarse (proyectos y postulaciones en el Sprint 3; documentos y encargos en el Sprint 4).
+**Hito 1 (día 6) — cumplido** (sesión 010). Sigue vigente la condición: cada listado de empresa repite la prueba de aislamiento con dos empresas en pantalla al conectarse (proyectos y postulaciones en el Sprint 3; encargos en el Sprint 4; documentos en el Sprint 5).
 
 ## Infraestructura que ya existe
 
@@ -207,7 +219,8 @@ Esperan al Product Owner. No bloquean el Sprint 1.
 | Decisión | Contexto | Cuándo hace falta |
 |---|---|---|
 | **Precio del plan Consultor** | Quedó en COP $69.000 al retirarle el cupo de IA. `docs/07 §10.2` marca los planes como "a validar con los pilotos" | Antes de cobrar |
-| **Proveedor del límite de tasa** | RNF-27 pide un almacén fuera de Postgres (Upstash Redis o Vercel Edge Config); no está elegido | Sprint 5 |
+| **Proveedor del límite de tasa** | RNF-27 pide un almacén fuera de Postgres (Upstash Redis o Vercel Edge Config); no está elegido | Sprint 4, paso 5 |
+| **Costo de la IA, créditos por plan y precios** | Decidido en la sesión 021 que va al final. Se fija con el costo medido sobre ≥10 TDR reales (RNF-21). Hace falta la clave de la API de Claude en `.env.local` y en Vercel | Sprint 5 |
 
 
 ## Hallazgos no planificados
@@ -278,7 +291,7 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | **En el servidor, el store de Zustand solo tiene su estado inicial (datos de ejemplo).** `useAppStore` responde en el render del servidor con `getInitialState()`, así que cualquier pantalla que lea del store pinta primero datos de ejemplo y el navegador los cambia al hidratar. Se descubrió con el catálogo, que se pasó a props de servidor; siguen así la ficha de generar, postulaciones, sugerencias y el resto del portal | `lib/store.ts`, portal Empresa | media · resolver al pasar cada módulo a Supabase (Sprints 3 y 4) |
 | Los nombres con tilde en las descargas firmadas salían doblemente codificados (`T%C3%A9rminos.pdf`): `createSignedUrl({ download })` de storage-js codifica el nombre dos veces | `lib/supabase/descarga.ts` | **resuelto** en la sesión 017, también para el panel; si storage-js lo corrige, se puede volver a su opción |
 | "Vigente" se decidía con `current_date` de Postgres, que va en UTC: desde las 7 p. m. hora de Colombia, una convocatoria que cerraba ese día ya contaba como vencida | convocatorias | **resuelto** en la sesión 017: `privado.hoy_colombia()` en el cierre, postular, publicar, indicadores y el catálogo |
-| Las suscripciones también usan `current_date` en UTC (`crear_cuenta`, `tiene_suscripcion_vigente`, job 2): un trial o una suscripción vencen 5 horas antes en Colombia | suscripciones | media · aplicar `privado.hoy_colombia()` con el módulo de suscripciones (Sprint 5) |
+| Las suscripciones también usan `current_date` en UTC (`crear_cuenta`, `tiene_suscripcion_vigente`, job 2): un trial o una suscripción vencen 5 horas antes en Colombia | suscripciones | media · aplicar `privado.hoy_colombia()` con el job de vencimiento (Sprint 4, paso 4) |
 | ~~**Editar una publicada permite poner una fecha de cierre ya pasada**~~ **Resuelto en la sesión 017** con una advertencia, por decisión del Product Owner (CU-05 3e).: sigue publicada hasta que el job la cierra esa medianoche. Publicar sí rechaza una vencida (RN-03). Puede ser legítimo (la entidad cerró antes), pero hoy no se advierte ni se cierra en el momento. Así quedó la convocatoria de MinCiencias el 23-sep; el Product Owner la corrigió antes de que el job la cerrara | `guardar_convocatoria` | media · decisión del Product Owner: ¿rechazar, advertir o cerrar en el acto? |
 | **Sin estadísticas, `sugerencias_proyecto` pasa de 141 ms a 46 s** con 2 000 convocatorias: el planificador recalcula el agregado de categorías por cada convocatoria (`loops=2005`) y la RLS añade una subconsulta por fila. En producción autovacuum mantiene las estadísticas, pero una carga masiva (p. ej. las 50 convocatorias reales) puede dejar un rato el plan malo | `supabase/migrations/20260924100000` | media · reescribir la consulta para que no dependa del plan (categorías del proyecto en un arreglo, `exists` indexados) antes de los pilotos |
 | `cambiarPublicacion` compara la fecha de cierre con `new Date().toISOString()` (UTC), no con `hoyColombia()`: de 7 p. m. a medianoche puede rechazar como vencida una que cierra hoy. La barrera SQL sí usa la hora de Colombia | `lib/admin/catalogo.ts` | baja · usar `hoyColombia()` |

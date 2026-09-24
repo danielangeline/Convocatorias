@@ -77,7 +77,7 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RF-18 Marcar checklist y avance | verificado | **Sesión 020:** `PATCH /api/checklist/[itemId]`; la empresa solo cambia `completado` (trigger) y en una cerrada responde 409 (RN-35). El avance es completados sobre total. Verificado con `supabase/tests/postulaciones.sql` (31/31) y `scripts/prueba-postulaciones.mjs` (52/52), con las pantallas comprobadas por su HTML. Recorrido en el navegador con la cuenta de empresa del Product Owner (pendiente 12): crear con 13 ítems copiados, volver a postular abre la misma con aviso, marcas conservadas al recargar, "Presentada" con el selector limitado y la línea de tiempo |
 | RF-19 Estados con historial | verificado | **Sesión 020:** `POST /api/postulaciones/[id]/estado`; cada transición queda en `postulacion_historial` con quién y cuándo (trigger del Sprint 0), y la línea de tiempo la lee del servidor. Verificado con `supabase/tests/postulaciones.sql` (31/31) y `scripts/prueba-postulaciones.mjs` (52/52), con las pantallas comprobadas por su HTML. Recorrido en el navegador con la cuenta de empresa del Product Owner (pendiente 12): crear con 13 ítems copiados, volver a postular abre la misma con aviso, marcas conservadas al recargar, "Presentada" con el selector limitado y la línea de tiempo |
 | RF-20 Panel de postulaciones | verificado | **Sesión 020:** `/postulaciones` es componente de servidor, con la RLS de la empresa: sus postulaciones con convocatoria, proyecto, avance y cierre. Aislamiento de dos empresas comprobado en la pantalla (condición del Hito 1). Visto en el navegador con la cuenta del Product Owner |
-| RF-21 Impedir sobre cerradas | servidor | **Sesión 020:** postular a una cerrada, vencida o despublicada responde 409 desde el trigger de RF-78, comprobado por HTTP y en SQL. Generar sobre ellas llega en el Sprint 4 |
+| RF-21 Impedir sobre cerradas | servidor | **Sesión 020:** postular a una cerrada, vencida o despublicada responde 409 desde el trigger de RF-78, comprobado por HTTP y en SQL. Generar sobre ellas llega en el Sprint 5 |
 
 ### 4.6 Perfil del consultor
 
@@ -165,8 +165,8 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RF | Estado | Nota |
 |---|---|---|
 | RF-76 Revocación automática en cascada | pendiente | Sprint 5 |
-| RF-77 Validar cupo de la empresa dueña | pendiente | Sprint 4 |
-| RF-78 Vigencia verificada en servidor | servidor | La política de insert de `postulaciones` ya exigía convocatoria publicada y vigente (sesión 003). **Sesión 017:** trigger `privado.exigir_convocatoria_vigente()` en `postulaciones` y `documentos_generados`, al crear y al cambiar de convocatoria, que **también frena a `service_role`**; clave `convocatoria_no_vigente`; "vigente" con la fecha de Colombia. Probado con `supabase/tests/vigencia_al_crear.sql` (14/14: vigente y que cierra hoy, sí; vencida, cerrada, despublicada y borrador, no; mover una postulación a una cerrada, no; editar lo ya creado, sí). **Los endpoints que lo traducen a 409 llegan con sus módulos**: postular (Sprint 3) y generar (Sprint 4) |
+| RF-77 Validar cupo de la empresa dueña | pendiente | Sprint 5 |
+| RF-78 Vigencia verificada en servidor | servidor | La política de insert de `postulaciones` ya exigía convocatoria publicada y vigente (sesión 003). **Sesión 017:** trigger `privado.exigir_convocatoria_vigente()` en `postulaciones` y `documentos_generados`, al crear y al cambiar de convocatoria, que **también frena a `service_role`**; clave `convocatoria_no_vigente`; "vigente" con la fecha de Colombia. Probado con `supabase/tests/vigencia_al_crear.sql` (14/14: vigente y que cierra hoy, sí; vencida, cerrada, despublicada y borrador, no; mover una postulación a una cerrada, no; editar lo ya creado, sí). **Los endpoints que lo traducen a 409 llegan con sus módulos**: postular (Sprint 3) y generar (Sprint 5) |
 | RF-79 Traza de lectura | pendiente | Sprint 5 |
 | RF-80 Contacto por pareja empresa-consultor | prototipo | El perfil cruza solo los encargos de la empresa de la sesión (sesión 002). **RLS lista (sesión 003):** permisos por columna + `contacto_consultor()`, activa = `pendiente`/`en_curso`; prueba cruzada E1/E2 pasada. El prototipo aún cuenta `completado`/`calificado` como activa. Falta el endpoint |
 
@@ -192,31 +192,31 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RNF-06 Documentos | pendiente | 2 | |
 | RNF-07 Idioma y simplicidad | prototipo | — | Plurales corregidos |
 | RNF-08 Responsivo | prototipo | — | Barra pública corregida |
-| RNF-09 Disponibilidad | pendiente | 5 | |
-| RNF-10 Respaldos | pendiente | 5 | |
+| RNF-09 Disponibilidad | pendiente | 4 | |
+| RNF-10 Respaldos | pendiente | 4 | |
 | RNF-11 Trazabilidad | pendiente | 5 | Incluye RF-79 |
 | RNF-12 Consistencia | pendiente | 1 | |
 | RNF-13 Evolución | — | — | Atributo de diseño, ya satisfecho |
-| RNF-14 Catálogos administrables | prototipo | 4 | RF-82 ya lo respeta |
+| RNF-14 Catálogos administrables | prototipo | 5 | RF-82 ya lo respeta |
 | RNF-15 Portabilidad | — | — | Atributo de diseño |
 | RNF-16 Datos personales | servidor | 2 | **Sesión 012:** los 3 buckets existen y **los tres son privados** (se corrigió `docs/04`, que dejaba públicos dos: con RN-33 los adjuntos no pueden servirse a quien adivine la ruta). La descarga es siempre una URL firmada de 15 min, y quién puede pedirla lo decide la RLS sobre la fila, no la ruta. Probado: `exp - iat` del token = 900 s; la ruta sin firmar → denegada; una cuenta de empresa no lista ni escribe en el bucket. **Falta** lo del consultor: la parte de hoja de vida y la prueba cruzada por pareja empresa-consultor (RN-12, RF-80) llegan con su módulo **Sesión 017:** la empresa descarga los adjuntos de las convocatorias que puede ver, con una política de Storage que hereda la visibilidad de la fila (docs/05 §9.14); consultor y borradores, rechazados también firmando directo contra Storage |
-| RNF-17 Integridad del rating | prototipo | 5 | RLS y trigger listos (sesión 003): segunda calificación rechazada, edición sin efecto, rating recalculado |
+| RNF-17 Integridad del rating | prototipo | 4 | RLS y trigger listos (sesión 003): segunda calificación rechazada, edición sin efecto, rating recalculado |
 | RNF-18 Archivos de perfil y adjuntos | servidor | 2 | **Sesión 012:** el límite y los tipos se declaran **en el bucket** (20 MB y PDF/Word/Excel/ZIP para adjuntos; 5 MB JPG/PNG para la foto; 10 MB PDF para la hoja de vida), así que una subida directa que los incumpla la rechaza Storage aunque nadie la revise. El servidor lo valida antes de firmar y otra vez al registrar, exigiendo que el tipo real case con la extensión; la pantalla avisa primero. Probado: .exe → 400, 21 MB → 400, un PDF subido como .zip → 400 y el objeto se borra. **Falta:** los archivos del perfil del consultor, que llegan con su módulo |
-| RNF-19 Rendimiento del directorio | pendiente | 5 | |
+| RNF-19 Rendimiento del directorio | pendiente | 4 | |
 | RNF-20 Enforcement en servidor | pendiente | 1–5 | Transversal |
-| RNF-21 Generación con IA hasta 120 s | pendiente | 4 | |
-| RNF-22 Independencia del proveedor de IA | pendiente | 4 | |
-| RNF-23 Veracidad del contenido | prototipo | 4 | El principio está bien implementado |
-| RNF-24 Transparencia del uso de IA | pendiente | 4 | |
+| RNF-21 Generación con IA hasta 120 s | pendiente | 5 | |
+| RNF-22 Independencia del proveedor de IA | pendiente | 5 | |
+| RNF-23 Veracidad del contenido | prototipo | 5 | El principio está bien implementado |
+| RNF-24 Transparencia del uso de IA | pendiente | 5 | |
 | RNF-25 Cobertura de RLS | servidor | 1 | 26 tablas con RLS y política (sesión 003). **Sesión 006: 27 tablas** con `invitaciones_admin`; la prueba cruzada comprueba el número de tablas y que todas tengan RLS, y pasa. **Sesión 019: 29 tablas** (`departamentos`, `convocatoria_departamento`), con su política; la prueba cruzada pasa |
 | RNF-26 Credenciales elevadas | pendiente | 1 | |
-| RNF-27 Límite de tasa | pendiente | 5 | |
+| RNF-27 Límite de tasa | pendiente | 4 | |
 | RNF-28 MFA de administradores | servidor | 1 | Sesión 004: enrolamiento TOTP en Supabase Auth y redirección a `/mfa` en el servidor. Probado por código: admin en `aal1` sin privilegios; tras verificar el TOTP, `aal2` y lectura de todo. Falta probar la pantalla en el navegador |
 | RNF-29 Validación del enlace | servidor | 2 | **Sesión 011:** `esUrlHttp` en `lib/admin/catalogo.ts` valida antes de guardar (fuentes y enlace oficial) y la restricción de la tabla lo repite. Probado: `javascript:`, cadena inválida, dominio sin punto y `ftp://` → 400 con mensaje claro, sin guardar nada. Falta al publicar (RF-09) |
 | RNF-30 Autorización por rol | servidor | 1 | **Causa raíz de la auditoría.** Sesión 007: la matriz está en `lib/autorizacion/matriz.ts` y la aplica `proxy.ts` a páginas, peticiones RSC, Server Actions y `/api`; es cerrada por defecto (una ruta sin declarar responde 404). Segunda barrera en los layouts (`exigirRol`). Matriz ejecutada con `scripts/prueba-matriz-roles.mjs` contra el build de producción (sesión 007): 44 comprobaciones, todas pasan. **Pendiente:** aún no hay endpoints `/api` propios que probar, y la segunda barrera no se ejercitó por separado Sesión 009: primeros endpoints `/api` propios, con reglas solo del Propietario en la matriz; 58 comprobaciones pasan. |
-| RNF-31 Inyección en el TDR | pendiente | 4 | |
-| RNF-32 Retención y eliminación | pendiente | 5 | |
-| RNF-33 Degradación fail-closed | pendiente | 5 | |
+| RNF-31 Inyección en el TDR | pendiente | 5 | |
+| RNF-32 Retención y eliminación | pendiente | 4 | |
+| RNF-33 Degradación fail-closed | pendiente | 4 | |
 | RNF-34 Lenguaje sin identificadores | prototipo | — | Verificado: 0 en texto renderizado |
 | RNF-35 Panel administrativo oculto *(v6, sesión 005)* | verificado | 1 | Sesión 007, criterio ejecutado con `scripts/prueba-matriz-roles.mjs` contra el build de producción (sesión 007): `/admin`, `/admin/*`, `/mfa` y `/api/admin/*` dan la misma respuesta 404 (código y cuerpo) que una ruta inventada para anónimo, empresa y consultor. En 22 archivos JS y sus HTML servidos a no administradores no aparece `/admin` ni `/mfa`; se retiraron tres rutas del panel que venían en los eventos del mock. No hay `sitemap` ni `robots.txt` |
 
@@ -234,19 +234,19 @@ Las reglas están documentadas (RN-34 desde la sesión 019); estas son las que t
 | RN-34 Ubicación por departamentos *(v6, sesión 019)* | servidor | 3 — tabla `departamentos` (33, código DANE) sin escritura desde la app, cobertura de la convocatoria y departamento del proyecto; se compara solo por código. Probado en SQL y HTTP |
 | RN-03 No postular ni generar sobre cerradas | prototipo (solo UI) | 2 |
 | RN-35 Una postulación en curso por par; proyecto fijo; checklist hasta cerrar *(v6, sesión 020)* | servidor | 3 — índice único parcial por par con proyecto, comprobación en `iniciar_postulacion` para el par sin proyecto, trigger `proyecto_fijo` y trigger del checklist cerrado. Probado en SQL y HTTP, incluido que borrar un proyecto sigue funcionando |
-| RN-17 Un crédito por generación exitosa | prototipo | 4 — RLS impide crear documentos y tocar el contador de ajustes o los créditos desde el cliente (sesión 003) |
-| RN-18 Reinicio mensual, sin acumular | pendiente | 4 |
-| RN-23 Saneamiento del TDR | pendiente | 4 |
+| RN-17 Un crédito por generación exitosa | prototipo | 5 — RLS impide crear documentos y tocar el contador de ajustes o los créditos desde el cliente (sesión 003) |
+| RN-18 Reinicio mensual, sin acumular | pendiente | 5 |
+| RN-23 Saneamiento del TDR | pendiente | 5 |
 | RN-06 Rol admin solo por invitación del Propietario *(mod. v6, sesión 005)* | servidor | 1 — el autorregistro nunca produce administradores (trigger, probado). Sesión 009: la invitación solo nace de `crear_invitacion_admin`, que exige al Propietario vigente, y del endpoint solo del Propietario. Falta probar el envío real del correo |
 | RN-31 Propietario único, designado fuera de la app *(v6)* | servidor | 1 — índice único, check que impide revocar al Propietario y columnas protegidas contra el cliente, todo probado. Propietario designado desde la consola en la sesión 006 |
 | RN-33 Catálogo solo para empresas *(v6, sesión 006)* | pendiente | 1 — RLS lista y probada (sesión 006). Sesión 007: la ruta `/convocatorias` solo admite empresa (consultor y administrador → 403, anónimo → login; probado). Falta que la app lea el catálogo de Supabase (Sprint 2). Sesión 010: la landing ya no muestra convocatorias individuales (quitadas las tres "destacadas"); solo los indicadores agregados, que aún salen del mock (RF-44) |
 | RN-32 Cuenta de administrador dedicada *(v6)* | servidor | 1 — `aceptar_invitacion_admin()` rechaza cuentas anteriores y de otro correo y retira el trial (sesión 008). Sesión 009: `crear_invitacion_admin` rechaza un correo con cuenta (probado con `empresa.s004`); el endpoint de invitar lo usa |
 | RN-11 Un trial por cuenta de empresa | servidor | 1 — índice único parcial y trigger de registro; el consultor nace sin suscripción (sesión 004) |
 | RN-24 RLS desde el Sprint 0 | servidor | 1 — cada tabla nació con su política en la misma migración (sesión 003) |
-| RN-26 Contacto solo en `en_curso` | prototipo | 5 |
+| RN-26 Contacto solo en `en_curso` | prototipo | 4 |
 | RN-27 Autorización derivada | pendiente | 5 — política derivada (autorización ∧ encargo `en_curso`) lista y probada en RLS (sesión 003); faltan los endpoints de compartir y revocar |
-| RN-28 Sin cupo propio del consultor | prototipo | 4 — el crédito se resuelve por el propietario del documento, sin respaldo al consultor |
-| RN-29 Suspender cancela encargos | prototipo | 5 |
+| RN-28 Sin cupo propio del consultor | prototipo | 5 — el crédito se resuelve por el propietario del documento, sin respaldo al consultor |
+| RN-29 Suspender cancela encargos | prototipo | 4 |
 | **RN-30 Propiedad explícita del dato** | prototipo | **1** — columnas y filtro en `lib/store.ts`/`lib/hooks.ts`; migración y RLS hechas y probadas (sesión 003); falta que la aplicación lea de Supabase |
 
 ---
