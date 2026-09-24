@@ -35,7 +35,14 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
     - `scripts/prueba-postulaciones.mjs` (nueva): **52/52**, dos corridas seguidas, con aislamiento de dos empresas en las pantallas (condición del Hito 1);
     - regresión completa en verde: 5 pruebas SQL y 6 suites HTTP (280 comprobaciones);
     - `tsc` y `eslint` limpios.
-  - **No verificado en el navegador:** la pestaña tiene la sesión de administrador. Queda como pendiente 12.
+  - **Verificado en el navegador**, con la cuenta de empresa del Product Owner (pendiente 12):
+    - postular a MinCiencias con "Mi Nuevo proyecto" crea la postulación con los 13 requisitos en el checklist;
+    - volver a postular abre la misma, con el aviso;
+    - dos ítems marcados se conservan al recargar (2/13 · 15 %);
+    - "Presentada" deja el selector en En evaluación y Cerrada, y queda en la línea de tiempo;
+    - "Ir al portal de la entidad" es el botón más visible.
+
+    RF-17 a RF-20, RF-73 y RF-83 pasan a `verificado`. **Hito 3 cumplido y Sprint 3 completo.**
   - Al abrir, el Product Owner confirmó el pendiente 11 (RF-15 y RF-16 pasan a `verificado`) y la hora de Windows sincronizada (desfase medido: 1 s). `diagnostico-red-supabase.mjs`: red limpia.
 - **Sesión 019: Sprint 3, paso 2 — sugerencias en el servidor (RF-15, RF-16, RN-05, RNF-05) y ubicación por departamentos (RN-34, nueva).**
   - **Decisión del Product Owner antes de programar:** la ubicación deja de ser texto libre. Una convocatoria es de **cobertura nacional o cubre uno o más departamentos** de la lista oficial (33, código DANE); el proyecto se ejecuta en **un departamento**; el texto se conserva como detalle. El filtro del catálogo pasa a departamento e incluye siempre las nacionales. CU-02, 05, 07, 09 y 10, RF-05, 09, 12, 14 y 16, RN-01, RN-34 (nueva), docs/04, docs/05 (§9.6 reescrito y §9.18 nueva) y la trazabilidad, antes del código.
@@ -125,7 +132,7 @@ Detalle en [`docs/bitacora/2026-09-24-sesion-020.md`](docs/bitacora/2026-09-24-s
 
 ## En curso
 
-Nada a medias. Sprint 3: pasos 1 a 4 hechos (sesiones 018, 019 y 020); el 5 ya está en pantalla y solo falta mirarlo.
+Nada a medias. **El Sprint 3 está completo** (sesiones 018, 019 y 020) y el Hito 3, cumplido.
 
 ## Lo siguiente
 
@@ -135,9 +142,11 @@ Nada a medias. Sprint 3: pasos 1 a 4 hechos (sesiones 018, 019 y 020); el 5 ya e
 2. ~~Sugerencias con porcentaje y desglose, indexadas, solo vigentes (RF-15, 16, RN-05, RNF-05)~~ — **sesión 019**, junto con la ubicación por departamentos (RN-34).
 3. ~~Postulaciones con checklist copiado de los requisitos (RF-17, 18, RN-04)~~ — **sesión 020**, con RN-35.
 4. ~~Estados según el grafo de transiciones, validados en servidor (**RF-83**)~~ — **sesión 020**.
-5. Enlace al portal de la entidad como acción primaria (**RF-73**, RN-19): el detalle ya lo lee del servidor y lo presenta primero, y el HTML lo comprueba. **Falta mirar la jerarquía visual en el navegador (pendiente 12).** Con eso y el recorrido del pendiente 12, el **Hito 3** queda cumplido.
+5. ~~Enlace al portal de la entidad como acción primaria (**RF-73**, RN-19)~~ — **sesión 020**, visto en el navegador.
 
-Después del Sprint 3: **Sprint 4 — generación con IA, créditos y suscripciones** (`docs/10 §Sprint 4`). El generador sigue leyendo postulaciones del store (ya sincronizado con las reales) para autovincular el documento.
+**Hito 3 — cumplido el 24-sep (sesión 020):** en el navegador, con la cuenta de empresa del Product Owner, el proyecto con departamento recibe sugerencias (pendiente 11), inicia una postulación y avanza su checklist. Todo persiste al recargar y está aislado por RLS, comprobado con dos empresas en las pantallas.
+
+**Siguiente: Sprint 4 — generación con IA, créditos y suscripciones** (`docs/10 §Sprint 4`). Empieza por el servicio de generación aislado tras una interfaz propia (RNF-22) y la plantilla con las reglas de veracidad (RF-53..57, RNF-23). El generador sigue leyendo postulaciones del store (ya sincronizado con las reales) para autovincular el documento.
 
 **Hito 3 (día 18):** una empresa registra un proyecto, recibe sugerencias ordenadas por compatibilidad, inicia una postulación y avanza su checklist. Todo persistido y aislado por RLS.
 
@@ -181,7 +190,7 @@ Pendiente del Product Owner:
 9. ~~**Recorrer la sección "Documentos" del editor en el navegador**~~ — **hecho**: el Product Owner la recorrió en la sesión 015 (19/19 pasos) y el agente la repitió en la 016. Uno de sus pasos quedó obsoleto: publicar sin adjuntos ya no se permite (RN-01).
 10. ~~**Revisar los proyectos en pantalla con la cuenta de empresa**~~ — **hecho** (informado al abrir la sesión 019): RF-46 y RF-81 a `verificado`.
 11. ~~**Ponerle departamento a tu proyecto y mirar las sugerencias**~~ — **hecho** (informado al abrir la sesión 020): RF-15 y RF-16 a `verificado`.
-12. **Recorrer las postulaciones con tu cuenta de empresa** (sesión 020). Ojo: **lo que crees queda guardado**, porque las postulaciones no se borran (son registro auditado).
+12. ~~**Recorrer las postulaciones con tu cuenta de empresa**~~ — **hecho en la sesión 020**: lo recorrió el agente en el navegador, con la sesión de empresa que abrió el Product Owner. Queda en tu cuenta una postulación real a MinCiencias, en estado "Presentada" y con 2 de 13 ítems marcados. Referencia del recorrido: Ojo: **lo que crees queda guardado**, porque las postulaciones no se borran (son registro auditado).
     - En la convocatoria de MinCiencias, pulsa "Postular" con tu proyecto: se abre el detalle con el checklist copiado de los requisitos.
     - Vuelve a postular con el mismo proyecto: debe abrir la misma postulación, con el aviso "Ya tenías esta postulación en curso".
     - Marca y desmarca ítems y recarga la página: el avance se conserva.
@@ -231,6 +240,8 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | La transición de estados de la postulación (RF-83) no se valida en la base: RLS deja a la dueña poner cualquier estado | `postulaciones` | **resuelto** en la sesión 020: trigger del grafo (`20260925200000`) y comprobación en el endpoint |
 | La política de inserción de postulaciones no fijaba el estado inicial: una empresa podía crear una directamente como `aprobada` | `postulaciones` | **resuelto** en la sesión 020 (exige `en_preparacion`, CU-11) |
 | Si se borra un proyecto, su postulación en curso pasa a "sin proyecto" y puede convivir con otra sin proyecto en la misma convocatoria. Se aceptó a propósito: un índice lo habría impedido y habría bloqueado el borrado del proyecto (docs/05 §9.19) | `postulaciones` | baja · solo afecta a la unicidad del par "sin proyecto" |
+| En la ficha de la convocatoria, los botones "Descargar" de adjuntos con nombre largo desbordan a lo ancho a ~600 px (la página mide 653 px en un visor de 606): el nombre del archivo no se corta | `components/catalogo/FichaConvocatoria.tsx` | media · incumple la regla de no tener scroll horizontal en móvil |
+| El aviso "Ya tenías esta postulación en curso" sigue visible después de marcar o cambiar el estado, porque vive en `?existente=1` | `components/postulaciones/DetallePostulacion.tsx` | baja · quitar el parámetro tras mostrarlo |
 | Los historiales de postulación son `timestamptz` y la pantalla solo muestra el día (en hora de Colombia, `fechaColombia`). Si se quiere la hora del cambio, hace falta otro formato | `components/postulaciones/DetallePostulacion.tsx` | baja |
 | `/admin/seguridad` sigue leyendo eventos del mock: los eventos reales (`admin_invitado`, `admin_revocado`, `acceso_denegado`…) no se ven en el panel | `app/admin/seguridad/page.tsx` | media · entra con CU-39 |
 | Si `inviteUserByEmail` falla después de crear la cuenta en Auth, el endpoint borra la invitación pero no puede borrar esa cuenta (no conoce su id): queda una empresa con trial que ocupa el correo. Se registra en el log del servidor. No se ha observado; Auth suele deshacer la cuenta si el envío falla | `lib/admin/administradores.ts` | baja · resolver con una función que devuelva el id por correo si ocurre |
