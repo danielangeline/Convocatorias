@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -62,6 +62,12 @@ export function DetallePostulacion({
   const [marcas, setMarcas] = useState<Record<string, boolean>>({});
   const [ocupado, setOcupado] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // CU-11 1c: el aviso sale una vez. Se quita `?existente=1` de la dirección
+  // (recargar o compartir el enlace no lo repite) y la primera acción lo oculta.
+  const [avisoExistente, setAvisoExistente] = useState(existente);
+  useEffect(() => {
+    if (existente) window.history.replaceState(null, "", window.location.pathname);
+  }, [existente]);
   const setProyectoParaGenerar = useAppStore((s) => s.setProyectoParaGenerar);
   const documentos = useDocumentosPropios();
   const { requerirAcceso } = useAccesoSuscripcion();
@@ -94,6 +100,7 @@ export function DetallePostulacion({
 
   const aplicarEstado = async (nuevo: EstadoPostulacion, confirmado: boolean) => {
     setError(null);
+    setAvisoExistente(false);
     setOcupado(true);
     const r = await pedir(`/api/postulaciones/${postulacion.id}/estado`, "POST", { estado: nuevo, confirmado });
     setOcupado(false);
@@ -123,6 +130,7 @@ export function DetallePostulacion({
   // RF-18 · Marca o desmarca; si el servidor lo rechaza, vuelve a lo que había.
   const marcar = async (itemId: string, completado: boolean) => {
     setError(null);
+    setAvisoExistente(false);
     setMarcas((m) => ({ ...m, [itemId]: completado }));
     const r = await pedir(`/api/checklist/${itemId}`, "PATCH", { completado });
     if (!r.ok) {
@@ -137,6 +145,7 @@ export function DetallePostulacion({
   const vincular = async (): Promise<boolean> => {
     if (!proyectoParaVincular) return false;
     setError(null);
+    setAvisoExistente(false);
     setOcupado(true);
     const r = await pedir(`/api/postulaciones/${postulacion.id}`, "PATCH", { proyectoId: proyectoParaVincular });
     setOcupado(false);
@@ -246,7 +255,7 @@ export function DetallePostulacion({
           </div>
         </div>
 
-        {existente && (
+        {avisoExistente && (
           <p className="mt-4 flex items-start gap-2 rounded-lg bg-primary-50 px-4 py-2.5 text-sm text-primary-800">
             <Info className="mt-0.5 h-4 w-4 shrink-0" />
             Ya tenías esta postulación en curso con el mismo proyecto, así que la abrimos en lugar de crear otra.

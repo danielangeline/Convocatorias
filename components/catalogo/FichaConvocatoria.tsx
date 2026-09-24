@@ -203,13 +203,16 @@ export function FichaConvocatoria({
             {convocatoria.documentos.map((doc) => (
               <li
                 key={doc.id}
-                className="flex items-center justify-between rounded-lg border border-line-soft px-4 py-3"
+                className="flex items-center justify-between gap-3 rounded-lg border border-line-soft px-4 py-3"
               >
-                <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-50 text-primary-700">
+                {/* Los nombres de los anexos suelen ser una sola palabra larga
+                    (anexo_5_caracteristicas_y_…): sin min-w-0 y overflow-wrap
+                    no se parten y empujan el botón fuera de la pantalla. */}
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-700">
                     <FileText className="h-4 w-4" />
                   </span>
-                  <div>
+                  <div className="min-w-0 [overflow-wrap:anywhere]">
                     <p className="text-sm font-medium text-ink">{doc.nombre}</p>
                     <p className="text-xs text-ink-faint">
                       {TIPO_DOCUMENTO_LABEL[doc.tipo]} · {doc.archivo} · {doc.pesoKb} KB
@@ -219,11 +222,14 @@ export function FichaConvocatoria({
                 <Button
                   variant="ghost"
                   size="sm"
+                  className="shrink-0"
                   disabled={descargando === doc.id}
                   onClick={() => descargar(doc.id)}
                   aria-label={`Descargar ${doc.nombre}`}
                 >
-                  <Download className="h-4 w-4" /> {descargando === doc.id ? "Preparando…" : "Descargar"}
+                  <Download className="h-4 w-4" />
+                  {/* En móvil, solo el ícono: el nombre necesita el ancho. El aria-label lo nombra. */}
+                  <span className="hidden sm:inline">{descargando === doc.id ? "Preparando…" : "Descargar"}</span>
                 </Button>
               </li>
             ))}
