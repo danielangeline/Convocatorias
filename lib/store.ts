@@ -21,7 +21,7 @@ import {
   proyectos as proyectosIniciales,
   suscripciones as suscripcionesIniciales,
 } from "./mock-data";
-import { componerDocumento, aplicarAjusteTexto, postulacionParaProyectoConv } from "./documentos";
+import { componerDocumento, aplicarAjusteTexto } from "./documentos";
 import type {
   Calificacion,
   Categoria,
@@ -30,7 +30,6 @@ import type {
   Empresa,
   Encargo,
   EstadisticasIA,
-  EstadoEncargo,
   EventoSeguridad,
   Fuente,
   DatosSesion,
@@ -157,6 +156,8 @@ interface AppState {
 
   // Postulaciones
   hidratarPostulaciones: (postulaciones: Postulacion[]) => void;
+  /** Sprint 4 paso 3: los encargos reales de la empresa, para la ficha del proyecto y documentos. */
+  hidratarEncargos: (encargos: Encargo[]) => void;
 
   // Fuentes
   agregarFuente: (f: Omit<Fuente, "id">) => void;
@@ -176,19 +177,8 @@ interface AppState {
   solicitudConsultorEnCurso: SolicitudConsultor | null;
   iniciarSolicitudConsultor: (s: SolicitudConsultor) => void;
   cancelarSolicitudConsultor: () => void;
-  crearEncargoEsperandoAsignacion: () => Encargo | null;
-  crearEncargoDesdeDirectorio: (consultorId: string) => Encargo | null;
-  // Puente hasta el paso 3 del Sprint 4: el directorio ya es real y los
-  // encargos siguen aquí; el encargo necesita al consultor para mostrarlo.
-  recordarConsultor: (consultor: PerfilConsultor) => void;
-
-  // Encargos
-  aceptarEncargo: (encargoId: string) => void;
-  rechazarEncargoConsultor: (encargoId: string) => void;
-  agregarAvanceEncargo: (encargoId: string, nota: string) => void;
-  completarEncargo: (encargoId: string) => void;
-  calificarEncargo: (encargoId: string, estrellas: number, comentario: string) => void;
-  asignarConsultorInterno: (encargoId: string, consultorId: string) => void;
+  // Encargos: crear, responder, avances, completar, calificar, retirar y
+  // atender viven en el servidor desde la sesión 023 (docs/05 §9.23).
 
   // Planes
   agregarPlan: (p: Omit<Plan, "id">) => void;
@@ -324,6 +314,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   // se reciben las reales para las pantallas que aún leen del store (generar,
   // documentos, encargos).
   hidratarPostulaciones: (postulaciones) => set({ postulaciones }),
+  hidratarEncargos: (encargos) => set({ encargos }),
 
   agregarFuente: (f) => {
     set((s) => ({ fuentes: [...s.fuentes, { ...f, id: nuevoId("fuente") }] }));
@@ -364,149 +355,9 @@ export const useAppStore = create<AppState>((set, get) => ({
   iniciarSolicitudConsultor: (solicitud) => set({ solicitudConsultorEnCurso: solicitud }),
   cancelarSolicitudConsultor: () => set({ solicitudConsultorEnCurso: null }),
 
-  crearEncargoEsperandoAsignacion: () => {
-    const solicitud = get().solicitudConsultorEnCurso;
-    if (!solicitud) return null;
-    const postulacion = solicitud.convocatoriaId
-      ? postulacionParaProyectoConv(solicitud.proyectoId, solicitud.convocatoriaId, get().postulaciones)
-      : undefined;
-    const nuevo: Encargo = {
-      id: nuevoId("encargo"),
-      proyectoId: solicitud.proyectoId,
-      empresaId: usuarioSesion(get().sesion),
-      consultorId: null,
-      tituloTarea: solicitud.tituloTarea,
-      descripcionTarea: solicitud.descripcionTarea,
-      via: "asignacion_interna",
-      estado: "esperando_asignacion",
-      avances: [],
-      fechas: { creada: hoyIso(), aceptado: null, completado: null },
-      tipoAyuda: solicitud.tipoAyuda,
-      convocatoriaId: solicitud.convocatoriaId,
-      postulacionId: postulacion?.id ?? null,
-    };
-    set((s) => ({ encargos: [...s.encargos, nuevo], solicitudConsultorEnCurso: null }));
-    return nuevo;
-  },
-
-  recordarConsultor: (consultor) =>
-    set((s) => ({ consultores: [...s.consultores.filter((c) => c.id !== consultor.id), consultor] })),
-
-  crearEncargoDesdeDirectorio: (consultorId) => {
-    const solicitud = get().solicitudConsultorEnCurso;
-    if (!solicitud) return null;
-    const postulacion = solicitud.convocatoriaId
-      ? postulacionParaProyectoConv(solicitud.proyectoId, solicitud.convocatoriaId, get().postulaciones)
-      : undefined;
-    const nuevo: Encargo = {
-      id: nuevoId("encargo"),
-      proyectoId: solicitud.proyectoId,
-      empresaId: usuarioSesion(get().sesion),
-      consultorId,
-      tituloTarea: solicitud.tituloTarea,
-      descripcionTarea: solicitud.descripcionTarea,
-      via: "directorio",
-      estado: "pendiente",
-      avances: [],
-      fechas: { creada: hoyIso(), aceptado: null, completado: null },
-      tipoAyuda: solicitud.tipoAyuda,
-      convocatoriaId: solicitud.convocatoriaId,
-      postulacionId: postulacion?.id ?? null,
-    };
-    set((s) => ({ encargos: [...s.encargos, nuevo], solicitudConsultorEnCurso: null }));
-    return nuevo;
-  },
-
   // -------------------------------------------------------------------------
-  // Encargos
+  // Encargos: en el servidor desde la sesión 023 (lib/encargos-servidor.ts).
   // -------------------------------------------------------------------------
-
-  aceptarEncargo: (encargoId) => {
-    set((s) => ({
-      encargos: s.encargos.map((e) =>
-        e.id === encargoId ? { ...e, estado: "en_curso" as EstadoEncargo, fechas: { ...e.fechas, aceptado: hoyIso() } } : e
-      ),
-    }));
-  },
-  rechazarEncargoConsultor: (encargoId) => {
-    set((s) => ({
-      encargos: s.encargos.map((e) => (e.id === encargoId ? { ...e, estado: "rechazado" as EstadoEncargo } : e)),
-    }));
-  },
-  agregarAvanceEncargo: (encargoId, nota) => {
-    if (!nota.trim()) return;
-    set((s) => ({
-      encargos: s.encargos.map((e) =>
-        e.id === encargoId
-          ? { ...e, avances: [...e.avances, { id: nuevoId("avance"), nota: nota.trim(), fecha: hoyIso() }] }
-          : e
-      ),
-    }));
-  },
-  completarEncargo: (encargoId) => {
-    set((s) => {
-      const encargo = s.encargos.find((e) => e.id === encargoId);
-      const yaCompletado = !encargo || encargo.estado === "completado" || encargo.estado === "calificado";
-      return {
-      // RF-33: la trayectoria del consultor la marca haber completado el
-      // encargo. La calificación es potestad de la empresa y puede no llegar
-      // nunca; antes el contador dependía de ella y subestimaba su historial.
-      consultores: s.consultores.map((c) =>
-        !yaCompletado && encargo?.consultorId === c.id
-          ? { ...c, totalEncargosCompletados: c.totalEncargosCompletados + 1 }
-          : c
-      ),
-      encargos: s.encargos.map((e) =>
-        e.id === encargoId
-          ? { ...e, estado: "completado" as EstadoEncargo, fechas: { ...e.fechas, completado: hoyIso() } }
-          : e
-      ),
-      };
-    });
-  },
-  calificarEncargo: (encargoId, estrellas, comentario) => {
-    set((s) => {
-      const encargo = s.encargos.find((e) => e.id === encargoId);
-      if (!encargo || !encargo.consultorId) return s;
-      const yaCalificado = s.calificaciones.some((c) => c.encargoId === encargoId);
-      if (yaCalificado) return s;
-
-      const nuevaCalificacion: Calificacion = {
-        id: nuevoId("calif"),
-        encargoId,
-        consultorId: encargo.consultorId,
-        estrellas,
-        comentario: comentario.trim(),
-        fecha: hoyIso(),
-      };
-      const calificaciones = [...s.calificaciones, nuevaCalificacion];
-      const delConsultor = calificaciones.filter((c) => c.consultorId === encargo.consultorId);
-      const promedio = delConsultor.reduce((acc, c) => acc + c.estrellas, 0) / delConsultor.length;
-
-      // El contador de completados ya avanzó al completar el encargo (RF-33):
-      // aquí solo se recalcula el promedio.
-      const consultores = s.consultores.map((c) =>
-        c.id === encargo.consultorId
-          ? { ...c, ratingPromedio: Math.round(promedio * 10) / 10 }
-          : c
-      );
-
-      const encargos = s.encargos.map((e) =>
-        e.id === encargoId ? { ...e, estado: "calificado" as EstadoEncargo } : e
-      );
-
-      return { calificaciones, consultores, encargos };
-    });
-  },
-  asignarConsultorInterno: (encargoId, consultorId) => {
-    set((s) => ({
-      encargos: s.encargos.map((e) =>
-        e.id === encargoId
-          ? { ...e, consultorId, estado: "en_curso" as EstadoEncargo, fechas: { ...e.fechas, aceptado: hoyIso() } }
-          : e
-      ),
-    }));
-  },
 
   // Perfiles de consultor: revisar, suspender y reactivar viven en el
   // servidor desde la sesión 022 (docs/05 §9.21, /api/admin/consultores).

@@ -175,9 +175,16 @@ try {
   // --- RF-35 y RN-29: suspender -------------------------------------------------------
   ok((await api(adm, "POST", `${base}/${c.id}/suspender`, { motivo: "x" })).status === 409, "suspender uno en revisión -> 409");
   await api(adm, "POST", `${base}/${c.id}/aprobar`, {});
-  const { data: proyecto } = await svc.from("proyectos").insert({ usuario_id: emp.id, nombre: `Proyecto revisión ${sufijo}` }).select("id").single();
-  const encargo = (titulo, estado) => ({ proyecto_id: proyecto.id, empresa_id: emp.id, consultor_id: c.id, titulo_tarea: titulo, via: "directorio", estado, tipo_ayuda: "buscar_convocatoria" });
-  const { error: eSiembra } = await svc.from("encargos").insert([encargo("En curso", "en_curso"), encargo("Pendiente", "pendiente"), encargo("Completado", "completado")]);
+  // Sesión 023: un encargo nace pendiente y avanza por el grafo (docs/05 §9.23), y
+  // RN-36 no deja dos abiertos del mismo par: cada encargo va en su proyecto.
+  const { data: proyectos } = await svc.from("proyectos").insert(["En curso", "Pendiente", "Completado"].map((t) => ({ usuario_id: emp.id, nombre: `Proyecto revisión ${t} ${sufijo}` }))).select("id");
+  const encargo = (titulo, i) => ({ proyecto_id: proyectos[i].id, empresa_id: emp.id, consultor_id: c.id, titulo_tarea: titulo, via: "directorio", estado: "pendiente", tipo_ayuda: "buscar_convocatoria" });
+  const { data: sembrados, error: eSiembra } = await svc.from("encargos").insert([encargo("En curso", 0), encargo("Pendiente", 1), encargo("Completado", 2)]).select("id, titulo_tarea");
+  const idDe = (t) => sembrados?.find((x) => x.titulo_tarea === t)?.id;
+  if (!eSiembra) {
+    await svc.from("encargos").update({ estado: "en_curso" }).in("id", [idDe("En curso"), idDe("Completado")]);
+    await svc.from("encargos").update({ estado: "completado" }).eq("id", idDe("Completado"));
+  }
   ok(!eSiembra, `encargos sembrados para C ${eSiembra?.message ?? ""}`);
   const listado = await api(adm, "GET", base);
   const filaC = (listado.json?.datos ?? []).find((x) => x.id === c.id);

@@ -26,6 +26,7 @@ import type { PerfilConsultorPublico, RedSocialTipo, TipoAyudaEncargo } from "@/
 import { useAccesoSuscripcion, useProyectosPropios, usePostulacionesPropias } from "@/lib/hooks";
 import { diasRestantes, cn } from "@/lib/utils";
 import { fechaColombia } from "@/lib/fechas";
+import { pedir } from "@/lib/pedir";
 import { RatingStars } from "@/components/RatingStars";
 import { Chip } from "@/components/ui/Chip";
 import { Button } from "@/components/ui/Button";
@@ -52,42 +53,38 @@ const iconosRed: Record<RedSocialTipo, React.ElementType> = {
  * CU-21 · Perfil público del consultor (RF-27). El perfil llega del servidor
  * sin ningún dato de contacto; sitio web, redes y hoja de vida solo vienen
  * cuando la empresa tiene un encargo en curso con él (RF-80). La solicitud
- * (RF-74) sigue en el store hasta el paso 3 del Sprint 4.
+ * (RF-74) la crea la API (`POST /api/encargos`), que valida en la base al
+ * consultor, el proyecto, la convocatoria y RN-36 (Sprint 4 paso 3).
  */
 export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultorPublico }) {
   const router = useRouter();
   const calificaciones = consultor.resenas;
   const solicitud = useAppStore((s) => s.solicitudConsultorEnCurso);
-  const iniciarSolicitudConsultor = useAppStore((s) => s.iniciarSolicitudConsultor);
-  const crearEncargoStore = useAppStore((s) => s.crearEncargoDesdeDirectorio);
-  const recordarConsultor = useAppStore((s) => s.recordarConsultor);
+  const cancelarSolicitudConsultor = useAppStore((s) => s.cancelarSolicitudConsultor);
   const proyectos = useProyectosPropios();
   const postulaciones = usePostulacionesPropias();
   const convocatorias = useAppStore((s) => s.convocatorias);
   const { requerirAcceso } = useAccesoSuscripcion();
 
   const [errorCv, setErrorCv] = useState<string | null>(null);
+  const [errorSolicitud, setErrorSolicitud] = useState<string | null>(null);
+  const [enviando, setEnviando] = useState(false);
 
-  // El encargo del store necesita al consultor para mostrarlo en "Encargos".
-  // Sin datos de contacto: esos los decide el servidor (RF-80).
-  const crearEncargoDesdeDirectorio = (consultorId: string) => {
-    recordarConsultor({
-      id: consultor.id,
-      nombreProfesional: consultor.nombreProfesional,
-      descripcion: consultor.descripcion,
-      fotoUrl: consultor.fotoUrl ?? "",
-      sitioWeb: "",
-      redes: [],
-      especialidades: consultor.especialidades.map((e) => e.id),
-      portafolio: [],
-      cvNombre: "",
-      estadoPerfil: "aprobado",
-      esEquipoInterno: false,
-      ratingPromedio: consultor.ratingPromedio,
-      totalEncargosCompletados: consultor.totalEncargosCompletados,
-      correo: "",
-    });
-    return crearEncargoStore(consultorId);
+  // CU-22 · Crea el encargo `pendiente` en el servidor. El contacto no se
+  // revela hasta que el consultor acepte (RF-70, RF-80).
+  const enviarAlServidor = async (datos: {
+    proyectoId: string;
+    tipoAyuda: TipoAyudaEncargo;
+    convocatoriaId: string | null;
+    titulo: string;
+    descripcion: string;
+  }) => {
+    setErrorSolicitud(null);
+    setEnviando(true);
+    const r = await pedir("/api/encargos", { ...datos, consultorId: consultor.id });
+    setEnviando(false);
+    if (!r.ok) setErrorSolicitud(r.error);
+    return r.ok;
   };
 
   // RF-80 · RNF-16: la pestaña se abre antes de pedir la URL firmada; si se
@@ -137,10 +134,19 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
     [postulaciones]
   );
 
-  const solicitar = () => {
-    if (!requerirAcceso("solicitar un consultor")) return;
-    const encargo = crearEncargoDesdeDirectorio(consultor.id);
-    if (encargo) router.push("/encargos");
+  // CU-21 3a · Usa la tarea que la empresa ya describió desde su proyecto (CU-19).
+  const solicitar = async () => {
+    if (!solicitud || !requerirAcceso("solicitar un consultor")) return;
+    const ok = await enviarAlServidor({
+      proyectoId: solicitud.proyectoId,
+      tipoAyuda: solicitud.tipoAyuda,
+      convocatoriaId: solicitud.convocatoriaId,
+      titulo: solicitud.tituloTarea,
+      descripcion: solicitud.descripcionTarea,
+    });
+    if (!ok) return;
+    cancelarSolicitudConsultor();
+    router.push("/encargos");
   };
 
   const abrirSolicitudDirecta = () => {
@@ -154,6 +160,7 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
     setTitulo("");
     setDescripcion("");
     setConfirmacion(false);
+    setErrorSolicitud(null);
     setModalAbierto(true);
   };
 
@@ -167,29 +174,30 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
     setPaso(2);
   };
 
-  const enviarSolicitudDirecta = () => {
+  const enviarSolicitudDirecta = async () => {
     if (!titulo.trim() || !descripcion.trim()) return;
+    let ok = false;
     if (origen === "postulacion") {
+      // La postulación resuelve proyecto y convocatoria en un paso (RF-74 b).
       const postulacion = postulaciones.find((p) => p.id === postulacionIdSel);
       if (!postulacion || !postulacion.proyectoId) return;
-      iniciarSolicitudConsultor({
+      ok = await enviarAlServidor({
         proyectoId: postulacion.proyectoId,
-        tituloTarea: titulo.trim(),
-        descripcionTarea: descripcion.trim(),
         tipoAyuda: "convocatoria_especifica",
         convocatoriaId: postulacion.convocatoriaId,
+        titulo: titulo.trim(),
+        descripcion: descripcion.trim(),
       });
     } else {
-      iniciarSolicitudConsultor({
+      ok = await enviarAlServidor({
         proyectoId: proyectoIdSel,
-        tituloTarea: titulo.trim(),
-        descripcionTarea: descripcion.trim(),
         tipoAyuda,
         convocatoriaId: tipoAyuda === "convocatoria_especifica" ? convocatoriaIdSel : null,
+        titulo: titulo.trim(),
+        descripcion: descripcion.trim(),
       });
     }
-    const encargo = crearEncargoDesdeDirectorio(consultor.id);
-    if (encargo) setConfirmacion(true);
+    if (ok) setConfirmacion(true);
   };
 
   return (
@@ -221,7 +229,7 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
             </p>
           </div>
           {solicitud ? (
-            <Button variant="primary" size="lg" onClick={solicitar} className="w-full shrink-0 sm:w-auto">
+            <Button variant="primary" size="lg" onClick={solicitar} disabled={enviando} className="w-full shrink-0 sm:w-auto">
               Solicitar para mi tarea
             </Button>
           ) : (
@@ -230,6 +238,12 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
             </Button>
           )}
         </div>
+
+        {errorSolicitud && !modalAbierto && (
+          <div className="mt-4">
+            <Aviso tipo="error">{errorSolicitud}</Aviso>
+          </div>
+        )}
 
         <p className="mt-6 whitespace-pre-line text-[15px] leading-relaxed text-ink-soft">{consultor.descripcion}</p>
 
@@ -357,7 +371,7 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                 <CheckCircle2 className="mx-auto h-10 w-10 text-success" />
                 <p className="mt-3 text-sm text-ink-soft">
                   Enviamos tu solicitud a <strong>{consultor.nombreProfesional}</strong> para{" "}
-                  <strong>{titulo}</strong>. Te avisaremos cuando la acepte — podrás ver el avance en{" "}
+                  <strong>{titulo}</strong>. Cuando la acepte verás su correo y podrás seguir el avance en{" "}
                   <Link href="/encargos" className="font-semibold text-primary-700 hover:underline">
                     Encargos
                   </Link>
@@ -559,6 +573,7 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                     : ""}{" "}
                   se adjuntan automáticamente — no necesitas repetirlos aquí.
                 </p>
+                {errorSolicitud && <Aviso tipo="error">{errorSolicitud}</Aviso>}
                 <div className="flex justify-between gap-3">
                   <Button variant="ghost" onClick={() => setPaso(1)}>
                     <ArrowLeft className="h-3.5 w-3.5" /> Volver
@@ -566,7 +581,7 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                   <Button
                     variant="primary"
                     onClick={enviarSolicitudDirecta}
-                    disabled={!titulo.trim() || !descripcion.trim()}
+                    disabled={enviando || !titulo.trim() || !descripcion.trim()}
                   >
                     Enviar solicitud
                   </Button>

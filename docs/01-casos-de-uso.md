@@ -180,6 +180,7 @@
 | **Precondiciones** | Perfil aprobado. Para aceptar nuevos: suscripción activa |
 | **Flujo principal** | 1. Ve solicitudes: proyecto (contenido completo, RF-68), convocatoria si aplica, tarea y tipo de ayuda — si es "buscar convocatoria", ve los datos de clasificación del proyecto para orientar la búsqueda (RF-69). 2. **Acepta** (revela el correo de la empresa, RF-70) o **rechaza**. 3. Si el tipo de ayuda es "buscar convocatoria", reporta candidatas mediante notas de avance. 4. Registra notas de avance. 5. Marca finalización → la empresa puede calificar |
 | **Flujos alternos** | **2a.** Suscripción vencida → termina los encargos en curso, no acepta nuevos. Igual que en CU-27, pasan a `cancelado` con motivo registrado ("Suscripción del consultor vencida") — mismo efecto en el dato, dos disparadores distintos (RN-10, RN-29). En el MVP este disparador es el job diario de `pg_cron` (CU-32); no tiene un botón equivalente en el prototipo mientras no exista ese job |
+| **Detalle** *(mod. v6, sesión 023, Sprint 4 paso 3)* | Todo se valida en la base, con la sesión del consultor: solo responde, registra avances o completa el consultor del encargo, y cada acción exige el estado de origen del grafo de docs/05 §9.23 (`pendiente` → `en_curso` o `rechazado`; `en_curso` → `completado`). 1. La solicitud trae el contenido del proyecto, sus categorías y su departamento, la convocatoria con sus requisitos si la hay y, si el encargo quedó vinculado a una postulación, su checklist en solo lectura (RN-25). 2. Rechazar no lleva motivo. Mientras no existan planes con precio (Sprint 5), **aceptar no exige suscripción** (RN-10 transitorio, igual que RN-08). 4. Las notas de avance las escribe solo el consultor, mientras el encargo está `en_curso`; la empresa las lee. 5. Completar fija la fecha y suma uno al contador del consultor (RF-33). El correo de la empresa sigue visible en `completado` y `calificado` (RN-26) |
 
 ### Módulo F — Contratación de consultores (Usuario Empresa)
 
@@ -188,7 +189,7 @@
 | Campo | Contenido |
 |---|---|
 | **Precondiciones** | Proyecto registrado + suscripción activa o trial |
-| **Flujo principal** | 1. "Solicitar consultor" en la ficha del proyecto. **2. Elige el tipo de ayuda: (a) ayuda con una convocatoria específica — busca por nombre y selecciona de su catálogo o postulaciones la convocatoria a la que quiere aplicar (RF-75); o (b) ayuda para encontrar una convocatoria — no selecciona ninguna.** 3. Describe la tarea (título y descripción, complementaria al contexto ya adjunto). **4. El sistema adjunta automáticamente los datos de contenido del proyecto y, si aplica, los de la convocatoria elegida y sus requisitos (RF-68).** 5. Elige camino: directorio (CU-20) o asignación interna (CU-23) |
+| **Flujo principal** | 1. "Solicitar consultor" en la ficha del proyecto. **2. Elige el tipo de ayuda: (a) ayuda con una convocatoria específica — busca por nombre y selecciona de su catálogo o postulaciones la convocatoria a la que quiere aplicar (RF-75); o (b) ayuda para encontrar una convocatoria — no selecciona ninguna.** 3. Describe la tarea (título y descripción, complementaria al contexto ya adjunto). **4. El sistema adjunta automáticamente los datos de contenido del proyecto y, si aplica, los de la convocatoria elegida y sus requisitos (RF-68).** 5. Elige camino: directorio (CU-20) o **pedir ayuda al equipo de la plataforma (CU-23)** *(sesión 023: antes "asignación interna")* |
 | **Flujos alternos** | **1a.** También se abre directo desde la tarjeta del proyecto en el listado (`/proyectos`), sin entrar a la ficha completa — mismo modal, mismo resultado (RF-28). **2a.** Si elige "convocatoria específica" y ya existe una postulación en curso de ese proyecto a esa convocatoria, se vincula automáticamente — el consultor verá también el checklist. **2b.** Iniciado desde el detalle de una postulación (CU-13): el proyecto y la convocatoria quedan preseleccionados (tipo de ayuda fijo en "convocatoria específica"); si la postulación no tiene proyecto vinculado, primero pide vincular uno |
 
 #### CU-20 · Explorar directorio de consultores *(mod. v5)*
@@ -197,8 +198,8 @@
 |---|---|
 | **Descripción** | Solo consultores aprobados, activos y con suscripción vigente |
 | **Flujo principal** | 1. Tarjetas con foto, nombre, rating, especialidades y encargos completados. 2. Filtra por especialidad y rating. 3. Entra al perfil de un consultor (CU-21), desde donde puede solicitarlo directamente sin depender de haber iniciado la solicitud desde CU-19 **(RF-74, nuevo v5)** |
-| **Detalle** *(mod. v6, sesión 022, decisiones del Product Owner)* | Los consultores del **equipo interno no aparecen** en el directorio: llegan solo por asignación del administrador (CU-26). Mientras no existan planes con precio (Sprint 5), no se exige la suscripción vigente (RN-08 transitorio). El orden es por rating y, a igualdad, por encargos completados. La foto se sirve por URL firmada (RNF-16) |
-| **Flujos alternos** | 1a. Directorio vacío → ofrece directamente la asignación interna. **1b. Si ya inició una solicitud desde la ficha de un proyecto (CU-19), un aviso lo recuerda y cada tarjeta lleva directo a confirmarla en el perfil elegido** |
+| **Detalle** *(mod. v6, sesión 022, decisiones del Product Owner)* | Los consultores del **equipo interno no aparecen** en el directorio *(sesión 023: la asignación interna se retiró; ver CU-23)*. Mientras no existan planes con precio (Sprint 5), no se exige la suscripción vigente (RN-08 transitorio). El orden es por rating y, a igualdad, por encargos completados. La foto se sirve por URL firmada (RNF-16) |
+| **Flujos alternos** | 1a. Directorio vacío → ofrece directamente pedir ayuda al equipo de la plataforma (CU-23). **1b. Si ya inició una solicitud desde la ficha de un proyecto (CU-19), un aviso lo recuerda y cada tarjeta lleva directo a confirmarla en el perfil elegido** |
 
 #### CU-21 · Ver perfil del consultor *(mod. v5)*
 
@@ -214,14 +215,16 @@
 | Campo | Contenido |
 |---|---|
 | **Flujo principal** | 1. Envía la solicitud: tarea + tipo de ayuda + contexto del proyecto y convocatoria ya adjuntos, sea desde CU-19 o elegidos directamente en el perfil del consultor (CU-21, RF-74). 2. Queda `pendiente`. **3. El consultor ve el contexto completo antes de decidir. 4. Acepta (→ `en_curso`): el sistema revela a ambas partes el correo de contacto de la otra (RF-70), o rechaza** |
-| **Flujos alternos** | 4a. Rechazada → puede enviarla a otro o pasar a asignación interna; el correo **no** se revela |
+| **Flujos alternos** | 4a. Rechazada → puede enviarla a otro o pedir ayuda al equipo de la plataforma (CU-23); el correo **no** se revela. **1a.** *(nuevo v6, sesión 023)* Ya tiene una solicitud `pendiente` o un encargo `en_curso` de ese proyecto con ese mismo consultor → se rechaza con aviso (RN-36); a otro consultor sí puede pedírsela en paralelo. **1b.** *(nuevo v6, sesión 023)* La convocatoria elegida ya no está publicada y vigente → se rechaza (igual que RF-78). **2a.** *(nuevo v6, sesión 023)* Mientras siga `pendiente`, la empresa puede **retirarla** (RF-89): pasa a `cancelado` con el motivo "Retirada por la empresa" y el consultor la ve en su historial |
 | **Nota** *(v5)* | Tiene dos puntos de entrada equivalentes — desde el proyecto (CU-19 → CU-20 → CU-21) o directo desde el directorio/perfil (CU-20/21, RF-74) — ambos producen el mismo encargo `pendiente` vía `directorio` |
 
-#### CU-23 · Solicitar asignación de consultor interno *(mod. v5)*
+#### CU-23 · Pedir ayuda al equipo de la plataforma *(mod. v6, sesión 023 — antes "Solicitar asignación de consultor interno")*
 
 | Campo | Contenido |
 |---|---|
-| **Flujo principal** | 1. "Pedir que me asignen un consultor". 2. El encargo queda `esperando_asignacion` y notifica a los administradores, con el contexto ya adjunto (CU-19). 3. El admin asigna un consultor del equipo (CU-26). **4. Al asignarse (→ `en_curso`), el sistema revela a ambas partes el correo de contacto de la otra (RF-70)**. 5. La empresa lo ve como cualquier encargo en curso |
+| **Flujo principal** | 1. "Pedir ayuda a nuestro equipo". 2. La solicitud queda `esperando_asignacion` (el identificador del estado se conserva; en pantalla, "Esperando a nuestro equipo") con el contexto ya adjunto (CU-19), y aparece en la bandeja del panel con un contador (CU-26). 3. **Un administrador contacta a la empresa por correo, fuera de la plataforma, y la marca como contactada** → `atendido`. 4. La empresa la ve como "Atendida por nuestro equipo": el resto de la conversación sigue por correo, sin consultor asignado, sin avances y sin calificación |
+| **Flujos alternos** | **2a.** Ya tiene una solicitud al equipo esperando para ese proyecto → se rechaza con aviso (RN-36). **2b.** Mientras siga esperando, la empresa puede **retirarla** (RF-89) → `cancelado` con el motivo "Retirada por la empresa" |
+| **Nota** *(sesión 023, decisión del Product Owner)* | Se descarta la asignación de un consultor del equipo interno desde la plataforma: el equipo atiende directamente por correo. No hay aviso por correo a los administradores hasta que exista SMTP propio; el aviso es la bandeja y el contador del panel. Como no hay consultor, RF-70 no aplica: el administrador ya ve el correo de la empresa en la bandeja |
 
 #### CU-24 · Calificar al consultor
 
@@ -229,6 +232,7 @@
 |---|---|
 | **Precondiciones** | Encargo `completado` sin calificación previa |
 | **Flujo principal** | 1. El sistema invita a calificar. 2. 1 a 5 estrellas + comentario opcional. 3. Se guarda (inmutable), se recalcula el rating y el encargo pasa a `calificado` |
+| **Detalle** *(sesión 023)* | Solo la empresa del encargo, sobre un encargo `completado` del directorio; la base impide la segunda calificación (RNF-17). El comentario admite hasta 1 000 caracteres. El rating es el promedio de todas las calificaciones del consultor, recalculado en la base; el contador de completados ya avanzó al completar (RF-33) |
 
 ### Módulo G — Gestión de consultores (Administrador)
 
@@ -241,11 +245,13 @@
 | **Detalle** *(mod. v6, sesión 022)* | 2. La bandeja muestra, por perfil: foto, nombre, descripción, especialidades, portafolio, sitio web, redes, **el motivo del rechazo anterior si es un reenvío** y la hoja de vida, que el administrador abre por **URL firmada de 15 minutos** (RNF-16). 3. Aprobar o rechazar se valida en la base: solo se revisa un perfil `en_revision`, y se registra quién y cuándo (`revisado_por`, `revisado_at`). Aprobar borra el motivo del rechazo anterior |
 | **Flujos alternos** *(nuevo v6, sesión 022)* | **3a.** Otro administrador ya lo revisó (el perfil dejó de estar `en_revision`): la acción se rechaza con aviso y la bandeja se recarga. **3b.** Rechazo sin motivo: no se permite (RN-13) |
 
-#### CU-26 · Atender solicitudes de asignación interna *(mod. v5)*
+#### CU-26 · Atender solicitudes al equipo de la plataforma *(mod. v6, sesión 023 — antes "Atender solicitudes de asignación interna")*
 
 | Campo | Contenido |
 |---|---|
-| **Flujo principal** | 1. Bandeja de encargos `esperando_asignacion`. 2. Revisa proyecto (contexto completo), tarea y tipo de ayuda. 3. Asigna un consultor del equipo interno. 4. El encargo pasa a `en_curso` y **el sistema revela el correo de contacto a empresa y consultor (RF-70)** |
+| **Flujo principal** | 1. `/admin/encargos` muestra las solicitudes `esperando_asignacion`, la más antigua primero; el menú y el dashboard del panel llevan su número. 2. Por solicitud: empresa (nombre y **correo**), proyecto con su contenido completo, categorías y departamento, tarea, tipo de ayuda y convocatoria si la hay. 3. El administrador escribe a la empresa por correo, fuera de la plataforma. 4. Pulsa **"Marcar como contactada"**, con una nota interna opcional → `atendido`, con quién y cuándo. Sale de la bandeja y queda en la lista de atendidas |
+| **Flujos alternos** | **4a.** Otro administrador ya la marcó, o la empresa la retiró → se rechaza con aviso y la bandeja se recarga |
+| **Nota** *(sesión 023, decisión del Product Owner)* | La nota interna solo la leen los administradores. Ya no se asigna un consultor del equipo interno (ver CU-23) |
 
 #### CU-27 · Administrar consultores activos *(mod. v5)*
 

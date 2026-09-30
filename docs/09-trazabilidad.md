@@ -24,10 +24,10 @@
 | CU-13 Estados *(v5: generar/editar documento, enlace al portal, solicitar consultor; v6: grafo de transiciones y jerarquía del portal)* | RF-19, 20, 28, 53, 73, **83** | RNF-11, 12, **RN-19**, **RN-35** |
 | CU-14 Cuenta *(v6: dos puertas, panel oculto; sesión 021: consentimiento)* | RF-01, 02, 03, **84, 85, 88** | RNF-01, **30, 35**, RN-06, **32** |
 | CU-15..17 Perfil consultor *(sesión 021: consentimiento, mínimos en el servidor)* | RF-22..25, **88** | RN-13, RNF-16, 18 |
-| CU-18 Encargos (consultor) *(v5: contexto, contacto)* | RF-30, 32, **68, 69, 70** | RN-10, **29**, RN-25, RN-26, RF-40 |
-| CU-19..23 Contratación *(v5: contexto, tipo de ayuda, contacto, solicitud directa, buscador; v6: visibilidad por pareja empresa-consultor; sesión 022: contacto solo tras aceptar, sin equipo interno en el directorio)* | RF-26, **27**, 28..31, 68, 69, 70, 74, 75, **80** | RN-08, 12, 25, 26, RNF-19, **RNF-16, 30** |
-| CU-24 Calificar *(v6: contador al completar)* | RF-33 | RN-09, RNF-17 |
-| CU-25..27 Gestión consultores *(CU-26 v5: contacto; CU-27 v5: cancela encargos en curso; v6: revoca autorizaciones en cascada; sesión 022: motivo de suspensión y cancelación de las solicitudes pendientes)* | RF-34, 35, 70, **76**, **80** | RN-08, 13, 15, 26, 29, RNF-11, **16**, **RN-27** |
+| CU-18 Encargos (consultor) *(v5: contexto, contacto; sesión 023: grafo en la base, checklist vinculado, correo visible al completar)* | RF-29, 30, 32, 33, **68, 69, 70** | RN-10, **29**, RN-25, RN-26, RF-40 |
+| CU-19..23 Contratación *(v5: contexto, tipo de ayuda, contacto, solicitud directa, buscador; v6: visibilidad por pareja empresa-consultor; sesión 022: contacto solo tras aceptar, sin equipo interno en el directorio; sesión 023: retirar, una abierta por par, CU-23 pasa a pedir ayuda al equipo)* | RF-26, **27**, 28..31, 68, 69, 70, 74, 75, **80, 89** | RN-08, 12, 25, 26, **36**, RNF-19, **RNF-16, 30** |
+| CU-24 Calificar *(v6: contador al completar; sesión 023: en la base)* | RF-33 | RN-09, RNF-17 |
+| CU-25..27 Gestión consultores *(CU-26 v5: contacto; CU-27 v5: cancela encargos en curso; v6: revoca autorizaciones en cascada; sesión 022: motivo de suspensión y cancelación de las solicitudes pendientes; sesión 023: CU-26 pasa a atender por correo)* | RF-34, 35, **76**, **80**, **90** | RN-08, 13, 15, 26, 29, RNF-11, **16**, **RN-27** |
 | CU-28..30 Suscripción *(v6: comparador con atributos reales)* | RF-37, 38, 41, **82** | RN-11, 16, **RNF-14** |
 | CU-31 Planes y suscripciones | RF-36, 42, 51 | RNF-14, 20 |
 | CU-32 Enforcement *(v6: revocación en cascada al vencer)* | RF-40, 39, **76** | RNF-20, RN-08, 10, **RN-27, 29** |

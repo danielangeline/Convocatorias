@@ -269,8 +269,12 @@ export interface PerfilConsultorPublico extends ConsultorDirectorio {
 
 export type ViaEncargo = "directorio" | "asignacion_interna";
 
+// Sesión 023: `asignacion_interna` y `esperando_asignacion` conservan el
+// identificador, pero ya no asignan un consultor: la solicitud va al equipo de
+// la plataforma, que la atiende por correo y la marca `atendido` (CU-23, CU-26).
 export type EstadoEncargo =
   | "esperando_asignacion"
+  | "atendido"
   | "pendiente"
   | "en_curso"
   | "rechazado"
@@ -309,6 +313,62 @@ export interface Encargo {
   tipoAyuda: TipoAyudaEncargo;
   convocatoriaId: string | null; // solo si tipoAyuda = convocatoria_especifica
   postulacionId: string | null; // autovinculado si ya existía una postulación en curso
+}
+
+/**
+ * Un encargo leído del servidor (docs/05 §9.23), para la empresa o el
+ * consultor. Los nombres y el correo vienen de `datos_de_mis_encargos()`: el
+ * correo solo en encargos del directorio aceptados (RF-70, RN-26).
+ */
+export interface EncargoDetalle extends Encargo {
+  proyectoNombre: string;
+  convocatoriaNombre: string | null;
+  empresaNombre: string;
+  correoContraparte: string | null;
+  atendidoAt: string | null;
+  // Para la empresa: el consultor del encargo (RN-15, aunque esté suspendido).
+  consultor: { id: string; nombre: string; fotoUrl: string | null } | null;
+  calificacion: { estrellas: number; comentario: string | null; fecha: string } | null;
+}
+
+/**
+ * Lo que el consultor ve de la solicitud antes de decidir (RF-68, RF-69,
+ * RN-25): nulo cuando ya no puede leerlo (encargo cerrado).
+ */
+export interface ContextoEncargo {
+  proyecto: Proyecto & { categoriasNombres: string[] };
+  convocatoria: {
+    id: string;
+    nombre: string;
+    entidad: string;
+    fechaCierre: string;
+    urlPostulacion: string | null;
+    requisitos: { descripcion: string; obligatorio: boolean }[];
+  } | null;
+  checklist: { descripcion: string; obligatorio: boolean; completado: boolean }[] | null;
+}
+
+export interface EncargoConsultor extends EncargoDetalle {
+  contexto: ContextoEncargo | null;
+}
+
+/** RF-90 · Una solicitud al equipo de la plataforma, para el panel. */
+export interface SolicitudEquipo {
+  id: string;
+  proyectoId: string;
+  empresaNombre: string;
+  empresaContacto: string;
+  empresaCorreo: string;
+  tituloTarea: string;
+  descripcionTarea: string;
+  tipoAyuda: TipoAyudaEncargo;
+  convocatoriaId: string | null;
+  convocatoriaNombre: string | null;
+  creadaAt: string;
+  atendidoAt: string | null;
+  atendidoPorNombre: string | null;
+  notaInterna: string | null;
+  proyecto: (Proyecto & { categoriasNombres: string[] }) | null;
 }
 
 export interface Calificacion {

@@ -19,10 +19,10 @@ const invalido = (error: string) => ({ ok: false as const, status: 400, error })
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const COLUMNAS =
+export const COLUMNAS_PROYECTO =
   "id, usuario_id, nombre, descripcion, monto_buscado, departamento_codigo, ubicacion, problema, objetivo_general, objetivos_especificos, poblacion_beneficiaria, actividades, resultados_esperados, duracion_meses, presupuesto_estimado, experiencia_empresa, completitud, proyecto_categoria (categoria_id)";
 
-type Fila = {
+export type FilaProyecto = {
   id: string;
   usuario_id: string;
   nombre: string;
@@ -46,7 +46,7 @@ type Fila = {
 const numero = (v: number | string | null) => (v === null ? null : Number(v));
 const opcional = <T,>(v: T | null) => (v === null ? undefined : v);
 
-function aProyecto(f: Fila): Proyecto {
+export function aProyecto(f: FilaProyecto): Proyecto {
   return {
     id: f.id,
     usuarioId: f.usuario_id,
@@ -74,21 +74,21 @@ function aProyecto(f: Fila): Proyecto {
 /** RN-30 · Los proyectos de la sesión, los más recientes primero. */
 export const listarProyectos = cache(async (): Promise<Proyecto[]> => {
   const supabase = await crearClienteServidor();
-  const { data, error } = await supabase.from("proyectos").select(COLUMNAS).order("creado_at", { ascending: false });
+  const { data, error } = await supabase.from("proyectos").select(COLUMNAS_PROYECTO).order("creado_at", { ascending: false });
   if (error) {
     console.error("Proyectos: no se pudieron listar", error.code, error.message);
     return [];
   }
-  return (data as unknown as Fila[]).map(aProyecto);
+  return (data as unknown as FilaProyecto[]).map(aProyecto);
 });
 
 /** El proyecto, si la sesión puede verlo; null si para ella no existe. */
 export const obtenerProyecto = cache(async (id: string): Promise<Proyecto | null> => {
   if (!UUID.test(id)) return null;
   const supabase = await crearClienteServidor();
-  const { data, error } = await supabase.from("proyectos").select(COLUMNAS).eq("id", id).maybeSingle();
+  const { data, error } = await supabase.from("proyectos").select(COLUMNAS_PROYECTO).eq("id", id).maybeSingle();
   if (error) console.error("Proyectos: no se pudo leer", error.code, error.message);
-  return data ? aProyecto(data as unknown as Fila) : null;
+  return data ? aProyecto(data as unknown as FilaProyecto) : null;
 });
 
 // ---------------------------------------------------------------------------

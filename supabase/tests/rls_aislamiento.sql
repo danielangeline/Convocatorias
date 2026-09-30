@@ -118,8 +118,10 @@ insert into public.proyectos (id, usuario_id, nombre) values
 insert into public.encargos (id, proyecto_id, empresa_id, consultor_id, titulo_tarea, via, estado, tipo_ayuda, convocatoria_id) values
   ('00000000-0000-0000-0000-00000000a001', '00000000-0000-0000-0000-00000000b001',
    '00000000-0000-0000-0000-0000000000e1', '00000000-0000-0000-0000-0000000000c1',
-   'Revisar documento', 'directorio', 'en_curso', 'convocatoria_especifica',
+   'Revisar documento', 'directorio', 'pendiente', 'convocatoria_especifica',
    '00000000-0000-0000-0000-00000000c001');
+-- Sesión 023: nace pendiente y avanza por el grafo (docs/05 §9.23).
+update public.encargos set estado = 'en_curso' where id = '00000000-0000-0000-0000-00000000a001';
 
 insert into public.documentos_generados (id, usuario_id, proyecto_id, convocatoria_id, titulo, contenido, estado, ajustes_usados, compartido_con_consultor_id) values
   ('00000000-0000-0000-0000-00000000d001', '00000000-0000-0000-0000-0000000000e1',

@@ -11,3 +11,28 @@ export function hoyColombia(): string {
 export function fechaColombia(instante: Date | string): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Bogota" }).format(new Date(instante));
 }
+
+const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sept", "oct", "nov", "dic"];
+
+/**
+ * Fecha y hora en Colombia, "30 sept 2026, 18:16". Se arma a mano para que el
+ * servidor y el navegador escriban exactamente lo mismo: el formato regional
+ * de Intl cambia los espacios de "p. m." entre Node y el navegador, y rompe la
+ * hidratación.
+ */
+export function fechaHoraColombia(instante: Date | string): string {
+  const partes = Object.fromEntries(
+    new Intl.DateTimeFormat("en-GB", {
+      timeZone: "America/Bogota",
+      year: "numeric",
+      month: "numeric",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    })
+      .formatToParts(new Date(instante))
+      .map((p) => [p.type, p.value])
+  );
+  return `${partes.day} ${MESES[Number(partes.month) - 1]} ${partes.year}, ${partes.hour}:${partes.minute}`;
+}

@@ -36,12 +36,21 @@ begin
   update public.consultor_perfiles set estado_perfil = 'en_revision' where id = v_c1;
   update public.consultor_perfiles set estado_perfil = 'aprobado' where id = v_c2;
 
-  insert into public.proyectos (id, usuario_id, nombre) values (v_pr, v_e1, 'Proyecto 022');
+  -- Sesión 023: un encargo nace pendiente y avanza por el grafo (docs/05 §9.23),
+  -- y RN-36 no deja dos abiertos del mismo par: el pendiente va en otro proyecto.
+  insert into public.proyectos (id, usuario_id, nombre) values
+    (v_pr, v_e1, 'Proyecto 022'), ('00000000-0000-0000-0000-0000000022b2', v_e1, 'Proyecto 022 bis');
   insert into public.encargos (id, proyecto_id, empresa_id, consultor_id, titulo_tarea, via, estado, tipo_ayuda) values
-    ('00000000-0000-0000-0000-0000000022a1', v_pr, v_e1, v_c2, 'En curso',   'directorio', 'en_curso',   'buscar_convocatoria'),
-    ('00000000-0000-0000-0000-0000000022a2', v_pr, v_e1, v_c2, 'Pendiente',  'directorio', 'pendiente',  'buscar_convocatoria'),
-    ('00000000-0000-0000-0000-0000000022a3', v_pr, v_e1, v_c2, 'Completado', 'directorio', 'completado', 'buscar_convocatoria'),
-    ('00000000-0000-0000-0000-0000000022a4', v_pr, v_e1, v_c2, 'Rechazado',  'directorio', 'rechazado',  'buscar_convocatoria');
+    ('00000000-0000-0000-0000-0000000022a3', v_pr, v_e1, v_c2, 'Completado', 'directorio', 'pendiente', 'buscar_convocatoria');
+  update public.encargos set estado = 'en_curso' where id = '00000000-0000-0000-0000-0000000022a3';
+  update public.encargos set estado = 'completado' where id = '00000000-0000-0000-0000-0000000022a3';
+  insert into public.encargos (id, proyecto_id, empresa_id, consultor_id, titulo_tarea, via, estado, tipo_ayuda) values
+    ('00000000-0000-0000-0000-0000000022a4', v_pr, v_e1, v_c2, 'Rechazado', 'directorio', 'pendiente', 'buscar_convocatoria');
+  update public.encargos set estado = 'rechazado' where id = '00000000-0000-0000-0000-0000000022a4';
+  insert into public.encargos (id, proyecto_id, empresa_id, consultor_id, titulo_tarea, via, estado, tipo_ayuda) values
+    ('00000000-0000-0000-0000-0000000022a1', v_pr, v_e1, v_c2, 'En curso', 'directorio', 'pendiente', 'buscar_convocatoria'),
+    ('00000000-0000-0000-0000-0000000022a2', '00000000-0000-0000-0000-0000000022b2', v_e1, v_c2, 'Pendiente', 'directorio', 'pendiente', 'buscar_convocatoria');
+  update public.encargos set estado = 'en_curso' where id = '00000000-0000-0000-0000-0000000022a1';
   insert into public.calificaciones (encargo_id, consultor_id, empresa_id, estrellas)
   values ('00000000-0000-0000-0000-0000000022a3', v_c2, v_e1, 4);
 

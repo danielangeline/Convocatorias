@@ -155,7 +155,8 @@ export const ESTADO_PERFIL_ESTILO: Record<EstadoPerfilConsultor, string> = {
 };
 
 export const ESTADO_ENCARGO_LABEL: Record<EstadoEncargo, string> = {
-  esperando_asignacion: "Esperando asignación",
+  esperando_asignacion: "Esperando a nuestro equipo",
+  atendido: "Atendida por nuestro equipo",
   pendiente: "Pendiente",
   en_curso: "En curso",
   rechazado: "Rechazado",
@@ -166,6 +167,7 @@ export const ESTADO_ENCARGO_LABEL: Record<EstadoEncargo, string> = {
 
 export const ESTADO_ENCARGO_ESTILO: Record<EstadoEncargo, string> = {
   esperando_asignacion: "bg-brick-50 text-brick-700 ring-brick-100",
+  atendido: "bg-emerald-50 text-emerald-700 ring-emerald-200",
   pendiente: "bg-amber-50 text-amber-700 ring-amber-200",
   en_curso: "bg-blue-50 text-blue-700 ring-blue-200",
   rechazado: "bg-danger-bg text-danger ring-red-200",

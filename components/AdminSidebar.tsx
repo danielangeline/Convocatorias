@@ -43,7 +43,7 @@ const grupos: Grupo[] = [
     enlaces: [
       { href: "/admin/consultores/revision", label: "Perfiles en revisión", icon: UserCheck },
       { href: "/admin/consultores", label: "Consultores", icon: Users },
-      { href: "/admin/encargos", label: "Encargos por asignar", icon: ClipboardList },
+      { href: "/admin/encargos", label: "Solicitudes al equipo", icon: ClipboardList },
     ],
   },
   {
@@ -69,7 +69,14 @@ const grupoPropietario: Grupo = {
   enlaces: [{ href: "/admin/administradores", label: "Administradores", icon: UserCog }],
 };
 
-export function AdminSidebar({ esPropietario }: { esPropietario: boolean }) {
+// RF-90: las solicitudes que esperan al equipo llevan su número en el menú.
+export function AdminSidebar({
+  esPropietario,
+  solicitudesEquipo,
+}: {
+  esPropietario: boolean;
+  solicitudesEquipo: number;
+}) {
   const pathname = usePathname();
 
   return (
@@ -103,7 +110,15 @@ export function AdminSidebar({ esPropietario }: { esPropietario: boolean }) {
                     )}
                   >
                     <Icon className="h-4 w-4 shrink-0" strokeWidth={2} />
-                    {label}
+                    <span className="flex-1">{label}</span>
+                    {href === "/admin/encargos" && solicitudesEquipo > 0 && (
+                      <span
+                        className="rounded-full bg-brick-500 px-2 py-0.5 text-[11px] font-bold text-white"
+                        aria-label={`${solicitudesEquipo} esperando`}
+                      >
+                        {solicitudesEquipo}
+                      </span>
+                    )}
                   </Link>
                 );
               })}

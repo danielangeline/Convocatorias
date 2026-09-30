@@ -5,18 +5,39 @@
 
 ---
 
-**Actualizado:** 24 de septiembre de 2026 · cierre de la sesión 022
-**Sprint:** 4 · día 10 de 30 (los sprints 2 y 3 terminaron antes de su plazo). **Orden de los sprints 4 y 5 intercambiado en la sesión 021**: la IA, los créditos, los planes y los precios van al final
-**Rama de trabajo:** `sprint-2`, abierta desde `main` en la sesión 011 y subida a `origin` (sin fusionar a `main`: producción todavía no tiene el catálogo del panel). **Migraciones nuevas ya aplicadas al remoto:** `20260917100000_guardar_convocatoria`, `20260917200000_storage_y_adjuntos` , `20260918100000_publicar_convocatoria` y `20260918200000_nombres_normalizados_y_borrar_categorias`, y desde el Sprint 3 las de proyectos (`20260923500000`) y departamentos y sugerencias (`20260924100000`), y **postulaciones (`20260925100000` y `20260925200000`)**, y desde el Sprint 4 **perfil del consultor (`20260926100000` y `20260926110000`)** y **revisión de consultores (`20260927100000`)** y **directorio (`20260927200000`)**. No rompen `main`, que no las llama
+**Actualizado:** 30 de septiembre de 2026 · cierre de la sesión 023
+**Sprint:** 4 · día 11 de 30 (los sprints 2 y 3 terminaron antes de su plazo). **Orden de los sprints 4 y 5 intercambiado en la sesión 021**: la IA, los créditos, los planes y los precios van al final
+**Rama de trabajo:** `sprint-2`, abierta desde `main` en la sesión 011 y subida a `origin` (sin fusionar a `main`: producción todavía no tiene el catálogo del panel). **Migraciones nuevas ya aplicadas al remoto:** `20260917100000_guardar_convocatoria`, `20260917200000_storage_y_adjuntos` , `20260918100000_publicar_convocatoria` y `20260918200000_nombres_normalizados_y_borrar_categorias`, y desde el Sprint 3 las de proyectos (`20260923500000`) y departamentos y sugerencias (`20260924100000`), y **postulaciones (`20260925100000` y `20260925200000`)**, y desde el Sprint 4 **perfil del consultor (`20260926100000` y `20260926110000`)** y **revisión de consultores (`20260927100000`)** y **directorio (`20260927200000`)**, y **encargos (`20260930100000`)**. No rompen `main`, que no las llama
 
 ---
 
 ## Dónde vamos
 
-La especificación está cerrada en **v6**. **La base de datos existe en Supabase** (29 tablas con RLS, prueba cruzada pasada) y **la identidad ya es real**: registro, login, confirmación de correo y MFA del administrador con Supabase Auth. El `ModoDemo` desapareció. **Desde la sesión 011, el panel administra fuentes, categorías y convocatorias (datos y requisitos) contra Supabase**, con endpoints validados en el servidor, desde la 012 también los adjuntos, en Storage real —los 3 buckets existen, los tres privados, y todo archivo se entrega por URL firmada de 15 minutos— y **desde la 013 publica y despublica, validado en el servidor**. Con eso, el panel ya carga una convocatoria de principio a fin. Las tablas del catálogo siguen vacías: nadie ha cargado contenido real. Desde el Sprint 2 el catálogo de la empresa es real, y desde el Sprint 3 también lo son sus proyectos, sugerencias y **postulaciones (sesión 020)**. Lo demás —documentos, encargos— sigue en datos de ejemplo de Zustand, filtrados por el `auth.uid()` real: una cuenta nueva empieza vacía y lo que crea se pierde al recargar.
+La especificación está cerrada en **v6**. **La base de datos existe en Supabase** (29 tablas con RLS, prueba cruzada pasada) y **la identidad ya es real**: registro, login, confirmación de correo y MFA del administrador con Supabase Auth. El `ModoDemo` desapareció. **Desde la sesión 011, el panel administra fuentes, categorías y convocatorias (datos y requisitos) contra Supabase**, con endpoints validados en el servidor, desde la 012 también los adjuntos, en Storage real —los 3 buckets existen, los tres privados, y todo archivo se entrega por URL firmada de 15 minutos— y **desde la 013 publica y despublica, validado en el servidor**. Con eso, el panel ya carga una convocatoria de principio a fin. Las tablas del catálogo siguen vacías: nadie ha cargado contenido real. Desde el Sprint 2 el catálogo de la empresa es real, y desde el Sprint 3 también lo son sus proyectos, sugerencias y **postulaciones (sesión 020)**. Desde el Sprint 4 también son reales los consultores (perfil, revisión y directorio) y **los encargos (sesión 023)**. Lo demás —documentos, planes, créditos— sigue en datos de ejemplo de Zustand, filtrados por el `auth.uid()` real: una cuenta nueva empieza vacía y lo que crea se pierde al recargar.
 
 ## Lo último que se hizo
 
+- **Sesión 023: Sprint 4 paso 3 — encargos de punta a punta en el servidor (RF-28..33, RF-68..70, RF-74, RF-89, RF-90, RN-25, RN-26, RN-36).**
+  - Al abrir, el Product Owner confirmó el **pendiente 16**: RF-26 y RF-27 pasan a `verificado`.
+  - **Decisiones del Product Owner antes de programar:**
+    - **se retira la asignación interna** (CU-23, CU-26, RF-31): la solicitud al equipo llega a una bandeja del panel con contador; el administrador contacta a la empresa por correo, fuera de la plataforma, y la marca "Contactada", con una nota interna opcional. Sin consultor, sin avances y sin calificación. Sin aviso por correo hasta tener SMTP propio;
+    - la empresa **retira** una solicitud sin responder (RF-89, nuevo) → `cancelado`, "Retirada por la empresa";
+    - el correo de la contraparte **sigue visible al completar y calificar** (RN-26);
+    - **una solicitud abierta por proyecto y consultor** (RN-36, nueva); al equipo, una esperando por proyecto.
+  - La especificación se escribió primero: CU-18, 19, 20, 22, 23, 24 y 26, RF-29, 31, 32, 70, 89 y 90, RN-10 (transitorio), RN-25, RN-26 y RN-36, docs/04, docs/05 §9.23 (nueva) y la trazabilidad.
+  - **Migración `20260930100000`** (ensayada y aplicada; la tabla estaba vacía):
+    - estado `atendido` y restricciones de vía; grafo de estados en un trigger que ata también a `service_role`; partes y contexto fijos;
+    - funciones `security definer` para solicitar, retirar, responder, registrar avances, completar, calificar y atender, cada una con la parte y el estado de origen;
+    - `datos_de_mis_encargos()` (el correo sale de `auth.users` solo tras aceptar) y `solicitudes_equipo()` (solo administrador con aal2);
+    - `nota_interna` y `atendido_por` sin lectura por columna; el consultor lee el checklist de la postulación vinculada (RN-25).
+  - Endpoints `GET/POST /api/encargos`, `.../retirar`, `.../calificar`, `GET /api/consultor/encargos`, `.../responder`, `.../avances`, `.../completar`, `GET /api/admin/encargos` y `.../atender`. Las tres pantallas pasan a componentes de servidor; el modal y el perfil del consultor crean por la API; contador en el menú y el dashboard del panel. Se retiraron del store nueve acciones; el layout entrega los encargos reales al store para la ficha del proyecto y documentos.
+  - Verificado:
+    - `supabase/tests/encargos.sql` (nueva): **51/51**;
+    - `scripts/prueba-encargos.mjs` (nueva): **66/66, dos corridas**, con dos empresas aisladas en las pantallas (condición del Hito 1);
+    - regresión en verde: SQL (RLS, revisión 29, directorio 14, perfil y postulaciones) y HTTP (directorio 38, revisión 51, perfil 48, proyectos 43, postulaciones 52, catálogo 49, sugerencias 35);
+    - `tsc` limpio y `eslint` limpio en lo nuevo (siguen los dos errores ya anotados en hallazgos).
+  - **Tres pruebas anteriores sembraban encargos ya en curso** con un `insert` directo, que el grafo ahora prohíbe (`rls_aislamiento.sql`, `revision_consultores.sql` y `prueba-revision-consultores.mjs`). Se corrigieron para avanzar por el grafo y respetar RN-36.
+  - **En el navegador**, con cuentas temporales ya borradas: la lista de la empresa, la solicitud al equipo desde la ficha del proyecto, aceptar y registrar un avance como consultor, y la bandeja del panel con su contador. Salió un **desajuste de hidratación** en la fecha de la bandeja (Intl escribe "p. m." distinto en Node y en el navegador): corregido con `fechaHoraColombia()`, que además fija la hora de Colombia.
 - **Sesión 022, después: Sprint 4 paso 1c — directorio y perfil público (RF-26, RF-27), con RF-80 (el paso 2) cambiado y hecho.**
   - **Decisiones del Product Owner antes de programar:**
     - el equipo interno no aparece en el directorio;
@@ -185,7 +206,7 @@ Detalle en [`docs/bitacora/2026-09-24-sesion-020.md`](docs/bitacora/2026-09-24-s
 
 ## En curso
 
-**Sprint 4, paso 1a hecho y visto en pantalla** (sesiones 021 y 022). **Paso 1b hecho y recorrido en pantalla por el Product Owner** (sesión 022). **Pasos 1c y 2 hechos en el servidor** (sesión 022); falta mirarlos como empresa (pendiente 16). Sigue el paso 3, encargos.
+**Sprint 4, pasos 1 y 2 verificados** (sesiones 021 y 022; el directorio lo recorrió el Product Owner al abrir la 023). **Paso 3, encargos, hecho en el servidor** (sesión 023); falta el recorrido del Product Owner (pendiente 17). Sigue el paso 4, el job de vencimiento de suscripciones.
 
 ## Lo siguiente
 
@@ -206,7 +227,7 @@ Detalle en [`docs/bitacora/2026-09-24-sesion-020.md`](docs/bitacora/2026-09-24-s
    - ~~**1b.** Bandeja del administrador: aprobar, rechazar con motivo, suspender y reactivar (RF-34, RF-35, RN-13, RN-29). La hoja de vida del consultor la abre el administrador por URL firmada. Suspender cancela los encargos `en_curso` (RN-29): los encargos siguen en el store hasta el paso 3, así que la cancelación en la base se prueba con filas sembradas~~ — **sesión 022**, con las pendientes también canceladas y el motivo obligatorio;
    - ~~**1c.** Directorio y perfil público para la empresa (RF-26, RF-27, RN-08 transitorio). La foto se sirve por URL firmada~~ — **sesión 022**, sin el equipo interno.
 2. ~~Contacto visible solo por pareja empresa-consultor (RF-80, RN-12)~~ — **sesión 022**, cambiado: se revela al aceptar (encargo `en_curso`), no con la solicitud pendiente.
-3. Encargos de punta a punta: solicitar, aceptar con revelación de contacto, avances, entrega y calificación (RF-28..33, 68, 69, 70, 74, 75, RN-09, RN-26, RN-29).
+3. ~~Encargos de punta a punta: solicitar, aceptar con revelación de contacto, avances, entrega y calificación (RF-28..33, 68, 69, 70, 74, 75, RN-09, RN-26, RN-29)~~ — **sesión 023**, con la asignación interna cambiada por la atención del equipo por correo (RF-90) y el retiro de solicitudes (RF-89).
 4. Job de vencimiento de suscripciones (RF-39, CU-32), con la fecha de Colombia.
 5. Pruebas de los RNF críticos.
 
@@ -282,11 +303,19 @@ Pendiente del Product Owner:
     - En `/admin/consultores`, suspéndelo con un motivo (dice que no tiene encargos activos) y mira el motivo en su "Mi perfil". Después, reactívalo.
 
     Con eso, RF-34 y RF-35 pasan a `verificado`, y RF-25 también (el rechazo con motivo, visto por el consultor).
-16. **Mirar el directorio con tu cuenta de empresa** (Sprint 4 pasos 1c y 2). Entra a "Consultores" con la cuenta de empresa:
+16. ~~**Mirar el directorio con tu cuenta de empresa**~~ — **hecho** (confirmado al abrir la sesión 023): RF-26 y RF-27 a `verificado`. Referencia (Sprint 4 pasos 1c y 2). Entra a "Consultores" con la cuenta de empresa:
     - tu perfil de consultor ("Daniel Bohorquez") aparece con foto, rating y especialidad; prueba el filtro por especialidad y la búsqueda por nombre;
     - abre el perfil: foto, descripción, especialidades, portafolio y reseñas, y **ningún** dato de contacto, con la nota "se muestran cuando el consultor acepte tu solicitud".
 
     La parte del contacto tras la aceptación no se puede ver todavía en pantalla: la aceptación de encargos llega en el paso 3. Con esto, RF-26 y RF-27 pasan a `verificado`.
+17. **Recorrer los encargos con tus tres cuentas** (Sprint 4 paso 3). Ojo: **lo que hagas queda guardado**, y una calificación no se borra. Usa la cuenta de empresa, la de consultor (aprobada) y la de Propietario:
+    - como empresa, en el perfil de tu consultor del directorio, "Solicitar a este consultor" con tu proyecto; en "Encargos" debe verse pendiente, sin correo. Repite la misma solicitud: debe rechazarla (una abierta por proyecto y consultor);
+    - como consultor, en "Mis encargos", mira el contexto (proyecto, convocatoria, checklist) y **acepta**: aparece el correo de la empresa. Registra un avance y márcalo como completado;
+    - como empresa, recarga "Encargos": ves el correo, el avance y "Calificar". Califica;
+    - desde la ficha de tu proyecto, "Solicitar consultor" → "Pedir ayuda a nuestro equipo"; como Propietario, en "Solicitudes al equipo" (con el contador en el menú), márcala como contactada con una nota; la empresa la ve "Atendida por nuestro equipo";
+    - opcional: envía otra solicitud y retírala con "Retirar solicitud".
+
+    Con eso, RF-28, 30, 31, 32, 33, 74, 89 y 90 pasan a `verificado`, y se cumple la parte del Hito 4 que no depende de la suspensión (esa ya está probada).
 
 ## Decisiones abiertas
 
@@ -382,10 +411,13 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | Si la subida al bucket ocurre y el registro de la fila no, queda un objeto suelto. Es invisible (toda descarga parte de la fila) y la pantalla pide borrarlo, pero nadie barre los que queden de un navegador cerrado a media subida | `lib/admin/documentos.ts` | baja · valorar un job de limpieza antes de los pilotos |
 | Borrar una convocatoria arrastra sus filas de `documentos_convocatoria` por `on delete cascade`, pero **no** los objetos del bucket | `supabase/migrations/20260917200000` | baja · mismo job de limpieza |
 | `allowed_mime_types` del bucket se compara con el tipo que **declara** el cliente. El servidor lo compensa exigiendo que el tipo que reporta Storage case con la extensión de la ruta, pero nadie inspecciona el contenido del archivo | Storage | baja · valorar antivirus o comprobación de firma antes de los pilotos |
-| CU-20 1a pide que el directorio vacío ofrezca directamente la asignación interna; hoy remite a "Mis proyectos", porque la asignación interna sigue en el store | `components/consultores/DirectorioConsultores.tsx` | baja · se resuelve con el paso 3 |
-| El dashboard del panel cuenta los "perfiles de consultor en revisión" del store, no de la base: con la bandeja ya real, el número no coincide | `app/admin/page.tsx:34` | media · conectar el dashboard |
+| CU-20 1a pide que el directorio vacío ofrezca directamente pedir ayuda al equipo; hoy remite a "Mis proyectos". Desde la sesión 023 la solicitud al equipo ya es real, falta el botón | `components/consultores/DirectorioConsultores.tsx` | baja · se resuelve con el paso 3 |
+| El dashboard del panel cuenta los "perfiles de consultor en revisión" del store, no de la base: con la bandeja ya real, el número no coincide. Las solicitudes al equipo ya vienen de la base (sesión 023) | `components/admin/DashboardPanel.tsx` | media · conectar el dashboard |
 | `motivo_rechazo` tiene lectura por columna para `authenticated`: la empresa que tuvo encargos con un consultor (RN-15) puede leer el motivo de un rechazo posterior. `motivo_suspension` ya no la tiene (sesión 022) | `supabase/migrations/20260916120400` | baja · moverlo a `suspension_consultor()` o a una función hermana |
 | A un administrador sin MFA, `/api/admin/...` responde 307 a `/mfa`, no 404. Es lo que hace `proxy.ts` desde la sesión 007 y no le entrega datos, pero un `fetch` sigue la redirección y recibe HTML | `proxy.ts` | baja · valorar un 401 JSON para `/api` si molesta al cliente |
+| `formatFechaHora` no fija la zona horaria: en Vercel (UTC) las horas de eventos y suscripciones del panel saldrán 5 horas corridas, y en pantallas servidas desde el servidor puede romper la hidratación como en la bandeja de la sesión 023 | `lib/utils.ts` | media · pasar a `fechaHoraColombia()` (`lib/fechas.ts`) |
+| La ficha de documento busca el consultor del encargo en `s.consultores` (datos de ejemplo): con encargos reales, "Compartir con…" dice "el consultor" en vez de su nombre | `app/(portal)/documentos/[id]/page.tsx` | baja · se rehace con documentos en el Sprint 5 |
+| `docs/estimacion-costos-matriz.xlsx` está sin seguimiento en git y ninguna sesión lo menciona | `docs/` | baja · el Product Owner decide si se sube |
 
 ---
 

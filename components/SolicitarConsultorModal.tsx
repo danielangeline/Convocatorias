@@ -3,10 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, CheckCircle2, Compass, Search, Target, Users, X } from "lucide-react";
+import { AlertCircle, ArrowLeft, CheckCircle2, Compass, Search, Target, Users, X } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import type { Proyecto, TipoAyudaEncargo } from "@/lib/types";
 import { diasRestantes, cn } from "@/lib/utils";
+import { pedir } from "@/lib/pedir";
 import { Button } from "@/components/ui/Button";
 import { SearchableSelect } from "@/components/ui/SearchableSelect";
 
@@ -26,6 +27,8 @@ interface SolicitarConsultorModalProps {
  * Flujo "Solicitar consultor" (CU-19, RF-28). Compartido por la ficha del
  * proyecto, la tarjeta del proyecto en el listado y el detalle de una
  * postulación — mismo modal, mismo resultado, distinto punto de entrada.
+ * Pedir ayuda al equipo (CU-23) crea la solicitud en el servidor; buscar en el
+ * directorio guarda la tarea en el store hasta elegir consultor (CU-21 3a).
  */
 export function SolicitarConsultorModal({
   proyecto,
@@ -34,10 +37,8 @@ export function SolicitarConsultorModal({
   convocatoriaFijaId,
 }: SolicitarConsultorModalProps) {
   const router = useRouter();
-  const consultores = useAppStore((s) => s.consultores);
   const todasLasConvocatorias = useAppStore((s) => s.convocatorias);
   const iniciarSolicitudConsultor = useAppStore((s) => s.iniciarSolicitudConsultor);
-  const crearEncargoEsperandoAsignacion = useAppStore((s) => s.crearEncargoEsperandoAsignacion);
 
   const [paso, setPaso] = useState<1 | 2 | 3>(1);
   const [tipoAyuda, setTipoAyuda] = useState<TipoAyudaEncargo>("convocatoria_especifica");
@@ -45,14 +46,12 @@ export function SolicitarConsultorModal({
   const [titulo, setTitulo] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [confirmacion, setConfirmacion] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [enviando, setEnviando] = useState(false);
 
   const convocatoriasVigentes = useMemo(
     () => todasLasConvocatorias.filter((c) => c.estado === "publicada" && diasRestantes(c.fechaCierre) >= 0),
     [todasLasConvocatorias]
-  );
-
-  const hayConsultoresAprobados = consultores.some(
-    (c) => c.estadoPerfil === "aprobado" && !c.esEquipoInterno
   );
 
   useEffect(() => {
@@ -62,6 +61,7 @@ export function SolicitarConsultorModal({
     setTitulo("");
     setDescripcion("");
     setConfirmacion(false);
+    setError(null);
     setPaso(convocatoriaFijaId ? 2 : 1);
   }, [open, convocatoriaFijaId]);
 
@@ -91,10 +91,25 @@ export function SolicitarConsultorModal({
     router.push("/consultores");
   };
 
-  const pedirAsignacion = () => {
-    iniciarSolicitudConsultor(datosSolicitud());
-    crearEncargoEsperandoAsignacion();
+  // CU-23 · La solicitud al equipo nace `esperando_asignacion` en el servidor.
+  const pedirAyudaAlEquipo = async () => {
+    const d = datosSolicitud();
+    setError(null);
+    setEnviando(true);
+    const r = await pedir("/api/encargos", {
+      proyectoId: d.proyectoId,
+      tipoAyuda: d.tipoAyuda,
+      convocatoriaId: d.convocatoriaId,
+      titulo: d.tituloTarea,
+      descripcion: d.descripcionTarea,
+    });
+    setEnviando(false);
+    if (!r.ok) {
+      setError(r.error);
+      return;
+    }
     setConfirmacion(true);
+    router.refresh();
   };
 
   return (
@@ -113,7 +128,7 @@ export function SolicitarConsultorModal({
           <div className="py-4 text-center">
             <CheckCircle2 className="mx-auto h-10 w-10 text-success" />
             <p className="mt-3 text-sm text-ink-soft">
-              Nuestro equipo te asignará un consultor para <strong>{titulo}</strong>. Podrás ver el avance en{" "}
+              Nuestro equipo revisará tu solicitud para <strong>{titulo}</strong> y te escribirá por correo. Puedes verla en{" "}
               <Link href="/encargos" className="font-semibold text-primary-700 hover:underline">
                 Encargos
               </Link>
@@ -240,8 +255,12 @@ export function SolicitarConsultorModal({
         ) : (
           <div className="space-y-3">
             <p className="text-sm text-ink-soft">Elige cómo quieres encontrar un consultor para esta tarea.</p>
-            {hayConsultoresAprobados && (
-              <button
+            {error && (
+              <p role="alert" className="flex items-start gap-2 rounded-lg bg-danger-bg px-3 py-2 text-sm text-danger">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {error}
+              </p>
+            )}
+            <button
                 onClick={buscarEnDirectorio}
                 className="flex w-full items-center gap-4 rounded-xl border border-line p-4 text-left transition-colors hover:border-brick-500 hover:bg-brick-50/40"
               >
@@ -255,18 +274,18 @@ export function SolicitarConsultorModal({
                   </span>
                 </span>
               </button>
-            )}
             <button
-              onClick={pedirAsignacion}
+              onClick={pedirAyudaAlEquipo}
+              disabled={enviando}
               className="flex w-full items-center gap-4 rounded-xl border border-line p-4 text-left transition-colors hover:border-primary-500 hover:bg-primary-50/40"
             >
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-700">
                 <Users className="h-5 w-5" />
               </span>
               <span>
-                <span className="block text-sm font-semibold text-ink">Pedir que me asignen un consultor</span>
+                <span className="block text-sm font-semibold text-ink">Pedir ayuda a nuestro equipo</span>
                 <span className="block text-xs text-ink-faint">
-                  Nuestro equipo interno elegirá y asignará un consultor disponible por ti.
+                  Revisamos tu solicitud y te escribimos por correo para ayudarte.
                 </span>
               </span>
             </button>

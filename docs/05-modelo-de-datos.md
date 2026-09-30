@@ -663,3 +663,46 @@ Implementa RF-26, RF-27 y RF-80 en el servidor (CU-20, CU-21, RN-08 transitorio,
 | `consultor: la empresa ve la hoja de vida con encargo aceptado` (select en `hojas-de-vida`) | El objeto es el `cv_path` vigente de un consultor con el que la empresa de la sesión tiene un encargo `en_curso` |
 
 Las dos resuelven la condición con funciones `security definer` (`privado.foto_visible_para_empresa`, `privado.cv_visible_para_empresa`), para no depender de los permisos por columna de `consultor_perfiles`. Todo archivo se entrega por URL firmada de 15 minutos (RNF-16).
+
+### 9.23 Encargos de punta a punta *(nuevo v6, sesión 023 — Sprint 4 paso 3)*
+
+Implementa RF-28..33, RF-68..70, RF-74, RF-89, RF-90, RN-09, RN-25, RN-26 y RN-36 en el servidor (CU-18, CU-19, CU-22, CU-23, CU-24, CU-26). Migración `20260930100000_encargos`. **Decisiones del Product Owner:** la asignación interna se retira (el equipo atiende por correo y marca la solicitud como contactada), la empresa retira una solicitud sin responder, el correo sigue visible al completar y hay una solicitud abierta por proyecto y consultor.
+
+**Estados y vía.** Se agrega el estado `atendido`. Los identificadores `asignacion_interna` (vía) y `esperando_asignacion` (estado) se conservan para no reescribir datos ni código; en pantalla se leen "Equipo de la plataforma" y "Esperando a nuestro equipo". La restricción `encargos_consultor_segun_estado` se reemplaza por dos:
+
+- `via = 'directorio'` ⇔ `consultor_id is not null`;
+- `esperando_asignacion` y `atendido` solo con vía `asignacion_interna`; `pendiente`, `en_curso`, `rechazado`, `completado` y `calificado` solo con vía `directorio`; `cancelado`, con cualquiera.
+
+**Grafo** (trigger `privado.transicion_encargo`, que se aplica a todo cliente, también a `service_role` y a las funciones `security definer`):
+
+| De | A |
+|---|---|
+| `esperando_asignacion` | `atendido`, `cancelado` |
+| `pendiente` | `en_curso`, `rechazado`, `cancelado` |
+| `en_curso` | `completado`, `cancelado` |
+| `completado` | `calificado` |
+| `atendido`, `rechazado`, `calificado`, `cancelado` | — (terminales) |
+
+Un encargo nace `pendiente` (directorio) o `esperando_asignacion` (equipo). Proyecto, empresa, consultor, vía, tipo de ayuda y convocatoria no cambian después de crearse (el mismo trigger); la postulación solo puede quedar en nulo por el `on delete set null`.
+
+**Columnas nuevas:** `atendido_por` (FK → perfiles), `atendido_at` y `nota_interna` (hasta 2 000 caracteres). Checks: `titulo_tarea` entre 1 y 200 caracteres; `descripcion_tarea` hasta 4 000; `encargo_avances.nota` entre 1 y 2 000; `calificaciones.comentario` hasta 1 000. **`nota_interna` y `atendido_por` no tienen permiso de lectura por columna** para `authenticated`: el administrador las lee con `solicitudes_equipo()`.
+
+**Unicidad (RN-36):** índice único parcial `(proyecto_id, consultor_id) where estado in ('pendiente', 'en_curso')` y otro `(proyecto_id) where estado = 'esperando_asignacion'`.
+
+**Escritura.** Sigue sin haber políticas de escritura para `authenticated` sobre `encargos` ni `encargo_avances` (§9.11 punto 1). Todo pasa por funciones `security definer` que comprueban `auth.uid()`, el rol y el estado de origen, con la fila bloqueada. Cada rechazo lleva una clave estable en `hint`, que el endpoint traduce a HTTP.
+
+| Función | Quién | De → a | Qué más hace |
+|---|---|---|---|
+| `solicitar_encargo(p_proyecto, p_consultor, p_titulo, p_descripcion, p_tipo_ayuda, p_convocatoria)` | empresa dueña del proyecto, con suscripción vigente o trial | nace `pendiente` (con consultor) o `esperando_asignacion` (sin él) | El consultor debe estar aprobado y fuera del equipo interno. Con `convocatoria_especifica`, la convocatoria es obligatoria y debe estar publicada y vigente (hoy en Colombia); con `buscar_convocatoria` se ignora. Vincula sola la postulación no cerrada del par proyecto-convocatoria (CU-19 2a). Devuelve el id |
+| `retirar_encargo(p_id)` | empresa del encargo | `pendiente` o `esperando_asignacion` → `cancelado` | `motivo_cancelacion = 'Retirada por la empresa'` (RF-89) |
+| `responder_encargo(p_id, p_acepta)` | consultor del encargo | `pendiente` → `en_curso` (fija `aceptado_at`) o `rechazado` | Aceptar exige perfil aprobado; la suscripción no se exige hasta el Sprint 5 (RN-10 transitorio) |
+| `registrar_avance(p_id, p_nota)` | consultor del encargo | solo en `en_curso` | Inserta en `encargo_avances` con `autor_id` |
+| `completar_encargo(p_id)` | consultor del encargo | `en_curso` → `completado` | Fija `completado_at`; el trigger de métricas suma el contador (RF-33) y el de §9.3 revoca las autorizaciones de documento (RF-76) |
+| `calificar_encargo(p_id, p_estrellas, p_comentario)` | empresa del encargo | `completado` → `calificado` (por el trigger `al_calificar`) | Inserta la calificación única (RN-09, RNF-17) y recalcula el rating |
+| `atender_solicitud_equipo(p_id, p_nota)` | administrador con aal2 | `esperando_asignacion` → `atendido` | Fija `atendido_por`, `atendido_at` y la nota interna (RF-90) |
+
+**Lectura.**
+
+- `datos_de_mis_encargos()` (`security definer`): una fila por encargo propio de la sesión, sea empresa o consultor, con el nombre del proyecto, el de la convocatoria y el de la empresa, y **`correo_contraparte` solo si el encargo es del directorio y está en `en_curso`, `completado` o `calificado`** (RF-70, RN-26). El correo sale de `auth.users`. Los nombres permiten al consultor ver su historial aunque, por RN-25, ya no lea el proyecto.
+- `solicitudes_equipo(p_estado)` (`security definer`, solo `privado.es_admin()`): las solicitudes al equipo en ese estado, con nombre, empresa y correo de quien la envió, la nota interna y quién la atendió.
+- **RN-25 ampliado:** `privado.consultor_ve_postulacion(p_postulacion)` y dos políticas de lectura, en `postulaciones` y `postulacion_checklist`, para el consultor con un encargo `pendiente` o `en_curso` vinculado a esa postulación. Solo lectura.
