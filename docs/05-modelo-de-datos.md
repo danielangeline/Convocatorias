@@ -142,7 +142,7 @@ El resultado se acompaña siempre de la aclaración de RN-05: es un cálculo de 
 
 ### 9.7 Jobs automáticos (pg_cron)
 
-**"Hoy" es el día en Colombia** *(sesión 017)*: una convocatoria vence al terminar su día de cierre en hora de Bogotá. `privado.hoy_colombia()` —`(now() at time zone 'America/Bogota')::date`— es la única definición, y la usan el cierre, la política de inserción de postulaciones (RF-78), `publicar_convocatoria` (RN-03), `indicadores_catalogo()` (RF-44) y el catálogo del servidor. Antes se usaba `current_date`, que en Supabase va en UTC: desde las 7 p. m. de Colombia, una convocatoria que cerraba ese día ya contaba como vencida. Las suscripciones siguen con `current_date` y se revisan en el Sprint 5.
+**"Hoy" es el día en Colombia** *(sesión 017)*: una convocatoria vence al terminar su día de cierre en hora de Bogotá. `privado.hoy_colombia()` —`(now() at time zone 'America/Bogota')::date`— es la única definición, y la usan el cierre, la política de inserción de postulaciones (RF-78), `publicar_convocatoria` (RN-03), `indicadores_catalogo()` (RF-44) y el catálogo del servidor. Antes se usaba `current_date`, que en Supabase va en UTC: desde las 7 p. m. de Colombia, una convocatoria que cerraba ese día ya contaba como vencida. **Desde la sesión 023 (Sprint 4 paso 4, migración `20260930200000`) las suscripciones también usan `privado.hoy_colombia()`**: el trial al registrarse (`crear_cuenta`), los valores por defecto de `suscripciones`, `tiene_suscripcion_vigente()` y el job 2. Solo el job 3 (créditos) sigue con `current_date`: se revisa con los créditos en el Sprint 5.
 
 **RF-78 en la base** *(sesión 017, Sprint 2 paso 7)*: un trigger `before insert or update of convocatoria_id` en `postulaciones` y en `documentos_generados` —`privado.exigir_convocatoria_vigente()`, `security definer`— rechaza con `hint = 'convocatoria_no_vigente'` cualquier fila cuya convocatoria no esté `publicada` y con `fecha_cierre >= privado.hoy_colombia()`. A diferencia de las políticas RLS, **también frena a `service_role`**, que es con lo que escribirán los endpoints de generar (Sprint 4). La política de inserción de postulaciones conserva su propia comprobación (defensa en profundidad). Los endpoints `POST /api/postulaciones` (Sprint 3) y `POST /api/documentos/generar` (Sprint 4) traducen esa clave a **409** con un mensaje claro; **ninguno la sustituye con una comprobación propia que pueda divergir**. Editar o ajustar un documento ya generado no pasa por aquí: la regla es para crear.
 
@@ -153,11 +153,15 @@ El job 1 ejecuta `privado.cerrar_convocatorias_vencidas()`, que devuelve cuánta
 UPDATE convocatorias SET estado='cerrada'
 WHERE estado='publicada' AND fecha_cierre < privado.hoy_colombia();
 
--- Job 2 · vencimiento de suscripciones con gracia (RF-39, RN-16)
+-- Job 2 · vencimiento de suscripciones con gracia (RF-39, RN-16, RN-29) — privado.vencer_suscripciones()
+-- (sesión 023). Devuelve (en_gracia, vencidas, encargos_cancelados).
 UPDATE suscripciones SET estado='en_gracia'
-WHERE estado IN ('activa','trial') AND fecha_vencimiento < CURRENT_DATE;
+WHERE estado IN ('activa','trial') AND fecha_vencimiento < privado.hoy_colombia();
 UPDATE suscripciones SET estado='vencida'
-WHERE estado='en_gracia' AND fecha_vencimiento < CURRENT_DATE - INTERVAL '5 days';
+WHERE estado='en_gracia' AND fecha_vencimiento + 5 < privado.hoy_colombia();
+-- y, para cada consultor recién vencido:
+UPDATE encargos SET estado='cancelado', motivo_cancelacion='Suscripción del consultor vencida'
+WHERE consultor_id = <consultor> AND estado IN ('en_curso','pendiente');
 
 -- Job 3 · reinicio mensual de créditos (RF-49, RN-18)
 UPDATE suscripciones

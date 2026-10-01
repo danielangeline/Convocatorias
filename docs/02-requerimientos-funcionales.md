@@ -109,7 +109,7 @@
 | RF-36 | Planes administrables por rol con precio mensual, anual **y créditos de IA mensuales**, sin despliegue *(mod. v4)* | CU-31 | Must |
 | RF-37 | Trial automático de **7 días** con 3 créditos al registrarse una empresa, único por cuenta; consultores sin trial *(mod. v6)* | CU-28 | Must |
 | RF-38 | Activación, renovación y suspensión manual por el administrador, con el modelo preparado para pasarela sin cambios de esquema | CU-28, 31 | Must |
-| RF-39 | Job diario de vencimientos con periodo de gracia de 5 días | CU-29, 32 | Must |
+| RF-39 | Job diario de vencimientos con periodo de gracia de 5 días. **A medianoche de Colombia y con la fecha de Colombia; el trial también tiene gracia; al vencer la suscripción de un consultor cancela sus encargos en curso y pendientes (RN-29). Devuelve cuántas pasó a gracia, cuántas venció y cuántos encargos canceló** *(precisado en v6, sesión 023)* | CU-29, 32 | Must |
 | RF-40 | Verificación de suscripción en cada acción restringida, incluida la generación con IA | CU-32 | Must |
 | RF-41 | Vista del suscriptor con plan, fechas e historial de pagos; el **cupo de créditos** se muestra únicamente en los planes que lo incluyen — el plan de consultor no lo lleva (RN-28) *(mod. v4; precisado en v6)* | CU-30 | Should |
 | RF-42 | Tablero admin de suscripciones por estado **y consumo de IA del periodo** *(mod. v4)* | CU-31 | Should |

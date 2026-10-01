@@ -72,7 +72,7 @@ select pg_temp.ok((select rol from public.perfiles where id = '00000000-0000-000
   'Registro: pedir rol administrador produce empresa (RN-06)');
 select pg_temp.ok((select count(*) from public.suscripciones s join public.planes p on p.id = s.plan_id
                    where s.usuario_id = '00000000-0000-0000-0000-0000000000e1' and s.modalidad = 'trial' and s.estado = 'trial'
-                     and p.es_trial and s.fecha_vencimiento = current_date + 7) = 1,
+                     and p.es_trial and s.fecha_vencimiento = privado.hoy_colombia() + 7) = 1,  -- sesión 023: fecha de Colombia
   'Registro: la empresa recibe el trial de 7 días contra el plan trial (RF-37)');
 select pg_temp.ok((select count(*) from public.suscripciones where usuario_id = '00000000-0000-0000-0000-0000000000c1') = 0,
   'Registro: el consultor no recibe trial (RN-11)');

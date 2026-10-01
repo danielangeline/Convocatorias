@@ -36,3 +36,8 @@ export function fechaHoraColombia(instante: Date | string): string {
   );
   return `${partes.day} ${MESES[Number(partes.month) - 1]} ${partes.year}, ${partes.hour}:${partes.minute}`;
 }
+
+/** Días de `desde` a `hasta`, dos fechas AAAA-MM-DD (negativo si `hasta` ya pasó). */
+export function diasEntre(desde: string, hasta: string): number {
+  return Math.round((Date.parse(hasta + "T00:00:00Z") - Date.parse(desde + "T00:00:00Z")) / 86400000);
+}

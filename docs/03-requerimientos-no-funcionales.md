@@ -100,7 +100,7 @@
 | RN-13 | Todo rechazo de perfil lleva motivo obligatorio; reenvíos sin límite |
 | RN-14 | El pago del servicio de consultoría se acuerda entre empresa y consultor fuera de la plataforma; los ingresos vienen de las suscripciones |
 | RN-15 | La suspensión de un consultor no borra su historial |
-| RN-16 | Suscripción vencida: 5 días de gracia con avisos antes de restringir |
+| RN-16 | Suscripción vencida: 5 días de gracia con avisos antes de restringir. **También el trial** (sesión 023, decisión del Product Owner). **El aviso es una franja en el portal** desde 3 días antes del vencimiento, durante la gracia y ya vencida; por correo cuando exista SMTP propio. Los días se cuentan con la fecha de Colombia |
 | RN-17 | **Un crédito por generación exitosa.** Las ediciones manuales no cuestan; los ajustes pedidos a la IA son gratuitos hasta 3 por documento; del cuarto en adelante consumen crédito. Una generación fallida nunca consume crédito |
 | RN-18 | **Los créditos se reinician cada mes** según la fecha de la suscripción, también en planes anuales, y **no se acumulan** de un periodo al siguiente. Los créditos de paquetes adicionales sí permanecen hasta agotarse |
 | RN-19 | **La plataforma no radica postulaciones.** La presentación se hace en el portal de la entidad convocante; el documento generado es un insumo de preparación y así se comunica |

@@ -126,8 +126,8 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RF-36 Planes administrables por rol | prototipo | |
 | RF-37 Trial de empresa | servidor | Sesión 004: **7 días** (antes 14) con 3 créditos, desde el plan `es_trial` y creado por el trigger de registro; único por cuenta por índice. El consumo de los créditos sigue en `lib/store.ts` |
 | RF-38 Activación manual | prototipo | |
-| RF-39 Job de vencimientos | servidor | Job `vencer-suscripciones` programado en `pg_cron` (sesión 003). Falta ver una ejecución real |
-| RF-40 Verificación en acciones restringidas | prototipo | |
+| RF-39 Job de vencimientos | servidor | Job `vencer-suscripciones` programado en `pg_cron` (sesión 003). **Sesión 023 (Sprint 4 paso 4):** ejecuta `privado.vencer_suscripciones()` con la fecha de Colombia; el trial también tiene gracia (decisión del Product Owner); al vencer un consultor cancela sus encargos en curso y pendientes (RN-29); devuelve los tres conteos. `vencimiento_suscripciones.sql` 10/10 (incluido que es idempotente). Falta ver su primera ejecución real con el comando nuevo (00:05 de Colombia, en `cron.job_run_details`) |
+| RF-40 Verificación en acciones restringidas | servidor | En la base para postular, ver sugerencias y solicitar consultor (`tiene_suscripcion_vigente`, Sprints 3 y 4); **sesión 023: con la fecha de Colombia** y sin depender de que el job haya corrido. `prueba-vencimiento-suscripciones.mjs` 10/10: pasada la gracia, 402 en sugerencias y encargos; el catálogo sigue abierto. La generación con IA llega en el Sprint 5 |
 | RF-41 Vista del suscriptor | prototipo | |
 | RF-42 Tablero admin de suscripciones | prototipo | |
 | RF-48 Un crédito por generación exitosa | prototipo | |
@@ -253,6 +253,7 @@ Las reglas están documentadas (RN-34 desde la sesión 019); estas son las que t
 | RN-25 El consultor ve solo el proyecto de su encargo vivo | servidor | 4 — políticas desde el Sprint 0; **sesión 023:** ampliada al checklist de la postulación vinculada (solo lectura) y probada con encargos reales: completado o rechazado, ya no lee el proyecto |
 | RN-36 Una solicitud abierta por proyecto y consultor *(v6, sesión 023)* | servidor | 4 — índices únicos parciales (`pendiente`/`en_curso` por proyecto y consultor; `esperando_asignacion` por proyecto). Probado en SQL y HTTP |
 | RN-10 Consultor vencido no acepta *(transitorio, sesión 023)* | pendiente | 5 — hasta los planes con precio, aceptar no exige suscripción (igual que RN-08) |
+| RN-16 Gracia de 5 días con avisos | servidor | 4 — **sesión 023:** gracia también en el trial (decisión del Product Owner) y franja de aviso en el portal de la empresa, calculada en el servidor con la fecha de Colombia: desde 3 días antes, en la gracia y ya vencida. Probado por HTTP en cada momento del ciclo. El correo llega con el SMTP propio |
 | **RN-30 Propiedad explícita del dato** | prototipo | **1** — columnas y filtro en `lib/store.ts`/`lib/hooks.ts`; migración y RLS hechas y probadas (sesión 003); falta que la aplicación lea de Supabase |
 
 ---

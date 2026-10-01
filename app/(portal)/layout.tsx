@@ -8,6 +8,7 @@ import { SincronizarPostulaciones } from "@/components/SincronizarPostulaciones"
 import { SincronizarEncargos } from "@/components/SincronizarEncargos";
 import { Suspense } from "react";
 import { AvisoPuerta } from "@/components/identidad/AvisoPuerta";
+import { AvisoSuscripcion } from "@/components/AvisoSuscripcion";
 import { exigirRol } from "@/lib/auth";
 import { listarCatalogo, listarCategoriasActivas } from "@/lib/catalogo";
 import { listarProyectos } from "@/lib/proyectos-servidor";
@@ -45,6 +46,8 @@ export default async function PortalLayout({ children }: { children: React.React
             <AvisoPuerta rol="empresa" />
           </div>
         </Suspense>
+        {/* RN-16: aviso de vencimiento y gracia */}
+        <AvisoSuscripcion suscripcion={datos.suscripcion} />
         {children}
       </main>
       <footer className="border-t border-line-soft py-6 text-center text-xs text-ink-faint">

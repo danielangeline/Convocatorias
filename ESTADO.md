@@ -7,7 +7,7 @@
 
 **Actualizado:** 30 de septiembre de 2026 · cierre de la sesión 023
 **Sprint:** 4 · día 11 de 30 (los sprints 2 y 3 terminaron antes de su plazo). **Orden de los sprints 4 y 5 intercambiado en la sesión 021**: la IA, los créditos, los planes y los precios van al final
-**Rama de trabajo:** `sprint-2`, abierta desde `main` en la sesión 011 y subida a `origin` (sin fusionar a `main`: producción todavía no tiene el catálogo del panel). **Migraciones nuevas ya aplicadas al remoto:** `20260917100000_guardar_convocatoria`, `20260917200000_storage_y_adjuntos` , `20260918100000_publicar_convocatoria` y `20260918200000_nombres_normalizados_y_borrar_categorias`, y desde el Sprint 3 las de proyectos (`20260923500000`) y departamentos y sugerencias (`20260924100000`), y **postulaciones (`20260925100000` y `20260925200000`)**, y desde el Sprint 4 **perfil del consultor (`20260926100000` y `20260926110000`)** y **revisión de consultores (`20260927100000`)** y **directorio (`20260927200000`)**, y **encargos (`20260930100000`)**. No rompen `main`, que no las llama
+**Rama de trabajo:** `sprint-2`, abierta desde `main` en la sesión 011 y subida a `origin` (sin fusionar a `main`: producción todavía no tiene el catálogo del panel). **Migraciones nuevas ya aplicadas al remoto:** `20260917100000_guardar_convocatoria`, `20260917200000_storage_y_adjuntos` , `20260918100000_publicar_convocatoria` y `20260918200000_nombres_normalizados_y_borrar_categorias`, y desde el Sprint 3 las de proyectos (`20260923500000`) y departamentos y sugerencias (`20260924100000`), y **postulaciones (`20260925100000` y `20260925200000`)**, y desde el Sprint 4 **perfil del consultor (`20260926100000` y `20260926110000`)** y **revisión de consultores (`20260927100000`)** y **directorio (`20260927200000`)**, y **encargos (`20260930100000`)** y **vencimiento de suscripciones (`20260930200000`)**. No rompen `main`, que no las llama
 
 ---
 
@@ -17,6 +17,22 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 
 ## Lo último que se hizo
 
+- **Sesión 023, después: Sprint 4 paso 4 — vencimiento de suscripciones con la fecha de Colombia (RF-39, RF-40, RN-16, RN-29).**
+  - Al empezar se vio que **el job 2 ya corría desde el Sprint 0, con la fecha en UTC**, y había vencido las dos cuentas de empresa del Product Owner (trials del 16 y 17 de septiembre).
+  - **Decisiones del Product Owner antes de programar:**
+    - el trial **también tiene los 5 días de gracia**;
+    - el aviso de RN-16 es **una franja en el portal**;
+    - hasta el Sprint 5, una cuenta vencida **se reactiva por SQL**, sin pantalla.
+  - La especificación se escribió primero: CU-32 (detalle y 4a), RF-39, RN-16, docs/05 §9.7 y la trazabilidad.
+  - **Migración `20260930200000`** (ensayada y aplicada):
+    - `crear_cuenta`, los valores por defecto de `suscripciones` y `tiene_suscripcion_vigente()` pasan a `privado.hoy_colombia()`;
+    - el job ejecuta `privado.vencer_suscripciones()`: gracia, vencimiento (también si el job dejó de correr días) y, para el consultor que vence, sus encargos en curso y pendientes cancelados con el motivo "Suscripción del consultor vencida" (RN-29). Devuelve los tres conteos. El job 3 (créditos) sigue con `current_date` hasta el Sprint 5.
+  - **Franja `AvisoSuscripcion`** en el layout del portal de la empresa, calculada en el servidor con la fecha de Colombia: "vence en N días", "te quedan N días de gracia" y "venció" con lo que queda restringido.
+  - Verificado:
+    - `supabase/tests/vencimiento_suscripciones.sql` (nueva): **10/10**;
+    - `scripts/prueba-vencimiento-suscripciones.mjs` (nueva): **10/10**, con la franja y el servidor coincidiendo en cada momento del ciclo (402 pasada la gracia; el catálogo sigue abierto);
+    - regresión SQL y HTTP en verde (ver la bitácora).
+  - **Reactivadas por SQL**, por decisión del Product Owner, hasta el **30 de octubre**: Cyrrus (`danielangeline322@gmail.com`) y Agro Prueba SAS (`empresa.s004`). Las dos estaban vencidas, y con ellas no se podía hacer el pendiente 17.
 - **Sesión 023: Sprint 4 paso 3 — encargos de punta a punta en el servidor (RF-28..33, RF-68..70, RF-74, RF-89, RF-90, RN-25, RN-26, RN-36).**
   - Al abrir, el Product Owner confirmó el **pendiente 16**: RF-26 y RF-27 pasan a `verificado`.
   - **Decisiones del Product Owner antes de programar:**
@@ -206,7 +222,7 @@ Detalle en [`docs/bitacora/2026-09-24-sesion-020.md`](docs/bitacora/2026-09-24-s
 
 ## En curso
 
-**Sprint 4, pasos 1 y 2 verificados** (sesiones 021 y 022; el directorio lo recorrió el Product Owner al abrir la 023). **Paso 3, encargos, hecho en el servidor** (sesión 023); falta el recorrido del Product Owner (pendiente 17). Sigue el paso 4, el job de vencimiento de suscripciones.
+**Sprint 4, pasos 1 y 2 verificados** (sesiones 021 y 022; el directorio lo recorrió el Product Owner al abrir la 023). **Paso 3, encargos, hecho en el servidor** (sesión 023); falta el recorrido del Product Owner (pendiente 17). **Paso 4, vencimiento de suscripciones, hecho** (sesión 023, después); falta ver su primera ejecución real esta noche. Sigue el paso 5, pruebas de los RNF críticos.
 
 ## Lo siguiente
 
@@ -228,7 +244,7 @@ Detalle en [`docs/bitacora/2026-09-24-sesion-020.md`](docs/bitacora/2026-09-24-s
    - ~~**1c.** Directorio y perfil público para la empresa (RF-26, RF-27, RN-08 transitorio). La foto se sirve por URL firmada~~ — **sesión 022**, sin el equipo interno.
 2. ~~Contacto visible solo por pareja empresa-consultor (RF-80, RN-12)~~ — **sesión 022**, cambiado: se revela al aceptar (encargo `en_curso`), no con la solicitud pendiente.
 3. ~~Encargos de punta a punta: solicitar, aceptar con revelación de contacto, avances, entrega y calificación (RF-28..33, 68, 69, 70, 74, 75, RN-09, RN-26, RN-29)~~ — **sesión 023**, con la asignación interna cambiada por la atención del equipo por correo (RF-90) y el retiro de solicitudes (RF-89).
-4. Job de vencimiento de suscripciones (RF-39, CU-32), con la fecha de Colombia.
+4. ~~Job de vencimiento de suscripciones (RF-39, CU-32), con la fecha de Colombia~~ — **sesión 023, después**, con la franja de aviso (RN-16) y la gracia también en el trial.
 5. Pruebas de los RNF críticos.
 
 **Hito 4 (día 24):** un encargo completo —solicitud, aceptación con revelación de contacto, avances, entrega y calificación—, aislado entre empresas en las pantallas; al suspender al consultor sale del directorio y sus encargos en curso se cancelan solos.
@@ -418,6 +434,9 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | `formatFechaHora` no fija la zona horaria: en Vercel (UTC) las horas de eventos y suscripciones del panel saldrán 5 horas corridas, y en pantallas servidas desde el servidor puede romper la hidratación como en la bandeja de la sesión 023 | `lib/utils.ts` | media · pasar a `fechaHoraColombia()` (`lib/fechas.ts`) |
 | La ficha de documento busca el consultor del encargo en `s.consultores` (datos de ejemplo): con encargos reales, "Compartir con…" dice "el consultor" en vez de su nombre | `app/(portal)/documentos/[id]/page.tsx` | baja · se rehace con documentos en el Sprint 5 |
 | `docs/estimacion-costos-matriz.xlsx` está sin seguimiento en git y ninguna sesión lo menciona | `docs/` | baja · el Product Owner decide si se sube |
+| Una corrida de la prueba del catálogo dejó viva la cuenta `empresa.catalogo.e1432d@example.com` (con su trial): su limpieza falló en algún momento | `scripts/prueba-catalogo-empresa.mjs` | baja · borrarla y revisar que la limpieza corra aunque falle la prueba |
+| El job 3 (reinicio de créditos) sigue con `current_date` en UTC | `supabase/migrations/20260916120600` | baja · con los créditos, en el Sprint 5 |
+| La franja de aviso solo está en el portal de la empresa: el consultor no tiene suscripción hasta el Sprint 5 y sus mensajes (qué se restringe) serían distintos | `components/AvisoSuscripcion.tsx` | baja · con los planes del consultor |
 
 ---
 

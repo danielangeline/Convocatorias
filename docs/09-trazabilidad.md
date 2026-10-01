@@ -30,7 +30,7 @@
 | CU-25..27 Gestión consultores *(CU-26 v5: contacto; CU-27 v5: cancela encargos en curso; v6: revoca autorizaciones en cascada; sesión 022: motivo de suspensión y cancelación de las solicitudes pendientes; sesión 023: CU-26 pasa a atender por correo)* | RF-34, 35, **76**, **80**, **90** | RN-08, 13, 15, 26, 29, RNF-11, **16**, **RN-27** |
 | CU-28..30 Suscripción *(v6: comparador con atributos reales)* | RF-37, 38, 41, **82** | RN-11, 16, **RNF-14** |
 | CU-31 Planes y suscripciones | RF-36, 42, 51 | RNF-14, 20 |
-| CU-32 Enforcement *(v6: revocación en cascada al vencer)* | RF-40, 39, **76** | RNF-20, RN-08, 10, **RN-27, 29** |
+| CU-32 Enforcement *(v6: revocación en cascada al vencer; sesión 023: fecha de Colombia, gracia también en el trial, aviso en el portal)* | RF-40, 39, **76** | RNF-20, RN-08, 10, **16**, **RN-27, 29** |
 | **CU-33 Generar documento** *(v6: actor solo empresa; vigencia verificada en servidor)* | RF-53..57, 62, 48, **78** | RN-17, 19, 20, 21, RNF-21, 23, 24, **RN-28, RNF-30** |
 | **CU-34 Revisar y exportar** *(v5: acceso del consultor; v6: autorización derivada, cupo y traza)* | RF-58..61, 71, 72, **76, 77, 79** | RN-20, 22, 27, 28, RNF-23, **RNF-11, 20** |
 | **CU-35 Cupo de créditos** | **RF-48, 49, 50, 52** | **RN-17, 18, RNF-20, 24** |
