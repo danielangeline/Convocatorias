@@ -7,16 +7,30 @@
 
 **Actualizado:** 30 de septiembre de 2026 · cierre de la sesión 023
 **Sprint:** 4 · día 11 de 30 (los sprints 2 y 3 terminaron antes de su plazo). **Orden de los sprints 4 y 5 intercambiado en la sesión 021**: la IA, los créditos, los planes y los precios van al final
-**Rama de trabajo:** `sprint-2`, abierta desde `main` en la sesión 011 y subida a `origin` (sin fusionar a `main`: producción todavía no tiene el catálogo del panel). **Migraciones nuevas ya aplicadas al remoto:** `20260917100000_guardar_convocatoria`, `20260917200000_storage_y_adjuntos` , `20260918100000_publicar_convocatoria` y `20260918200000_nombres_normalizados_y_borrar_categorias`, y desde el Sprint 3 las de proyectos (`20260923500000`) y departamentos y sugerencias (`20260924100000`), y **postulaciones (`20260925100000` y `20260925200000`)**, y desde el Sprint 4 **perfil del consultor (`20260926100000` y `20260926110000`)** y **revisión de consultores (`20260927100000`)** y **directorio (`20260927200000`)**, y **encargos (`20260930100000`)** y **vencimiento de suscripciones (`20260930200000`)**. No rompen `main`, que no las llama
+**Rama de trabajo:** `sprint-2`, abierta desde `main` en la sesión 011 y subida a `origin` (sin fusionar a `main`: producción todavía no tiene el catálogo del panel). **Migraciones nuevas ya aplicadas al remoto:** `20260917100000_guardar_convocatoria`, `20260917200000_storage_y_adjuntos` , `20260918100000_publicar_convocatoria` y `20260918200000_nombres_normalizados_y_borrar_categorias`, y desde el Sprint 3 las de proyectos (`20260923500000`) y departamentos y sugerencias (`20260924100000`), y **postulaciones (`20260925100000` y `20260925200000`)**, y desde el Sprint 4 **perfil del consultor (`20260926100000` y `20260926110000`)** y **revisión de consultores (`20260927100000`)** y **directorio (`20260927200000`)**, y **encargos (`20260930100000`)** y **vencimiento de suscripciones (`20260930200000`)** y **historial de encargos (`20260930300000`)**. No rompen `main`, que no las llama
 
 ---
 
 ## Dónde vamos
 
-La especificación está cerrada en **v6**. **La base de datos existe en Supabase** (29 tablas con RLS, prueba cruzada pasada) y **la identidad ya es real**: registro, login, confirmación de correo y MFA del administrador con Supabase Auth. El `ModoDemo` desapareció. **Desde la sesión 011, el panel administra fuentes, categorías y convocatorias (datos y requisitos) contra Supabase**, con endpoints validados en el servidor, desde la 012 también los adjuntos, en Storage real —los 3 buckets existen, los tres privados, y todo archivo se entrega por URL firmada de 15 minutos— y **desde la 013 publica y despublica, validado en el servidor**. Con eso, el panel ya carga una convocatoria de principio a fin. Las tablas del catálogo siguen vacías: nadie ha cargado contenido real. Desde el Sprint 2 el catálogo de la empresa es real, y desde el Sprint 3 también lo son sus proyectos, sugerencias y **postulaciones (sesión 020)**. Desde el Sprint 4 también son reales los consultores (perfil, revisión y directorio) y **los encargos (sesión 023)**. Lo demás —documentos, planes, créditos— sigue en datos de ejemplo de Zustand, filtrados por el `auth.uid()` real: una cuenta nueva empieza vacía y lo que crea se pierde al recargar.
+La especificación está cerrada en **v6**. **La base de datos existe en Supabase** (30 tablas con RLS, prueba cruzada pasada) y **la identidad ya es real**: registro, login, confirmación de correo y MFA del administrador con Supabase Auth. El `ModoDemo` desapareció. **Desde la sesión 011, el panel administra fuentes, categorías y convocatorias (datos y requisitos) contra Supabase**, con endpoints validados en el servidor, desde la 012 también los adjuntos, en Storage real —los 3 buckets existen, los tres privados, y todo archivo se entrega por URL firmada de 15 minutos— y **desde la 013 publica y despublica, validado en el servidor**. Con eso, el panel ya carga una convocatoria de principio a fin. Las tablas del catálogo siguen vacías: nadie ha cargado contenido real. Desde el Sprint 2 el catálogo de la empresa es real, y desde el Sprint 3 también lo son sus proyectos, sugerencias y **postulaciones (sesión 020)**. Desde el Sprint 4 también son reales los consultores (perfil, revisión y directorio) y **los encargos (sesión 023)**. Lo demás —documentos, planes, créditos— sigue en datos de ejemplo de Zustand, filtrados por el `auth.uid()` real: una cuenta nueva empieza vacía y lo que crea se pierde al recargar.
 
 ## Lo último que se hizo
 
+- **Sesión 023, al final: Sprint 4 paso 5 — pruebas de los RNF críticos. Con él, el Sprint 4 queda completo en el servidor.**
+  - **`scripts/prueba-rnf-criticos.mjs` (nueva): 37/37, dos corridas**, con cuentas temporales (no usa `prueba-matriz-roles.mjs`, que cambia la contraseña de `empresa.s004`):
+    - RNF-02: HTTPS con HSTS y redirección 308;
+    - RNF-28: un administrador sin MFA va a `/mfa`;
+    - RNF-30: matriz rol × ruta de 92 combinaciones, ruta no declarada 404 y eventos `acceso_denegado`;
+    - RNF-01: el panel es indistinguible de una ruta inexistente;
+    - RNF-03: aislamiento de 2 empresas y 2 consultores en listados, por id, por acción, en pantallas y contra la tabla;
+    - RNF-20: 402 sin suscripción, y la RLS rechaza aunque se salte la API;
+    - RNF-34: 24 pantallas sin identificadores.
+  - **`supabase/tests/rnf_esquema.sql` (nueva): 14/14**: RNF-25 con 30 tablas, todas con RLS y política, sin escrituras abiertas; RNF-12 con claves foráneas e integridad; RNF-01 con bcrypt; RNF-11 con columnas de auditoría e historial.
+  - **RNF-11: `encargo_historial`** (tabla 30, migración `20260930300000`, docs/05 §9.24): cada cambio de estado de un encargo con quién y cuándo. La especificación ya lo pedía y faltaba.
+  - **RNF-26:** la clave `service_role` aparece en 0 de 84 archivos del cliente del build de producción.
+  - **RNF-04 (`scripts/prueba-rendimiento-catalogo.mjs`, nueva):** con 1.000 vigentes, la API queda en ~1,8 s y la pantalla en 2,1 s (build de producción local). El costo es fijo, de viajes a Supabase (~200 ms cada uno desde este equipo), no del volumen. **No se pudo medir producción** con este código. Se encontraron **dos hallazgos**: Vercel en `iad1` contra Supabase en `us-west-2`, y el catálogo truncado por encima de 1.000 vigentes.
+  - Pasan a `verificado`: RNF-01, 02, 12, 25, 26, 28, 30 y 34. Quedan en `servidor`: RNF-03 (falta documentos), 04 (falta medir producción), 11 y 20 (sus partes de IA son del Sprint 5). **Necesitan una decisión del Product Owner:** RNF-09, 10 y 32. Siguen en el Sprint 5: RNF-27, 31 y 33.
 - **Sesión 023, después: Sprint 4 paso 4 — vencimiento de suscripciones con la fecha de Colombia (RF-39, RF-40, RN-16, RN-29).**
   - Al empezar se vio que **el job 2 ya corría desde el Sprint 0, con la fecha en UTC**, y había vencido las dos cuentas de empresa del Product Owner (trials del 16 y 17 de septiembre).
   - **Decisiones del Product Owner antes de programar:**
@@ -222,7 +236,7 @@ Detalle en [`docs/bitacora/2026-09-24-sesion-020.md`](docs/bitacora/2026-09-24-s
 
 ## En curso
 
-**Sprint 4, pasos 1 y 2 verificados** (sesiones 021 y 022; el directorio lo recorrió el Product Owner al abrir la 023). **Paso 3, encargos, hecho en el servidor** (sesión 023); falta el recorrido del Product Owner (pendiente 17). **Paso 4, vencimiento de suscripciones, hecho** (sesión 023, después); falta ver su primera ejecución real esta noche. Sigue el paso 5, pruebas de los RNF críticos.
+**Sprint 4, pasos 1 y 2 verificados** (sesiones 021 y 022; el directorio lo recorrió el Product Owner al abrir la 023). **Paso 3, encargos, hecho en el servidor** (sesión 023); falta el recorrido del Product Owner (pendiente 17). **Paso 4, vencimiento de suscripciones, hecho** (sesión 023, después); falta ver su primera ejecución real esta noche. **Paso 5, RNF críticos, hecho** (sesión 023, al final). **El Sprint 4 queda completo en el servidor**; para cerrar el Hito 4 falta tu recorrido de encargos (pendiente 17). Sigue el Sprint 5, que necesita las claves de Claude y de Upstash (pendiente 13).
 
 ## Lo siguiente
 
@@ -245,7 +259,7 @@ Detalle en [`docs/bitacora/2026-09-24-sesion-020.md`](docs/bitacora/2026-09-24-s
 2. ~~Contacto visible solo por pareja empresa-consultor (RF-80, RN-12)~~ — **sesión 022**, cambiado: se revela al aceptar (encargo `en_curso`), no con la solicitud pendiente.
 3. ~~Encargos de punta a punta: solicitar, aceptar con revelación de contacto, avances, entrega y calificación (RF-28..33, 68, 69, 70, 74, 75, RN-09, RN-26, RN-29)~~ — **sesión 023**, con la asignación interna cambiada por la atención del equipo por correo (RF-90) y el retiro de solicitudes (RF-89).
 4. ~~Job de vencimiento de suscripciones (RF-39, CU-32), con la fecha de Colombia~~ — **sesión 023, después**, con la franja de aviso (RN-16) y la gracia también en el trial.
-5. Pruebas de los RNF críticos.
+5. ~~Pruebas de los RNF críticos~~ — **sesión 023, al final**: ver `docs/11 §23`. Quedan RNF-09, 10 y 32 (decisiones del Product Owner, pendientes 18 a 20) y la medición de RNF-04 en producción.
 
 **Hito 4 (día 24):** un encargo completo —solicitud, aceptación con revelación de contacto, avances, entrega y calificación—, aislado entre empresas en las pantallas; al suspender al consultor sale del directorio y sus encargos en curso se cancelan solos.
 
@@ -332,6 +346,11 @@ Pendiente del Product Owner:
     - opcional: envía otra solicitud y retírala con "Retirar solicitud".
 
     Con eso, RF-28, 30, 31, 32, 33, 74, 89 y 90 pasan a `verificado`, y se cumple la parte del Hito 4 que no depende de la suspensión (esa ya está probada).
+18. **Región de las funciones de Vercel (RNF-04).** Las funciones corren en `iad1` (Virginia) y Supabase está en `us-west-2` (Oregón): cada consulta cruza el continente, y una pantalla con sesión hace unas seis seguidas. La recomendación es fijar la región de las funciones en `pdx1` (Oregón), junto a Supabase. Se cambia en Vercel (Settings → Functions → Region) o con un `vercel.json`, si me autorizas a agregarlo. Después se mide el catálogo en producción.
+19. **Monitor de disponibilidad (RNF-09).** Crear un monitor externo gratuito (p. ej. UptimeRobot o Better Stack) sobre `https://convocatorias-neon.vercel.app` en horario hábil. Es una cuenta tuya; no puedo crearla.
+20. **Respaldos (RNF-10) y retención (RNF-32), dos decisiones:**
+    - ¿Pasas Supabase al plan Pro (copias diarias y restauración) antes de los pilotos, o hacemos copias manuales con `supabase db dump` y probamos restaurarlas en un proyecto aparte?
+    - ¿Cuánto tiempo se conservan los documentos generados, los consumos de IA y el contenido enviado al proveedor de IA, y cómo se pide la eliminación? Con eso escribo la política en los términos y la prueba de punta a punta.
 
 ## Decisiones abiertas
 
@@ -437,6 +456,9 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 | Una corrida de la prueba del catálogo dejó viva la cuenta `empresa.catalogo.e1432d@example.com` (con su trial): su limpieza falló en algún momento | `scripts/prueba-catalogo-empresa.mjs` | baja · borrarla y revisar que la limpieza corra aunque falle la prueba |
 | El job 3 (reinicio de créditos) sigue con `current_date` en UTC | `supabase/migrations/20260916120600` | baja · con los créditos, en el Sprint 5 |
 | La franja de aviso solo está en el portal de la empresa: el consultor no tiene suscripción hasta el Sprint 5 y sus mensajes (qué se restringe) serían distintos | `components/AvisoSuscripcion.tsx` | baja · con los planes del consultor |
+| **El catálogo se trunca por encima de 1.000 convocatorias vigentes**: `listarCatalogo` las trae todas sin ordenar ni paginar, PostgREST corta en 1.000 (`max_rows`) y los filtros se aplican después, en el servidor. Cuáles se pierden es arbitrario | `lib/catalogo.ts` | **alta cuando crezca el catálogo** · filtrar en la consulta y paginar |
+| Las funciones de Vercel corren en `iad1` y Supabase en `us-west-2`: ~70 ms por consulta en producción, ~6 por pantalla con sesión | Vercel | media · pendiente 18 |
+| Cada pantalla con sesión hace ~6 viajes seguidos a Supabase (proxy, sesión, rol efectivo, suscripción, consultor y la consulta): es el grueso del tiempo de respuesta | `proxy.ts`, `lib/auth.ts` | media · paralelizar o cachear por petición tras fijar la región |
 
 ---
 

@@ -1,4 +1,4 @@
-# Modelo de datos (29 tablas)
+# Modelo de datos (30 tablas)
 
 > Parte de la especificación del MVP **v6** · Plataforma de Gestión de Convocatorias.
 > Índice general en `docs/README.md`. Contexto rápido en `CLAUDE.md`.
@@ -710,3 +710,20 @@ Un encargo nace `pendiente` (directorio) o `esperando_asignacion` (equipo). Proy
 - `datos_de_mis_encargos()` (`security definer`): una fila por encargo propio de la sesión, sea empresa o consultor, con el nombre del proyecto, el de la convocatoria y el de la empresa, y **`correo_contraparte` solo si el encargo es del directorio y está en `en_curso`, `completado` o `calificado`** (RF-70, RN-26). El correo sale de `auth.users`. Los nombres permiten al consultor ver su historial aunque, por RN-25, ya no lea el proyecto.
 - `solicitudes_equipo(p_estado)` (`security definer`, solo `privado.es_admin()`): las solicitudes al equipo en ese estado, con nombre, empresa y correo de quien la envió, la nota interna y quién la atendió.
 - **RN-25 ampliado:** `privado.consultor_ve_postulacion(p_postulacion)` y dos políticas de lectura, en `postulaciones` y `postulacion_checklist`, para el consultor con un encargo `pendiente` o `en_curso` vinculado a esa postulación. Solo lectura.
+
+### 9.24 Historial de los encargos *(nuevo v6, sesión 023 — Sprint 4 paso 5)*
+
+Cumple la parte de RNF-11 que pide el **historial de los encargos**: hasta aquí solo quedaban `aceptado_at`, `completado_at` y `atendido_at`, y no se sabía cuándo ni quién rechazó, retiró o canceló uno. Migración `20260930300000_historial_encargos`.
+
+**ENCARGO_HISTORIAL** — tabla 30.
+
+| Campo | Tipo | Restricción |
+|---|---|---|
+| id | uuid | PK |
+| encargo_id | uuid | FK → encargos, `on delete cascade` |
+| estado_anterior | text | nulo en la creación |
+| estado_nuevo | text | not null |
+| cambiado_por | uuid | FK → perfiles, `on delete set null`; `auth.uid()` de quien hizo el cambio, nulo si lo hizo un job (vencimiento) o `service_role` |
+| fecha | timestamptz | `now()` |
+
+La llena un trigger `after insert or update of estado` en `encargos` (`privado.registrar_historial_encargo`, `security definer`), como `postulacion_historial`. **RLS:** las partes del encargo leen (`privado.es_parte_encargo`) y el administrador lee todo; nadie escribe por la API. Las filas de encargos anteriores a la migración reciben una entrada de creación con su `creada_at`.
