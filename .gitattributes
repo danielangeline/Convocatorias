@@ -1,0 +1,4 @@
+# Los scripts de bash y awk deben quedar con LF también en Windows (core.autocrlf):
+# con CRLF, bash falla con "$'\r': command not found".
+*.sh  text eol=lf
+*.awk text eol=lf
