@@ -24,7 +24,7 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
     - el consultor propone convocatorias con una nota, y la empresa elige una;
     - **el encargo sigue** con esa convocatoria, y la empresa puede postular.
   - Escrito en CU-18, CU-22, RN-25, RN-33, docs/04, **docs/05 §9.25 (tabla 31 `encargo_propuestas`)**, docs/09, docs/10 (entregable del Sprint 5) y `CLAUDE.md`.
-  - **Soporte:** `daniel.bohorquez.p2005@gmail.com` no recibía la verificación al registrarse como consultor porque ya es una cuenta de **administrador** (la de prueba de la sesión 009). Espera tu decisión: usar otro correo o borrar esa cuenta (pendiente 21).
+  - **Soporte:** `daniel.bohorquez.p2005@gmail.com` no recibía la verificación al registrarse como consultor porque ya es una cuenta de **administrador** (la de prueba de la sesión 009). Se borró a pedido del Product Owner (pendiente 21 cerrado). El primer intento falló por la red de casa, peor que en la sesión 016, y se hizo en el punto de acceso del iPhone.
 - **Sesión 023, al final: Sprint 4 paso 5 — pruebas de los RNF críticos. Con él, el Sprint 4 queda completo en el servidor.**
   - **`scripts/prueba-rnf-criticos.mjs` (nueva): 37/37, dos corridas**, con cuentas temporales (no usa `prueba-matriz-roles.mjs`, que cambia la contraseña de `empresa.s004`):
     - RNF-02: HTTPS con HSTS y redirección 308;
@@ -359,7 +359,7 @@ Pendiente del Product Owner:
 20. **Respaldos (RNF-10) y retención (RNF-32), dos decisiones:**
     - ¿Pasas Supabase al plan Pro (copias diarias y restauración) antes de los pilotos, o hacemos copias manuales con `supabase db dump` y probamos restaurarlas en un proyecto aparte?
     - ¿Cuánto tiempo se conservan los documentos generados, los consumos de IA y el contenido enviado al proveedor de IA, y cómo se pide la eliminación? Con eso escribo la política en los términos y la prueba de punta a punta.
-21. **Cuenta `daniel.bohorquez.p2005@gmail.com`** (sesión 024): es la cuenta de administrador de prueba de la sesión 009, así que no se puede registrar como consultor. Hay dos opciones: registrar al consultor con otro correo, o autorizarme a borrar esa cuenta para reutilizar el correo.
+21. ~~**Cuenta `daniel.bohorquez.p2005@gmail.com`**~~ — **borrada en la sesión 024** por decisión del Product Owner: era el administrador de prueba de la sesión 009. Comprobado: Auth responde 404 y no queda perfil. El correo queda libre para registrarse como consultor.
 
 ## Decisiones abiertas
 
