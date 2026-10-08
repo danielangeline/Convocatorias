@@ -359,7 +359,7 @@ Pendiente del Product Owner:
 20. **Respaldos (RNF-10) y retención (RNF-32), dos decisiones:**
     - ¿Pasas Supabase al plan Pro (copias diarias y restauración) antes de los pilotos, o hacemos copias manuales con `supabase db dump` y probamos restaurarlas en un proyecto aparte?
     - ¿Cuánto tiempo se conservan los documentos generados, los consumos de IA y el contenido enviado al proveedor de IA, y cómo se pide la eliminación? Con eso escribo la política en los términos y la prueba de punta a punta.
-21. ~~**Cuenta `daniel.bohorquez.p2005@gmail.com`**~~ — **borrada en la sesión 024** por decisión del Product Owner: era el administrador de prueba de la sesión 009. Comprobado: Auth responde 404 y no queda perfil. El correo queda libre para registrarse como consultor.
+21. ~~**Cuenta `daniel.bohorquez.p2005@gmail.com`**~~ — **borrada en la sesión 024** por decisión del Product Owner: era el administrador de prueba de la sesión 009. Comprobado: Auth responde 404 y no queda perfil. El Product Owner se registró con ese correo como consultor el 8-oct: correo confirmado, rol `consultor`, consentimiento aceptado y perfil creado en `incompleto`. Para usarla en los encargos falta completarla, enviarla a revisión y aprobarla.
 
 ## Decisiones abiertas
 
