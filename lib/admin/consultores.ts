@@ -50,6 +50,17 @@ function motivoDe(cuerpo: Record<string, unknown> | null): string | { error: str
 // Lectura
 // ---------------------------------------------------------------------------
 
+/** RF-34 · Cuántos perfiles esperan revisión, para el dashboard del panel. */
+export async function contarPerfilesEnRevision(): Promise<number> {
+  const supabase = await crearClienteServidor();
+  const { count, error } = await supabase
+    .from("consultor_perfiles")
+    .select("id", { count: "exact", head: true })
+    .eq("estado_perfil", "en_revision");
+  if (error) console.error("Consultores (panel): no se pudieron contar", error.code, error.message);
+  return count ?? 0;
+}
+
 /**
  * Todos los consultores, o solo los de un estado (la bandeja pide
  * `en_revision`). Los de revisión primero por antigüedad del envío: el que

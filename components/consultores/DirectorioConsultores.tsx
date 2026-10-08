@@ -2,12 +2,15 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Search, X, Briefcase, UserRound, Users } from "lucide-react";
 import type { ConsultorDirectorio } from "@/lib/types";
 import { useAppStore } from "@/lib/store";
 import { RatingStars } from "@/components/RatingStars";
 import { Chip } from "@/components/ui/Chip";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Button } from "@/components/ui/Button";
+import { pedir } from "@/lib/pedir";
 
 const normalizar = (t: string) =>
   t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
@@ -21,6 +24,9 @@ const normalizar = (t: string) =>
 export function DirectorioConsultores({ consultores }: { consultores: ConsultorDirectorio[] }) {
   const solicitud = useAppStore((s) => s.solicitudConsultorEnCurso);
   const cancelarSolicitud = useAppStore((s) => s.cancelarSolicitudConsultor);
+  const router = useRouter();
+  const [enviandoAlEquipo, setEnviandoAlEquipo] = useState(false);
+  const [errorEquipo, setErrorEquipo] = useState<string | null>(null);
 
   const [busqueda, setBusqueda] = useState("");
   const [especialidadSel, setEspecialidadSel] = useState<string[]>([]);
@@ -43,6 +49,28 @@ export function DirectorioConsultores({ consultores }: { consultores: ConsultorD
       .filter((c) => !especialidadSel.length || c.especialidades.some((e) => especialidadSel.includes(e.id)))
       .filter((c) => c.ratingPromedio >= ratingMin);
   }, [consultores, busqueda, especialidadSel, ratingMin]);
+
+  // CU-20 1a · Sin consultores en el directorio, la tarea que la empresa ya
+  // describió (CU-19) se envía al equipo de la plataforma (CU-23, RF-90).
+  const pedirAyudaAlEquipo = async () => {
+    if (!solicitud) return;
+    setErrorEquipo(null);
+    setEnviandoAlEquipo(true);
+    const r = await pedir("/api/encargos", {
+      proyectoId: solicitud.proyectoId,
+      tipoAyuda: solicitud.tipoAyuda,
+      convocatoriaId: solicitud.convocatoriaId,
+      titulo: solicitud.tituloTarea,
+      descripcion: solicitud.descripcionTarea,
+    });
+    setEnviandoAlEquipo(false);
+    if (!r.ok) {
+      setErrorEquipo(r.error);
+      return;
+    }
+    cancelarSolicitud();
+    router.push("/encargos");
+  };
 
   return (
     <div>
@@ -71,11 +99,28 @@ export function DirectorioConsultores({ consultores }: { consultores: ConsultorD
         <EmptyState
           icon={Users}
           titulo="Aún no hay consultores en el directorio"
-          descripcion="Mientras tanto, puedes pedir que el equipo de la plataforma te asigne uno desde la ficha de tu proyecto."
+          descripcion={
+            solicitud
+              ? "Nuestro equipo puede ayudarte con esta tarea: te escribiremos por correo."
+              : "Mientras tanto, nuestro equipo puede ayudarte: en la ficha de tu proyecto, usa “Solicitar consultor” y elige “Pedir ayuda a nuestro equipo”."
+          }
           accion={
-            <Link href="/proyectos" className="text-sm font-semibold text-primary-700 hover:underline">
-              Ir a mis proyectos
-            </Link>
+            solicitud ? (
+              <div className="flex flex-col items-center gap-2">
+                <Button variant="primary" onClick={pedirAyudaAlEquipo} disabled={enviandoAlEquipo}>
+                  {enviandoAlEquipo ? "Enviando…" : "Pedir ayuda a nuestro equipo"}
+                </Button>
+                {errorEquipo && (
+                  <p role="alert" className="max-w-sm text-xs text-danger">
+                    {errorEquipo}
+                  </p>
+                )}
+              </div>
+            ) : (
+              <Link href="/proyectos" className="text-sm font-semibold text-primary-700 hover:underline">
+                Ir a mis proyectos
+              </Link>
+            )
           }
         />
       ) : (

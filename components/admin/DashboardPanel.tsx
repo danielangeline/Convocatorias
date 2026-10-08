@@ -17,10 +17,18 @@ import { Badge } from "@/components/ui/Badge";
 
 const ESTADOS_SUSCRIPCION: EstadoSuscripcion[] = ["trial", "activa", "en_gracia", "vencida", "suspendida"];
 
-/** Dashboard del panel. `solicitudesEquipo` llega del servidor (RF-90); lo demás sigue en el store. */
-export function DashboardPanel({ solicitudesEquipo }: { solicitudesEquipo: number }) {
+/**
+ * Dashboard del panel. `perfilesEnRevision` (RF-34) y `solicitudesEquipo`
+ * (RF-90) llegan del servidor; lo demás sigue en el store.
+ */
+export function DashboardPanel({
+  perfilesEnRevision,
+  solicitudesEquipo,
+}: {
+  perfilesEnRevision: number;
+  solicitudesEquipo: number;
+}) {
   const convocatorias = useAppStore((s) => s.convocatorias);
-  const consultores = useAppStore((s) => s.consultores);
   const suscripciones = useAppStore((s) => s.suscripciones);
   const estadisticasIA = useAppStore((s) => s.estadisticasIA);
 
@@ -30,8 +38,6 @@ export function DashboardPanel({ solicitudesEquipo }: { solicitudesEquipo: numbe
     despublicada: convocatorias.filter((c) => c.estado === "despublicada").length,
     cerrada: convocatorias.filter((c) => c.estado === "cerrada").length,
   };
-
-  const perfilesEnRevision = consultores.filter((c) => c.estadoPerfil === "en_revision").length;
 
   const proximasAVencer = convocatorias
     .filter((c) => c.estado === "publicada")
