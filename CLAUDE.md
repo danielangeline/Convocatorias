@@ -60,7 +60,8 @@ Reglas que se rompen con facilidad:
 ENTRADA       dos puertas: "Soy empresa o entidad" / "Soy consultor" → registro fija el rol ·
               login lleva al portal del rol (sin opción de administrador en ninguna pantalla pública)
 ADMINS        Propietario → invita por correo → la persona define contraseña + MFA → panel · revocar
-CATÁLOGO      (solo cuentas de empresa, RN-33) buscar/filtrar → ficha → [Postular] o [Generar documento con IA]
+CATÁLOGO      (solo cuentas de empresa, RN-33; excepción: consultor con encargo "buscar convocatoria"
+              en curso, RF-91) buscar/filtrar → ficha → [Postular] o [Generar documento con IA]
 SUGERENCIAS   proyecto registrado → cruce de atributos → % de compatibilidad + desglose
 GENERACIÓN    convocatoria → elegir proyecto → generar (1 crédito) → editar → exportar .docx
 POSTULACIÓN   crear → checklist copiado de los requisitos → avance → estados con historial

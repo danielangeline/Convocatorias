@@ -5,7 +5,7 @@
 
 ---
 
-**Actualizado:** 30 de septiembre de 2026 · cierre de la sesión 023
+**Actualizado:** 8 de octubre de 2026 · cierre de la sesión 024
 **Sprint:** 4 · día 11 de 30 (los sprints 2 y 3 terminaron antes de su plazo). **Orden de los sprints 4 y 5 intercambiado en la sesión 021**: la IA, los créditos, los planes y los precios van al final
 **Rama de trabajo:** `sprint-2`, abierta desde `main` en la sesión 011 y subida a `origin` (sin fusionar a `main`: producción todavía no tiene el catálogo del panel). **Migraciones nuevas ya aplicadas al remoto:** `20260917100000_guardar_convocatoria`, `20260917200000_storage_y_adjuntos` , `20260918100000_publicar_convocatoria` y `20260918200000_nombres_normalizados_y_borrar_categorias`, y desde el Sprint 3 las de proyectos (`20260923500000`) y departamentos y sugerencias (`20260924100000`), y **postulaciones (`20260925100000` y `20260925200000`)**, y desde el Sprint 4 **perfil del consultor (`20260926100000` y `20260926110000`)** y **revisión de consultores (`20260927100000`)** y **directorio (`20260927200000`)**, y **encargos (`20260930100000`)** y **vencimiento de suscripciones (`20260930200000`)** y **historial de encargos (`20260930300000`)**. No rompen `main`, que no las llama
 
@@ -17,6 +17,14 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 
 ## Lo último que se hizo
 
+- **Sesión 024: especificada la búsqueda de convocatorias en los encargos "buscar convocatoria" (RF-69 modificado; RF-91, RF-92 y RF-93 nuevos). Sin código: va al Sprint 5.**
+  - El Product Owner vio el hueco: el consultor no tenía catálogo (RN-33) y reportaba candidatas como texto libre.
+  - **Decisiones del Product Owner:**
+    - con el encargo `en_curso`, el consultor ve **todo** el catálogo vigente desde el encargo, más las sugerencias del proyecto;
+    - el consultor propone convocatorias con una nota, y la empresa elige una;
+    - **el encargo sigue** con esa convocatoria, y la empresa puede postular.
+  - Escrito en CU-18, CU-22, RN-25, RN-33, docs/04, **docs/05 §9.25 (tabla 31 `encargo_propuestas`)**, docs/09, docs/10 (entregable del Sprint 5) y `CLAUDE.md`.
+  - **Soporte:** `daniel.bohorquez.p2005@gmail.com` no recibía la verificación al registrarse como consultor porque ya es una cuenta de **administrador** (la de prueba de la sesión 009). Espera tu decisión: usar otro correo o borrar esa cuenta (pendiente 21).
 - **Sesión 023, al final: Sprint 4 paso 5 — pruebas de los RNF críticos. Con él, el Sprint 4 queda completo en el servidor.**
   - **`scripts/prueba-rnf-criticos.mjs` (nueva): 37/37, dos corridas**, con cuentas temporales (no usa `prueba-matriz-roles.mjs`, que cambia la contraseña de `empresa.s004`):
     - RNF-02: HTTPS con HSTS y redirección 308;
@@ -263,7 +271,7 @@ Detalle en [`docs/bitacora/2026-09-24-sesion-020.md`](docs/bitacora/2026-09-24-s
 
 **Hito 4 (día 24):** un encargo completo —solicitud, aceptación con revelación de contacto, avances, entrega y calificación—, aislado entre empresas en las pantallas; al suspender al consultor sale del directorio y sus encargos en curso se cancelan solos.
 
-**Después: Sprint 5 — generación con IA, créditos, planes y precios**, más autorización de documentos, revocación en cascada, traza de lectura y el límite de tasa sobre Upstash Redis. Necesita la clave de la API de Claude, las claves de Upstash y TDR reales.
+**Después: Sprint 5 — generación con IA, créditos, planes y precios**, más **la búsqueda y las propuestas del consultor en "buscar convocatoria" (RF-91..93, sesión 024; no depende de la IA, puede ir primero)**, más autorización de documentos, revocación en cascada, traza de lectura y el límite de tasa sobre Upstash Redis. Necesita la clave de la API de Claude, las claves de Upstash y TDR reales.
 
 **Hito 3 (día 18):** una empresa registra un proyecto, recibe sugerencias ordenadas por compatibilidad, inicia una postulación y avanza su checklist. Todo persistido y aislado por RLS.
 
@@ -351,6 +359,7 @@ Pendiente del Product Owner:
 20. **Respaldos (RNF-10) y retención (RNF-32), dos decisiones:**
     - ¿Pasas Supabase al plan Pro (copias diarias y restauración) antes de los pilotos, o hacemos copias manuales con `supabase db dump` y probamos restaurarlas en un proyecto aparte?
     - ¿Cuánto tiempo se conservan los documentos generados, los consumos de IA y el contenido enviado al proveedor de IA, y cómo se pide la eliminación? Con eso escribo la política en los términos y la prueba de punta a punta.
+21. **Cuenta `daniel.bohorquez.p2005@gmail.com`** (sesión 024): es la cuenta de administrador de prueba de la sesión 009, así que no se puede registrar como consultor. Hay dos opciones: registrar al consultor con otro correo, o autorizarme a borrar esa cuenta para reutilizar el correo.
 
 ## Decisiones abiertas
 

@@ -727,3 +727,42 @@ Cumple la parte de RNF-11 que pide el **historial de los encargos**: hasta aquí
 | fecha | timestamptz | `now()` |
 
 La llena un trigger `after insert or update of estado` en `encargos` (`privado.registrar_historial_encargo`, `security definer`), como `postulacion_historial`. **RLS:** las partes del encargo leen (`privado.es_parte_encargo`) y el administrador lee todo; nadie escribe por la API. Las filas de encargos anteriores a la migración reciben una entrada de creación con su `creada_at`.
+
+### 9.25 Búsqueda y propuestas de convocatorias en un encargo *(nuevo v6, sesión 024 — Sprint 5, por construir)*
+
+Implementa RF-91, RF-92 y RF-93, y la excepción de RN-33 y la ampliación de RN-25 (CU-18, CU-22). **Decisiones del Product Owner (sesión 024):** el consultor ve **todo** el catálogo vigente mientras el encargo esté `en_curso`; al elegir una propuesta, el encargo **sigue**; se construye en el Sprint 5.
+
+**ENCARGO_PROPUESTAS** — tabla 31.
+
+| Campo | Tipo | Restricción |
+|---|---|---|
+| id | uuid | PK |
+| encargo_id | uuid | FK → encargos, `on delete cascade` |
+| convocatoria_id | uuid | FK → convocatorias |
+| nota | text | not null, entre 1 y 1 000 caracteres |
+| estado | text | check: `propuesta` \| `elegida` \| `retirada` \| `descartada`; default `propuesta` |
+| creada_at | timestamptz | `now()` |
+| resuelta_at | timestamptz | nulo mientras esté `propuesta` |
+
+- **Unicidad:** `(encargo_id, convocatoria_id)` única —una convocatoria se propone una vez por encargo—, y un índice único parcial `(encargo_id) where estado = 'elegida'`: como máximo una elegida.
+- **Índice** en `encargo_id` para el listado del encargo.
+
+**Acceso al catálogo (excepción de RN-33).** `privado.consultor_busca_convocatorias()` (`security definer`, `stable`) devuelve `true` si `auth.uid()` es el consultor de algún encargo `buscar_convocatoria` en `en_curso`. Se añade a la política de lectura de `convocatorias` (solo `publicada` y vigente con `privado.hoy_colombia()`), a las de sus tablas hijas (categorías, departamentos, requisitos y documentos) y a la de Storage del bucket de adjuntos, que hereda la visibilidad de la fila. **No hay acceso por encargo concreto en la RLS** —la tabla de convocatorias no sabe de encargos—, así que los endpoints exigen además el `encargo_id` en la ruta y comprueban que ese encargo cumpla la condición; si no, 404.
+
+**Sugerencias para el consultor.** `sugerencias_encargo(p_encargo)` (`security definer`): comprueba que la sesión sea el consultor de ese encargo `buscar_convocatoria` en `en_curso` y devuelve el mismo resultado que `sugerencias_proyecto()` (§9.18) sobre el proyecto del encargo. **No exige la suscripción de la empresa** (RF-91). El cálculo se comparte en una función privada para que las dos den lo mismo.
+
+**Escritura** (todas `security definer`, con la fila del encargo bloqueada y clave estable en `hint`):
+
+| Función | Quién | Condición | Qué hace |
+|---|---|---|---|
+| `proponer_convocatoria(p_encargo, p_convocatoria, p_nota)` | consultor del encargo | `buscar_convocatoria`, `en_curso`, sin elegida; convocatoria publicada y vigente | Inserta la propuesta. Claves: `encargo_no_admite_propuestas`, `convocatoria_no_vigente`, `ya_propuesta` |
+| `retirar_propuesta(p_propuesta)` | consultor del encargo | propuesta en `propuesta` | → `retirada` |
+| `elegir_propuesta(p_propuesta)` | empresa del encargo | encargo `en_curso` sin elegida; propuesta en `propuesta`; convocatoria publicada y vigente | → `elegida`; las demás en `propuesta` → `descartada`; fija `encargos.convocatoria_id` y vincula la postulación no cerrada del par proyecto-convocatoria si ya existe |
+
+**Excepción al trigger de inmutabilidad de §9.23.** `encargos.convocatoria_id` puede pasar de nulo a un valor **una sola vez**, solo en un encargo `buscar_convocatoria` y solo dentro de `elegir_propuesta` (marca de transacción `set_config('app.eligiendo_propuesta', ...)` que el trigger comprueba). `tipo_ayuda` no cambia: queda como `buscar_convocatoria`, que es lo que pidió la empresa.
+
+**Vincular la postulación después.** Si la empresa postula después de elegir, `iniciar_postulacion()` (§9.19) vincula la postulación nueva al encargo `en_curso` del mismo proyecto con esa convocatoria y sin postulación (CU-22 paso 7).
+
+**Lectura.** Las partes del encargo leen sus propuestas (`privado.es_parte_encargo`); el administrador, todas. `propuestas_de_encargo(p_encargo)` (`security definer`) las devuelve con el nombre, la entidad y la fecha de cierre de la convocatoria —que la empresa sí lee, pero el consultor quizá ya no tras terminar el encargo— y el porcentaje de compatibilidad con el proyecto, calculado al consultar.
+
+**Al terminar el encargo** (`completado`, `cancelado`): las propuestas en `propuesta` pasan a `descartada` en el mismo trigger del cambio de estado, y el consultor pierde el catálogo en la siguiente petición, porque `consultor_busca_convocatorias()` se evalúa en cada consulta.

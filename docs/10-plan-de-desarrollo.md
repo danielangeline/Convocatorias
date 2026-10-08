@@ -175,6 +175,7 @@ El sprint con más riesgo técnico y el único que depende de un proveedor exter
 | Autorización de documentos y **revocación automática en cascada** | RF-71, 72, **76**, RN-27 |
 | Traza de lectura de documentos compartidos | **RF-79**, RNF-11 |
 | Límite de tasa con comportamiento fail-closed, sobre **Upstash Redis** *(movido del Sprint 4 en la sesión 021: protege sobre todo la generación con IA)* | RF-66, 67, RNF-27, **RNF-33** |
+| **Búsqueda de convocatorias y propuestas del consultor en "buscar convocatoria"** *(añadido en la sesión 024, decisión del Product Owner; no depende de la IA, así que puede ir primero mientras llegan las claves)* | **RF-91, 92, 93**, RF-69, RN-25, RN-33 |
 | Despliegue a producción | — |
 
 **Hito 5 —** Un documento generado a partir de un proyecto incompleto, con los pendientes marcados y **ningún dato inventado**, editado, ajustado y exportado a Word, con su costo por generación registrado. Autorizado después a un consultor, que **pierde el acceso al documento sin que nadie intervenga** al suspenderlo.

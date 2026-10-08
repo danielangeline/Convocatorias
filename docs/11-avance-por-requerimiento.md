@@ -102,7 +102,7 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RF-32 Avances y finalización | servidor | **Sesión 023 (Sprint 4 paso 3):** `registrar_avance()` y `completar_encargo()`, solo el consultor y en `en_curso`; la empresa lee los avances. Registrar un avance visto en el navegador. Falta el recorrido del Product Owner en pantalla (pendiente 17) |
 | RF-33 Calificación única | servidor | **Sesión 023 (Sprint 4 paso 3):** `calificar_encargo()`, solo la empresa y sobre `completado`; la unicidad y el recálculo del rating en la base; el contador avanza al completar, no al calificar. Probado en SQL y HTTP (segunda calificación 409). Falta el recorrido del Product Owner en pantalla (pendiente 17) |
 | RF-68 Contexto del proyecto en el encargo | servidor | **Sesión 023 (Sprint 4 paso 3):** el consultor lee con su sesión el proyecto, sus categorías, la convocatoria con sus requisitos y el checklist vinculado mientras el encargo está pendiente o en curso (RN-25). Visto en el navegador |
-| RF-69 Ayuda para encontrar convocatoria | servidor | **Sesión 023 (Sprint 4 paso 3):** categorías, monto buscado y ubicación del proyecto en el contexto; las candidatas se reportan como avances. Visto en el navegador |
+| RF-69 Ayuda para encontrar convocatoria *(mod. sesión 024)* | servidor (parcial) | **Sesión 023 (Sprint 4 paso 3):** categorías, monto buscado y ubicación del proyecto en el contexto; las candidatas se reportan como avances. Visto en el navegador. **Sesión 024:** la especificación cambió (las candidatas pasan a búsqueda y propuestas, RF-91..93, Sprint 5); lo de la sesión 023 sigue valiendo; se completa con ellas |
 | RF-70 Revelar contacto al aceptar | servidor | **Sesión 023 (Sprint 4 paso 3):** `datos_de_mis_encargos()` lee el correo de `auth.users` solo en encargos del directorio `en_curso`, `completado` o `calificado` (decisión del Product Owner: sigue visible al completar). Visto en el navegador en las dos pantallas |
 | RF-71 Autorizar documento al consultor | prototipo | |
 | RF-72 Bloquear exportación en servidor | pendiente | Hoy solo se oculta el botón |
@@ -111,6 +111,9 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RF-75 Buscador de convocatorias en el selector | prototipo | El buscador filtra en el cliente las convocatorias reales del catálogo; **sesión 023:** la vigencia la vuelve a exigir `solicitar_encargo()` |
 | RF-89 Retirar una solicitud sin responder *(v6, sesión 023)* | servidor | `retirar_encargo()`, solo la empresa y desde `pendiente` o `esperando_asignacion`; motivo fijo "Retirada por la empresa". Probado en SQL y HTTP; en la pantalla pide confirmación. Falta el recorrido del Product Owner en pantalla (pendiente 17) |
 | RF-90 Bandeja del equipo en el panel *(v6, sesión 023)* | servidor | `solicitudes_equipo()` y `atender_solicitud_equipo()`, solo administrador con aal2; nota interna sin lectura por columna. `/admin/encargos` con pestañas esperando y contactadas, contador en el menú y en el dashboard. Visto en el navegador con un administrador temporal. Falta el recorrido del Product Owner en pantalla (pendiente 17) |
+| RF-91 Búsqueda de convocatorias dentro del encargo *(v6, sesión 024)* | pendiente | Especificado en la sesión 024 (docs/05 §9.25). Sprint 5 |
+| RF-92 Proponer una convocatoria a la empresa *(v6, sesión 024)* | pendiente | Especificado en la sesión 024. Sprint 5 |
+| RF-93 Elegir una propuesta; el encargo sigue *(v6, sesión 024)* | pendiente | Especificado en la sesión 024. Sprint 5 |
 
 ### 4.8 Gestión de consultores (administrador)
 
