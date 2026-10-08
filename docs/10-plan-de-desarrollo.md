@@ -156,6 +156,8 @@ Lo primero es lo que el prototipo no puede simular y lo que más caro sale corre
 
 **Hito 4 —** Un encargo completo: solicitud, aceptación con revelación de contacto, avances, entrega y calificación, aislado entre empresas en las pantallas. Y al suspender a ese consultor, **sale del directorio y sus encargos en curso se cancelan sin que nadie intervenga**.
 
+*Cumplido (sesión 025, 8-oct):* recorrido completo en el navegador con dos empresas, una consultora y un administrador temporales —por decisión del Product Owner, en lugar de su recorrido con sus cuentas (pendiente 17)—; la segunda empresa no ve encargos, proyecto ni contacto de la primera; al suspender, la consultora sale del directorio y su encargo en curso queda cancelado con "Consultor suspendido por el administrador". El Sprint 4 se cierra con `sprint-2` fusionada a `main` y RNF-04 medido en producción. **Pasan al Sprint 5** por decisión del Product Owner: RNF-09 (monitor de disponibilidad) y RNF-32 (retención). RNF-10 queda con copias manuales y simulacro superado; falta la frecuencia diaria.
+
 ---
 
 ### Sprint 5 · Días 25–30 — Generación con IA, créditos, planes y precios
@@ -176,6 +178,7 @@ El sprint con más riesgo técnico y el único que depende de un proveedor exter
 | Traza de lectura de documentos compartidos | **RF-79**, RNF-11 |
 | Límite de tasa con comportamiento fail-closed, sobre **Upstash Redis** *(movido del Sprint 4 en la sesión 021: protege sobre todo la generación con IA)* | RF-66, 67, RNF-27, **RNF-33** |
 | **Búsqueda de convocatorias y propuestas del consultor en "buscar convocatoria"** *(añadido en la sesión 024, decisión del Product Owner; no depende de la IA, así que puede ir primero mientras llegan las claves)* | **RF-91, 92, 93**, RF-69, RN-25, RN-33 |
+| Disponibilidad y retención *(movidos del Sprint 4 en la sesión 025, decisión del Product Owner)*: monitor externo en horario hábil y plazos de conservación con su procedimiento de eliminación | RNF-09, RNF-32 |
 | Despliegue a producción | — |
 
 **Hito 5 —** Un documento generado a partir de un proyecto incompleto, con los pendientes marcados y **ningún dato inventado**, editado, ajustado y exportado a Word, con su costo por generación registrado. Autorizado después a un consultor, que **pierde el acceso al documento sin que nadie intervenga** al suspenderlo.

@@ -26,6 +26,7 @@ Reglas que se rompen con facilidad:
 
 - **Un requerimiento no está hecho porque funcione en pantalla.** Si la regla vive en `lib/store.ts` y no en el servidor, su estado es `prototipo`, no `servidor` (RNF-20).
 - **Lo que aparece de paso no se arregla de paso.** Se anota en "Hallazgos no planificados" de `ESTADO.md` y se planifica.
+- **Un hito "en las pantallas" se verifica con cuentas temporales en un navegador aparte** (Playwright contra `localhost`), creadas y borradas por un script; el Product Owner revisa la evidencia en la bitácora. Nunca se cierra ni se reutiliza la sesión que él tenga abierta en el navegador de la app (sesión 025).
 - **Ante un fallo que no se reproduce en un caso mínimo, descarta primero el entorno** antes de tocar código o migraciones: la red local (`scripts/diagnostico-red-supabase.mjs`) y el desfase del reloj frente a Supabase. Los dos costaron sesiones enteras en el Sprint 2 (`docs/incidentes/`).
 
 ---
