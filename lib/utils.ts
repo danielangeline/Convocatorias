@@ -1,6 +1,7 @@
 import type {
   EstadoConvocatoria,
   EstadoEncargo,
+  EstadoPropuesta,
   EstadoPerfilConsultor,
   EstadoPostulacion,
   EstadoSuscripcion,
@@ -190,6 +191,20 @@ export const ESTADO_SUSCRIPCION_ESTILO: Record<EstadoSuscripcion, string> = {
   en_gracia: "bg-amber-50 text-amber-700 ring-amber-200",
   vencida: "bg-danger-bg text-danger ring-red-200",
   suspendida: "bg-slate-100 text-slate-500 ring-slate-200",
+};
+
+export const ESTADO_PROPUESTA_LABEL: Record<EstadoPropuesta, string> = {
+  propuesta: "Propuesta",
+  elegida: "Elegida por la empresa",
+  retirada: "Retirada",
+  descartada: "No elegida",
+};
+
+export const ESTADO_PROPUESTA_ESTILO: Record<EstadoPropuesta, string> = {
+  propuesta: "bg-primary-50 text-primary-800 ring-primary-200",
+  elegida: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  retirada: "bg-slate-100 text-slate-500 ring-slate-200",
+  descartada: "bg-slate-100 text-slate-500 ring-slate-200",
 };
 
 export const TIPO_AYUDA_LABEL: Record<TipoAyudaEncargo, string> = {

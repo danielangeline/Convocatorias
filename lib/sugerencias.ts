@@ -62,10 +62,30 @@ const RECHAZOS: Record<string, { status: number; error: string }> = {
 export async function sugerenciasDeProyecto(id: string): Promise<Resultado<ResultadoSugerencias>> {
   const proyecto = await obtenerProyecto(id);
   if (!proyecto) return { ok: false, ...RECHAZOS.no_existe };
-
   const supabase = await crearClienteServidor();
+  return armar(proyecto, supabase.rpc("sugerencias_proyecto", { p_proyecto: id }));
+}
+
+/**
+ * RF-91, RN-25 · Las mismas sugerencias, para el consultor de un encargo
+ * "buscar convocatoria" en curso: `sugerencias_encargo` comprueba el encargo y
+ * no exige la suscripción de la empresa. El proyecto lo lee con su sesión (la
+ * RLS se lo deja ver mientras el encargo está en curso) y el catálogo también
+ * (la excepción de RN-33).
+ */
+export async function sugerenciasDeEncargo(encargoId: string, proyectoId: string): Promise<Resultado<ResultadoSugerencias>> {
+  const proyecto = await obtenerProyecto(proyectoId);
+  if (!proyecto) return { ok: false, ...RECHAZOS.no_existe };
+  const supabase = await crearClienteServidor();
+  return armar(proyecto, supabase.rpc("sugerencias_encargo", { p_encargo: encargoId }));
+}
+
+async function armar(
+  proyecto: Proyecto,
+  calculo: PromiseLike<{ data: unknown; error: { code: string; message: string; hint: string } | null }>
+): Promise<Resultado<ResultadoSugerencias>> {
   const [{ data, error }, catalogo, categorias] = await Promise.all([
-    supabase.rpc("sugerencias_proyecto", { p_proyecto: id }),
+    calculo,
     listarCatalogo(false),
     listarCategoriasActivas(),
   ]);

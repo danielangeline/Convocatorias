@@ -3,14 +3,16 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertCircle, Ban, ClipboardList, Compass, Mail, Star, Target, Undo2, Users, X } from "lucide-react";
-import type { EncargoDetalle } from "@/lib/types";
+import { AlertCircle, Ban, CheckCircle2, ClipboardList, Compass, FileCheck2, Mail, Star, Target, Undo2, Users, X } from "lucide-react";
+import type { EncargoDetalle, PropuestaEncargo } from "@/lib/types";
 import { pedir } from "@/lib/pedir";
 import {
   cn,
   formatFecha,
   ESTADO_ENCARGO_LABEL,
   ESTADO_ENCARGO_ESTILO,
+  ESTADO_PROPUESTA_LABEL,
+  ESTADO_PROPUESTA_ESTILO,
   TIPO_AYUDA_LABEL,
   TIPO_AYUDA_ESTILO,
 } from "@/lib/utils";
@@ -176,6 +178,10 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
                 </details>
               )}
 
+              {e.tipoAyuda === "buscar_convocatoria" && e.consultor && (e.estado === "en_curso" || e.propuestas.length > 0) && (
+                <Propuestas e={e} onError={setError} />
+              )}
+
               {e.estado === "cancelado" && e.motivoCancelacion && (
                 <p className="mt-3 flex items-start gap-1.5 rounded-lg bg-slate-50 px-3 py-2 text-xs text-ink-faint">
                   <Ban className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {e.motivoCancelacion}
@@ -261,6 +267,99 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
             </div>
           </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * RF-92, RF-93, CU-22 pasos 5 a 7 · Las convocatorias que propuso el consultor,
+ * con su nota y la compatibilidad calculada ahora. La empresa elige una: queda
+ * como la convocatoria del encargo, que sigue en curso, y se le ofrece postular
+ * con el proyecto; la postulación se vincula sola al encargo.
+ */
+function Propuestas({ e, onError }: { e: EncargoDetalle; onError: (error: string | null) => void }) {
+  const router = useRouter();
+  const [ocupado, setOcupado] = useState(false);
+  const elegida = e.propuestas.find((p) => p.estado === "elegida");
+  const abiertas = e.propuestas.filter((p) => p.estado === "propuesta");
+  const visibles = elegida ? [elegida] : abiertas;
+
+  const elegir = async (p: PropuestaEncargo) => {
+    if (!window.confirm(`¿Elegir "${p.convocatoriaNombre}"? Quedará como la convocatoria de este encargo y no podrás cambiarla.`)) return;
+    onError(null);
+    setOcupado(true);
+    const r = await pedir(`/api/encargos/${e.id}/propuestas/${p.id}/elegir`);
+    setOcupado(false);
+    if (!r.ok) onError(r.error);
+    router.refresh();
+  };
+
+  // RF-17, RN-35: la crea el servidor o devuelve la que ya está en curso.
+  const postular = async (convocatoriaId: string) => {
+    onError(null);
+    setOcupado(true);
+    const r = await pedir<{ id: string; creada: boolean }>("/api/postulaciones", { convocatoriaId, proyectoId: e.proyectoId });
+    setOcupado(false);
+    if (!r.ok) {
+      onError(r.error);
+      return;
+    }
+    router.push(`/postulaciones/${r.datos.id}${r.datos.creada ? "" : "?existente=1"}`);
+    router.refresh();
+  };
+
+  return (
+    <div className="mt-3 rounded-lg border border-brick-100 bg-brick-50/40 p-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-brick-700">
+        {elegida ? "Convocatoria elegida" : `Propuestas del consultor (${abiertas.length})`}
+      </p>
+      {visibles.length === 0 ? (
+        <p className="mt-1 text-xs text-ink-soft">
+          {e.estado === "en_curso" ? "El consultor aún no te ha propuesto convocatorias." : "No eligiste ninguna propuesta."}
+        </p>
+      ) : (
+        <ul className="mt-2 space-y-3">
+          {visibles.map((p) => (
+            <li key={p.id} className="text-xs">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <Badge className={ESTADO_PROPUESTA_ESTILO[p.estado]}>
+                  {p.estado === "elegida" && <CheckCircle2 className="h-3 w-3" />}
+                  {ESTADO_PROPUESTA_LABEL[p.estado]}
+                </Badge>
+                {p.porcentaje !== null && <span className="font-semibold text-ink-soft">{p.porcentaje}% compatible</span>}
+                {!p.vigente && <span className="text-ink-faint">· ya no está vigente</span>}
+              </div>
+              <Link href={`/convocatorias/${p.convocatoriaId}`} className="mt-1 block text-sm font-semibold text-teal-700 hover:underline">
+                {p.convocatoriaNombre}
+              </Link>
+              <p className="text-ink-faint">
+                {p.entidad} · cierra el {formatFecha(p.fechaCierre)}
+              </p>
+              <p className="mt-1 whitespace-pre-line text-ink-soft">{p.nota}</p>
+
+              {p.estado === "propuesta" && e.estado === "en_curso" && (
+                <Button variant="secondary" size="sm" className="mt-2" disabled={ocupado || !p.vigente} onClick={() => elegir(p)}>
+                  Elegir esta convocatoria
+                </Button>
+              )}
+              {p.estado === "elegida" && e.estado === "en_curso" && (
+                e.postulacionId ? (
+                  <Link
+                    href={`/postulaciones/${e.postulacionId}`}
+                    className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-primary-700 hover:underline"
+                  >
+                    <FileCheck2 className="h-3.5 w-3.5" /> Ver la postulación
+                  </Link>
+                ) : (
+                  <Button variant="primary" size="sm" className="mt-2" disabled={ocupado || !p.vigente} onClick={() => postular(p.convocatoriaId)}>
+                    Postular con este proyecto
+                  </Button>
+                )
+              )}
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );

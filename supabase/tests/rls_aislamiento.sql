@@ -146,7 +146,7 @@ grant select on proyectos_previos to authenticated;
 -- 0 · Cobertura (RNF-25): toda tabla de public con RLS y al menos una política
 -- ---------------------------------------------------------------------------
 
-select pg_temp.ok(count(*) = 30, 'hay 30 tablas en public (27 + departamentos y convocatoria_departamento, sesión 019, + encargo_historial, sesión 023)') from pg_tables where schemaname = 'public';
+select pg_temp.ok(count(*) = 31, 'hay 31 tablas en public (27 + departamentos y convocatoria_departamento, sesión 019, + encargo_historial, sesión 023, + encargo_propuestas, sesión 025)') from pg_tables where schemaname = 'public';
 select pg_temp.ok(bool_and(c.relrowsecurity), 'todas las tablas tienen RLS habilitado')
 from pg_class c join pg_namespace n on n.oid = c.relnamespace
 where n.nspname = 'public' and c.relkind = 'r';

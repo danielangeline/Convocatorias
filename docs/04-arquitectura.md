@@ -36,7 +36,7 @@ flowchart TB
         CL["Claude API · redacción del documento base"]
     end
     subgraph DATOS["CAPA DE DATOS — Supabase"]
-        DB["PostgreSQL + RLS · 30 tablas"]
+        DB["PostgreSQL + RLS · 31 tablas"]
         ST["Storage · 3 buckets"]
         CR["pg_cron · 3 jobs"]
     end
@@ -104,7 +104,7 @@ Cada ruta declara los roles que admite (RNF-30). El rol se verifica en el servid
 
 ### 8.4 Capa de datos
 
-30 tablas con RLS **habilitado y con política explícita en todas, sin excepción** (RNF-25 — ver `docs/05-modelo-de-datos.md` §9.10 para las tablas base y §9.5 para las del módulo de IA) · Storage con 3 buckets **privados los tres** (`documentos-convocatorias`, `fotos-consultores`, `hojas-de-vida`), servidos siempre por URL firmada de máximo 15 minutos — RNF-16 *(corregido en v6, sesión 012: hasta v5 solo la hoja de vida figuraba como privada, lo que habría dejado los adjuntos de una convocatoria al alcance de cualquiera que adivinara la ruta, en contra de RN-33; el detalle de rutas y políticas está en `docs/05-modelo-de-datos.md` §9.14)* · **pg_cron con 3 jobs diarios**: cierre de convocatorias, vencimiento de suscripciones con gracia y **reinicio mensual de créditos** · triggers para el rating del consultor.
+31 tablas con RLS **habilitado y con política explícita en todas, sin excepción** (RNF-25 — ver `docs/05-modelo-de-datos.md` §9.10 para las tablas base y §9.5 para las del módulo de IA) · Storage con 3 buckets **privados los tres** (`documentos-convocatorias`, `fotos-consultores`, `hojas-de-vida`), servidos siempre por URL firmada de máximo 15 minutos — RNF-16 *(corregido en v6, sesión 012: hasta v5 solo la hoja de vida figuraba como privada, lo que habría dejado los adjuntos de una convocatoria al alcance de cualquiera que adivinara la ruta, en contra de RN-33; el detalle de rutas y políticas está en `docs/05-modelo-de-datos.md` §9.14)* · **pg_cron con 3 jobs diarios**: cierre de convocatorias, vencimiento de suscripciones con gracia y **reinicio mensual de créditos** · triggers para el rating del consultor.
 
 **Región de ejecución** *(sesión 023, decisión del Product Owner)*: las funciones de Vercel corren en `pdx1` (Oregón), la misma región que la base de Supabase (`us-west-2`). Lo fija `vercel.json`. Antes corrían en `iad1` (Virginia), y cada consulta de una pantalla con sesión cruzaba el continente (RNF-04).
 

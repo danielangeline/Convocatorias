@@ -329,6 +329,39 @@ export interface EncargoDetalle extends Encargo {
   // Para la empresa: el consultor del encargo (RN-15, aunque esté suspendido).
   consultor: { id: string; nombre: string; fotoUrl: string | null } | null;
   calificacion: { estrellas: number; comentario: string | null; fecha: string } | null;
+  // RF-92, RF-93: solo en los encargos "buscar convocatoria"; vacío en los demás.
+  propuestas: PropuestaEncargo[];
+}
+
+export type EstadoPropuesta = "propuesta" | "elegida" | "retirada" | "descartada";
+
+/** RF-92 · Una convocatoria que el consultor propone a la empresa (docs/05 §9.25). */
+export interface PropuestaEncargo {
+  id: string;
+  convocatoriaId: string;
+  convocatoriaNombre: string;
+  entidad: string;
+  fechaCierre: string;
+  /** Publicada y vigente ahora; si no, ya no se puede elegir (RF-78). */
+  vigente: boolean;
+  /** Compatibilidad con el proyecto del encargo, calculada al consultar; nula si ya no está vigente. */
+  porcentaje: number | null;
+  nota: string;
+  estado: EstadoPropuesta;
+  creada: string;
+}
+
+/** RF-91 · El encargo desde el que el consultor busca: suyo, "buscar convocatoria" y en curso. */
+export interface EncargoDeBusqueda {
+  id: string;
+  proyectoId: string;
+  tituloTarea: string;
+  descripcionTarea: string;
+  proyectoNombre: string;
+  empresaNombre: string;
+  /** Fijada al elegir una propuesta (RF-93); la búsqueda sigue abierta. */
+  convocatoriaId: string | null;
+  propuestas: PropuestaEncargo[];
 }
 
 /**

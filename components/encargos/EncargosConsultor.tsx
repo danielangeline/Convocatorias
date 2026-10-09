@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   AlertCircle,
@@ -12,6 +13,7 @@ import {
   Compass,
   ExternalLink,
   Mail,
+  Search,
   Target,
   X as XIcon,
 } from "lucide-react";
@@ -124,7 +126,7 @@ export function EncargosConsultor({ encargos }: { encargos: EncargoConsultor[] }
                 <p className="mt-2 text-xs text-ink-faint">
                   El correo de la empresa se muestra cuando aceptes. Recibida el {formatFecha(e.fechas.creada)}.
                 </p>
-                {e.contexto && <Contexto contexto={e.contexto} tipoAyuda={e.tipoAyuda} abierto />}
+                {e.contexto && <Contexto contexto={e.contexto} abierto />}
                 <div className="mt-4 flex gap-2">
                   <Button variant="primary" size="sm" onClick={() => responder(e, true)} disabled={ocupado === e.id}>
                     <Check className="h-3.5 w-3.5" /> Aceptar
@@ -161,13 +163,8 @@ export function EncargosConsultor({ encargos }: { encargos: EncargoConsultor[] }
                   </p>
                 )}
                 {e.descripcionTarea && <p className="mt-1.5 whitespace-pre-line text-sm text-ink-soft">{e.descripcionTarea}</p>}
-                {e.tipoAyuda === "buscar_convocatoria" && (
-                  <p className="mt-2 flex items-center gap-1.5 rounded-lg bg-brick-50/60 px-3 py-2 text-xs text-brick-700">
-                    <Compass className="h-3.5 w-3.5 shrink-0" />
-                    Reporta las convocatorias candidatas que encuentres como notas de avance.
-                  </p>
-                )}
-                {e.contexto && <Contexto contexto={e.contexto} tipoAyuda={e.tipoAyuda} />}
+                {e.tipoAyuda === "buscar_convocatoria" && <BusquedaResumen e={e} />}
+                {e.contexto && <Contexto contexto={e.contexto} />}
 
                 {e.avances.length > 0 && (
                   <ul className="mt-3 space-y-1.5 border-t border-line-soft pt-3">
@@ -253,6 +250,30 @@ export function EncargosConsultor({ encargos }: { encargos: EncargoConsultor[] }
   );
 }
 
+/** RF-91, RF-92 · En un encargo de búsqueda en curso: a la búsqueda, y cómo van las propuestas. */
+function BusquedaResumen({ e }: { e: EncargoConsultor }) {
+  const elegida = e.propuestas.find((p) => p.estado === "elegida");
+  const abiertas = e.propuestas.filter((p) => p.estado === "propuesta").length;
+  return (
+    <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-brick-50/60 px-3 py-2.5">
+      <p className="flex items-start gap-1.5 text-xs text-brick-700">
+        <Compass className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+        {elegida
+          ? `La empresa eligió "${elegida.convocatoriaNombre}". Sigue ayudándola con esa convocatoria.`
+          : abiertas > 0
+            ? `${abiertas} ${abiertas === 1 ? "propuesta espera" : "propuestas esperan"} a que la empresa elija.`
+            : "Busca en el catálogo vigente y propón a la empresa las convocatorias que le sirvan."}
+      </p>
+      <Link
+        href={`/consultor/encargos/${e.id}/convocatorias`}
+        className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-brick-700 ring-1 ring-brick-100 hover:bg-brick-50"
+      >
+        <Search className="h-3.5 w-3.5" /> {elegida ? "Ver la búsqueda" : "Buscar y proponer"}
+      </Link>
+    </div>
+  );
+}
+
 function Encabezado({ e }: { e: EncargoConsultor }) {
   return (
     <>
@@ -287,7 +308,7 @@ const CAMPOS: Array<{ clave: "problema" | "objetivoGeneral" | "poblacionBenefici
 ];
 
 /** RF-68, RF-69, RN-25 · Lo que la base deja leer del proyecto, la convocatoria y el checklist. */
-function Contexto({ contexto, tipoAyuda, abierto = false }: { contexto: ContextoEncargo; tipoAyuda: EncargoConsultor["tipoAyuda"]; abierto?: boolean }) {
+function Contexto({ contexto, abierto = false }: { contexto: ContextoEncargo; abierto?: boolean }) {
   const { proyecto: p, convocatoria: c, checklist } = contexto;
   return (
     <details open={abierto} className="mt-3 rounded-xl border border-line-soft bg-slate-50/60 px-4 py-3 text-sm">
@@ -340,7 +361,8 @@ function Contexto({ contexto, tipoAyuda, abierto = false }: { contexto: Contexto
         )}
       </div>
 
-      {tipoAyuda === "convocatoria_especifica" && c && (
+      {/* RN-25: la de un encargo específico o, en uno de búsqueda, la que eligió la empresa (RF-93) */}
+      {c && (
         <div className="mt-4 border-t border-line-soft pt-3">
           <p className="text-xs font-semibold text-ink">
             {c.nombre} <span className="font-normal text-ink-faint">· {c.entidad} · cierra el {formatFecha(c.fechaCierre)}</span>

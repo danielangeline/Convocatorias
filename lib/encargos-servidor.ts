@@ -5,12 +5,14 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { BUCKET_FOTO } from "@/lib/consultor-perfil-servidor";
 import { COLUMNAS_PROYECTO, aProyecto, type FilaProyecto } from "@/lib/proyectos-servidor";
 import { fechaColombia } from "@/lib/fechas";
+import { leerPropuestas } from "@/lib/propuestas-servidor";
 import type {
   ContextoEncargo,
   Encargo,
   EncargoConsultor,
   EncargoDetalle,
   EstadoEncargo,
+  PropuestaEncargo,
   Proyecto,
   SolicitudEquipo,
   TipoAyudaEncargo,
@@ -74,7 +76,7 @@ type Datos = {
 
 const fecha = (instante: string | null) => (instante ? fechaColombia(instante) : null);
 
-function aEncargo(f: Fila, datos: Datos | undefined, fotos: Map<string, string>): EncargoDetalle {
+function aEncargo(f: Fila, datos: Datos | undefined, fotos: Map<string, string>, propuestas: PropuestaEncargo[]): EncargoDetalle {
   const calificacion = Array.isArray(f.calificaciones) ? f.calificaciones[0] : f.calificaciones;
   const cp = f.consultor_perfiles;
   return {
@@ -105,6 +107,7 @@ function aEncargo(f: Fila, datos: Datos | undefined, fotos: Map<string, string>)
     calificacion: calificacion
       ? { estrellas: calificacion.estrellas, comentario: calificacion.comentario, fecha: fechaColombia(calificacion.creada_at) }
       : null,
+    propuestas,
   };
 }
 
@@ -125,8 +128,14 @@ async function leerEncargos(supabase: Cliente, conFotos: boolean): Promise<Encar
   if (errorDatos) console.error("Encargos: no se pudieron leer los datos", errorDatos.code, errorDatos.message);
   const filas = (data ?? []) as unknown as Fila[];
   const porId = new Map(((datos ?? []) as Datos[]).map((d) => [d.encargo_id, d]));
-  const fotos = conFotos ? await fotosFirmadas(supabase, filas) : new Map<string, string>();
-  return filas.map((f) => aEncargo(f, porId.get(f.id), fotos));
+  // RF-92, RF-93: las propuestas, solo en los de búsqueda que llegaron a aceptarse.
+  const deBusqueda = filas.filter((f) => f.tipo_ayuda === "buscar_convocatoria" && f.aceptado_at);
+  const [fotos, propuestas] = await Promise.all([
+    conFotos ? fotosFirmadas(supabase, filas) : Promise.resolve(new Map<string, string>()),
+    Promise.all(deBusqueda.map((f) => leerPropuestas(supabase, f.id))),
+  ]);
+  const propuestasPorId = new Map(deBusqueda.map((f, i) => [f.id, propuestas[i]]));
+  return filas.map((f) => aEncargo(f, porId.get(f.id), fotos, propuestasPorId.get(f.id) ?? []));
 }
 
 // `cache` de React: el layout y la página piden lo mismo en una petición.

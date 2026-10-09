@@ -13,7 +13,16 @@ import { Badge } from "./ui/Badge";
 import { Chip } from "./ui/Chip";
 import { textoCobertura } from "@/lib/departamentos";
 
-export function ConvocatoriaCard({ convocatoria, categorias }: { convocatoria: Convocatoria; categorias: Categoria[] }) {
+/** `href`: a dónde lleva la tarjeta; por defecto, la ficha del catálogo de la empresa. */
+export function ConvocatoriaCard({
+  convocatoria,
+  categorias,
+  href,
+}: {
+  convocatoria: Convocatoria;
+  categorias: Categoria[];
+  href?: string;
+}) {
   const dias = diasRestantes(convocatoria.fechaCierre);
   const esUrgente = convocatoria.estado === "publicada" && dias >= 0 && dias < 15;
   const yaCerro = dias < 0 || convocatoria.estado === "cerrada";
@@ -25,7 +34,7 @@ export function ConvocatoriaCard({ convocatoria, categorias }: { convocatoria: C
 
   return (
     <Link
-      href={`/convocatorias/${convocatoria.id}`}
+      href={href ?? `/convocatorias/${convocatoria.id}`}
       className={cn(
         "group relative flex flex-col overflow-hidden rounded-2xl border border-line bg-white transition-all hover:-translate-y-0.5 hover:border-primary-200 hover:shadow-[0_12px_32px_-16px_rgba(31,56,100,0.35)]",
         esUrgente ? "border-l-4 border-l-gold-500" : yaCerro ? "border-l-4 border-l-slate-300 bg-slate-50/60" : "border-l-4 border-l-primary-800"

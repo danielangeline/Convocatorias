@@ -76,6 +76,10 @@ const PREFIJOS: [string, Regla][] = [
   ["/suscripcion", EMPRESA],
   // Portal Consultor
   // Sprint 4 paso 1a: perfil propio, archivos y envío a revisión (CU-16, CU-17).
+  // Sprint 5: la búsqueda y las propuestas de un encargo "buscar convocatoria"
+  // (/consultor/encargos/[id]/convocatorias, /api/consultor/encargos/[id]/…,
+  // /api/consultor/propuestas, RF-91, RF-92) cuelgan de estos mismos prefijos;
+  // el encargo concreto lo comprueba cada ruta (404 si no es suyo y en curso).
   ["/api/consultor", CONSULTOR],
   ["/consultor", CONSULTOR],
 ];

@@ -122,12 +122,13 @@ function SinCoincidencias({ proyectoId, faltan, evaluadas }: { proyectoId: strin
   );
 }
 
-function TarjetaSugerencia({ s }: { s: Sugerencia }) {
+/** `href`: por defecto, la ficha del catálogo de la empresa; el consultor la abre desde su encargo (RF-91). */
+export function TarjetaSugerencia({ s, href }: { s: Sugerencia; href?: string }) {
   const { convocatoria, criterios, porcentaje } = s;
   const dias = diasRestantes(convocatoria.fechaCierre);
   return (
     <Link
-      href={`/convocatorias/${convocatoria.id}`}
+      href={href ?? `/convocatorias/${convocatoria.id}`}
       className="block rounded-2xl border border-line p-5 transition-colors hover:border-primary-200 hover:bg-primary-50/30"
     >
       <div className="flex flex-wrap items-start justify-between gap-4">

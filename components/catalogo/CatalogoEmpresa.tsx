@@ -16,7 +16,22 @@ import { Button } from "@/components/ui/Button";
 // no sirve aquí, porque en el servidor solo tiene su estado inicial, que son
 // datos de ejemplo (sesión 016). Aquí solo se filtra lo que ya se autorizó.
 
-export function CatalogoEmpresa({ convocatorias: todas, categorias }: { convocatorias: Convocatoria[]; categorias: Categoria[] }) {
+// RF-91: el consultor de un encargo "buscar convocatoria" usa la misma pantalla
+// desde su encargo: `rutaFicha` lleva a la ficha de ese encargo y `soloVigentes`
+// quita el filtro de cerradas, que él no ve.
+export function CatalogoEmpresa({
+  convocatorias: todas,
+  categorias,
+  rutaFicha,
+  soloVigentes = false,
+  titulo = "Convocatorias disponibles",
+}: {
+  convocatorias: Convocatoria[];
+  categorias: Categoria[];
+  rutaFicha?: (id: string) => string;
+  soloVigentes?: boolean;
+  titulo?: string;
+}) {
   const tiposProyecto = useMemo(() => categorias.filter((c) => c.tipo === "tipo_proyecto"), [categorias]);
   const sectores = useMemo(() => categorias.filter((c) => c.tipo === "sector"), [categorias]);
   const [busqueda, setBusqueda] = useState("");
@@ -97,7 +112,7 @@ export function CatalogoEmpresa({ convocatorias: todas, categorias }: { convocat
   return (
     <div>
       <div className="mb-6 flex flex-col gap-1">
-        <h1 className="font-display text-2xl font-bold text-ink">Convocatorias disponibles</h1>
+        <h1 className="font-display text-2xl font-bold text-ink">{titulo}</h1>
         <p className="text-sm text-ink-soft">
           {resultados.length} {resultados.length === 1 ? "convocatoria encontrada" : "convocatorias encontradas"}
         </p>
@@ -227,7 +242,7 @@ export function CatalogoEmpresa({ convocatorias: todas, categorias }: { convocat
               {!lecturaMonto.ok && <p className="mt-1 text-xs text-brick-700">El monto {lecturaMonto.error}</p>}
             </FiltroGrupo>
 
-            <FiltroGrupo titulo="Fecha de cierre">
+            <FiltroGrupo titulo="Fecha de cierre" ultimo={soloVigentes}>
               <input
                 type="date"
                 value={cierraAntesDe}
@@ -238,22 +253,24 @@ export function CatalogoEmpresa({ convocatorias: todas, categorias }: { convocat
             </FiltroGrupo>
 
             {/* RF-11 / RN-02: las cerradas solo entran bajo petición explícita. */}
-            <FiltroGrupo titulo="Convocatorias cerradas" ultimo>
-              <label className="flex cursor-pointer items-start gap-2">
-                <input
-                  type="checkbox"
-                  checked={incluirCerradas}
-                  onChange={(e) => setIncluirCerradas(e.target.checked)}
-                  className="mt-0.5"
-                />
-                <span>
-                  <span className="block text-sm text-ink">Incluirlas en los resultados</span>
-                  <span className="block text-xs text-ink-faint">
-                    Sirven de referencia sobre lo que suele abrirse, pero ya no admiten postulación.
+            {!soloVigentes && (
+              <FiltroGrupo titulo="Convocatorias cerradas" ultimo>
+                <label className="flex cursor-pointer items-start gap-2">
+                  <input
+                    type="checkbox"
+                    checked={incluirCerradas}
+                    onChange={(e) => setIncluirCerradas(e.target.checked)}
+                    className="mt-0.5"
+                  />
+                  <span>
+                    <span className="block text-sm text-ink">Incluirlas en los resultados</span>
+                    <span className="block text-xs text-ink-faint">
+                      Sirven de referencia sobre lo que suele abrirse, pero ya no admiten postulación.
+                    </span>
                   </span>
-                </span>
-              </label>
-            </FiltroGrupo>
+                </label>
+              </FiltroGrupo>
+            )}
           </aside>
         )}
 
@@ -285,7 +302,7 @@ export function CatalogoEmpresa({ convocatorias: todas, categorias }: { convocat
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
               {resultados.map((c) => (
-                <ConvocatoriaCard key={c.id} convocatoria={c} categorias={categorias} />
+                <ConvocatoriaCard key={c.id} convocatoria={c} categorias={categorias} href={rutaFicha?.(c.id)} />
               ))}
             </div>
           )}

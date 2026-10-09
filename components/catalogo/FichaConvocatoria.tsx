@@ -37,13 +37,23 @@ import { textoCobertura } from "@/lib/departamentos";
  * CU-08 · Ficha de la convocatoria. Los datos llegan del servidor, leídos con la
  * sesión de la empresa (RN-33); no se toman del store porque en el servidor el
  * store solo tiene su estado inicial, que son datos de ejemplo (sesión 016).
+ *
+ * RF-91: el consultor la abre desde su encargo, con su propio enlace de vuelta y
+ * de descarga, y `acciones` en lugar de postular y generar.
  */
 export function FichaConvocatoria({
   convocatoria,
   categorias,
+  volver = { href: "/convocatorias", etiqueta: "Volver al catálogo" },
+  documentosBase,
+  acciones,
 }: {
   convocatoria: Convocatoria | null;
   categorias: Categoria[];
+  volver?: { href: string; etiqueta: string };
+  /** Ruta de la API de sus adjuntos, sin `/{docId}/enlace`. */
+  documentosBase?: string;
+  acciones?: React.ReactNode;
 }) {
   const router = useRouter();
   const proyectos = useProyectosPropios();
@@ -59,8 +69,8 @@ export function FichaConvocatoria({
     return (
       <div className="py-20 text-center">
         <p className="text-ink-soft">No encontramos esta convocatoria.</p>
-        <Link href="/convocatorias" className="mt-3 inline-block text-sm font-semibold text-primary-700 hover:underline">
-          Volver al catálogo
+        <Link href={volver.href} className="mt-3 inline-block text-sm font-semibold text-primary-700 hover:underline">
+          {volver.etiqueta}
         </Link>
       </div>
     );
@@ -76,7 +86,7 @@ export function FichaConvocatoria({
   const descargar = async (docId: string) => {
     setErrorDescarga(null);
     setDescargando(docId);
-    const respuesta = await fetch(`/api/convocatorias/${convocatoria.id}/documentos/${docId}/enlace`);
+    const respuesta = await fetch(`${documentosBase ?? `/api/convocatorias/${convocatoria.id}/documentos`}/${docId}/enlace`);
     const json = await respuesta.json().catch(() => ({}));
     setDescargando(null);
     if (!respuesta.ok) {
@@ -111,10 +121,10 @@ export function FichaConvocatoria({
   return (
     <div className="mx-auto max-w-4xl">
       <Link
-        href="/convocatorias"
+        href={volver.href}
         className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-soft hover:text-primary-800"
       >
-        <ArrowLeft className="h-4 w-4" /> Volver al catálogo
+        <ArrowLeft className="h-4 w-4" /> {volver.etiqueta}
       </Link>
 
       <div className="rounded-2xl border border-line p-6 sm:p-8">
@@ -236,47 +246,51 @@ export function FichaConvocatoria({
           </ul>
         </div>
 
-        <div className="mt-8 flex items-center justify-between gap-4 border-t border-line-soft pt-6">
-          <div className="flex items-center gap-2 text-xs text-ink-faint">
-            <Info className="h-3.5 w-3.5" />
-            {cerrada
-              ? "Esta convocatoria ya cerró y no admite nuevas postulaciones."
-              : "Al postularte crearás un expediente de seguimiento para esta convocatoria."}
+        {acciones ? (
+          <div className="mt-8 border-t border-line-soft pt-6">{acciones}</div>
+        ) : (
+          <div className="mt-8 flex items-center justify-between gap-4 border-t border-line-soft pt-6">
+            <div className="flex items-center gap-2 text-xs text-ink-faint">
+              <Info className="h-3.5 w-3.5" />
+              {cerrada
+                ? "Esta convocatoria ya cerró y no admite nuevas postulaciones."
+                : "Al postularte crearás un expediente de seguimiento para esta convocatoria."}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              {/* RN-02: en una cerrada las tres acciones de CU-08 quedan deshabilitadas. */}
+              {convocatoria.urlPostulacion && !cerrada && (
+                <a href={convocatoria.urlPostulacion} target="_blank" rel="noreferrer">
+                  <Button variant="ghost" size="lg">
+                    <ExternalLink className="h-4 w-4" /> Ir al portal de la entidad
+                  </Button>
+                </a>
+              )}
+              <Button
+                variant="teal"
+                size="lg"
+                disabled={cerrada}
+                onClick={() => {
+                  if (!requerirAcceso("generar un documento con IA")) return;
+                  router.push(`/convocatorias/${convocatoria.id}/generar`);
+                }}
+              >
+                <Sparkles className="h-4 w-4" /> Generar documento con IA
+              </Button>
+              <Button
+                variant="primary"
+                size="lg"
+                disabled={cerrada}
+                onClick={() => {
+                  if (!requerirAcceso("postularte a esta convocatoria")) return;
+                  setErrorPostular(null);
+                  setModalAbierto(true);
+                }}
+              >
+                Postular
+              </Button>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {/* RN-02: en una cerrada las tres acciones de CU-08 quedan deshabilitadas. */}
-            {convocatoria.urlPostulacion && !cerrada && (
-              <a href={convocatoria.urlPostulacion} target="_blank" rel="noreferrer">
-                <Button variant="ghost" size="lg">
-                  <ExternalLink className="h-4 w-4" /> Ir al portal de la entidad
-                </Button>
-              </a>
-            )}
-            <Button
-              variant="teal"
-              size="lg"
-              disabled={cerrada}
-              onClick={() => {
-                if (!requerirAcceso("generar un documento con IA")) return;
-                router.push(`/convocatorias/${convocatoria.id}/generar`);
-              }}
-            >
-              <Sparkles className="h-4 w-4" /> Generar documento con IA
-            </Button>
-            <Button
-              variant="primary"
-              size="lg"
-              disabled={cerrada}
-              onClick={() => {
-                if (!requerirAcceso("postularte a esta convocatoria")) return;
-                setErrorPostular(null);
-                setModalAbierto(true);
-              }}
-            >
-              Postular
-            </Button>
-          </div>
-        </div>
+        )}
       </div>
 
       {modalAbierto && (
