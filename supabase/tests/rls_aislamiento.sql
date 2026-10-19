@@ -264,17 +264,19 @@ select pg_temp.como('00000000-0000-0000-0000-0000000000c1');
 
 select pg_temp.ok((select count(*) from public.proyectos) = 1, 'C1: ve el proyecto de su encargo (RN-25)');
 select pg_temp.ok((select count(*) from public.convocatorias where id = '00000000-0000-0000-0000-00000000c001') = 1, 'C1: ve la convocatoria del encargo');
-select pg_temp.ok((select count(*) from public.documentos_generados) = 1, 'C1: ve el documento autorizado');
+-- Sesión 026 (RF-79): el consultor autorizado ya no lee ni edita la tabla
+-- directo; lo hace por leer_documento y editar_documento_consultor, que dejan
+-- la traza de lectura (supabase/tests/generacion_ia.sql).
+select pg_temp.ok((select count(*) from public.documentos_generados) = 0, 'C1: no lee el documento directo (RF-79)');
 select pg_temp.ok((select count(*) from public.postulaciones) = 0, 'C1: no ve postulaciones de la empresa');
 update public.documentos_generados set contenido = 'editado por C1';
-select pg_temp.ok((select ultima_edicion_por = '00000000-0000-0000-0000-0000000000c1' from public.documentos_generados),
-                  'C1: edita el contenido y queda como última edición');
-select pg_temp.rechaza($$update public.documentos_generados set titulo = 'otro'$$, 'C1 cambia el título');
-select pg_temp.rechaza($$update public.documentos_generados set estado = 'exportado'$$, 'C1 exporta (RF-72)');
+update public.documentos_generados set estado = 'exportado';
 select pg_temp.rechaza($$insert into public.proyectos (nombre) values ('del consultor')$$, 'C1 crea un proyecto (RN-28)');
 select pg_temp.rechaza($$update public.consultor_perfiles set estado_perfil = 'aprobado', rating_promedio = 5$$, 'C1 se sube el rating');
 select pg_temp.ok((select count(*) from public.contacto_consultor('00000000-0000-0000-0000-0000000000c1')) = 1, 'C1: ve su propio contacto');
 reset role;
+select pg_temp.ok((select contenido = 'editado por E1' and estado = 'editado' from public.documentos_generados
+                   where id = '00000000-0000-0000-0000-00000000d001'), 'C1: sus updates directos no cambian nada (RF-72, RF-79)');
 
 -- ---------------------------------------------------------------------------
 -- 5 · Consultor 2 (sin encargos) y administrador

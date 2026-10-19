@@ -136,6 +136,12 @@ try {
   ok((await api(e1, "PATCH", `/api/documentos/${d1}`, { secciones: [] })).status === 400, "RF-58: sin secciones -> 400");
 
   // --- Ajustes (RF-59) -------------------------------------------------------------------
+  // Revisión de seguridad: tres ajustes a la vez → uno llama a la IA, los otros se rechazan antes.
+  const simultaneos = await Promise.all([1, 2, 3].map(() => api(e1, "POST", `/api/documentos/${d1}/ajustar`, { indicacion: "hazlo más breve" })));
+  const { count: consumosAjuste } = await svc.from("consumos_ia").select("id", { count: "exact", head: true }).eq("documento_id", d1).eq("tipo", "ajuste");
+  ok(simultaneos.filter((r) => r.status === 200).length === 1 && simultaneos.filter((r) => r.status === 409).length === 2 && consumosAjuste === 1,
+    `§9.26: de tres ajustes simultáneos solo uno llega a la IA (${simultaneos.map((r) => r.status).join(", ")}; consumos ${consumosAjuste})`);
+  await svc.from("documentos_generados").update({ ajustes_usados: 0 }).eq("id", d1);
   for (let i = 1; i <= 3; i++) {
     const r = await api(e1, "POST", `/api/documentos/${d1}/ajustar`, { indicacion: `hazlo más breve ${i}` });
     ok(r.status === 200 && r.json?.datos?.ajustesUsados === i, `RF-59: ajuste gratis ${i} (${r.status})`);

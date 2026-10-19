@@ -129,8 +129,27 @@ begin
   select * into v_row from public.preparar_ajuste(v_e1, v_d1);
   v_res := v_res || format(E'\n%s RF-59: el primer ajuste no cobra -> cobra %s, dueño %s',
     case when not v_row.cobra and v_row.es_dueno then 'OK   ' else 'FALLA' end, v_row.cobra, v_row.es_dueno);
-  perform public.completar_ajuste(v_e1, v_d1, 0, E'## Resumen\n\nAjustado', '{}', 10, 10, 0.0001, 'gpt-prueba', 1);
+  -- Revisión de seguridad: un segundo ajuste no se prepara mientras corre el primero.
+  begin perform * from public.preparar_ajuste(v_e1, v_d1); v_o := 'ok';
+  exception when others then get stacked diagnostics v_o = pg_exception_hint; end;
+  v_res := v_res || format(E'\n%s §9.26: un segundo ajuste simultáneo se rechaza antes de llamar a la IA -> %s',
+    case when v_o = 'ajuste_en_curso' then 'OK   ' else 'FALLA' end, v_o);
+  perform public.completar_ajuste(v_e1, v_d1, 0, E'## Resumen\n\nAjustado [COMPLETAR: cifra]', '{}', 10, 10, 0.0001, 'gpt-prueba', 1);
+  select pendientes into v_row from public.documentos_generados where id = v_d1;
+  v_res := v_res || format(E'\n%s RF-57: los pendientes del ajuste los calcula la base -> %s',
+    case when v_row.pendientes = array['cifra'] then 'OK   ' else 'FALLA' end, v_row.pendientes);
+  begin perform public.completar_ajuste(v_e1, v_d1, 1, 'x', '{}', 1, 1, 0, 'm', 1); v_o := 'ok';
+  exception when others then get stacked diagnostics v_o = pg_exception_hint; end;
+  v_res := v_res || format(E'\n%s §9.26: completar sin reservar se rechaza -> %s',
+    case when v_o = 'ajuste_no_reservado' then 'OK   ' else 'FALLA' end, v_o);
+  perform * from public.preparar_ajuste(v_e1, v_d1);
+  perform public.registrar_consumo_fallido(v_e1, v_d1, 'ajuste', 'Fallo simulado', 5, 0, 0, 'gpt-prueba', 1);
+  select ajuste_en_curso_at into v_row from public.documentos_generados where id = v_d1;
+  v_res := v_res || format(E'\n%s §9.26: un ajuste fallido libera su reserva -> %s',
+    case when v_row.ajuste_en_curso_at is null then 'OK   ' else 'FALLA' end, v_row.ajuste_en_curso_at);
+  perform * from public.preparar_ajuste(v_e1, v_d1);
   perform public.completar_ajuste(v_e1, v_d1, 1, E'## Resumen\n\nAjustado 2', '{}', 10, 10, 0.0001, 'gpt-prueba', 1);
+  perform * from public.preparar_ajuste(v_e1, v_d1);
   begin perform public.completar_ajuste(v_e1, v_d1, 1, 'x', '{}', 1, 1, 0, 'm', 1); v_o := 'ok';
   exception when others then get stacked diagnostics v_o = pg_exception_hint; end;
   v_res := v_res || format(E'\n%s CU-34: un ajuste sobre un contador viejo se rechaza -> %s',
@@ -151,8 +170,18 @@ begin
   v_res := v_res || format(E'\n%s RF-50: sin cupo, el quinto se rechaza antes de llamar a la IA -> %s',
     case when v_o = 'sin_creditos' then 'OK   ' else 'FALLA' end, v_o);
 
+  -- Revisión de seguridad: un ajuste que cobra cuenta como reserva contra el cupo.
+  update public.suscripciones set creditos_extra = 1 where id = v_sus;
+  perform * from public.preparar_ajuste(v_e1, v_d1);
+  begin perform * from public.iniciar_generacion(v_e1, v_p1, v_vb); v_o := 'ok';
+  exception when others then get stacked diagnostics v_o = pg_exception_hint; end;
+  v_res := v_res || format(E'\n%s §9.26: con el único crédito reservado por un ajuste, no se genera -> %s',
+    case when v_o = 'sin_creditos' then 'OK   ' else 'FALLA' end, v_o);
+  perform public.registrar_consumo_fallido(v_e1, v_d1, 'ajuste', 'x', null, null, null, null, null);
+
   -- RN-18: con un paquete, se gasta el paquete y los usados no pasan del plan.
   update public.suscripciones set creditos_extra = 2 where id = v_sus;
+  perform * from public.preparar_ajuste(v_e1, v_d1);
   perform public.completar_ajuste(v_e1, v_d1, 4, E'## Resumen\n\nAjustado 5', '{}', 10, 10, 0.0001, 'gpt-prueba', 1);
   select creditos_usados_periodo, creditos_extra into v_row from public.suscripciones where id = v_sus;
   v_res := v_res || format(E'\n%s RN-18: agotado el plan, se descuenta del paquete -> usados %s, extra %s',
@@ -200,10 +229,10 @@ begin
   perform public.compartir_documento(v_e1, v_d1, v_c1);
 
   -- RF-79 · Lecturas: la del consultor queda; la de la dueña no se registra.
-  perform public.registrar_lectura_documento(v_c1, v_d1);
-  perform public.registrar_lectura_documento(v_c1, v_d1);
-  perform public.registrar_lectura_documento(v_e1, v_d1);
-  perform public.registrar_lectura_documento(v_c1, v_d3);
+  perform * from public.leer_documento(v_c1, v_d1);
+  perform * from public.leer_documento(v_c1, v_d1);
+  perform * from public.leer_documento(v_e1, v_d1);
+  perform * from public.leer_documento(v_c1, v_d3);
   select count(*) into v_n from public.documento_lecturas where documento_id in (v_d1, v_d3);
   v_res := v_res || format(E'\n%s RF-79: dos lecturas del consultor, ninguna de la dueña ni de otro documento -> %s',
     case when v_n = 2 then 'OK   ' else 'FALLA' end, v_n);
@@ -216,9 +245,50 @@ begin
   perform set_config('request.jwt.claims', json_build_object('sub', v_c1, 'role', 'authenticated', 'aal', 'aal1')::text, true);
   execute 'set local role authenticated';
   select count(*) into v_m from public.documento_lecturas where documento_id = v_d1;
-  execute 'reset role';
   v_res := v_res || format(E'\n%s RF-79: la dueña las lee, el consultor no, y nadie las escribe desde el cliente -> %s, %s, %s',
     case when v_n = 2 and v_m = 0 and v_o = '42501' then 'OK   ' else 'FALLA' end, v_n, v_m, v_o);
+  -- Revisión de seguridad: el consultor no lee ni edita directo, así nada se salta la traza.
+  select count(*) into v_n from public.documentos_generados where id = v_d1;
+  update public.documentos_generados set contenido = 'directo' where id = v_d1;
+  execute 'reset role';
+  select count(*) into v_m from public.documentos_generados where id = v_d1 and contenido = 'directo';
+  v_res := v_res || format(E'\n%s RF-79: el consultor autorizado no lee ni edita la tabla directo -> %s, %s',
+    case when v_n = 0 and v_m = 0 then 'OK   ' else 'FALLA' end, v_n, v_m);
+  select count(*) into v_n from public.leer_documento(v_c1, v_d1);
+  select count(*) into v_m from public.documento_lecturas where documento_id = v_d1;
+  v_res := v_res || format(E'\n%s RF-79: por el servidor sí, y queda la lectura -> %s, lecturas %s',
+    case when v_n = 1 and v_m = 3 then 'OK   ' else 'FALLA' end, v_n, v_m);
+  perform public.editar_documento_consultor(v_c1, v_d1, E'## Resumen\n\nDel consultor [COMPLETAR: dato]');
+  select * into v_row from public.documentos_generados where id = v_d1;
+  v_res := v_res || format(E'\n%s RN-22: el consultor edita por el servidor, con pendientes y autoría -> %s, %s',
+    case when v_row.pendientes = array['dato'] and v_row.ultima_edicion_por = v_c1 then 'OK   ' else 'FALLA' end,
+    v_row.pendientes, v_row.ultima_edicion_por = v_c1);
+  begin perform public.editar_documento_consultor(v_c1, v_d3, 'x'); v_o := 'ok';
+  exception when others then get stacked diagnostics v_o = pg_exception_hint; end;
+  v_res := v_res || format(E'\n%s RN-22: no edita un documento no compartido -> %s',
+    case when v_o = 'documento_no_existe' then 'OK   ' else 'FALLA' end, v_o);
+  select count(*) into v_n from public.documentos_del_consultor(v_c1);
+  v_res := v_res || format(E'\n%s RN-27: su lista trae solo el compartido -> %s', case when v_n = 1 then 'OK   ' else 'FALLA' end, v_n);
+
+  -- Revisión de seguridad: topes en la base y reserva intocable desde el cliente.
+  perform set_config('request.jwt.claims', json_build_object('sub', v_e1, 'role', 'authenticated', 'aal', 'aal1')::text, true);
+  execute 'set local role authenticated';
+  begin update public.documentos_generados set contenido = repeat('x', 200001) where id = v_d1; v_o := 'ok';
+  exception when others then v_o := sqlstate; end;
+  v_res := v_res || format(E'\n%s RNF-24: un contenido de más de 200.000 caracteres se rechaza en la base -> %s',
+    case when v_o = '23514' then 'OK   ' else 'FALLA' end, v_o);
+  begin update public.documentos_generados set ajuste_en_curso_at = now() - interval '1 hour' where id = v_d1; v_o := 'ok';
+  exception when others then v_o := sqlstate; end;
+  v_res := v_res || format(E'\n%s §9.26: la dueña no toca la reserva del ajuste -> %s', case when v_o = '42501' then 'OK   ' else 'FALLA' end, v_o);
+  update public.documentos_generados set contenido = E'## A\n\n[COMPLETAR: uno] y [COMPLETAR: dos]', pendientes = '{}' where id = v_d1;
+  begin update public.proyectos set problema = repeat('x', 5001) where id = v_p1; v_o := 'ok';
+  exception when others then v_o := sqlstate; end;
+  execute 'reset role';
+  select pendientes into v_row from public.documentos_generados where id = v_d1;
+  v_res := v_res || format(E'\n%s RF-57: en la edición directa la base recalcula los pendientes -> %s',
+    case when v_row.pendientes @> array['uno', 'dos'] and cardinality(v_row.pendientes) = 2 then 'OK   ' else 'FALLA' end, v_row.pendientes);
+  v_res := v_res || format(E'\n%s RNF-24: un texto del proyecto de más de 5.000 caracteres se rechaza en la base -> %s',
+    case when v_o = '23514' then 'OK   ' else 'FALLA' end, v_o);
 
   select * into v_row from public.preparar_ajuste(v_c1, v_d1);
   v_res := v_res || format(E'\n%s RN-27: autorizado y con encargo en curso, prepara -> cobra %s, dueño %s',
@@ -251,10 +321,10 @@ begin
   v_res := v_res || format(E'\n%s RF-76: encargo cancelado, autorización limpia y sin acceso -> %s, %s',
     case when v_o = 'documento_no_existe' and v_row.compartido_con_consultor_id is null then 'OK   ' else 'FALLA' end,
     v_o, v_row.compartido_con_consultor_id);
-  perform public.registrar_lectura_documento(v_c1, v_d1);
+  perform * from public.leer_documento(v_c1, v_d1);
   select count(*) into v_n from public.documento_lecturas where documento_id = v_d1;
   v_res := v_res || format(E'\n%s RF-79: tras revocar, las lecturas se conservan y no se suman más -> %s',
-    case when v_n = 2 then 'OK   ' else 'FALLA' end, v_n);
+    case when v_n = 3 then 'OK   ' else 'FALLA' end, v_n);
 
   -- ================================================================ sin suscripción (RNF-20)
   update public.suscripciones set creditos_extra = 5, fecha_inicio = privado.hoy_colombia() - 30,

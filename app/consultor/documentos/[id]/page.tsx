@@ -3,16 +3,16 @@ import { EditorDocumento } from "@/components/documentos/EditorDocumento";
 import { GuardaConsultor } from "@/components/GuardaConsultor";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LinkButton } from "@/components/ui/Button";
-import { obtenerDocumento, registrarLectura } from "@/lib/documentos-servidor";
-import { obtenerSesion } from "@/lib/auth";
+import { obtenerDocumento } from "@/lib/documentos-servidor";
 
 // CU-34 5c · El consultor autorizado con encargo en curso (RN-27, evaluado por
 // la RLS en esta misma lectura). Cada apertura queda registrada (RF-79).
 export default async function DocumentoConsultorPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [documento, datos] = await Promise.all([obtenerDocumento(id), obtenerSesion()]);
+  // La lectura la registra la base en la misma llamada (RF-79).
+  const documento = await obtenerDocumento(id);
 
-  if (!documento || !datos) {
+  if (!documento) {
     return (
       <div className="mx-auto max-w-2xl py-16">
         <EmptyState
@@ -29,7 +29,6 @@ export default async function DocumentoConsultorPage({ params }: { params: Promi
     );
   }
 
-  await registrarLectura(datos.sesion.usuarioId, documento.id);
   return (
     <GuardaConsultor>
       <EditorDocumento documento={documento} rol="consultor" volverHref="/consultor/documentos" volverTexto="Volver a mis documentos" />

@@ -114,7 +114,7 @@ erDiagram
 
 | Tabla | Política |
 |---|---|
-| documentos_generados | La empresa dueña (`usuario_id = auth.uid()`) lee y edita `titulo`, `contenido` y `pendientes`. **El consultor con `compartido_con_consultor_id = auth.uid()` y encargo `en_curso` sobre ese proyecto puede leer y editar `contenido`/`pendientes`, nunca exportar** (RN-22, RN-27, RF-71/72, *ampliado en v5*). **Crear el documento, `ajustes_usados`, `estado`, `version`, `plantilla_id` y la autorización del consultor los escribe solo el servidor** al generar, ajustar, exportar, compartir o revocar: si el cliente pudiera escribir el contador de ajustes, podría ponerlo en 0 y saltarse RN-17 *(precisado en v6, sesión 003)*; admin puede leer para soporte |
+| documentos_generados | La empresa dueña (`usuario_id = auth.uid()`) lee y edita `titulo`, `contenido` y `pendientes`. **El consultor con `compartido_con_consultor_id = auth.uid()` y encargo `en_curso` sobre ese proyecto puede leer y editar `contenido`/`pendientes`, nunca exportar** (RN-22, RN-27, RF-71/72, *ampliado en v5*). **Crear el documento, `ajustes_usados`, `estado`, `version`, `plantilla_id` y la autorización del consultor los escribe solo el servidor** al generar, ajustar, exportar, compartir o revocar: si el cliente pudiera escribir el contador de ajustes, podría ponerlo en 0 y saltarse RN-17 *(precisado en v6, sesión 003)*; admin puede leer para soporte. *(Sesión 026: el consultor ya no tiene política propia; lee y edita por funciones del servidor que registran su lectura, §9.26)* |
 | consumos_ia | Solo lectura del propio usuario; escritura desde el servidor; admin lee todo |
 
 ### 9.6 Cálculo del porcentaje de compatibilidad (RF-16) *(reescrito en v6, sesión 019 — Sprint 3 paso 2)*
@@ -825,3 +825,13 @@ Las tres son de `service_role`, como las de arriba. **La revocación automática
 | leido_at | timestamptz | default `now()` |
 
 Índice `(documento_id, leido_at)`. **RLS:** la empresa dueña del documento y el administrador leen; nadie escribe desde el cliente. Se conserva tras revocar: es justamente lo que permite reconstruir qué consultó el consultor mientras tuvo acceso.
+
+**Revisión de seguridad de la sesión 026** *(migraciones `20261019300000` y `20261019310000`)*. Una revisión automática encontró tres huecos, y los tres se cerraron en la base:
+
+1. **Ajustes simultáneos.** `preparar_ajuste` solo comprobaba: N ajustes a la vez pasaban todos, los N llamaban a la IA y solo uno se guardaba, así que el saldo del proveedor se gastaba sin cobro. **Ahora reserva:** bloquea el documento, rechaza otro ajuste en curso (`ajuste_en_curso`) y marca `ajuste_en_curso_at` y `ajuste_cobra` (columnas nuevas de `documentos_generados`, que el cliente no puede tocar). Un ajuste que cobra cuenta contra el cupo mientras corre. `privado.reservas_de()` suma las generaciones y los ajustes que cobran en curso, y la usan también `iniciar_generacion` y `preparar_ajuste`. `completar_ajuste` exige la reserva (`ajuste_no_reservado`) y `registrar_consumo_fallido` la libera; las reservas vencen a los 5 minutos.
+2. **Topes solo en el endpoint.** La RLS deja actualizar directo, y un contenido enorme habría llegado entero a la IA en el siguiente ajuste. **Ahora los topes están en la base:**
+   - en `documentos_generados`: contenido ≤ 200 000, título ≤ 300 y pendientes ≤ 1 000;
+   - en `proyectos`: los mismos máximos que valida la aplicación;
+   - en el servidor, un tope de 450 000 caracteres por mensaje antes de llamar al proveedor (`lib/ia/index.ts`);
+   - el trigger de edición del cliente recalcula los pendientes con `privado.pendientes_de()`.
+3. **La traza de lectura se podía saltar.** El consultor autorizado tenía política de lectura directa, y una consulta por PostgREST con su sesión no dejaba rastro (RF-79). **Se retiraron sus dos políticas** (lectura y edición). Ahora lee con `leer_documento(p_usuario, p_documento)`, que registra la lectura en la misma llamada, lista con `documentos_del_consultor(p_usuario)`, sin contenido, y edita con `editar_documento_consultor(p_usuario, p_documento, p_contenido)`. Las tres son de `service_role`. `registrar_lectura_documento` se retiró.

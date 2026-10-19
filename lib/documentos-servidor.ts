@@ -5,7 +5,8 @@ import { crearClienteServicio, crearClienteServidor } from "@/lib/supabase/servi
 import { COLUMNAS_CONVOCATORIA, aConvocatoria, type FilaConvocatoria } from "@/lib/catalogo";
 import { COLUMNAS_PROYECTO, aProyecto, type FilaProyecto } from "@/lib/proyectos-servidor";
 import { contenidoASecciones, pendientesDe, seccionesAContenido } from "@/lib/documentos";
-import { PLAZO_IA_MS, ErrorIA, proveedorIA } from "@/lib/ia";
+import { obtenerSesion } from "@/lib/auth";
+import { PLAZO_IA_MS, ErrorIA, redactar } from "@/lib/ia";
 import { contextoAjuste, contextoGeneracion } from "@/lib/ia/contexto";
 import { textoDeAdjuntos } from "@/lib/ia/adjuntos";
 import type { DocumentoGenerado, DocumentoServidor, EstadoDocumento } from "@/lib/types";
@@ -100,15 +101,46 @@ async function completarNombres(filas: Fila[]): Promise<Fila[]> {
 }
 
 // ---------------------------------------------------------------------------
-// Lectura (RLS)
+// Lectura: la empresa con la RLS; el consultor, solo por funciones del
+// servidor que registran su lectura en la misma llamada (RF-79, migración
+// 20261019300000: ya no tiene política de lectura directa).
 // ---------------------------------------------------------------------------
+
+async function consultorDeSesion(): Promise<string | null> {
+  const datos = await obtenerSesion();
+  return datos?.sesion.rol === "consultor" ? datos.sesion.usuarioId : null;
+}
 
 /**
  * RN-30 · Los documentos de la sesión: la última versión de cada par
- * proyecto-convocatoria. Para el consultor, la RLS deja solo los que le
- * autorizaron con su encargo en curso (RN-27).
+ * proyecto-convocatoria. Para el consultor, solo los que le autorizaron con su
+ * encargo en curso (RN-27), sin el contenido.
  */
 export const listarDocumentos = cache(async (): Promise<DocumentoServidor[]> => {
+  const consultor = await consultorDeSesion();
+  if (consultor) {
+    const { data, error } = await crearClienteServicio().rpc("documentos_del_consultor", { p_usuario: consultor });
+    if (error) {
+      console.error("Documentos: no se pudieron listar los del consultor", error.code, error.message);
+      return [];
+    }
+    type FilaLista = Pick<Fila, "id" | "proyecto_id" | "convocatoria_id" | "titulo" | "estado" | "version" | "pendientes" | "actualizado_at">;
+    const filas = (data as FilaLista[]).map(
+      (f): Fila => ({
+        ...f,
+        usuario_id: "",
+        postulacion_id: null,
+        contenido: null,
+        ajustes_usados: 0,
+        compartido_con_consultor_id: consultor,
+        ultima_edicion_por: null,
+        creado_at: f.actualizado_at,
+        proyectos: null,
+        convocatorias: null,
+      })
+    );
+    return (await completarNombres(filas)).map(aDocumento);
+  }
   const supabase = await crearClienteServidor();
   const { data, error } = await supabase
     .from("documentos_generados")
@@ -131,9 +163,19 @@ export const listarDocumentos = cache(async (): Promise<DocumentoServidor[]> => 
     .sort((a, b) => b.actualizadoAt.localeCompare(a.actualizadoAt));
 });
 
-/** El documento, si la sesión puede verlo; null si para ella no existe. */
+/**
+ * El documento, si la sesión puede verlo; null si para ella no existe. La
+ * lectura del consultor autorizado queda registrada en la base (RF-79).
+ */
 export const obtenerDocumento = cache(async (id: string): Promise<DocumentoServidor | null> => {
   if (!UUID.test(id)) return null;
+  const consultor = await consultorDeSesion();
+  if (consultor) {
+    const { data, error } = await crearClienteServicio().rpc("leer_documento", { p_usuario: consultor, p_documento: id });
+    if (error) console.error("Documentos: el consultor no pudo leer", error.code, error.message);
+    const fila = (data as Omit<Fila, "proyectos" | "convocatorias">[] | null)?.[0];
+    return fila ? aDocumento((await completarNombres([{ ...fila, proyectos: null, convocatorias: null }]))[0]) : null;
+  }
   const supabase = await crearClienteServidor();
   const { data, error } = await supabase.from("documentos_generados").select(COLUMNAS).eq("id", id).in("estado", TERMINADOS).maybeSingle();
   if (error) console.error("Documentos: no se pudo leer", error.code, error.message);
@@ -158,6 +200,8 @@ const RECHAZOS: Record<string, { status: number; error: string }> = {
   documento_no_existe: { status: 404, error: "El documento no existe." },
   generacion_no_encontrada: { status: 409, error: "La generación ya no estaba en curso. Intenta de nuevo." },
   ajuste_concurrente: { status: 409, error: "Otro ajuste se aplicó mientras tanto. Recarga el documento e intenta de nuevo." },
+  ajuste_en_curso: { status: 409, error: "Ya hay un ajuste en curso sobre este documento. Espera a que termine." },
+  ajuste_no_reservado: { status: 409, error: "El ajuste se interrumpió. Intenta de nuevo." },
 };
 
 function rechazo(error: PostgrestError, accion: string): { ok: false; status: number; error: string } {
@@ -246,7 +290,7 @@ export async function generarDocumento(usuarioId: string, cuerpo: Cuerpo): Promi
       console.warn(`IA: ${adjuntos.neutralizadas} líneas neutralizadas en los adjuntos de ${convocatoriaId} (RNF-31)`);
     }
 
-    const r = await proveedorIA().redactar({
+    const r = await redactar({
       modelo: inicio.modelo,
       instrucciones: inicio.plantilla,
       mensaje: contextoGeneracion({ proyecto, empresa, convocatoria, adjuntos: adjuntos.adjuntos }),
@@ -320,6 +364,19 @@ export async function guardarEdicion(id: string, cuerpo: Cuerpo): Promise<Result
     cambios.titulo = cuerpo.titulo.trim();
   }
 
+  const consultor = await consultorDeSesion();
+  if (consultor) {
+    // RN-22: el consultor no cambia el título; solo el contenido, por el servidor.
+    if (cambios.titulo !== undefined) return { ok: false, status: 403, error: "No puedes cambiar eso en este documento." };
+    const { error } = await crearClienteServicio().rpc("editar_documento_consultor", {
+      p_usuario: consultor,
+      p_documento: id,
+      p_contenido: contenido,
+    });
+    if (error) return rechazo(error, "guardar la edición del consultor");
+    return releerSinTraza(id);
+  }
+
   const supabase = await crearClienteServidor();
   const { data, error } = await supabase
     .from("documentos_generados")
@@ -387,7 +444,7 @@ export async function ajustarDocumento(
   try {
     const { proyecto, convocatoria, empresa } = await proyectoYConvocatoria(doc.proyecto_id, doc.convocatoria_id);
     if (!proyecto || !convocatoria) throw new Error("No se pudo leer el proyecto o la convocatoria");
-    const r = await proveedorIA().redactar({
+    const r = await redactar({
       modelo: prep.modelo,
       instrucciones: prep.plantilla,
       mensaje: contextoAjuste({
@@ -446,9 +503,14 @@ export async function ajustarDocumento(
     return { ok: false, status: f.status, error: f.error.replace("generar el documento", "aplicar el ajuste") };
   }
 
-  const actualizado = await obtenerDocumento(id);
-  if (!actualizado) return { ok: false, status: 404, error: "El documento no existe." };
-  return { ok: true, datos: actualizado };
+  return releerSinTraza(id);
+}
+
+/** Tras una escritura ya autorizada por la base: no cuenta como otra lectura. */
+async function releerSinTraza(id: string): Promise<Resultado<DocumentoServidor>> {
+  const { data } = await crearClienteServicio().from("documentos_generados").select(COLUMNAS).eq("id", id).maybeSingle();
+  if (!data) return { ok: false, status: 404, error: "El documento no existe." };
+  return { ok: true, datos: aDocumento((await completarNombres([data as unknown as Fila]))[0]) };
 }
 
 // ---------------------------------------------------------------------------
@@ -486,7 +548,7 @@ export function aDocumentoStore(d: DocumentoServidor): DocumentoGenerado {
 }
 
 // ---------------------------------------------------------------------------
-// Compartir con el consultor (RF-71) y traza de lectura (RF-79)
+// Compartir con el consultor (RF-71)
 // ---------------------------------------------------------------------------
 
 const RECHAZOS_COMPARTIR: Record<string, { status: number; error: string }> = {
@@ -513,12 +575,6 @@ export async function revocarDocumento(usuarioId: string, id: string): Promise<R
   const { error } = await crearClienteServicio().rpc("revocar_documento", { p_usuario: usuarioId, p_documento: id });
   if (error) return rechazo(error, "revocar");
   return releer(id);
-}
-
-/** RF-79 · Se llama al servir el documento; para la dueña la base no registra nada. */
-export async function registrarLectura(usuarioId: string, id: string): Promise<void> {
-  const { error } = await crearClienteServicio().rpc("registrar_lectura_documento", { p_usuario: usuarioId, p_documento: id });
-  if (error) console.error("Documentos: no se pudo registrar la lectura", error.code, error.message);
 }
 
 async function releer(id: string): Promise<Resultado<DocumentoServidor>> {
