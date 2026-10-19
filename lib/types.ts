@@ -468,6 +468,31 @@ export interface SeccionDocumento {
 
 export type EstadoDocumento = "generado" | "editado" | "exportado";
 
+/**
+ * Documento generado leído de Supabase (docs/05 §9.26, Sprint 5). Lo entrega
+ * `lib/documentos-servidor.ts` a las pantallas del portal Empresa.
+ */
+export interface DocumentoServidor {
+  id: string;
+  usuarioId: string;
+  proyectoId: string;
+  convocatoriaId: string;
+  postulacionId: string | null;
+  titulo: string;
+  secciones: SeccionDocumento[];
+  pendientes: string[];
+  estado: EstadoDocumento;
+  version: number;
+  ajustesUsados: number;
+  compartidoConConsultorId: string | null;
+  ultimaEdicionPor: "empresa" | "consultor" | null;
+  creadoAt: string;
+  actualizadoAt: string;
+  proyectoNombre: string;
+  convocatoriaNombre: string;
+  entidadConvocante: string;
+}
+
 export interface DocumentoGenerado {
   id: string;
   // Propietario (RN-30): la empresa dueña del proyecto, aunque edite un consultor

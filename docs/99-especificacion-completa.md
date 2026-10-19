@@ -1,7 +1,7 @@
 # Plataforma de Gestión de Convocatorias — Especificación completa del MVP (versión 6)
 
 **Alcance:** Colombia · carga manual de convocatorias · **generación documental con IA** · red de consultores · suscripciones por rol (créditos de IA solo en los planes de empresa)
-**Stack:** Next.js en Vercel + Supabase (PostgreSQL, Auth, Storage, pg_cron) + Claude API
+**Stack:** Next.js en Vercel + Supabase (PostgreSQL, Auth, Storage, pg_cron) + API de OpenAI
 **Fecha:** Septiembre 2026 · **Estado:** especificación de trabajo
 
 > **Novedades de la v4:** módulo de **generación del documento base de postulación con IA** (a partir de un proyecto de la empresa adaptado a la convocatoria elegida), **créditos de IA por plan de suscripción**, **porcentaje de compatibilidad** en las sugerencias, **indicadores públicos del catálogo** en la landing, **chips de búsqueda sugerida**, y una **propuesta de planes y precios** construida sobre el benchmark de mercado.
@@ -68,7 +68,7 @@ Heredado de la sección 6 del alcance inicial y ahora **operativo**: el document
 | **Administrador de Contenido** | **Solo existe por invitación del Propietario (CU-41, CU-42) y con cuenta dedicada; el panel es invisible para cualquier otro usuario** *(v6)*. Fuentes y convocatorias; revisión y aprobación de consultores; asignaciones internas; planes, precios y suscripciones; **seguridad y auditoría** *(v5)* | CU-01..05, CU-25..27, CU-31, CU-37, **CU-38..40** |
 | **Propietario de la plataforma** *(nuevo v6)* | Un único administrador designado fuera de la aplicación (RN-31). Además de todo lo del Administrador, es el único que invita administradores y revoca su acceso | CU-41, más los del Administrador |
 | **Reloj del sistema** | pg_cron: cierre de convocatorias, vencimiento de suscripciones, reinicio mensual de créditos | CU-06, CU-32, CU-35 |
-| **Servicio de IA (Claude API)** | Actor externo. Recibe el contexto de generación y devuelve el documento base | CU-33 |
+| **Servicio de IA (API de OpenAI)** *(mod. v6, sesión 026: antes Claude API)* | Actor externo. Recibe el contexto de generación y devuelve el documento base | CU-33 |
 | **Pasarela de pagos** | Actor externo, fase de evolución | CU-28, CU-29 |
 
 ---
@@ -703,7 +703,7 @@ Requerimientos derivados de la auditoría de interfaz. Cada uno corrige un punto
 | RNF-13 | Evolución | El esquema soporta scraping y matching semántico futuros sin migración; suscripciones preparadas para pasarela | Revisión de diseño |
 | RNF-14 | Catálogos administrables | Categorías, planes y cupos de créditos son datos, no código | Cambio desde el panel admin sin despliegue |
 | RNF-15 | Portabilidad | Lógica portable; PostgreSQL estándar exportable; Next.js desplegable en otros entornos | Export de BD + despliegue alterno |
-| RNF-22 | **Independencia del proveedor de IA** | La construcción del contexto y el parseo del resultado se aíslan tras una interfaz propia, de modo que cambiar de proveedor o de modelo no exija reescribir el módulo *(nuevo v4)* | Revisión de diseño del servicio de generación |
+| RNF-22 | **Independencia del proveedor de IA** | La construcción del contexto y el parseo del resultado se aíslan tras una interfaz propia, de modo que cambiar de proveedor o de modelo no exija reescribir el módulo *(nuevo v4)*. *(Sesión 026: el proveedor pasa de Claude a OpenAI por decisión del Product Owner)* | Revisión de diseño del servicio de generación |
 
 ### 5.7 Datos personales y contenido generado
 
@@ -784,7 +784,7 @@ Requerimientos derivados de la auditoría de interfaz. Cada uno corrige un punto
 | 13 | Almacenamiento de archivos | Supabase Storage (3 buckets) |
 | 14 | Infraestructura y despliegue | Vercel + Supabase |
 | 15 | Respaldos | Supabase Pro |
-| 16 | **Provisión del modelo de IA** | Claude API — se consume como servicio; la lógica propia está en la construcción del contexto y las reglas de veracidad, no en el modelo |
+| 16 | **Provisión del modelo de IA** | API de OpenAI *(sesión 026; antes Claude API)* — se consume como servicio; la lógica propia está en la construcción del contexto y las reglas de veracidad, no en el modelo |
 | 17 | Cobro de suscripciones | Manual en piloto → pasarela Wompi/PayU |
 | 18 | Soporte | Correo / WhatsApp en el piloto |
 | 19 | Mercadeo y adquisición | Redes, gremios, cámaras de comercio |
@@ -819,7 +819,7 @@ flowchart TB
         S8["Generación Documental IA"]
     end
     subgraph IA["SERVICIO EXTERNO"]
-        CL["Claude API · redacción del documento base"]
+        CL["API de OpenAI · redacción del documento base"]
     end
     subgraph DATOS["CAPA DE DATOS — Supabase"]
         DB["PostgreSQL + RLS · 27 tablas"]
@@ -875,7 +875,7 @@ Cada ruta declara los roles que admite (RNF-30). El rol se verifica en el servid
 | **Generación Documental IA** | `POST /api/documentos/generar` (proyectoId + convocatoriaId — **verifica en el servidor que la convocatoria siga `publicada` y vigente antes de actuar, RF-78**) · `GET/PATCH /api/documentos/[id]` · `POST /api/documentos/[id]/ajustar` (**valida el cupo de la empresa dueña antes de aplicar, también cuando lo pide el consultor — RF-77; sin cupo, 402/403 sin modificar el documento**) · `POST /api/documentos/[id]/compartir` / `.../revocar` (autoriza o quita al consultor — solo el dueño, solo con encargo `en_curso`, RF-71). **El acceso se evalúa como (autorización ∧ encargo `en_curso`) en cada petición, no como permiso almacenado (RN-27), y se revoca en cascada al cerrarse el encargo, suspenderse el perfil o vencer la suscripción (RF-76)** · `GET /api/documentos/[id]/exportar` (devuelve .docx — **403 si quien llama no es el dueño**, RF-72) · `GET/POST /api/admin/plantillas` | RN-17, RN-19..22, 27, 28, RNF-23 |
 | **Seguridad y auditoría** *(nuevo v5)* | Enrolamiento y verificación de MFA vía Supabase Auth (`/auth/mfa/enroll`, `/auth/mfa/verify`) · `GET /api/admin/eventos-seguridad?filtros` · `POST /api/admin/eventos-seguridad/[id]/liberar` · middlewares `requireRole()` (toda ruta y endpoint — RNF-30), `requireMFA()` (toda ruta `/admin`) y `requireRateLimit()` (endpoints públicos y de generación con IA; **fail-closed si su almacén no responde — RNF-33**) | RNF-25..28, RN-23, RN-24 |
 
-**Flujo interno del servicio de generación:** valida suscripción y cupo → **verifica límite de tasa (RNF-27)** → arma el contexto (proyecto + convocatoria + requisitos + texto del TDR **saneado de instrucciones incrustadas**, con tope de tamaño — RN-23) → invoca Claude API con instrucciones de veracidad y estructura → parsea el resultado y extrae los pendientes → guarda el documento y registra el consumo → descuenta el crédito. Si algo falla antes del guardado, **no se descuenta**. El .docx se genera bajo demanda desde el contenido guardado, sin ocupar un cuarto bucket.
+**Flujo interno del servicio de generación:** valida suscripción y cupo → **verifica límite de tasa (RNF-27)** → arma el contexto (proyecto + convocatoria + requisitos + texto del TDR **saneado de instrucciones incrustadas**, con tope de tamaño — RN-23) → invoca la API de OpenAI (detrás de `lib/ia/`, RNF-22) con el modelo de la plantilla activa e instrucciones de veracidad y estructura → parsea el resultado y extrae los pendientes → guarda el documento y registra el consumo → descuenta el crédito. Si algo falla antes del guardado, **no se descuenta**. El .docx se genera bajo demanda desde el contenido guardado, sin ocupar un cuarto bucket.
 
 ### 8.4 Capa de datos
 

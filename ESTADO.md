@@ -5,9 +5,9 @@
 
 ---
 
-**Actualizado:** 8 de octubre de 2026 · cierre de la sesión 025 (**Sprint 4 cerrado; Sprint 5 empezado con RF-91..93**)
+**Actualizado:** 19 de octubre de 2026 · cierre de la sesión 026 (**Sprint 5: proveedor de IA cambiado a OpenAI; generación, ajustes, exportación .docx, compartir con el consultor y traza de lectura construidos y verificados con el proveedor de prueba**)
 **Sprint:** 5 · día 11 de 30 (los sprints 2 y 3 terminaron antes de su plazo). **Orden de los sprints 4 y 5 intercambiado en la sesión 021**: la IA, los créditos, los planes y los precios van al final
-**Rama de trabajo:** `sprint-2`, abierta desde `main` en la sesión 011. **Fusionada a `main` en la sesión 025**, dos veces por avance rápido: hasta `e184793` al cerrar el Sprint 4 y hasta `0240916` con RF-91..93, a pedido del Product Owner. Producción ya tiene todo lo de los sprints 2 a 4 y RF-91..93, con las funciones de Vercel en `pdx1`. Se sigue trabajando en `sprint-2` y se fusiona al cerrar cada hito. **Migraciones nuevas ya aplicadas al remoto:** `20260917100000_guardar_convocatoria`, `20260917200000_storage_y_adjuntos` , `20260918100000_publicar_convocatoria` y `20260918200000_nombres_normalizados_y_borrar_categorias`, y desde el Sprint 3 las de proyectos (`20260923500000`) y departamentos y sugerencias (`20260924100000`), y **postulaciones (`20260925100000` y `20260925200000`)**, y desde el Sprint 4 **perfil del consultor (`20260926100000` y `20260926110000`)** y **revisión de consultores (`20260927100000`)** y **directorio (`20260927200000`)**, y **encargos (`20260930100000`)** y **vencimiento de suscripciones (`20260930200000`)** y **historial de encargos (`20260930300000`)**, y desde el Sprint 5 **propuestas en los encargos de búsqueda (`20261008100000` y `20261008110000`)**. Hasta las del Sprint 4, en uso en producción desde la fusión de la sesión 025; también las del Sprint 5 desde la segunda fusión
+**Rama de trabajo:** `sprint-2`, abierta desde `main` en la sesión 011. **Fusionada a `main` en la sesión 025**, dos veces por avance rápido: hasta `e184793` al cerrar el Sprint 4 y hasta `0240916` con RF-91..93, a pedido del Product Owner. Producción ya tiene todo lo de los sprints 2 a 4 y RF-91..93, con las funciones de Vercel en `pdx1`. Se sigue trabajando en `sprint-2` y se fusiona al cerrar cada hito. **Migraciones nuevas ya aplicadas al remoto:** `20260917100000_guardar_convocatoria`, `20260917200000_storage_y_adjuntos` , `20260918100000_publicar_convocatoria` y `20260918200000_nombres_normalizados_y_borrar_categorias`, y desde el Sprint 3 las de proyectos (`20260923500000`) y departamentos y sugerencias (`20260924100000`), y **postulaciones (`20260925100000` y `20260925200000`)**, y desde el Sprint 4 **perfil del consultor (`20260926100000` y `20260926110000`)** y **revisión de consultores (`20260927100000`)** y **directorio (`20260927200000`)**, y **encargos (`20260930100000`)** y **vencimiento de suscripciones (`20260930200000`)** y **historial de encargos (`20260930300000`)**, y desde el Sprint 5 **propuestas en los encargos de búsqueda (`20261008100000` y `20261008110000`)** y, en la sesión 026, **generación con IA (`20261019100000`, `20261019110000`) y compartir con traza de lectura (`20261019200000`)**. Lo de la sesión 026 está en `sprint-2`, **sin fusionar a `main`**. Hasta las del Sprint 4, en uso en producción desde la fusión de la sesión 025; también las del Sprint 5 desde la segunda fusión
 
 ---
 
@@ -16,6 +16,12 @@
 La especificación está cerrada en **v6**. **La base de datos existe en Supabase** (31 tablas con RLS, prueba cruzada pasada) y **la identidad ya es real**: registro, login, confirmación de correo y MFA del administrador con Supabase Auth. El `ModoDemo` desapareció. **Desde la sesión 011, el panel administra fuentes, categorías y convocatorias (datos y requisitos) contra Supabase**, con endpoints validados en el servidor, desde la 012 también los adjuntos, en Storage real —los 3 buckets existen, los tres privados, y todo archivo se entrega por URL firmada de 15 minutos— y **desde la 013 publica y despublica, validado en el servidor**. Con eso, el panel ya carga una convocatoria de principio a fin. Las tablas del catálogo siguen vacías: nadie ha cargado contenido real. Desde el Sprint 2 el catálogo de la empresa es real, y desde el Sprint 3 también lo son sus proyectos, sugerencias y **postulaciones (sesión 020)**. Desde el Sprint 4 también son reales los consultores (perfil, revisión y directorio) y **los encargos (sesión 023)**. **El Sprint 4 se cerró en la sesión 025**: Hito 4 cumplido en el navegador, RNF-04 medido en producción y respaldos con simulacro de restauración superado. Lo demás —documentos, planes, créditos— sigue en datos de ejemplo de Zustand, filtrados por el `auth.uid()` real: una cuenta nueva empieza vacía y lo que crea se pierde al recargar.
 
 ## Lo último que se hizo
+
+- **Sesión 026: proveedor de IA → OpenAI, y el módulo de documentos con IA construido de punta a punta** (bitácora 026).
+  - **Proveedor:** por decisión del Product Owner, la IA es la API de OpenAI y no Claude. Se actualizaron `CLAUDE.md`, docs/00, 03 (RNF-22), 04, 06, 10 y 99. El modelo (`gpt-5.4-mini` por defecto) y su precio son datos de la plantilla, no constantes del código. La clave `OPENAI_API_KEY` está en `.env.local` y en Vercel. **La cuenta de OpenAI no tiene saldo** (`insufficient_quota`): todo se verificó con el proveedor de prueba (`IA_PROVEEDOR=prueba`, nunca en producción).
+  - **Migraciones** `20261019100000` (generación, ajustes, exportación, plantilla v1), `20261019110000` (el padre de una regeneración se fija al guardar) y `20261019200000` (compartir, revocar y la tabla 32 `documento_lecturas`). Diseño en docs/05 §9.26. Las funciones que cobran o autorizan son solo de `service_role` y reciben el usuario de la sesión verificada.
+  - **Código:** `lib/ia/` (interfaz, OpenAI, prueba, contexto con el saneamiento del TDR y extracción de PDF y .docx), `lib/documentos-servidor.ts`, `lib/documentos-docx.ts`, ocho endpoints bajo `/api/documentos`, el editor compartido `components/documentos/EditorDocumento.tsx` y las pantallas de la empresa (generar y documento) y del consultor (lista y documento).
+  - **Verificado:** SQL `generacion_ia.sql` **38/38**; HTTP `prueba-generacion-ia.mjs` **59/59**; saneamiento **21/21**; regresión SQL y HTTP en verde; en el navegador con cuentas temporales (generar, editar, ajustar, sin desborde en 375 px). 30 requerimientos cambiaron de estado (docs/11).
 
 - **Sesión 025, después: Sprint 5 empezado — búsqueda y propuestas en los encargos "buscar convocatoria" (RF-91, RF-92, RF-93, RF-69, RN-25, RN-33). Todo a `verificado`.**
   - **Migración `20261008100000`** (ensayada y aplicada):
@@ -290,7 +296,7 @@ Detalle en [`docs/bitacora/2026-09-24-sesion-020.md`](docs/bitacora/2026-09-24-s
 
 ## En curso
 
-**Sprint 4 cerrado** (sesión 025). **Sprint 5 empezado:** RF-91..93 hechos y verificados en la misma sesión. Lo que sigue del sprint depende de la IA (generación, créditos, planes y precios) o del límite de tasa: hacen falta las claves de Claude y de Upstash (pendiente 13). Sin ellas se puede avanzar en RNF-09 y RNF-32, que necesitan decisiones y una cuenta del Product Owner. RF-91..93 ya están en producción (fusión de `0240916`, despliegue de Vercel correcto).
+**Sprint 5.** Hecho: RF-91..93 (sesión 025) y, en la sesión 026, generación, ajustes, exportación .docx, compartir, revocación y traza de lectura (RF-47..48, 50, 52..62, 71, 72, 76, 77, 79; RN-17, 27, 28). **Hito 5 cumplido en todo menos en lo que exige el modelo real**: falta generar con OpenAI (no hay saldo) para medir el costo (RNF-21) y revisar la veracidad (RNF-23, RNF-31).
 
 ## Lo siguiente
 
@@ -316,6 +322,13 @@ Detalle en [`docs/bitacora/2026-09-24-sesion-020.md`](docs/bitacora/2026-09-24-s
 5. ~~Pruebas de los RNF críticos~~ — **sesión 023, al final**: ver `docs/11 §23`. Quedan RNF-09, 10 y 32 (decisiones del Product Owner, pendientes 18 a 20) y la medición de RNF-04 en producción.
 
 **Hito 4 (día 24) — cumplido el 8-oct (sesión 025):** un encargo completo —solicitud, aceptación con revelación de contacto, avances, entrega y calificación—, aislado entre empresas en las pantallas; al suspender al consultor sale del directorio y sus encargos en curso se cancelan solos. Lo recorrió el agente con cuentas temporales, por decisión del Product Owner.
+
+**Siguiente (sesión 027), en este orden:**
+1. **Con saldo en OpenAI:** generar con el modelo real sobre ≥10 TDR reales; medir costo y tiempo (RNF-21), revisar veracidad (RNF-23) e instrucciones incrustadas (RNF-31). Probar RF-55 con un TDR en PDF y otro en .docx.
+2. Panel de la plantilla (CU-37, RF-63): editar, versionar y activar desde `/admin/plantillas`, con modelo y precios.
+3. Créditos y planes: paquetes adicionales (RF-51), activación manual (RF-38), planes administrables (RF-36, RF-82), vistas del suscriptor y del administrador (RF-41, RF-42), y el job 3 con la fecha de Colombia.
+4. Límite de tasa sobre Upstash (RF-66, 67, RNF-27, RNF-33): faltan las claves (pendiente 13).
+5. Fusionar `sprint-2` a `main` cuando el Product Owner lo pida.
 
 **En curso: Sprint 5 — generación con IA, créditos, planes y precios**, más ~~la búsqueda y las propuestas del consultor en "buscar convocatoria" (RF-91..93)~~ **hecho en la sesión 025**, más autorización de documentos, revocación en cascada, traza de lectura, el límite de tasa sobre Upstash Redis y, desde la sesión 025, **RNF-09 (monitor) y RNF-32 (retención)**. Necesita la clave de la API de Claude, las claves de Upstash y TDR reales.
 
@@ -370,7 +383,7 @@ Pendiente del Product Owner:
     - Cerrar es opcional: una postulación cerrada no se reabre.
 
     Con esto, RF-17 a RF-21, RF-73 y RF-83 pasan a `verificado` y se cumple el Hito 3.
-13. **Antes del Sprint 5:** crear una cuenta gratuita en Upstash, una base Redis, y poner `UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN` en `.env.local` y en Vercel; y la clave de la API de Claude (`ANTHROPIC_API_KEY`) en los mismos dos sitios. **No pegarlas en el chat.**
+13. **Claves del Sprint 5.** ~~Clave de la IA~~ — **sesión 026:** el proveedor pasó a OpenAI y `OPENAI_API_KEY` ya está en `.env.local` (puesta por el agente) y en Vercel (por el Product Owner). **Falta cargar saldo** en platform.openai.com → Billing (y fijar un límite mensual): sin él, la API responde `insufficient_quota`. **Esa clave quedó escrita en el chat de la sesión 026: crear una nueva y revocar esa antes de los pilotos.** Sigue pendiente Upstash: crear la base Redis y poner `UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN` en `.env.local` y en Vercel, sin pegarlas en el chat.
 14. ~~**Recorrer el perfil de consultor en pantalla**~~ — **hecho en la sesión 022** por el agente, con la cuenta de consultor que abrió el Product Owner: RF-22, 23 y 24 a `verificado`. El perfil quedó **en revisión** con una especialidad (Transformación digital), foto y hoja de vida de prueba: sirve para la bandeja del paso 1b. RF-88 (la casilla del registro) no se vio en esta sesión. Referencia del recorrido (Sprint 4 paso 1a). Crea una cuenta de consultor con otro correo tuyo desde `/registro?puerta=consultor`: así también ves la casilla de datos (RF-88), que es obligatoria. Después:
     - completa nombre, descripción, especialidades, una red y un proyecto de portafolio, y pulsa "Guardar cambios"; recarga y comprueba que todo sigue ahí;
     - sube una foto (JPG o PNG, hasta 5 MB) y una hoja de vida en PDF, y pulsa "Ver" en la hoja de vida;
@@ -415,7 +428,7 @@ Esperan al Product Owner. No bloquean el Sprint 1.
 |---|---|---|
 | **Precio del plan Consultor** | Quedó en COP $69.000 al retirarle el cupo de IA. `docs/07 §10.2` marca los planes como "a validar con los pilotos" | Antes de cobrar |
 | **Dónde se aplica el límite de tasa** | Recomendación del agente: solo en lo delicado (inicio de sesión, registro, recuperar contraseña, generar y ajustar con IA). Así el plan gratuito de Upstash (500 000 operaciones/mes) alcanza para unos 3 000 usuarios activos al mes; aplicado a todo, unos 150–200. RNF-27 hoy dice "los endpoints de la capa de aplicación" | Sprint 5 |
-| **Costo de la IA, créditos por plan y precios** | Decidido en la sesión 021 que va al final. Se fija con el costo medido sobre ≥10 TDR reales (RNF-21). Hace falta la clave de la API de Claude en `.env.local` y en Vercel | Sprint 5 |
+| **Costo de la IA, créditos por plan y precios** | Decidido en la sesión 021 que va al final. Se fija con el costo medido sobre ≥10 TDR reales (RNF-21). Sesión 026: el proveedor es OpenAI y la clave ya está; falta saldo en la cuenta. Con `gpt-5.4-mini` (USD 0,75 / 4,50 por millón de tokens) se estima del orden de USD 0,03 por generación, a confirmar con la medición | Sprint 5 |
 
 
 ## Hallazgos no planificados
@@ -424,6 +437,9 @@ Cosas detectadas de paso que no pertenecen al sprint en curso. **No se arreglan 
 
 | Hallazgo | Dónde | Gravedad |
 |---|---|---|
+| Funciones simuladas de documentos que ya no usa el portal Empresa: `crearDocumento`, `regenerarDocumento`, `aplicarAjusteIA`, `compartirDocumento`, `componerDocumento`, `aplicarAjusteTexto`, `exportarDocumentoWord` (sesión 026) | `lib/store.ts`, `lib/documentos.ts` | baja · código muerto |
+| Cada `router.refresh()` del editor del consultor vuelve a registrar una lectura (RF-79): una edición cuenta como lectura más | `app/consultor/documentos/[id]/page.tsx` | baja · decidir si se agrupan por minuto |
+| `npm install` de `unpdf`, `mammoth` y `docx` reporta avisos de `npm audit` (sesión 026) | `package-lock.json` | revisar |
 | `Date.now()` llamado durante el render | `app/admin/seguridad/page.tsx:30` | baja · lint lo marca |
 | `setState` dentro de un efecto | `components/SolicitarConsultorModal.tsx:60` | baja · lint lo marca |
 | `consultor-5` tiene suscripción `trial`, contra RF-37 y RN-11 | `lib/mock-data.ts` | baja · dato de ejemplo |

@@ -48,7 +48,8 @@ export function useCreditos() {
   const incluidos = plan?.creditosIaMensuales ?? 0;
   const usados = suscripcion?.creditosUsadosPeriodo ?? 0;
   const extra = suscripcion?.creditosExtra ?? 0;
-  const disponibles = Math.max(0, incluidos + extra - usados);
+  // docs/05 §9.26: primero se gastan los del plan y después los de paquetes.
+  const disponibles = Math.max(0, incluidos - usados) + extra;
   const fechaReinicio = suscripcion ? agregarMeses(suscripcion.periodoCreditosInicio, 1) : null;
 
   return { usuarioId, suscripcion, plan, disponibles, usados, incluidos, extra, fechaReinicio };

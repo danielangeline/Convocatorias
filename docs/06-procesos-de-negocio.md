@@ -31,7 +31,7 @@
 | 13 | Almacenamiento de archivos | Supabase Storage (3 buckets) |
 | 14 | Infraestructura y despliegue | Vercel + Supabase |
 | 15 | Respaldos | Supabase Pro |
-| 16 | **Provisión del modelo de IA** | Claude API — se consume como servicio; la lógica propia está en la construcción del contexto y las reglas de veracidad, no en el modelo |
+| 16 | **Provisión del modelo de IA** | API de OpenAI *(sesión 026; antes Claude API)* — se consume como servicio; la lógica propia está en la construcción del contexto y las reglas de veracidad, no en el modelo |
 | 17 | Cobro de suscripciones | Manual en piloto → pasarela Wompi/PayU |
 | 18 | Soporte | Correo / WhatsApp en el piloto |
 | 19 | Mercadeo y adquisición | Redes, gremios, cámaras de comercio |

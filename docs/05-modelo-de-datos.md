@@ -1,4 +1,4 @@
-# Modelo de datos (31 tablas)
+# Modelo de datos (32 tablas)
 
 > Parte de la especificación del MVP **v6** · Plataforma de Gestión de Convocatorias.
 > Índice general en `docs/README.md`. Contexto rápido en `CLAUDE.md`.
@@ -768,3 +768,60 @@ Implementa RF-91, RF-92 y RF-93, y la excepción de RN-33 y la ampliación de RN
 **Check retirado (sesión 025).** `encargos_convocatoria_segun_tipo` (Sprint 0) solo admitía convocatoria en los encargos específicos; se retiró, y la convocatoria de uno de búsqueda la gobierna el trigger. **Sugerencias de la empresa:** `sugerencias_proyecto()` pasa a `security definer` para usar el cálculo compartido, y comprueba el dueño del proyecto en lugar de dejarlo a la RLS.
 
 **Al terminar el encargo** (`completado`, `cancelado`): las propuestas en `propuesta` pasan a `descartada` en un trigger del cambio de estado (`encargos_descartar_propuestas`), y el consultor pierde el catálogo en la siguiente petición, porque `consultor_busca_convocatorias()` se evalúa en cada consulta.
+
+### 9.26 Generación, ajustes y exportación con IA *(nuevo v6, sesión 026 — Sprint 5)*
+
+Construye CU-33 y CU-34 sobre las tablas de §9.3. **El proveedor es la API de OpenAI** (sesión 026, decisión del Product Owner), detrás de la interfaz de `lib/ia/` (RNF-22): el resto del módulo no sabe a quién llama.
+
+**Columnas nuevas en `plantillas_generacion`** (la configuración del generador vive en el dato, no en el código — RF-63, RNF-22):
+
+| Campo | Tipo | Nota |
+|---|---|---|
+| modelo | text | not null, default `gpt-5.4-mini`. Cambiar de modelo es crear otra versión de la plantilla |
+| precio_entrada_usd_mtok / precio_salida_usd_mtok | numeric | not null, ≥ 0. USD por millón de tokens, para el costo estimado (RF-52). Los fija quien crea la versión, con la tabla de precios del proveedor |
+| tope_caracteres_tdr | int | not null, default 60 000, entre 1 000 y 400 000. Tope del texto de adjuntos que entra al contexto (RNF-24, RN-23) |
+
+La versión 1 se siembra en la migración, activa, con las reglas de veracidad y de pendientes.
+
+**Columnas nuevas en `consumos_ia`:** `empresa_id` (uuid, FK → perfiles: el dueño del documento, de cuyo cupo sale el crédito — RN-28; `usuario_id` sigue siendo quien originó la acción), `modelo` (text), `plantilla_id` (uuid, FK → plantillas_generacion), `duracion_ms` (int) y `credito_descontado` (boolean, not null, default false; check: solo puede ser true si `exito`). **`costo_estimado` va en USD**, la moneda en que factura el proveedor. La empresa lee también los consumos cargados a su cupo (`empresa_id = auth.uid()`), aunque los haya originado su consultor.
+
+**Unicidad:** `documentos_generados (proyecto_id, convocatoria_id, version)` única. Regenerar crea una fila nueva con `version` siguiente y `documento_padre_id` apuntando a la anterior, que se conserva (RF-61, CU-34 5a).
+
+**Cupo.** `privado.creditos_disponibles(p_suscripcion)` = `max(0, plan.creditos_ia_mensuales − creditos_usados_periodo) + creditos_extra`. Se cobra de la suscripción con la `fecha_vencimiento` más lejana del dueño —la misma que muestra la sesión— y solo si `tiene_suscripcion_vigente()`. **Primero se gastan los créditos del plan y después los de paquetes**: `creditos_usados_periodo` nunca supera los incluidos y, pasado ese punto, se descuenta de `creditos_extra`. Así el reinicio mensual no devuelve paquetes ya gastados (RN-18). *Hasta esta sesión la pantalla sumaba `incluidos + extra − usados`, que con el reinicio habría devuelto los extras gastados.*
+
+**Funciones.** Todas `security definer`, con clave estable en `hint` y **ejecutables solo por `service_role`**: reciben el usuario como parámetro, y el endpoint lo pasa desde la sesión ya verificada. Se descartó que el cliente pudiera llamarlas directamente: `iniciar_generacion` reserva cupo y crea filas, y abrirla a `authenticated` habría permitido reservar sin pasar por el límite de tasa (RNF-27) ni por el endpoint.
+
+| Función | Comprueba | Qué hace |
+|---|---|---|
+| `iniciar_generacion(p_usuario, p_proyecto, p_convocatoria)` | rol empresa (`no_es_empresa`); proyecto suyo (`proyecto_no_existe`); convocatoria existente (`convocatoria_no_existe`); suscripción vigente (`sin_suscripcion`); cupo menos reservas > 0 (`sin_creditos`); plantilla activa (`sin_plantilla`); vigencia por el trigger de RF-78 (`convocatoria_no_vigente`) | Bloquea la suscripción, **borra las reservas de más de 5 minutos** (registrándolas como consumo fallido: el servidor murió a mitad), inserta el documento en `generando` con la versión siguiente, su padre, la plantilla activa y la postulación no cerrada del par si existe (CU-33 7a). Devuelve id, versión, plantilla, modelo, precios y tope. **La fila en `generando` es la reserva del crédito**: dos generaciones simultáneas con un solo crédito no pasan las dos |
+| `completar_generacion(p_documento, p_titulo, p_contenido, p_pendientes, tokens, costo, modelo, duración)` | el documento sigue en `generando` (`generacion_no_encontrada`); cupo (`sin_creditos`) | Guarda el resultado en `generado`, **descuenta el crédito** y registra el consumo con éxito, en una transacción. Fija aquí el padre: la última versión terminada del par (*migración `20261019110000`*: al reservar, la anterior puede seguir en `generando`) |
+| `fallar_generacion(p_documento, p_mensaje, tokens, costo, modelo, duración)` | — | Borra la reserva y registra el consumo **sin crédito** (RN-17). Los tokens de un intento fallido se registran igual: cuestan aunque no se cobren |
+| `preparar_ajuste(p_usuario, p_documento)` | acceso: dueño, o consultor autorizado con encargo `en_curso` (RN-27; si no, `documento_no_existe`); documento generado; suscripción vigente **del dueño**; si es el cuarto ajuste o más, cupo **del dueño** (`sin_creditos`, RF-77, RN-28) | Devuelve si cobrará, cuántos ajustes van y el contexto de la plantilla. No escribe nada: se llama **antes** de pedir el ajuste a la IA, para no gastar una llamada que no se podría guardar |
+| `completar_ajuste(p_usuario, p_documento, p_ajustes_previos, p_contenido, p_pendientes, tokens, costo, modelo, duración)` | lo mismo, con la fila bloqueada; el contador sigue en `p_ajustes_previos` (`ajuste_concurrente`) | Aplica el contenido, suma el ajuste, marca `editado` y `ultima_edicion_por`, descuenta del dueño si es el cuarto o más y registra el consumo |
+| `registrar_consumo_fallido(p_usuario, p_documento, p_tipo, p_mensaje, tokens, costo, modelo, duración)` | — | Consumo sin éxito y sin crédito (ajuste fallido) |
+| `marcar_exportado(p_usuario, p_documento)` | solo el dueño (`documento_no_existe` para cualquier otro, consultor incluido — RF-72) | `estado = 'exportado'` |
+
+**Contenido.** `contenido` es Markdown con una sección por encabezado `## `; `pendientes` lo calcula siempre el servidor a partir de los marcadores `[COMPLETAR: …]` del contenido, nunca lo envía el cliente. La edición manual (RF-58) sigue yendo con la sesión del usuario y la RLS de §9.5.
+
+**Listados.** Las pantallas muestran la última versión de cada par proyecto-convocatoria y nunca las filas en `generando`.
+
+**Compartir con el consultor y traza de lectura** *(sesión 026 — RF-71, RF-76, RF-79, migración `20261019200000`)*
+
+| Función | Comprueba | Qué hace |
+|---|---|---|
+| `compartir_documento(p_usuario, p_documento, p_consultor)` | dueño (`documento_no_existe`); el consultor tiene un encargo `en_curso` sobre el proyecto del documento (`sin_encargo_en_curso`) | `compartido_con_consultor_id = p_consultor`. Un documento se comparte con un consultor a la vez |
+| `revocar_documento(p_usuario, p_documento)` | dueño | `compartido_con_consultor_id = null` |
+| `registrar_lectura_documento(p_usuario, p_documento)` | el usuario es el consultor autorizado con acceso vigente (RN-27); para la dueña no hace nada | Inserta la lectura |
+
+Las tres son de `service_role`, como las de arriba. **La revocación automática (RF-76) ya existía** desde el Sprint 0 (trigger `encargos_revocar_documentos`, §9.3): suspender al consultor (RN-29) y vencer su suscripción (job 2) cancelan sus encargos en curso, y ese cambio de estado limpia la autorización. El acceso, de todos modos, nunca dependió de la columna sola: la política exige además el encargo en curso en cada consulta (RN-27).
+
+**DOCUMENTO_LECTURAS** *(tabla 32)* — cada vez que el consultor autorizado abre el documento (RF-79, RNF-11)
+
+| Campo | Tipo | Restricción |
+|---|---|---|
+| id | uuid | PK |
+| documento_id | uuid | FK → documentos_generados, `on delete cascade` |
+| consultor_id | uuid | FK → perfiles |
+| leido_at | timestamptz | default `now()` |
+
+Índice `(documento_id, leido_at)`. **RLS:** la empresa dueña del documento y el administrador leen; nadie escribe desde el cliente. Se conserva tras revocar: es justamente lo que permite reconstruir qué consultó el consultor mientras tuvo acceso.

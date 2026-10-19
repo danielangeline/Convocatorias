@@ -22,6 +22,19 @@
       ],
       "port": 3100,
       "autoPort": false
+    },
+    {
+      "name": "dev-ia-prueba",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "port": 3000,
+      "autoPort": false,
+      "env": {
+        "IA_PROVEEDOR": "prueba"
+      }
     }
   ]
 }

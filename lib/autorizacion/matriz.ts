@@ -61,6 +61,10 @@ const PREFIJOS: [string, Regla][] = [
   // (/api/proyectos/[id]/sugerencias, CU-10).
   ["/api/proyectos", EMPRESA],
   ["/proyectos", EMPRESA],
+  // Sprint 5: documentos con IA. Generar y exportar son solo de la empresa
+  // (`conEmpresa` en la ruta, RF-72); leer, editar y ajustar los comparte con el
+  // consultor autorizado (RN-22, RN-27), y la base decide qué documento.
+  ["/api/documentos", { tipo: "roles", roles: ["empresa", "consultor"] }],
   ["/documentos", EMPRESA],
   // Sprint 3 pasos 3 y 4: postulaciones, su checklist y su estado (RN-30, RF-83).
   ["/api/postulaciones", EMPRESA],

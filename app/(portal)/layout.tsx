@@ -6,6 +6,7 @@ import { SincronizarCatalogo } from "@/components/SincronizarCatalogo";
 import { SincronizarProyectos } from "@/components/SincronizarProyectos";
 import { SincronizarPostulaciones } from "@/components/SincronizarPostulaciones";
 import { SincronizarEncargos } from "@/components/SincronizarEncargos";
+import { SincronizarDocumentos } from "@/components/SincronizarDocumentos";
 import { Suspense } from "react";
 import { AvisoPuerta } from "@/components/identidad/AvisoPuerta";
 import { AvisoSuscripcion } from "@/components/AvisoSuscripcion";
@@ -14,6 +15,7 @@ import { listarCatalogo, listarCategoriasActivas } from "@/lib/catalogo";
 import { listarProyectos } from "@/lib/proyectos-servidor";
 import { listarPostulaciones, sinConvocatoria } from "@/lib/postulaciones-servidor";
 import { aEncargoBase, listarEncargosEmpresa } from "@/lib/encargos-servidor";
+import { aDocumentoStore, listarDocumentos } from "@/lib/documentos-servidor";
 
 // Portal Empresa: solo rol empresa (RNF-30, docs/04 §8.2). proxy.ts ya lo
 // aplica; esta es la segunda barrera.
@@ -22,13 +24,14 @@ export default async function PortalLayout({ children }: { children: React.React
   // Sprint 2 paso 4: el catálogo real, leído con la sesión de la empresa (RN-33).
   // Sprint 3: y sus proyectos y postulaciones (RN-30). Se entregan sin la
   // convocatoria embebida, que las pantallas del store no usan.
-  // Sprint 4 paso 3: y sus encargos.
-  const [convocatorias, categorias, proyectos, postulaciones, encargos] = await Promise.all([
+  // Sprint 4 paso 3: y sus encargos. Sprint 5: y sus documentos generados.
+  const [convocatorias, categorias, proyectos, postulaciones, encargos, documentos] = await Promise.all([
     listarCatalogo(),
     listarCategoriasActivas(),
     listarProyectos(),
     listarPostulaciones(),
     listarEncargosEmpresa(),
+    listarDocumentos(),
   ]);
 
   return (
@@ -38,6 +41,7 @@ export default async function PortalLayout({ children }: { children: React.React
       <SincronizarProyectos proyectos={proyectos} />
       <SincronizarPostulaciones postulaciones={postulaciones.map(sinConvocatoria)} />
       <SincronizarEncargos encargos={encargos.map(aEncargoBase)} />
+      <SincronizarDocumentos documentos={documentos.map(aDocumentoStore)} />
       <Navbar />
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
         {/* RF-84: aviso si entró por la puerta del otro rol */}
@@ -51,7 +55,7 @@ export default async function PortalLayout({ children }: { children: React.React
         {children}
       </main>
       <footer className="border-t border-line-soft py-6 text-center text-xs text-ink-faint">
-        Plataforma de Gestión de Convocatorias — la cuenta, la suscripción, el catálogo, los proyectos, las postulaciones, los consultores y los encargos son reales; el resto, datos de ejemplo.
+        Plataforma de Gestión de Convocatorias — la cuenta, la suscripción, el catálogo, los proyectos, las postulaciones, los consultores, los encargos y los documentos son reales; el resto, datos de ejemplo.
       </footer>
       <ModalSuscripcion />
       <ModalCreditos />

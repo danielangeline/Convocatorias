@@ -68,7 +68,7 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 |---|---|---|
 | RF-45 Datos de contenido | verificado | **Sesión 018:** los nueve campos de contenido se guardan en Supabase, con validación de forma en el servidor (longitudes, duración entera, montos en formato colombiano). Verificado en `scripts/prueba-proyectos.mjs` (43 comprobaciones, todas pasan) |
 | RF-46 Indicador de completitud accionable | verificado | **Sesión 018:** la completitud la calcula un trigger al guardar y no se puede falsear escribiéndola directamente (comprobado); `lib/proyectos.ts` enumera en pantalla los campos que faltan con la misma regla (0, 11, 44 y 100 comprobados). **Sesión 019:** el Product Owner lo revisó en pantalla con su cuenta de empresa (pendiente 10): funciona |
-| RF-47 Generar sobre proyecto incompleto | prototipo | |
+| RF-47 Generar sobre proyecto incompleto | verificado | **Sesión 026:** generar sobre un proyecto al 22 % muestra la advertencia y genera, en el navegador; lo que falta queda como `[COMPLETAR: …]` |
 
 ### 4.5 Postulación y seguimiento
 
@@ -104,8 +104,8 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RF-68 Contexto del proyecto en el encargo | verificado | **Sesión 023 (Sprint 4 paso 3):** el consultor lee con su sesión el proyecto, sus categorías, la convocatoria con sus requisitos y el checklist vinculado mientras el encargo está pendiente o en curso (RN-25). Visto en el navegador. **Sesión 025 (Hito 4):** recorrido de punta a punta en el navegador (Playwright, local) con dos empresas, una consultora y un administrador temporales, ya borrados: ver la bitácora 025. Visto el proyecto con categorías, monto y ubicación, y la convocatoria con sus requisitos (el checklist vinculado lo cubre `prueba-encargos.mjs`). |
 | RF-69 Ayuda para encontrar convocatoria *(mod. sesión 024)* | verificado | **Sesión 023 (Sprint 4 paso 3):** categorías, monto buscado y ubicación del proyecto en el contexto; las candidatas se reportan como avances. Visto en el navegador. **Sesión 024:** la especificación cambió (las candidatas pasan a búsqueda y propuestas, RF-91..93, Sprint 5); lo de la sesión 023 sigue valiendo; se completa con ellas. **Sesión 025:** completado con RF-91..93: el consultor ya no reporta candidatas como avances, las propone desde la búsqueda; la tarjeta en curso enlaza a "Buscar y proponer" |
 | RF-70 Revelar contacto al aceptar | verificado | **Sesión 023 (Sprint 4 paso 3):** `datos_de_mis_encargos()` lee el correo de `auth.users` solo en encargos del directorio `en_curso`, `completado` o `calificado` (decisión del Product Owner: sigue visible al completar). Visto en el navegador en las dos pantallas. **Sesión 025 (Hito 4):** recorrido de punta a punta en el navegador (Playwright, local) con dos empresas, una consultora y un administrador temporales, ya borrados: ver la bitácora 025. El correo aparece en las dos pantallas al aceptar y sigue tras completar y calificar; la segunda empresa no lo ve, ni el sitio web en el perfil. |
-| RF-71 Autorizar documento al consultor | prototipo | |
-| RF-72 Bloquear exportación en servidor | pendiente | Hoy solo se oculta el botón |
+| RF-71 Autorizar documento al consultor | verificado | **Sesión 026:** compartir y revocar con `compartir_documento`/`revocar_documento`, solo la dueña y solo con un consultor de encargo `en_curso` sobre el proyecto; pantallas de empresa y consultor |
+| RF-72 Bloquear exportación en servidor | verificado | Hoy solo se oculta el botón **Sesión 026:** `/exportar` exige `conEmpresa` (consultor → 403) y `marcar_exportado` exige al dueño (otra empresa → 404) |
 | RF-73 Ir al portal como acción primaria | verificado | **Sesión 020:** el detalle de la postulación lee del servidor el enlace oficial (validado al guardar, RNF-29) y lo presenta como botón primario, antes de "Solicitar consultor"; comprobado en el HTML por `prueba-postulaciones.mjs`. Jerarquía visual comprobada en el navegador: botón primario de ancho completo, encima de "Solicitar consultor" |
 | RF-74 Solicitud directa desde el perfil | verificado | **Sesión 023 (Sprint 4 paso 3):** el perfil del consultor crea el encargo por `POST /api/encargos`, con proyecto o postulación; los errores de la base (RN-36, consultor no disponible) se muestran en el modal. Probado por HTTP. **Sesión 025 (Hito 4):** recorrido de punta a punta en el navegador (Playwright, local) con dos empresas, una consultora y un administrador temporales, ya borrados: ver la bitácora 025. Solicitud desde el perfil; la repetida sobre el mismo proyecto muestra el rechazo de RN-36 en el modal. |
 | RF-75 Buscador de convocatorias en el selector | prototipo | El buscador filtra en el cliente las convocatorias reales del catálogo; **sesión 023:** la vigencia la vuelve a exigir `solicitar_encargo()` |
@@ -133,27 +133,27 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RF-40 Verificación en acciones restringidas | servidor | En la base para postular, ver sugerencias y solicitar consultor (`tiene_suscripcion_vigente`, Sprints 3 y 4); **sesión 023: con la fecha de Colombia** y sin depender de que el job haya corrido. `prueba-vencimiento-suscripciones.mjs` 10/10: pasada la gracia, 402 en sugerencias y encargos; el catálogo sigue abierto. La generación con IA llega en el Sprint 5 |
 | RF-41 Vista del suscriptor | prototipo | |
 | RF-42 Tablero admin de suscripciones | prototipo | |
-| RF-48 Un crédito por generación exitosa | prototipo | |
+| RF-48 Un crédito por generación exitosa | verificado | **Sesión 026:** `completar_generacion` descuenta en la misma transacción que guarda; la fila en `generando` es la reserva (docs/05 §9.26). SQL 38/38 y HTTP 59/59: la fallida, la vencida y la de proyecto ajeno no cobran |
 | RF-49 Reinicio mensual del cupo | servidor | Job `reiniciar-creditos-ia` programado en `pg_cron` (sesión 003). Falta ver una ejecución real |
-| RF-50 Bloquear sin cupo | prototipo | |
+| RF-50 Bloquear sin cupo | verificado | **Sesión 026:** sin cupo, `iniciar_generacion` y `preparar_ajuste` responden `sin_creditos` → 402 antes de llamar a la IA; la pantalla abre el modal de créditos |
 | RF-51 Paquetes adicionales | prototipo | |
-| RF-52 Registrar consumo con tokens y costo | pendiente | `EstadisticasIA` no guarda tokens ni costo |
+| RF-52 Registrar consumo con tokens y costo | verificado | `EstadisticasIA` no guarda tokens ni costo **Sesión 026:** `consumos_ia` con tokens, costo en USD (precios de la plantilla), modelo, plantilla, duración, `empresa_id` y si descontó crédito; también los fallidos |
 
 ### 4.10 Generación documental con IA
 
 | RF | Estado | Nota |
 |---|---|---|
-| RF-53 Acción de generar/editar | prototipo | |
-| RF-54 Lista de proyectos con completitud y cupo | prototipo | |
-| RF-55 Construcción del contexto | pendiente | Hoy se compone con plantillas, sin TDR |
-| RF-56 Estructura según requisitos | prototipo | Estructura fija, no derivada |
-| RF-57 Marcar pendientes | prototipo | `[COMPLETAR: ...]` funcionando |
-| RF-58 Vista previa editable | prototipo | |
-| RF-59 Tres ajustes gratis | prototipo | |
-| RF-60 Exportar a Word | prototipo | Genera HTML con extensión `.doc`, no `.docx` |
-| RF-61 Documento ligado a proyecto-convocatoria | prototipo | |
-| RF-62 Progreso y fallo controlado | prototipo | Sin tope de 120 s (RNF-21) |
-| RF-63 Plantilla del prompt versionada | prototipo | Falta cargar el prompt real |
+| RF-53 Acción de generar/editar | servidor | **Sesión 026:** la ficha de la convocatoria, la del proyecto y la postulación llevan a generar; la pantalla de generar ofrece "Editar documento" si el par ya tiene uno, y el detalle de la postulación lo encuentra con los documentos reales del store |
+| RF-54 Lista de proyectos con completitud y cupo | verificado | **Sesión 026:** visto en el navegador: proyectos con completitud y créditos restantes reales |
+| RF-55 Construcción del contexto | servidor | Hoy se compone con plantillas, sin TDR **Sesión 026:** `lib/ia/contexto.ts` arma proyecto + convocatoria + requisitos + texto del TDR y de los términos (PDF con `unpdf`, .docx con `mammoth`), saneado y con tope. **Falta probarlo con un TDR real** (las pruebas de esta sesión no subieron uno legible) |
+| RF-56 Estructura según requisitos | servidor | Estructura fija, no derivada **Sesión 026:** la plantilla pide la estructura de los requisitos o del TDR y, si no hay, la estándar. Con el proveedor de prueba sale la estándar (9 secciones); falta verlo con el modelo real |
+| RF-57 Marcar pendientes | verificado | `[COMPLETAR: ...]` funcionando **Sesión 026:** los pendientes los calcula siempre el servidor desde los marcadores, al generar, ajustar y editar; el cliente no los envía |
+| RF-58 Vista previa editable | verificado | **Sesión 026:** `PATCH /api/documentos/[id]` con la sesión y la RLS; sin costo, marca `editado` y quién editó |
+| RF-59 Tres ajustes gratis | verificado | **Sesión 026:** tres ajustes gratis y el cuarto cobra, en SQL y HTTP; con el consultor también |
+| RF-60 Exportar a Word | verificado | Genera HTML con extensión `.doc`, no `.docx` **Sesión 026:** `.docx` real (Office Open XML, librería `docx`), armado en el servidor, con los pendientes resaltados; HTTP comprueba la cabecera ZIP |
+| RF-61 Documento ligado a proyecto-convocatoria | verificado | **Sesión 026:** regenerar crea la versión siguiente con su padre y conserva la anterior; la lista muestra la última |
+| RF-62 Progreso y fallo controlado | verificado | Sin tope de 120 s (RNF-21) **Sesión 026:** progreso en pantalla; un fallo responde 502/504 con "No se descontó ningún crédito" y el botón de reintentar |
+| RF-63 Plantilla del prompt versionada | prototipo | Falta cargar el prompt real **Sesión 026:** la generación ya lee la plantilla activa de la base (versión 1 sembrada, con el modelo y sus precios) y cada documento guarda con cuál se hizo. **Falta el panel para editarla y versionarla** (CU-37): `/admin/plantillas` sigue en el store |
 
 ### 4.11 Seguridad administrativa
 
@@ -170,10 +170,10 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 
 | RF | Estado | Nota |
 |---|---|---|
-| RF-76 Revocación automática en cascada | pendiente | Sprint 5 |
-| RF-77 Validar cupo de la empresa dueña | pendiente | Sprint 5 |
+| RF-76 Revocación automática en cascada | verificado | Sprint 5 **Sesión 026:** el trigger del Sprint 0 limpia la autorización al salir el encargo de `en_curso`; probado en SQL y HTTP (el consultor pierde el documento y la pantalla se lo dice). La suspensión y el vencimiento llegan por la cancelación del encargo (RN-29) |
+| RF-77 Validar cupo de la empresa dueña | verificado | Sprint 5 **Sesión 026:** sin cupo de la empresa, el ajuste del consultor se rechaza antes de llamar a la IA, sin tocar el documento, con "Avísale" |
 | RF-78 Vigencia verificada en servidor | servidor | La política de insert de `postulaciones` ya exigía convocatoria publicada y vigente (sesión 003). **Sesión 017:** trigger `privado.exigir_convocatoria_vigente()` en `postulaciones` y `documentos_generados`, al crear y al cambiar de convocatoria, que **también frena a `service_role`**; clave `convocatoria_no_vigente`; "vigente" con la fecha de Colombia. Probado con `supabase/tests/vigencia_al_crear.sql` (14/14: vigente y que cierra hoy, sí; vencida, cerrada, despublicada y borrador, no; mover una postulación a una cerrada, no; editar lo ya creado, sí). **Los endpoints que lo traducen a 409 llegan con sus módulos**: postular (Sprint 3) y generar (Sprint 5) |
-| RF-79 Traza de lectura | pendiente | Sprint 5 |
+| RF-79 Traza de lectura | verificado | Sprint 5 **Sesión 026:** tabla 32 `documento_lecturas`: cada lectura del consultor (API y pantalla), no la de la dueña; la empresa las lee y se conservan tras revocar |
 | RF-80 Contacto por pareja empresa-consultor | servidor | **Mod. sesión 022 (Product Owner): el contacto se revela al aceptar, con el encargo `en_curso`; la solicitud `pendiente` ya no revela nada.** `privado.solicitud_activa()` cuenta solo `en_curso`, y con ella `contacto_consultor()`, la política de `consultor_redes` y la nueva de Storage para la hoja de vida (solo el `cv_path` vigente). `GET /api/consultores/[id]/cv` firma 15 minutos. **Sesión 023: probado con la aceptación real por la API** (`prueba-encargos.mjs`): al aceptar, el perfil del directorio muestra el contacto. Falta el recorrido del Product Owner en pantalla (pendiente 17) |
 
 ### 4.13 Usabilidad de los flujos *(v6)*
@@ -210,17 +210,17 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RNF-18 Archivos de perfil y adjuntos | servidor | 2 | **Sesión 012:** el límite y los tipos se declaran **en el bucket** (20 MB y PDF/Word/Excel/ZIP para adjuntos; 5 MB JPG/PNG para la foto; 10 MB PDF para la hoja de vida), así que una subida directa que los incumpla la rechaza Storage aunque nadie la revise. El servidor lo valida antes de firmar y otra vez al registrar, exigiendo que el tipo real case con la extensión; la pantalla avisa primero. Probado: .exe → 400, 21 MB → 400, un PDF subido como .zip → 400 y el objeto se borra. **Falta:** los archivos del perfil del consultor, que llegan con su módulo |
 | RNF-19 Rendimiento del directorio | pendiente | 4 | |
 | RNF-20 Enforcement en servidor | servidor | 1–5 | **Sesión 023 (Sprint 4 paso 5):** sin suscripción, la API directa responde 402 en postular, sugerencias y solicitar consultor, y la RLS rechaza la inserción aunque se salte la API; los cambios de estado de postulaciones y encargos quedan en su historial. El cupo de créditos llega en el Sprint 5 |
-| RNF-21 Generación con IA hasta 120 s | pendiente | 5 | |
-| RNF-22 Independencia del proveedor de IA | pendiente | 5 | |
-| RNF-23 Veracidad del contenido | prototipo | 5 | El principio está bien implementado |
-| RNF-24 Transparencia del uso de IA | pendiente | 5 | |
+| RNF-21 Generación con IA hasta 120 s | servidor | 5 | **Sesión 026:** la IA tiene 110 s (`AbortSignal.timeout`) y la ruta `maxDuration = 150`; al vencer, 504 sin crédito. **Falta medir 20 generaciones con TDR reales**: la cuenta de OpenAI no tiene saldo |
+| RNF-22 Independencia del proveedor de IA | servidor | 5 | **Sesión 026:** interfaz `ProveedorIA` en `lib/ia/` con dos implementaciones (OpenAI y la de prueba); el modelo y su precio son datos de la plantilla. Pendiente la revisión de diseño del Product Owner |
+| RNF-23 Veracidad del contenido | servidor | 5 | El principio está bien implementado **Sesión 026:** reglas de veracidad en la plantilla v1; los datos ausentes llegan al modelo como "(sin dato)", nunca como 0. **Falta la revisión experta de 10 documentos con el modelo real** |
+| RNF-24 Transparencia del uso de IA | servidor | 5 | **Sesión 026:** tokens y costo por consumo, y tope de caracteres del TDR en la plantilla. Falta el texto en los términos (el aviso ya está en la pantalla de generar) |
 | RNF-25 Cobertura de RLS | verificado | 1 | **Sesión 023 (Sprint 4 paso 5):** **30 tablas** (`encargo_historial`), todas con RLS y al menos una política; ninguna política de escritura para el anónimo ni abierta con `true` (`rnf_esquema.sql`); la lectura cruzada por tabla la repite `rls_aislamiento.sql`, que pasa entera. Antes: 26 tablas (sesión 003), 27 (006), 29 (019) |
 | RNF-26 Credenciales elevadas | verificado | 1 | **Sesión 023 (Sprint 4 paso 5):** sobre el build de producción, la clave de `service_role` aparece en **0 de 84** archivos de `.next/static`, igual que su nombre y la cadena `service_role`; solo la usan `lib/supabase/servidor.ts` y `lib/autorizacion/eventos.ts`, los dos con `server-only` |
 | RNF-27 Límite de tasa | pendiente | 5 | Upstash Redis (sesión 021) |
 | RNF-28 MFA de administradores | verificado | 1 | **Sesión 023 (Sprint 4 paso 5):** un administrador recién invitado, sin segundo factor, recibe 307 a `/mfa` al pedir el panel; con el TOTP verificado entra con aal2 (`prueba-rnf-criticos.mjs`). La pantalla la usó el Product Owner al activar su cuenta (16-sep) |
 | RNF-29 Validación del enlace | servidor | 2 | **Sesión 011:** `esUrlHttp` en `lib/admin/catalogo.ts` valida antes de guardar (fuentes y enlace oficial) y la restricción de la tabla lo repite. Probado: `javascript:`, cadena inválida, dominio sin punto y `ftp://` → 400 con mensaje claro, sin guardar nada. Falta al publicar (RF-09) |
 | RNF-30 Autorización por rol | verificado | 1 | **Sesión 023 (Sprint 4 paso 5):** matriz rol × ruta con cuentas temporales, **92 combinaciones** (anónimo, empresa, consultor y administrador sobre 23 rutas de pantalla y API, incluidas las de encargos): todas responden lo esperado (307, 403 o 404); una ruta no declarada da 404; los rechazos quedan como `acceso_denegado` con el usuario. Historial: **Causa raíz de la auditoría.** Sesión 007: la matriz está en `lib/autorizacion/matriz.ts` y la aplica `proxy.ts` a páginas, peticiones RSC, Server Actions y `/api`; es cerrada por defecto (una ruta sin declarar responde 404). Segunda barrera en los layouts (`exigirRol`). Matriz ejecutada con `scripts/prueba-matriz-roles.mjs` contra el build de producción (sesión 007): 44 comprobaciones, todas pasan. **Pendiente:** aún no hay endpoints `/api` propios que probar, y la segunda barrera no se ejercitó por separado Sesión 009: primeros endpoints `/api` propios, con reglas solo del Propietario en la matriz; 58 comprobaciones pasan. |
-| RNF-31 Inyección en el TDR | pendiente | 5 | |
+| RNF-31 Inyección en el TDR | servidor | 5 | **Sesión 026:** saneamiento en cuatro capas (`lib/ia/contexto.ts`), probado con 12 instrucciones incrustadas y 4 textos legítimos (`scripts/prueba-saneamiento-tdr.mjs`, 21/21). Falta la mitad del criterio que exige el modelo real: que no ejecute ninguna |
 | RNF-32 Retención y eliminación | pendiente | 5 | **Sesión 023:** falta que el Product Owner fije los plazos de conservación (documentos generados, consumos de IA, contenido enviado al proveedor) y el procedimiento de eliminación; después se escribe la política en los términos y se prueba de punta a punta. **Sesión 025:** pasa al Sprint 5 por decisión del Product Owner: la retención trata sobre todo documentos generados e IA |
 | RNF-33 Degradación fail-closed | pendiente | 5 | |
 | RNF-34 Lenguaje sin identificadores | verificado | — | **Sesión 023 (Sprint 4 paso 5):** 24 pantallas de los tres portales y las públicas, con datos reales, sin ningún `CU-`, `RF-`, `RNF-` ni `RN-` en el texto visible |
@@ -240,9 +240,9 @@ Las reglas están documentadas (RN-34 desde la sesión 019); estas son las que t
 | RN-34 Ubicación por departamentos *(v6, sesión 019)* | servidor | 3 — tabla `departamentos` (33, código DANE) sin escritura desde la app, cobertura de la convocatoria y departamento del proyecto; se compara solo por código. Probado en SQL y HTTP |
 | RN-03 No postular ni generar sobre cerradas | prototipo (solo UI) | 2 |
 | RN-35 Una postulación en curso por par; proyecto fijo; checklist hasta cerrar *(v6, sesión 020)* | servidor | 3 — índice único parcial por par con proyecto, comprobación en `iniciar_postulacion` para el par sin proyecto, trigger `proyecto_fijo` y trigger del checklist cerrado. Probado en SQL y HTTP, incluido que borrar un proyecto sigue funcionando |
-| RN-17 Un crédito por generación exitosa | prototipo | 5 — RLS impide crear documentos y tocar el contador de ajustes o los créditos desde el cliente (sesión 003) |
-| RN-18 Reinicio mensual, sin acumular | pendiente | 5 |
-| RN-23 Saneamiento del TDR | pendiente | 5 |
+| RN-17 Un crédito por generación exitosa | verificado | 5 — RLS impide crear documentos y tocar el contador de ajustes o los créditos desde el cliente (sesión 003) **Sesión 026:** reserva, crédito solo al guardar, fallidas registradas sin crédito, reservas huérfanas liberadas a los 5 minutos y los ajustes 1–3 gratis (SQL y HTTP) |
+| RN-18 Reinicio mensual, sin acumular | servidor | 5 — **Sesión 026:** primero se gastan los créditos del plan y después los del paquete, así el reinicio no devuelve paquetes gastados (probado en SQL). El job 3 sigue con `current_date` y falta ver una ejecución real |
+| RN-23 Saneamiento del TDR | servidor | 5 — **Sesión 026:** ver RNF-31 |
 | RN-06 Rol admin solo por invitación del Propietario *(mod. v6, sesión 005)* | servidor | 1 — el autorregistro nunca produce administradores (trigger, probado). Sesión 009: la invitación solo nace de `crear_invitacion_admin`, que exige al Propietario vigente, y del endpoint solo del Propietario. Falta probar el envío real del correo |
 | RN-31 Propietario único, designado fuera de la app *(v6)* | servidor | 1 — índice único, check que impide revocar al Propietario y columnas protegidas contra el cliente, todo probado. Propietario designado desde la consola en la sesión 006 |
 | RN-33 Catálogo solo para empresas *(v6, sesión 006)* | pendiente | 1 — RLS lista y probada (sesión 006). Sesión 007: la ruta `/convocatorias` solo admite empresa (consultor y administrador → 403, anónimo → login; probado). Falta que la app lea el catálogo de Supabase (Sprint 2). Sesión 010: la landing ya no muestra convocatorias individuales (quitadas las tres "destacadas"); solo los indicadores agregados, que aún salen del mock (RF-44). **Sesión 025:** excepción de la sesión 024 construida y probada: el consultor con un encargo de búsqueda en curso ve solo publicadas y vigentes, y las pierde al terminar el encargo; sin él, el catálogo de la empresa le sigue dando 403 |
@@ -250,8 +250,8 @@ Las reglas están documentadas (RN-34 desde la sesión 019); estas son las que t
 | RN-11 Un trial por cuenta de empresa | servidor | 1 — índice único parcial y trigger de registro; el consultor nace sin suscripción (sesión 004) |
 | RN-24 RLS desde el Sprint 0 | servidor | 1 — cada tabla nació con su política en la misma migración (sesión 003) |
 | RN-26 Contacto solo desde la aceptación *(mod. sesión 023)* | servidor | 4 — **sesión 023:** el correo nunca en `pendiente`, `esperando_asignacion`, `rechazado` ni `cancelado`; sí en `en_curso`, `completado` y `calificado` (decisión del Product Owner). Probado en SQL y HTTP |
-| RN-27 Autorización derivada | pendiente | 5 — política derivada (autorización ∧ encargo `en_curso`) lista y probada en RLS (sesión 003); faltan los endpoints de compartir y revocar |
-| RN-28 Sin cupo propio del consultor | prototipo | 5 — el crédito se resuelve por el propietario del documento, sin respaldo al consultor |
+| RN-27 Autorización derivada | verificado | 5 — política derivada (autorización ∧ encargo `en_curso`) lista y probada en RLS (sesión 003); faltan los endpoints de compartir y revocar **Sesión 026:** con los endpoints de compartir y revocar: autorización ∧ encargo `en_curso` en cada petición, también en las funciones de servidor (`privado.accede_documento`) |
+| RN-28 Sin cupo propio del consultor | verificado | 5 — el crédito se resuelve por el propietario del documento, sin respaldo al consultor **Sesión 026:** el ajuste del consultor se cobra siempre a la empresa dueña (`consumos_ia.empresa_id`), y sin su cupo se rechaza; nunca se carga al consultor |
 | RN-29 Suspender cancela encargos | servidor | 4 — **sesión 022:** en la misma transacción que la suspensión, los encargos `en_curso` y `pendiente` (decisión del Product Owner) pasan a `cancelado` con el motivo fijo de CU-27; el historial y las calificaciones no cambian. Probado con encargos sembrados: los encargos siguen en el store hasta el paso 3. El disparador del vencimiento de la suscripción (CU-32) llega con el paso 4 |
 | RN-25 El consultor ve solo el proyecto de su encargo vivo | servidor | 4 — políticas desde el Sprint 0; **sesión 023:** ampliada al checklist de la postulación vinculada (solo lectura) y probada con encargos reales: completado o rechazado, ya no lee el proyecto. **Sesión 025:** en un encargo de búsqueda, la convocatoria elegida se ve como la de uno específico, y las sugerencias del proyecto mientras esté en curso (RF-91); probado en SQL y HTTP |
 | RN-36 Una solicitud abierta por proyecto y consultor *(v6, sesión 023)* | servidor | 4 — índices únicos parciales (`pendiente`/`en_curso` por proyecto y consultor; `esperando_asignacion` por proyecto). Probado en SQL y HTTP |

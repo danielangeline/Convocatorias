@@ -158,6 +158,8 @@ interface AppState {
   hidratarPostulaciones: (postulaciones: Postulacion[]) => void;
   /** Sprint 4 paso 3: los encargos reales de la empresa, para la ficha del proyecto y documentos. */
   hidratarEncargos: (encargos: Encargo[]) => void;
+  /** Sprint 5: los documentos reales de la empresa (docs/05 §9.26), para la ficha de la postulación y la lista. */
+  hidratarDocumentos: (documentos: DocumentoGenerado[]) => void;
 
   // Fuentes
   agregarFuente: (f: Omit<Fuente, "id">) => void;
@@ -315,6 +317,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   // documentos, encargos).
   hidratarPostulaciones: (postulaciones) => set({ postulaciones }),
   hidratarEncargos: (encargos) => set({ encargos }),
+  hidratarDocumentos: (documentos) => set({ documentos }),
 
   agregarFuente: (f) => {
     set((s) => ({ fuentes: [...s.fuentes, { ...f, id: nuevoId("fuente") }] }));

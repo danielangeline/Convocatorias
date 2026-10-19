@@ -35,3 +35,22 @@ export async function cuerpoDe(request: NextRequest): Promise<Record<string, unk
   const leido = await request.json().catch(() => null);
   return leido && typeof leido === "object" && !Array.isArray(leido) ? leido : null;
 }
+
+/**
+ * Como `conEmpresa`, para los endpoints que comparten la empresa dueña y el
+ * consultor autorizado (documentos, RN-22, RN-27). Qué documento puede tocar
+ * cada uno lo decide después la RLS o la función de la base.
+ */
+export async function conEmpresaOConsultor(
+  request: NextRequest,
+  accion: (usuarioId: string, rol: "empresa" | "consultor") => Promise<NextResponse>
+): Promise<NextResponse> {
+  const datos = await obtenerSesion();
+  if (!datos) return NextResponse.json({ error: "Inicia sesión para continuar." }, { status: 401 });
+  const rol = datos.sesion.rol;
+  if (rol !== "empresa" && rol !== "consultor") return NextResponse.json({ error: "Acceso denegado." }, { status: 403 });
+  if (request.method !== "GET" && request.headers.get("origin") !== origenDe(request)) {
+    return NextResponse.json({ error: "Origen no permitido." }, { status: 403 });
+  }
+  return accion(datos.sesion.usuarioId, rol);
+}

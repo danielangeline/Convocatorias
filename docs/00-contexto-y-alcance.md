@@ -37,7 +37,7 @@ Heredado de la sección 6 del alcance inicial y ahora **operativo**: el document
 | **Administrador de Contenido** | **Solo existe por invitación del Propietario (CU-41, CU-42) y con cuenta dedicada; el panel es invisible para cualquier otro usuario** *(v6)*. Fuentes y convocatorias; revisión y aprobación de consultores; asignaciones internas; planes, precios y suscripciones; **seguridad y auditoría** *(v5)* | CU-01..05, CU-25..27, CU-31, CU-37, **CU-38..40** |
 | **Propietario de la plataforma** *(nuevo v6)* | Un único administrador designado fuera de la aplicación (RN-31). Además de todo lo del Administrador, es el único que invita administradores y revoca su acceso | CU-41, más los del Administrador |
 | **Reloj del sistema** | pg_cron: cierre de convocatorias, vencimiento de suscripciones, reinicio mensual de créditos | CU-06, CU-32, CU-35 |
-| **Servicio de IA (Claude API)** | Actor externo. Recibe el contexto de generación y devuelve el documento base | CU-33 |
+| **Servicio de IA (API de OpenAI)** *(mod. v6, sesión 026: antes Claude API)* | Actor externo. Recibe el contexto de generación y devuelve el documento base | CU-33 |
 | **Pasarela de pagos** | Actor externo, fase de evolución | CU-28, CU-29 |
 
 ---

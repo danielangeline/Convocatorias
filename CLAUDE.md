@@ -72,7 +72,7 @@ ENCARGOS      proyecto → tipo de ayuda (convocatoria específica o buscar conv
 
 ## Stack
 
-Next.js (App Router) + TypeScript + Tailwind, desplegado en **Vercel**. Backend con **Supabase**: PostgreSQL con RLS, Auth (3 roles), Storage (3 buckets) y pg_cron (3 jobs diarios). La IA es **Claude API**, aislada tras una interfaz propia (RNF-22).
+Next.js (App Router) + TypeScript + Tailwind, desplegado en **Vercel**. Backend con **Supabase**: PostgreSQL con RLS, Auth (3 roles), Storage (3 buckets) y pg_cron (3 jobs diarios). La IA es la **API de OpenAI** (desde la sesión 026, decisión del Product Owner; hasta entonces la especificación decía Claude API), aislada tras una interfaz propia (RNF-22). El modelo y su precio son datos de la plantilla activa, no constantes del código.
 
 ## Convenciones
 

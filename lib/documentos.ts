@@ -275,3 +275,32 @@ export function documentoParaProyectoConv(
 export function formatFechaCorta(iso: string): string {
   return formatFecha(iso);
 }
+
+// ---------------------------------------------------------------------------
+// Contenido guardado (docs/05 §9.26): Markdown con una sección por "## ".
+// Lo usan el servidor y las pantallas; los pendientes se calculan siempre a
+// partir de los marcadores, nunca los envía el cliente (RF-57).
+// ---------------------------------------------------------------------------
+
+export function seccionesAContenido(secciones: Array<{ titulo: string; contenido: string }>): string {
+  return secciones.map((s) => `## ${s.titulo.replace(/\n/g, " ").trim()}\n\n${s.contenido.trim()}`).join("\n\n");
+}
+
+export function contenidoASecciones(contenido: string | null): SeccionDocumento[] {
+  if (!contenido) return [];
+  return contenido
+    .split(/^## /m)
+    .filter((bloque) => bloque.trim())
+    .map((bloque, i) => {
+      const salto = bloque.indexOf("\n");
+      const titulo = (salto === -1 ? bloque : bloque.slice(0, salto)).trim();
+      const cuerpo = salto === -1 ? "" : bloque.slice(salto + 1).trim();
+      return { id: `s${i}`, titulo, contenido: cuerpo };
+    });
+}
+
+export function pendientesDe(contenido: string): string[] {
+  const vistos = new Set<string>();
+  for (const m of contenido.matchAll(/\[COMPLETAR:\s*([^\]]+)\]/g)) vistos.add(m[1].trim());
+  return [...vistos];
+}

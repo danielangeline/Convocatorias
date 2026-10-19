@@ -12,7 +12,9 @@ import {
   XCircle,
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
-import { useAccesoSuscripcion, useCreditos, useProyectosPropios, useCategoriaPorId } from "@/lib/hooks";
+import { useAccesoSuscripcion, useCreditos, useDocumentosPropios, useProyectosPropios, useCategoriaPorId } from "@/lib/hooks";
+import { documentoParaProyectoConv } from "@/lib/documentos";
+import { pedir } from "@/lib/pedir";
 import { calcularCompletitud } from "@/lib/proyectos";
 import { cn } from "@/lib/utils";
 import { CompletitudBadge } from "@/components/CompletitudProyecto";
@@ -23,7 +25,9 @@ import { EmptyState } from "@/components/ui/EmptyState";
 const MENSAJES_CARGA = [
   "Leyendo los términos de referencia…",
   "Adaptando tu proyecto a la convocatoria…",
+  "Redactando las secciones…",
   "Marcando los datos pendientes…",
+  "Esto puede tardar hasta dos minutos…",
 ];
 
 export default function GenerarDocumentoPage({ params }: { params: Promise<{ id: string }> }) {
@@ -34,18 +38,15 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
   const proyectos = useProyectosPropios();
   const proyectoParaGenerar = useAppStore((s) => s.proyectoParaGenerar);
   const limpiarProyectoParaGenerar = useAppStore((s) => s.limpiarProyectoParaGenerar);
-  const crearDocumento = useAppStore((s) => s.crearDocumento);
-  const consumirCredito = useAppStore((s) => s.consumirCredito);
-  const registrarGeneracionFallida = useAppStore((s) => s.registrarGeneracionFallida);
   const abrirModalCreditos = useAppStore((s) => s.abrirModalCreditos);
+  const documentos = useDocumentosPropios();
   const { requerirAcceso } = useAccesoSuscripcion();
-  const { disponibles, usuarioId } = useCreditos();
+  const { disponibles } = useCreditos();
 
   const [seleccionId, setSeleccionId] = useState<string | null>(proyectoParaGenerar);
   const [generando, setGenerando] = useState(false);
   const [mensajeIndex, setMensajeIndex] = useState(0);
-  const [error, setError] = useState(false);
-  const [forzarError, setForzarError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const intervaloRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -71,9 +72,13 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
   }
 
   const proyectoSeleccionado = proyectos.find((p) => p.id === seleccionId);
+  // RF-53, RF-61: si el par ya tiene documento, generar crea una versión nueva y conserva la anterior.
+  const documentoExistente = seleccionId ? documentoParaProyectoConv(seleccionId, convocatoria.id, documentos) : undefined;
   const completitudSeleccionado = proyectoSeleccionado ? calcularCompletitud(proyectoSeleccionado) : null;
 
-  const iniciarGeneracion = () => {
+  // CU-33 · El servidor reserva el crédito, llama a la IA y solo cobra si sale
+  // bien (RN-17). La pantalla no decide nada: muestra el progreso y el motivo.
+  const iniciarGeneracion = async () => {
     if (!seleccionId) return;
     if (!requerirAcceso("generar un documento con IA")) return;
     if (disponibles <= 0) {
@@ -81,29 +86,25 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
       return;
     }
 
-    setError(false);
+    setError(null);
     setGenerando(true);
     setMensajeIndex(0);
     let i = 0;
     intervaloRef.current = setInterval(() => {
-      i = (i + 1) % MENSAJES_CARGA.length;
+      i = Math.min(i + 1, MENSAJES_CARGA.length - 1);
       setMensajeIndex(i);
-    }, 1100);
+    }, 8000);
 
-    setTimeout(() => {
-      if (intervaloRef.current) clearInterval(intervaloRef.current);
+    const r = await pedir<{ id: string }>("/api/documentos/generar", { proyectoId: seleccionId, convocatoriaId: convocatoria.id });
+    if (intervaloRef.current) clearInterval(intervaloRef.current);
+    if (!r.ok) {
       setGenerando(false);
-
-      if (forzarError) {
-        setError(true);
-        registrarGeneracionFallida();
-        return;
-      }
-
-      const doc = crearDocumento(seleccionId, convocatoria.id);
-      consumirCredito(usuarioId);
-      router.push(`/documentos/${doc.id}`);
-    }, 3600);
+      setError(r.error);
+      router.refresh();
+      return;
+    }
+    router.push(`/documentos/${r.datos.id}`);
+    router.refresh();
   };
 
   return (
@@ -140,7 +141,7 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
           <XCircle className="h-10 w-10 text-danger" />
           <p className="mt-4 font-display text-base font-semibold text-danger">No pudimos generar el documento</p>
           <p className="mt-1.5 max-w-sm text-sm text-danger/90">
-            Ocurrió un error simulado durante la generación. No se descontó ningún crédito.
+            {error}
           </p>
           <Button variant="danger" className="mt-5" onClick={iniciarGeneracion}>
             <RotateCcw className="h-4 w-4" /> Reintentar
@@ -191,6 +192,19 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
             })}
           </div>
 
+          {documentoExistente && (
+            <div className="mt-5 flex items-start gap-3 rounded-xl border border-teal-200 bg-teal-50 px-4 py-3">
+              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-teal-700" />
+              <p className="text-sm text-teal-900">
+                Ya tienes un documento de este proyecto para esta convocatoria (versión {documentoExistente.version}).{" "}
+                <Link href={`/documentos/${documentoExistente.id}`} className="font-semibold underline">
+                  Editar documento
+                </Link>
+                . Si generas de nuevo, se crea la versión {documentoExistente.version + 1} y la anterior se conserva.
+              </p>
+            </div>
+          )}
+
           {proyectoSeleccionado && completitudSeleccionado && completitudSeleccionado.porcentaje < 50 && (
             <div className="mt-5 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
@@ -204,15 +218,13 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
             </div>
           )}
 
-          <div className="mt-6 flex items-center justify-between">
-            <button
-              onClick={() => setForzarError((v) => !v)}
-              className="text-xs text-ink-faint/70 hover:text-ink-faint hover:underline"
-            >
-              {forzarError ? "Modo prueba: la próxima generación fallará" : "¿Ver cómo se ve un error? (modo prueba)"}
-            </button>
+          <p className="mt-6 text-xs text-ink-faint">
+            El contenido del proyecto y de la convocatoria se procesa con un proveedor externo de IA. El documento es
+            una base: los datos que falten quedan marcados como pendientes, nunca se inventan.
+          </p>
+          <div className="mt-3 flex items-center justify-end">
             <Button variant="teal" size="lg" disabled={!seleccionId} onClick={iniciarGeneracion}>
-              <Sparkles className="h-4 w-4" /> Generar documento
+              <Sparkles className="h-4 w-4" /> {documentoExistente ? "Generar versión nueva (1 crédito)" : "Generar documento (1 crédito)"}
             </Button>
           </div>
         </>

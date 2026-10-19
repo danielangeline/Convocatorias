@@ -167,7 +167,7 @@ El sprint con más riesgo técnico y el único que depende de un proveedor exter
 | Entregable | Requerimientos |
 |---|---|
 | Servicio de generación **aislado tras interfaz propia** | RNF-22 |
-| Claude API con la plantilla versionada y las reglas de veracidad | RF-53..57, 62, 63, RNF-23 |
+| API de OpenAI *(sesión 026; antes Claude API)* con la plantilla versionada y las reglas de veracidad | RF-53..57, 62, 63, RNF-23 |
 | Saneamiento del texto del TDR antes del prompt | RN-23, **RNF-31** |
 | Medición de costo y tokens sobre generaciones reales | RF-52, RNF-24, RNF-21 |
 | Créditos: consumo por generación exitosa, cupos, ajustes gratis, reinicio mensual (job) | RF-48..52, RN-17, RN-18, CU-35 |
