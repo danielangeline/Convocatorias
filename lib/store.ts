@@ -146,10 +146,6 @@ interface AppState {
   compartirDocumento: (documentoId: string, consultorId: string) => void;
   revocarCompartirDocumento: (documentoId: string) => void;
 
-  // Plantillas de prompt (panel admin)
-  agregarVersionPrompt: (contenido: string) => void;
-  activarVersionPrompt: (id: string) => void;
-
   // Proyectos
   /** Sprint 3 paso 1: los proyectos reales de la empresa, leídos en el servidor (RN-30). */
   hidratarProyectos: (proyectos: Proyecto[]) => void;
@@ -584,30 +580,6 @@ export const useAppStore = create<AppState>((set, get) => ({
       documentos: s.documentos.map((d) =>
         d.id === documentoId ? { ...d, compartidoConConsultorId: null } : d
       ),
-    }));
-  },
-
-  // -------------------------------------------------------------------------
-  // Plantillas de prompt (panel admin)
-  // -------------------------------------------------------------------------
-
-  agregarVersionPrompt: (contenido) => {
-    set((s) => {
-      const siguiente = Math.max(0, ...s.promptVersiones.map((p) => p.version)) + 1;
-      const nueva: PromptVersion = {
-        id: nuevoId("prompt"),
-        version: siguiente,
-        contenido,
-        activa: false,
-        fechaCreacion: hoyIso(),
-      };
-      return { promptVersiones: [...s.promptVersiones, nueva] };
-    });
-  },
-
-  activarVersionPrompt: (id) => {
-    set((s) => ({
-      promptVersiones: s.promptVersiones.map((p) => ({ ...p, activa: p.id === id })),
     }));
   },
 }));

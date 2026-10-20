@@ -835,3 +835,28 @@ Las tres son de `service_role`, como las de arriba. **La revocación automática
    - en el servidor, un tope de 450 000 caracteres por mensaje antes de llamar al proveedor (`lib/ia/index.ts`);
    - el trigger de edición del cliente recalcula los pendientes con `privado.pendientes_de()`.
 3. **La traza de lectura se podía saltar.** El consultor autorizado tenía política de lectura directa, y una consulta por PostgREST con su sesión no dejaba rastro (RF-79). **Se retiraron sus dos políticas** (lectura y edición). Ahora lee con `leer_documento(p_usuario, p_documento)`, que registra la lectura en la misma llamada, lista con `documentos_del_consultor(p_usuario)`, sin contenido, y edita con `editar_documento_consultor(p_usuario, p_documento, p_contenido)`. Las tres son de `service_role`. `registrar_lectura_documento` se retiró.
+
+### 9.27 Versiones de la plantilla de generación *(nuevo v6, sesión 027 — Sprint 5 · CU-37, RF-63)*
+
+La plantilla es el activo de conocimiento del producto (CU-37): se administra desde `/admin/plantillas`, sin desplegar. Hasta esta sesión la RLS de §9.3 dejaba al administrador **actualizar cualquier columna** de una versión, también el `contenido` de una con la que ya se generaron documentos, y con eso se perdía la comparación de calidad entre versiones (CU-37 paso 4).
+
+**Una versión es inmutable.** Un trigger (`plantillas_generacion_inmutable`) rechaza, también a `service_role`, cualquier cambio de `nombre`, `version`, `contenido`, `modelo`, los precios, el tope o `creada_por` (`plantilla_inmutable`). Editar es crear la versión siguiente; la anterior se conserva. Solo cambian `activa` y las dos columnas nuevas:
+
+| Campo | Tipo | Nota |
+|---|---|---|
+| activada_por | uuid | FK → perfiles, nullable. Último administrador que la activó (RNF-11) |
+| activada_at | timestamptz | nullable. Cuándo |
+
+Topes nuevos: `contenido` entre 200 y 50 000 caracteres; `modelo` de hasta 60 caracteres, solo minúsculas, dígitos, punto, guion y guion bajo; cada precio ≤ 1 000 USD por millón de tokens.
+
+**Se retiran las políticas de insertar y actualizar** desde el cliente; el administrador sigue leyendo con la suya. Crear y activar van por dos funciones `security definer`, ejecutables por `authenticated` y que exigen `privado.es_admin()` (administrador vigente con aal2, RNF-28; si no, `no_es_admin`):
+
+| Función | Comprueba | Qué hace |
+|---|---|---|
+| `crear_version_plantilla(p_contenido, p_modelo, p_precio_entrada, p_precio_salida, p_tope)` | administrador; los topes de arriba (los checks) | Inserta la versión siguiente de la plantilla «Documento base de postulación» (el `nombre` de la v1), **inactiva**, con `creada_por = auth.uid()`. Bloquea la tabla para que dos administradores no tomen el mismo número. Devuelve el id |
+| `activar_plantilla(p_id)` | administrador; la versión existe (`plantilla_no_existe`) | En una transacción, desactiva la activa y activa esta, con `activada_por` y `activada_at`. **Siempre queda exactamente una activa**: no hay "desactivar" sin activar otra |
+| `estadisticas_plantillas()` | administrador | Por versión: documentos generados, generaciones exitosas y fallidas, promedio de tokens de entrada y de salida, costo medio en USD y promedio de pendientes por documento. Es lo que permite comparar versiones (CU-37 paso 4) |
+
+Una generación ya reservada conserva la plantilla con la que se reservó (`documentos_generados.plantilla_id`, fijada por `iniciar_generacion`): activar otra versión a mitad no la cambia.
+
+**Fuera de este paso:** probar una versión en borrador antes de activarla (CU-37 2a). Necesita una decisión del Product Owner: con qué proyecto y convocatoria se prueba y de qué saldo sale la llamada, porque el administrador no tiene proyectos ni cupo.

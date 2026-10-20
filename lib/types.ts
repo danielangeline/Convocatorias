@@ -522,6 +522,50 @@ export interface PromptVersion {
   fechaCreacion: string; // ISO date
 }
 
+/** Una versión de la plantilla de generación en el panel (CU-37, RF-63 · docs/05 §9.27). */
+export interface PlantillaAdmin {
+  id: string;
+  version: number;
+  contenido: string;
+  activa: boolean;
+  modelo: string;
+  precioEntradaUsdMtok: number;
+  precioSalidaUsdMtok: number;
+  topeCaracteresTdr: number;
+  creadoAt: string;
+  activadaAt: string | null;
+  // Estadísticas de los documentos generados con esta versión (CU-37 paso 4).
+  documentos: number;
+  generacionesExitosas: number;
+  generacionesFallidas: number;
+  tokensEntradaPromedio: number | null;
+  tokensSalidaPromedio: number | null;
+  costoPromedioUsd: number | null;
+  pendientesPromedio: number | null;
+}
+
+/** Una versión de la plantilla de generación en el panel (CU-37, RF-63 · docs/05 §9.27). */
+export interface PlantillaAdmin {
+  id: string;
+  version: number;
+  contenido: string;
+  activa: boolean;
+  modelo: string;
+  precioEntradaUsdMtok: number;
+  precioSalidaUsdMtok: number;
+  topeCaracteresTdr: number;
+  creadoAt: string;
+  activadaAt: string | null;
+  // Estadísticas de los documentos generados con esta versión (CU-37 paso 4).
+  documentos: number;
+  generacionesExitosas: number;
+  generacionesFallidas: number;
+  tokensEntradaPromedio: number | null;
+  tokensSalidaPromedio: number | null;
+  costoPromedioUsd: number | null;
+  pendientesPromedio: number | null;
+}
+
 export interface EstadisticasIA {
   generaciones: number;
   ajustes: number;

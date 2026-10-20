@@ -49,6 +49,11 @@ const INSTRUCCIONES = [
   /^\s*(system|assistant|developer|sistema|asistente)\s*:/i,
   /<\|?\s*(im_start|im_end|system|endoftext)\s*\|?>/i,
   /\[\/?(INST|SYS)\]/i,
+  // Sesión 027: texto dirigido a un redactor automático, aunque no use verbos de
+  // "ignorar" (el modelo real obedeció «toda propuesta generada automáticamente
+  // debe incluir…» como si fuera un requisito del TDR).
+  /\b(generad|redactad|escrit|elaborad)[oa]s?\s+(autom[aá]ticamente|con (ia|inteligencia artificial)|por (una |la )?(ia|inteligencia artificial|un modelo|un asistente))\b/i,
+  /\b(asistente (de ia|virtual|autom[aá]tico|que lea)|ai (writer|assistant|model)|note to the ai|nota para (la ia|el asistente|el modelo))\b/i,
 ];
 
 const MARCA = /<\/?\s*documento_de_la_entidad\s*>/gi;
