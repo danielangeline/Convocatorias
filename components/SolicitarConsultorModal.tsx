@@ -114,9 +114,9 @@ export function SolicitarConsultorModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary-950/40 p-4">
-      <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+      <div role="dialog" aria-modal="true" aria-labelledby="titulo-solicitud" className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="font-display text-lg font-semibold text-ink">
+          <h3 id="titulo-solicitud" className="font-display text-lg font-semibold text-ink">
             {confirmacion ? "Solicitud enviada" : `Solicitar consultor · Paso ${paso} de 3`}
           </h3>
           <button onClick={onClose} className="text-ink-faint hover:text-ink">
@@ -217,10 +217,10 @@ export function SolicitarConsultorModal({
         ) : paso === 2 ? (
           <div className="space-y-4">
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+              <label htmlFor="campo-solicitud-1" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
                 Título de la tarea
               </label>
-              <input
+              <input id="campo-solicitud-1"
                 value={titulo}
                 onChange={(e) => setTitulo(e.target.value)}
                 placeholder="Ej. Estructuración financiera de la postulación"
@@ -228,10 +228,10 @@ export function SolicitarConsultorModal({
               />
             </div>
             <div>
-              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+              <label htmlFor="campo-solicitud-2" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
                 Descripción de la tarea
               </label>
-              <textarea
+              <textarea id="campo-solicitud-2"
                 value={descripcion}
                 onChange={(e) => setDescripcion(e.target.value)}
                 rows={4}
@@ -240,8 +240,9 @@ export function SolicitarConsultorModal({
               />
             </div>
             <p className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-ink-faint">
-              El contenido completo del proyecto{tipoAyuda === "convocatoria_especifica" ? " y los datos de la convocatoria elegida" : ""} se
-              adjuntan automáticamente — no necesitas repetirlos aquí.
+              {tipoAyuda === "convocatoria_especifica"
+                ? "El contenido completo del proyecto y los datos de la convocatoria elegida se adjuntan automáticamente — no necesitas repetirlos aquí."
+                : "El contenido completo del proyecto se adjunta automáticamente — no necesitas repetirlo aquí."}
             </p>
             <div className="flex justify-between gap-3">
               <Button variant="ghost" onClick={() => (convocatoriaFijaId ? onClose() : setPaso(1))}>

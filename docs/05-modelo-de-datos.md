@@ -860,3 +860,37 @@ Topes nuevos: `contenido` entre 200 y 50 000 caracteres; `modelo` de hasta 60 ca
 Una generación ya reservada conserva la plantilla con la que se reservó (`documentos_generados.plantilla_id`, fijada por `iniciar_generacion`): activar otra versión a mitad no la cambia.
 
 **Fuera de este paso:** probar una versión en borrador antes de activarla (CU-37 2a). Necesita una decisión del Product Owner: con qué proyecto y convocatoria se prueba y de qué saldo sale la llamada, porque el administrador no tiene proyectos ni cupo.
+
+### 9.28 Planes, suscripciones y paquetes administrables *(nuevo v6, sesión 028 — Sprint 5 · CU-28..31, RF-36, RF-38, RF-41, RF-42, RF-51, RF-82)*
+
+Hasta esta sesión solo existía en la base el plan Trial: los planes de pago, la activación, los paquetes y el tablero vivían en el store. Las políticas de §9.10 dejaban al administrador insertar y actualizar `planes`, `suscripciones` y `pagos_suscripcion` **columna por columna desde el cliente**, sin ninguna regla de negocio en medio (p. ej. activar una suscripción sin pago o con un plan de otro rol). Como en §9.27, **se retiran esas políticas** de insertar y actualizar; el administrador sigue leyendo con las suyas, y toda escritura va por funciones `security definer` ejecutables por `authenticated` que exigen `privado.es_admin()` (aal2, RNF-28; si no, `no_es_admin`).
+
+**Planes semilla** (docs/07 §10.2, *a validar con los pilotos*; se cambian desde el panel sin migración): Empresa Esencial (COP 89.000 / 890.000, 10 créditos), Empresa Pro (COP 189.000 / 1.890.000, 30 créditos) y Consultor (COP 69.000 / 690.000, sin créditos, RN-28).
+
+**Una suscripción por cuenta.** La fila del trial (creada al registrarse) es la misma que después se activa con un plan de pago: se actualiza en su sitio y la historia queda en `pagos_suscripcion`. Así `generacion_ia`, `tiene_suscripcion_vigente` y la sesión siguen leyendo una sola fila. El consultor no tiene fila hasta su primera activación. RN-11 (un trial por cuenta) no cambia: el trial solo lo crea el registro.
+
+**Columnas nuevas:**
+
+| Tabla | Campo | Tipo | Nota |
+|---|---|---|---|
+| planes | — | — | checks: `nombre` de 1 a 80 caracteres; precios ≤ 100.000.000; `creditos_ia_mensuales` ≤ 1.000; `dias_trial` entre 1 y 60. Índice único por `(rol, lower(nombre))` |
+| pagos_suscripcion | concepto | text | not null, default `'suscripcion'`; check `suscripcion` o `paquete` |
+| pagos_suscripcion | plan_id | uuid | FK → planes, nullable. El plan pagado (concepto `suscripcion`) |
+| pagos_suscripcion | modalidad | text | nullable; `mensual` o `anual` (concepto `suscripcion`) |
+| pagos_suscripcion | creditos | int | nullable; los créditos del paquete (concepto `paquete`), 1..100 |
+| pagos_suscripcion | — | — | `monto` pasa a `>= 0`: un paquete puede otorgarse **de cortesía** (monto 0); una suscripción exige monto > 0 en la función |
+
+**Funciones:**
+
+| Función | Comprueba | Qué hace |
+|---|---|---|
+| `guardar_plan(p_id, p_nombre, p_rol, p_precio_mensual, p_precio_anual, p_creditos, p_activo, p_dias_trial)` | administrador; los checks; el rol de un plan con suscripciones no cambia (`plan_en_uso`); el plan trial sigue siendo de empresa, gratis y activo (`trial_fijo`) —sin él no hay registro de empresas—; no se crean trials nuevos; nombre repetido en el rol (`nombre_repetido`) | Crea (`p_id` nulo) o edita. **Un cambio de créditos rige desde ya para todos los suscriptores del plan** (el cupo se calcula del plan, §9.26): es lo que pide RF-36, "sin despliegue". Un plan no se borra —tiene suscripciones y pagos que lo citan—: se desactiva y sale del comparador. `p_dias_trial` solo se usa en el trial. Devuelve el id |
+| `activar_suscripcion(p_usuario, p_plan, p_modalidad, p_monto, p_fecha_pago)` | administrador; la cuenta es empresa o consultor; el plan está activo, no es el trial y es del rol de la cuenta (`plan_invalido`); el consultor tiene el perfil `aprobado` (CU-28: nunca paga antes, `consultor_no_aprobado`); modalidad `mensual` o `anual`; monto > 0; la fecha de pago no es futura | RF-38 / CU-31 paso 2. **Renovación anticipada** —la fila está `activa`, con el mismo plan y modalidad, y aún no vence—: solo corre `fecha_vencimiento` un periodo; el cupo sigue su ciclo (job 3). **En cualquier otro caso** —trial, en gracia, vencida, suspendida, cambio de plan o de modalidad, o sin fila—: empieza hoy (Colombia), vence el último día del periodo (`hoy + 1 mes − 1 día`, o 12 meses), y el cupo del periodo arranca de cero (`creditos_usados_periodo = 0`, `periodo_creditos_inicio = hoy`). Los créditos de paquetes (`creditos_extra`) se conservan: no expiran (docs/07). Queda `estado = 'activa'`, `activada_por`. Registra el pago (concepto `suscripcion`, con plan y modalidad, `registrado_por`). No hay prorrateo: en el piloto el pago se acuerda por fuera (CU-28 paso 3). Devuelve el id de la suscripción |
+| `otorgar_creditos_extra(p_suscripcion, p_cantidad, p_monto)` | administrador; la suscripción existe; es de una empresa (RN-28: el consultor no tiene cupo, `consultor_sin_creditos`); cantidad entera de 1 a 100; monto ≥ 0 | RF-51 / CU-31 paso 3. Suma `creditos_extra` y registra el pago (concepto `paquete`, con los créditos; monto 0 = cortesía). Se gastan después de los del plan y no se reinician (RN-18, §9.26) |
+| `suspender_suscripcion(p_suscripcion)` | administrador; la suscripción está en `trial`, `activa` o `en_gracia` (`estado_invalido`) | CU-31 paso 4. Pasa a `suspendida` (sin acceso, RF-40). Si es de un consultor, cancela sus encargos `en_curso` y `pendiente` con el motivo "Suscripción del consultor suspendida", igual que el job al vencer (RN-29, CU-32 paso 5); el trigger de §9.3 revoca sus autorizaciones de documento (RF-76). Se sale de `suspendida` con una nueva activación |
+| `cuentas_suscripcion_admin()` | administrador | Cada cuenta de empresa y cada consultor aprobado, con nombre, correo (de `auth.users`) y su suscripción si la tiene, más el cupo del periodo: lo que la pantalla necesita para activar a quien aún no tiene fila |
+| `tablero_suscripciones()` | administrador | RF-42 / CU-31 paso 5: cuántas suscripciones hay en cada estado y el **consumo de IA del mes en curso (Colombia)**: generaciones exitosas y fallidas, ajustes, créditos descontados y costo estimado en USD |
+
+**Job 3 con la fecha de Colombia.** El reinicio mensual del cupo pasa a `privado.reiniciar_creditos()`, con `privado.hoy_colombia()` en vez de `current_date` (UTC), igual que los jobs 1 y 2. La regla no cambia (RN-18): las suscripciones `trial` y `activa` cuyo periodo cumplió un mes ponen en cero lo usado y avanzan `periodo_creditos_inicio` los meses enteros transcurridos; los paquetes no se tocan.
+
+**Lo que se mantiene transitorio:** RN-08 y RN-10 (el consultor aparece en el directorio y acepta encargos sin suscripción). Exigirla ahora sacaría del directorio a todos los consultores aprobados, que no tienen fila; se activa cuando el Product Owner lo decida, con los consultores ya suscritos.

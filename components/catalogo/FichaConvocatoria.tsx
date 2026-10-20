@@ -295,9 +295,9 @@ export function FichaConvocatoria({
 
       {modalAbierto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary-950/40 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+          <div role="dialog" aria-modal="true" aria-labelledby="titulo-postular" className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="font-display text-lg font-semibold text-ink">Confirmar postulación</h3>
+              <h3 id="titulo-postular" className="font-display text-lg font-semibold text-ink">Confirmar postulación</h3>
               <button onClick={() => setModalAbierto(false)} className="text-ink-faint hover:text-ink" aria-label="Cerrar">
                 <X className="h-5 w-5" />
               </button>
@@ -307,10 +307,10 @@ export function FichaConvocatoria({
               uno de tus proyectos existentes o dejarla sin proyecto por ahora. Si ya tienes una en curso
               con ese mismo proyecto, te llevaremos a ella.
             </p>
-            <label className="mt-4 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+            <label htmlFor="campo-postular-1" className="mt-4 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
               Proyecto (opcional)
             </label>
-            <select
+            <select id="campo-postular-1"
               value={proyectoSel}
               onChange={(e) => setProyectoSel(e.target.value)}
               className="mt-1.5 w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500"

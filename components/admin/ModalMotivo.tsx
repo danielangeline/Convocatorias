@@ -31,7 +31,7 @@ export function ModalMotivo({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary-950/40 p-4">
-      <form
+      <form role="dialog" aria-modal="true" aria-labelledby="titulo-motivo"
         className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
         onSubmit={(evento) => {
           evento.preventDefault();
@@ -39,7 +39,7 @@ export function ModalMotivo({
         }}
       >
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="font-display text-lg font-semibold text-ink">{titulo}</h3>
+          <h3 id="titulo-motivo" className="font-display text-lg font-semibold text-ink">{titulo}</h3>
           <button type="button" onClick={onCerrar} className="text-ink-faint hover:text-ink" aria-label="Cerrar">
             <X className="h-5 w-5" />
           </button>

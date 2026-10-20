@@ -7,6 +7,14 @@ import type { Plan } from "./types";
  * comparador sin desplegar (RNF-14).
  */
 
+/**
+ * CU-28 paso 3 · Durante el piloto no hay pasarela: el pago se acuerda por
+ * fuera y el administrador activa el plan (RF-38). La pantalla no simula el
+ * pago: dice cómo se contrata.
+ */
+export const CONTRATAR_EN_PILOTO =
+  "Durante el piloto, los planes y los paquetes de créditos se contratan con nuestro equipo: acuerdas el pago por fuera de la plataforma y nosotros activamos tu plan. Aquí no se hace ningún cobro.";
+
 export interface BeneficioPlan {
   texto: string;
   /** El atributo que diferencia este plan de los demás de su rol. */

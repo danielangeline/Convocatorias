@@ -428,6 +428,9 @@ export interface Plan {
   creditosIaMensuales: number;
   // Plan del trial (RF-37): no aparece en el comparador.
   esTrial?: boolean;
+  // Panel (docs/05 §9.28): un plan no se borra, se desactiva.
+  activo?: boolean;
+  diasTrial?: number | null;
 }
 
 export type ModalidadSuscripcion = "trial" | "mensual" | "anual";
@@ -439,6 +442,43 @@ export interface Pago {
   suscripcionId: string;
   monto: number;
   fecha: string; // ISO date
+  // docs/05 §9.28: una suscripción (con su plan y modalidad) o un paquete de créditos.
+  concepto?: "suscripcion" | "paquete";
+  planNombre?: string | null;
+  modalidad?: "mensual" | "anual" | null;
+  creditos?: number | null;
+}
+
+/** RF-42 · Una cuenta de empresa o consultor aprobado y su suscripción, para el panel (docs/05 §9.28). */
+export interface CuentaSuscripcion {
+  usuarioId: string;
+  rol: RolPlan;
+  nombre: string;
+  correo: string;
+  suscripcionId: string | null;
+  planId: string | null;
+  planNombre: string | null;
+  modalidad: ModalidadSuscripcion | null;
+  estado: EstadoSuscripcion | null;
+  fechaInicio: string | null;
+  fechaVencimiento: string | null;
+  creditosIncluidos: number;
+  creditosUsados: number;
+  creditosExtra: number;
+}
+
+/** RF-42 / CU-31 paso 5 · Estados y consumo de IA del mes en curso (Colombia). */
+export interface TableroSuscripciones {
+  trial: number;
+  activas: number;
+  enGracia: number;
+  vencidas: number;
+  suspendidas: number;
+  generacionesExitosas: number;
+  generacionesFallidas: number;
+  ajustes: number;
+  creditosDescontados: number;
+  costoUsd: number;
 }
 
 export interface Suscripcion {

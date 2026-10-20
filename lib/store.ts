@@ -12,8 +12,6 @@ import {
   estadisticasIA as estadisticasIAIniciales,
   eventosSeguridad as eventosSeguridadIniciales,
   fuentes as fuentesIniciales,
-  PAQUETE_CREDITOS_CANTIDAD,
-  PAQUETE_CREDITOS_PRECIO,
   pagos as pagosIniciales,
   planes as planesIniciales,
   postulaciones as postulacionesIniciales,
@@ -33,7 +31,6 @@ import type {
   EventoSeguridad,
   Fuente,
   DatosSesion,
-  ModalidadSuscripcion,
   Pago,
   PerfilConsultor,
   Plan,
@@ -62,16 +59,6 @@ function usuarioSesion(sesion: DatosSesion["sesion"] | null): string {
 
 function hoyIso(): string {
   return new Date().toISOString().slice(0, 10);
-}
-
-function sumarPeriodo(fechaBaseIso: string, modalidad: ModalidadSuscripcion): string {
-  const base = new Date(fechaBaseIso + "T00:00:00");
-  if (modalidad === "anual") {
-    base.setFullYear(base.getFullYear() + 1);
-  } else {
-    base.setMonth(base.getMonth() + 1);
-  }
-  return base.toISOString().slice(0, 10);
 }
 
 interface SolicitudConsultor {
@@ -115,7 +102,6 @@ interface AppState {
   motivoModalSuscripcion: string;
   abrirModalSuscripcion: (motivo?: string) => void;
   cerrarModalSuscripcion: () => void;
-  simularPago: (usuarioId: string, planId: string, modalidad: ModalidadSuscripcion) => void;
 
   // Modal de créditos IA
   modalCreditosAbierto: boolean;
@@ -123,8 +109,6 @@ interface AppState {
   abrirModalCreditos: (motivo?: string) => void;
   cerrarModalCreditos: () => void;
   consumirCredito: (usuarioId: string) => void;
-  otorgarCreditosExtra: (suscripcionId: string, cantidad: number) => void;
-  comprarPaqueteCreditos: (usuarioId: string) => void;
 
   // Generación de documentos con IA
   proyectoParaGenerar: string | null;
@@ -178,13 +162,9 @@ interface AppState {
   // Encargos: crear, responder, avances, completar, calificar, retirar y
   // atender viven en el servidor desde la sesión 023 (docs/05 §9.23).
 
-  // Planes
-  agregarPlan: (p: Omit<Plan, "id">) => void;
-  actualizarPlan: (id: string, p: Omit<Plan, "id">) => void;
-  eliminarPlan: (id: string) => void;
-
-  // Suscripciones
-  registrarPago: (suscripcionId: string, monto: number, fecha: string) => void;
+  // Planes: los reales del rol, leídos en el servidor (RF-82, docs/05 §9.28).
+  // Crear, editar, activar suscripciones y otorgar paquetes van por /api/admin.
+  hidratarPlanes: (planes: Plan[]) => void;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -251,57 +231,6 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ modalSuscripcionAbierto: true, motivoModalSuscripcion: motivo ?? "continuar" }),
   cerrarModalSuscripcion: () => set({ modalSuscripcionAbierto: false }),
 
-  simularPago: (usuarioId, planId, modalidad) => {
-    set((s) => {
-      const existente = s.suscripciones.find((sub) => sub.usuarioId === usuarioId);
-      const monto =
-        modalidad === "anual"
-          ? s.planes.find((p) => p.id === planId)?.precioAnual ?? 0
-          : s.planes.find((p) => p.id === planId)?.precioMensual ?? 0;
-      const hoy = hoyIso();
-      const nuevaFechaVencimiento = sumarPeriodo(hoy, modalidad);
-
-      let suscripciones: Suscripcion[];
-      let suscripcionId: string;
-      if (existente) {
-        suscripcionId = existente.id;
-        suscripciones = s.suscripciones.map((sub) =>
-          sub.id === existente.id
-            ? {
-                ...sub,
-                planId,
-                modalidad,
-                estado: "activa",
-                fechaInicio: hoy,
-                fechaVencimiento: nuevaFechaVencimiento,
-                creditosUsadosPeriodo: 0,
-                periodoCreditosInicio: hoy,
-              }
-            : sub
-        );
-      } else {
-        suscripcionId = nuevoId("sub");
-        const nueva: Suscripcion = {
-          id: suscripcionId,
-          usuarioId,
-          planId,
-          modalidad,
-          estado: "activa",
-          fechaInicio: hoy,
-          fechaVencimiento: nuevaFechaVencimiento,
-          creditosUsadosPeriodo: 0,
-          creditosExtra: 0,
-          periodoCreditosInicio: hoy,
-        };
-        suscripciones = [...s.suscripciones, nueva];
-      }
-
-      const pago: Pago = { id: nuevoId("pago"), suscripcionId, monto, fecha: hoy };
-
-      return { suscripciones, pagos: [...s.pagos, pago], modalSuscripcionAbierto: false };
-    });
-  },
-
   // Crear, editar y eliminar proyectos pasa por /api/proyectos (docs/05 §9.17):
   // aquí solo se reciben los reales para las pantallas que aún leen del store
   // (sugerencias, generar, postular, encargos).
@@ -361,45 +290,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   // Perfiles de consultor: revisar, suspender y reactivar viven en el
   // servidor desde la sesión 022 (docs/05 §9.21, /api/admin/consultores).
 
-  // -------------------------------------------------------------------------
-  // Planes
-  // -------------------------------------------------------------------------
-
-  agregarPlan: (p) => {
-    set((s) => ({ planes: [...s.planes, { ...p, id: nuevoId("plan") }] }));
-  },
-  actualizarPlan: (id, p) => {
-    set((s) => ({ planes: s.planes.map((pl) => (pl.id === id ? { ...pl, ...p } : pl)) }));
-  },
-  eliminarPlan: (id) => {
-    set((s) => ({ planes: s.planes.filter((p) => p.id !== id) }));
-  },
-
-  // -------------------------------------------------------------------------
-  // Suscripciones
-  // -------------------------------------------------------------------------
-
-  registrarPago: (suscripcionId, monto, fecha) => {
+  // El plan actual de la sesión se conserva aunque esté inactivo: la vista del
+  // suscriptor lo sigue mostrando (RF-41).
+  hidratarPlanes: (planes) => {
     set((s) => {
-      const suscripcion = s.suscripciones.find((sub) => sub.id === suscripcionId);
-      if (!suscripcion) return s;
-      const baseVencimiento = suscripcion.fechaVencimiento > fecha ? suscripcion.fechaVencimiento : fecha;
-      const nuevaFechaVencimiento = sumarPeriodo(baseVencimiento, suscripcion.modalidad === "trial" ? "mensual" : suscripcion.modalidad);
-      const pago: Pago = { id: nuevoId("pago"), suscripcionId, monto, fecha };
-      return {
-        pagos: [...s.pagos, pago],
-        suscripciones: s.suscripciones.map((sub) =>
-          sub.id === suscripcionId
-            ? {
-                ...sub,
-                estado: "activa",
-                fechaVencimiento: nuevaFechaVencimiento,
-                creditosUsadosPeriodo: 0,
-                periodoCreditosInicio: fecha,
-              }
-            : sub
-        ),
-      };
+      const actual = s.suscripciones.find((x) => x.usuarioId === s.sesion?.usuarioId)?.planId;
+      const conservar = s.planes.filter((p) => p.id === actual && !planes.some((n) => n.id === p.id));
+      return { planes: [...planes, ...conservar] };
     });
   },
 
@@ -418,29 +315,6 @@ export const useAppStore = create<AppState>((set, get) => ({
         sub.usuarioId === usuarioId ? { ...sub, creditosUsadosPeriodo: sub.creditosUsadosPeriodo + 1 } : sub
       ),
     }));
-  },
-
-  otorgarCreditosExtra: (suscripcionId, cantidad) => {
-    set((s) => ({
-      suscripciones: s.suscripciones.map((sub) =>
-        sub.id === suscripcionId ? { ...sub, creditosExtra: sub.creditosExtra + cantidad } : sub
-      ),
-    }));
-  },
-
-  comprarPaqueteCreditos: (usuarioId) => {
-    set((s) => {
-      const suscripcion = s.suscripciones.find((sub) => sub.usuarioId === usuarioId);
-      if (!suscripcion) return s;
-      const pago: Pago = { id: nuevoId("pago"), suscripcionId: suscripcion.id, monto: PAQUETE_CREDITOS_PRECIO, fecha: hoyIso() };
-      return {
-        pagos: [...s.pagos, pago],
-        suscripciones: s.suscripciones.map((sub) =>
-          sub.id === suscripcion.id ? { ...sub, creditosExtra: sub.creditosExtra + PAQUETE_CREDITOS_CANTIDAD } : sub
-        ),
-        modalCreditosAbierto: false,
-      };
-    });
   },
 
   // -------------------------------------------------------------------------

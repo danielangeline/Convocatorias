@@ -27,7 +27,7 @@ export function AvisoSuscripcion({ suscripcion }: { suscripcion: Suscripcion | n
   let urgente = false;
   if (suscripcion.estado === "vencida" || dias + DIAS_GRACIA < 0) {
     urgente = true;
-    mensaje = `${que} venció el ${vence} y terminó el periodo de gracia. No puedes postular, ver sugerencias ni solicitar consultores; el catálogo sigue disponible.`;
+    mensaje = `${que} venció el ${vence} y terminó el periodo de gracia. No puedes postular, ver sugerencias, solicitar consultores ni generar documentos con IA; el catálogo sigue disponible.`;
   } else if (dias < 0) {
     urgente = true;
     const quedan = DIAS_GRACIA + dias;

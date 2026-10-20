@@ -9,6 +9,7 @@ import { obtenerSesion } from "@/lib/auth";
 import { PLAZO_IA_MS, ErrorIA, redactar } from "@/lib/ia";
 import { contextoAjuste, contextoGeneracion } from "@/lib/ia/contexto";
 import { textoDeAdjuntos } from "@/lib/ia/adjuntos";
+import { fechaColombia } from "@/lib/fechas";
 import type { DocumentoGenerado, DocumentoServidor, EstadoDocumento } from "@/lib/types";
 
 /**
@@ -195,7 +196,7 @@ const RECHAZOS: Record<string, { status: number; error: string }> = {
     error: "Esta convocatoria ya no está abierta: está cerrada o despublicada y no admite nuevos documentos.",
   },
   sin_suscripcion: { status: 402, error: "Necesitas una suscripción vigente para usar la IA." },
-  sin_creditos: { status: 402, error: "No te quedan créditos de IA. Mejora tu plan o compra un paquete adicional." },
+  sin_creditos: { status: 402, error: "No te quedan créditos de IA. Puedes pedir un paquete adicional o un plan con más créditos." },
   sin_plantilla: { status: 503, error: "La generación no está disponible en este momento. Intenta más tarde." },
   documento_no_existe: { status: 404, error: "El documento no existe." },
   generacion_no_encontrada: { status: 409, error: "La generación ya no estaba en curso. Intenta de nuevo." },
@@ -540,8 +541,9 @@ export function aDocumentoStore(d: DocumentoServidor): DocumentoGenerado {
     promptVersionId: "",
     secciones: d.secciones,
     ajustesGratisUsados: d.ajustesUsados,
-    fechaCreacion: d.creadoAt.slice(0, 10),
-    fechaActualizacion: d.actualizadoAt.slice(0, 10),
+    // El día en Colombia, no en UTC (hallazgo de la sesión 027).
+    fechaCreacion: fechaColombia(d.creadoAt),
+    fechaActualizacion: fechaColombia(d.actualizadoAt),
     compartidoConConsultorId: d.compartidoConConsultorId,
     ultimaEdicionPor: d.ultimaEdicionPor,
   };

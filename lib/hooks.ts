@@ -3,8 +3,20 @@
 import { useMemo } from "react";
 import { useAppStore } from "./store";
 import { agregarMeses, diasRestantesHasta } from "./utils";
+import { diasEntre, hoyColombia } from "./fechas";
+import type { Suscripcion } from "./types";
 
 const ESTADOS_CON_ACCESO = new Set(["trial", "activa", "en_gracia"]);
+const DIAS_GRACIA = 5;
+
+/**
+ * La misma regla que `privado.tiene_suscripcion_vigente` (RF-40): estado con
+ * acceso y, por si el job aún no corrió, la fecha dentro de los 5 días de
+ * gracia, en hora de Colombia. Solo informa a la pantalla; decide el servidor.
+ */
+export function suscripcionVigente(s: Suscripcion | undefined | null): boolean {
+  return !!s && ESTADOS_CON_ACCESO.has(s.estado) && diasEntre(hoyColombia(), s.fechaVencimiento) + DIAS_GRACIA >= 0;
+}
 
 /**
  * Resuelve si el usuario de la sesión tiene una suscripción vigente. Si no
@@ -20,7 +32,7 @@ export function useAccesoSuscripcion() {
   const usuarioId = sesion?.usuarioId ?? "";
   const rol = sesion?.rol ?? null;
   const suscripcion = suscripciones.find((s) => s.usuarioId === usuarioId);
-  const tieneAcceso = rol === "administrador" || !suscripcion || ESTADOS_CON_ACCESO.has(suscripcion.estado);
+  const tieneAcceso = rol === "administrador" || !suscripcion || suscripcionVigente(suscripcion);
   const diasRestantes = suscripcion ? diasRestantesHasta(suscripcion.fechaVencimiento) : null;
 
   function requerirAcceso(motivo?: string): boolean {
@@ -35,7 +47,8 @@ export function useAccesoSuscripcion() {
 /**
  * Créditos de IA disponibles para el usuario de la sesión, según su
  * suscripción vigente (incluidos del plan + extras comprados - usados en el
- * ciclo actual). Si no hay suscripción registrada, no hay créditos.
+ * ciclo actual). Si no hay suscripción registrada o no está vigente, no hay
+ * créditos que usar: el servidor responde 402 (RF-40, hallazgo de la sesión 027).
  */
 export function useCreditos() {
   const usuarioId = usePropietarioSesion();
@@ -48,11 +61,12 @@ export function useCreditos() {
   const incluidos = plan?.creditosIaMensuales ?? 0;
   const usados = suscripcion?.creditosUsadosPeriodo ?? 0;
   const extra = suscripcion?.creditosExtra ?? 0;
+  const vigente = suscripcionVigente(suscripcion);
   // docs/05 §9.26: primero se gastan los del plan y después los de paquetes.
-  const disponibles = Math.max(0, incluidos - usados) + extra;
+  const disponibles = vigente ? Math.max(0, incluidos - usados) + extra : 0;
   const fechaReinicio = suscripcion ? agregarMeses(suscripcion.periodoCreditosInicio, 1) : null;
 
-  return { usuarioId, suscripcion, plan, disponibles, usados, incluidos, extra, fechaReinicio };
+  return { usuarioId, suscripcion, plan, vigente, disponibles, usados, incluidos, extra, fechaReinicio };
 }
 
 export function useConsultorActual() {

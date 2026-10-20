@@ -82,6 +82,9 @@ if (accion === "codigo") {
     const { error } = await svc.auth.admin.deleteUser(id);
     if (error) console.log("cuenta", id, error.message);
   }
+  // Sesión 028: planes creados en el recorrido (sus suscripciones y pagos ya se fueron con las cuentas).
+  const { error: eP } = await svc.from("planes").delete().ilike("nombre", `%${d.sufijo}%`);
+  if (eP) console.log("planes", eP.message);
   const { error: eF } = await svc.from("fuentes").delete().ilike("nombre", `%${d.sufijo}%`);
   if (eF) console.log("fuentes", eF.message);
   await svc.from("invitaciones_admin").delete().eq("id", d.admin.invitacion);

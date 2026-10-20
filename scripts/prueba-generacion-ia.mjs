@@ -226,12 +226,18 @@ try {
   fallas++;
 } finally {
   // Las convocatorias se borran después de los documentos (FK sin cascada).
-  for (const id of cuentas) await svc.auth.admin.deleteUser(id);
+  // Sesión 028: los encargos van antes que las cuentas (encargos.empresa_id no
+  // cascada); en otro orden las cuentas quedaban vivas sin avisar.
+  if (cuentas.length) await svc.from("encargos").delete().in("empresa_id", cuentas);
   for (const id of convocatorias) {
     await svc.from("documentos_generados").delete().eq("convocatoria_id", id);
     await svc.from("encargos").delete().eq("convocatoria_id", id);
     const { error } = await svc.from("convocatorias").delete().eq("id", id);
     if (error) console.error("no se pudo borrar la convocatoria", id, error.message);
+  }
+  for (const id of cuentas) {
+    const { error } = await svc.auth.admin.deleteUser(id);
+    if (error) console.error("no se pudo borrar la cuenta", id, error.message);
   }
   console.log(fallas === 0 ? "\nTODO OK" : `\n${fallas} FALLA(S)`);
   process.exit(fallas === 0 ? 0 : 1);

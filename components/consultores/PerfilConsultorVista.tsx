@@ -354,9 +354,9 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
 
       {modalAbierto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary-950/40 p-4">
-          <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
+          <div role="dialog" aria-modal="true" aria-labelledby="titulo-solicitar" className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="font-display text-lg font-semibold text-ink">
+              <h3 id="titulo-solicitar" className="font-display text-lg font-semibold text-ink">
                 {confirmacion
                   ? "Solicitud enviada"
                   : `Solicitar a ${consultor.nombreProfesional} · Paso ${paso} de 2`}
@@ -418,10 +418,10 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                   ) : (
                     <>
                       <div>
-                        <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+                        <label htmlFor="campo-solicitar-1" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
                           Proyecto
                         </label>
-                        <select
+                        <select id="campo-solicitar-1"
                           value={proyectoIdSel}
                           onChange={(e) => setProyectoIdSel(e.target.value)}
                           className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500"
@@ -505,10 +505,10 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                   </p>
                 ) : (
                   <div>
-                    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+                    <label htmlFor="campo-solicitar-2" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
                       Postulación
                     </label>
-                    <select
+                    <select id="campo-solicitar-2"
                       value={postulacionIdSel}
                       onChange={(e) => setPostulacionIdSel(e.target.value)}
                       className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500"
@@ -544,10 +544,10 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
             ) : (
               <div className="space-y-4">
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+                  <label htmlFor="campo-solicitar-3" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
                     Título de la tarea
                   </label>
-                  <input
+                  <input id="campo-solicitar-3"
                     value={titulo}
                     onChange={(e) => setTitulo(e.target.value)}
                     placeholder="Ej. Estructuración financiera de la postulación"
@@ -555,10 +555,10 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                   />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+                  <label htmlFor="campo-solicitar-4" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
                     Descripción de la tarea
                   </label>
-                  <textarea
+                  <textarea id="campo-solicitar-4"
                     value={descripcion}
                     onChange={(e) => setDescripcion(e.target.value)}
                     rows={4}
@@ -567,11 +567,10 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                   />
                 </div>
                 <p className="flex items-start gap-1.5 rounded-lg bg-slate-50 px-3 py-2 text-xs text-ink-faint">
-                  <FolderKanban className="mt-0.5 h-3.5 w-3.5 shrink-0" /> El contenido del proyecto
+                  <FolderKanban className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                   {origen === "postulacion" || tipoAyuda === "convocatoria_especifica"
-                    ? " y los datos de la convocatoria elegida"
-                    : ""}{" "}
-                  se adjuntan automáticamente — no necesitas repetirlos aquí.
+                    ? "El contenido del proyecto y los datos de la convocatoria elegida se adjuntan automáticamente — no necesitas repetirlos aquí."
+                    : "El contenido del proyecto se adjunta automáticamente — no necesitas repetirlo aquí."}
                 </p>
                 {errorSolicitud && <Aviso tipo="error">{errorSolicitud}</Aviso>}
                 <div className="flex justify-between gap-3">
