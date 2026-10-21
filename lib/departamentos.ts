@@ -58,3 +58,21 @@ export function textoCobertura(c: { coberturaNacional: boolean; departamentos: s
 export function textoUbicacionProyecto(p: { departamento: string | null; ubicacion: string }): string {
   return [nombreDepartamento(p.departamento), p.ubicacion.trim()].filter(Boolean).join(" · ");
 }
+
+/**
+ * Regiones naturales (RF-12, filtro de región): cada departamento en una sola.
+ * Bogotá D.C. va en la Andina. `scripts/prueba-filtros-catalogo.mjs` comprueba
+ * que los 33 departamentos queden asignados exactamente una vez.
+ */
+export const REGIONES = [
+  { clave: "andina", nombre: "Andina", departamentos: ["05", "11", "15", "17", "25", "41", "54", "63", "66", "68", "73"] },
+  { clave: "caribe", nombre: "Caribe", departamentos: ["08", "13", "20", "23", "44", "47", "70"] },
+  { clave: "pacifica", nombre: "Pacífica", departamentos: ["19", "27", "52", "76"] },
+  { clave: "orinoquia", nombre: "Orinoquía", departamentos: ["50", "81", "85", "99"] },
+  { clave: "amazonia", nombre: "Amazonía", departamentos: ["18", "86", "91", "94", "95", "97"] },
+  { clave: "insular", nombre: "Insular", departamentos: ["88"] },
+] as const;
+
+export type ClaveRegion = (typeof REGIONES)[number]["clave"];
+
+export const esClaveRegion = (clave: string): clave is ClaveRegion => REGIONES.some((r) => r.clave === clave);

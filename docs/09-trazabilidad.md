@@ -15,7 +15,7 @@
 | CU-04 Definir requisitos | RF-08 | RN-04 |
 | CU-05 Publicar *(v5: exige enlace válido; v6 sesión 019: exige cobertura)* | RF-09 | RN-01, RNF-11, 29, **RN-34** |
 | CU-06 Cierre automático | RF-10 | RN-02, RNF-12 |
-| CU-07 Catálogo y chips *(v6: cerradas fuera del listado por defecto; solo empresas; sesión 016: chips derivados del catálogo vigente; sesión 019: filtro por departamento)* | RF-11, 12, 43 | RNF-04, **RN-02, RN-33, RN-34** |
+| CU-07 Catálogo y chips *(v6: cerradas fuera del listado por defecto; solo empresas; sesión 016: chips derivados del catálogo vigente; sesión 019: filtro por departamento; sesión 029: 20 filtros, orden y filtros a la vista)* | RF-11, 12, 43, 94, 95 | RNF-04, **RN-02, RN-33, RN-34** |
 | CU-08 Detalle y descargas *(v5: enlace al portal; v6: solo empresas; sesión 016: descarga por URL firmada heredando la visibilidad de la fila)* | RF-13, **73** | RNF-06, **RNF-16**, **RN-33** |
 | CU-09 Proyecto enriquecido *(v6: completitud accionable; sesión 019: departamento)* | RF-14, 45, 46, 47, **81** | RN-21, RNF-03, **RNF-07**, **RN-34** |
 | CU-10 Sugerencias con % *(v6: solo vigentes; sesión 019: cálculo en servidor, ubicación por departamento, 2a y 2b)* | RF-15, 16, **81** | RN-05, RNF-05, **RN-02**, **RNF-20**, **RN-34** |
