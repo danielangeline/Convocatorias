@@ -21,7 +21,6 @@ import type { ContextoEncargo, EncargoConsultor } from "@/lib/types";
 import { pedir } from "@/lib/pedir";
 import { nombreDepartamento } from "@/lib/departamentos";
 import {
-  cn,
   formatCOP,
   formatFecha,
   ESTADO_ENCARGO_LABEL,
