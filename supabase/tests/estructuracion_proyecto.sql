@@ -29,7 +29,7 @@ begin
   v_n := 0;
   begin perform * from public.iniciar_estructuracion(v_e1); exception when others then if sqlstate = '42501' then v_n := v_n + 1; end if; end;
   begin perform * from public.iniciar_transcripcion(v_e1); exception when others then if sqlstate = '42501' then v_n := v_n + 1; end if; end;
-  begin perform public.registrar_transcripcion(v_e1, true, null, 0, 'x', 1); exception when others then if sqlstate = '42501' then v_n := v_n + 1; end if; end;
+  begin perform public.registrar_transcripcion(v_e1, true, null, 0, 1); exception when others then if sqlstate = '42501' then v_n := v_n + 1; end if; end;
   begin insert into public.reservas_estructuracion (usuario_id) values (v_e1);
   exception when others then if sqlstate = '42501' then v_n := v_n + 1; end if; end;
   execute 'reset role';
@@ -91,14 +91,23 @@ begin
   perform public.fallar_estructuracion(v_r2, 'limpieza', null, null, null, 'gpt-prueba', 1);
 
   -- ================================================================ transcripción (RF-97)
-  select count(*) into v_n from public.iniciar_transcripcion(v_e1);
-  perform public.registrar_transcripcion(v_e1, true, null, 0.0015, 'gpt-4o-mini-transcribe', 2500);
+  select consumo_id into v_r1 from public.iniciar_transcripcion(v_e1);
+  -- Revisión de seguridad: la reserva es atómica, una segunda simultánea no pasa.
+  begin perform * from public.iniciar_transcripcion(v_e1); v_o := 'ok';
+  exception when others then get stacked diagnostics v_o = pg_exception_hint; end;
+  v_res := v_res || format(E'\n%s RF-97: con una en curso, la segunda simultánea se rechaza -> %s',
+    case when v_o = 'transcripcion_en_curso' then 'OK   ' else 'FALLA' end, v_o);
+  perform public.registrar_transcripcion(v_r1, true, null, 0.0015, 2500);
   select creditos_usados_periodo into v_m from public.suscripciones where id = v_sus;
-  v_res := v_res || format(E'\n%s RF-97: transcribir no cobra crédito -> usados %s',
-    case when v_n = 1 and v_m = 1 then 'OK   ' else 'FALLA' end, v_m);
+  select count(*) into v_n from public.consumos_ia where id = v_r1 and exito and duracion_ms = 2500 and mensaje_error is null;
+  v_res := v_res || format(E'\n%s RF-97: transcribir no cobra crédito y cierra su consumo -> usados %s, cerrado %s',
+    case when v_n = 1 and v_m = 1 then 'OK   ' else 'FALLA' end, v_m, v_n);
 
-  insert into public.consumos_ia (usuario_id, empresa_id, tipo, exito)
-  select v_e1, v_e1, 'transcripcion', true from generate_series(1, 29);
+  -- Las en curso cuentan para el tope: 1 cerrada + 28 cerradas + 1 en curso = 30.
+  insert into public.consumos_ia (usuario_id, empresa_id, tipo, exito, duracion_ms)
+  select v_e1, v_e1, 'transcripcion', true, 1 from generate_series(1, 28);
+  insert into public.consumos_ia (usuario_id, empresa_id, tipo, exito, fecha)
+  values (v_e1, v_e1, 'transcripcion', false, now() - interval '3 minutes');
   begin perform * from public.iniciar_transcripcion(v_e1); v_o := 'ok';
   exception when others then get stacked diagnostics v_o = pg_exception_hint; end;
   v_res := v_res || format(E'\n%s RF-97: tope de 30 transcripciones al día -> %s',

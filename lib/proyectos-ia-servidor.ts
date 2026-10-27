@@ -14,7 +14,8 @@ import type { Categoria, PropuestaProyecto } from "@/lib/types";
  *   es válida y `fallar_estructuracion` libera sin cobro (RN-17). No guarda el
  *   proyecto: la empresa lo revisa y lo guarda por `POST /api/proyectos`.
  * - **Transcribir** (RF-97) no cobra: `iniciar_transcripcion` exige suscripción,
- *   crédito y el tope diario, y `registrar_transcripcion` deja el consumo.
+ *   crédito, una a la vez y el tope diario, y deja la fila del consumo creada
+ *   antes de llamar a la IA; `registrar_transcripcion` la cierra.
  *
  * Las funciones de la base son de service_role y reciben el usuario de la
  * sesión ya verificada por el endpoint (RNF-20), como en §9.26.
@@ -40,6 +41,7 @@ const RECHAZOS: Record<string, { status: number; error: string }> = {
   },
   sin_plantilla: { status: 503, error: "La IA no está disponible en este momento. Puedes llenar el formulario a mano." },
   estructuracion_no_encontrada: { status: 409, error: "La creación con IA se interrumpió. Intenta de nuevo." },
+  transcripcion_en_curso: { status: 409, error: "Ya estamos transcribiendo un audio. Espera a que termine." },
   tope_transcripciones: { status: 429, error: "Llegaste al tope de dictados de hoy. Puedes seguir escribiendo la explicación." },
 };
 
@@ -166,7 +168,7 @@ export async function transcribirAudio(usuarioId: string, formulario: FormData |
   const servicio = crearClienteServicio();
   const { data: inicio, error: eInicio } = await servicio
     .rpc("iniciar_transcripcion", { p_usuario: usuarioId })
-    .single<{ modelo: string; precio_usd_min: number }>();
+    .single<{ consumo_id: string; modelo: string; precio_usd_min: number }>();
   if (eInicio) return rechazo(eInicio, "iniciar la transcripción");
 
   const t0 = Date.now();
@@ -180,11 +182,10 @@ export async function transcribirAudio(usuarioId: string, formulario: FormData |
     });
     const segundos = r.segundos ?? segundosCliente;
     await servicio.rpc("registrar_transcripcion", {
-      p_usuario: usuarioId,
+      p_consumo: inicio.consumo_id,
       p_exito: true,
       p_mensaje: null,
       p_costo: Number(((segundos / 60) * Number(inicio.precio_usd_min)).toFixed(6)),
-      p_modelo: inicio.modelo,
       p_duracion_ms: Date.now() - t0,
     });
     if (!r.texto) return { ok: false, status: 422, error: "No logramos entender el audio. Intenta hablar más cerca del micrófono." };
@@ -192,11 +193,10 @@ export async function transcribirAudio(usuarioId: string, formulario: FormData |
   } catch (e) {
     console.error("Proyectos con IA: la transcripción falló", e instanceof Error ? e.message : String(e));
     await servicio.rpc("registrar_transcripcion", {
-      p_usuario: usuarioId,
+      p_consumo: inicio.consumo_id,
       p_exito: false,
       p_mensaje: e instanceof Error ? e.message : String(e),
       p_costo: null,
-      p_modelo: inicio.modelo,
       p_duracion_ms: Date.now() - t0,
     });
     const plazo = e instanceof ErrorIA && e.motivo === "plazo";
