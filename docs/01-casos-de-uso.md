@@ -1,4 +1,4 @@
-# Casos de uso (CU-01 a CU-43)
+# Casos de uso (CU-01 a CU-49)
 
 > Parte de la especificación del MVP **v6** · Plataforma de Gestión de Convocatorias.
 > Índice general en `docs/README.md`. Contexto rápido en `CLAUDE.md`.
@@ -22,14 +22,14 @@
 | **Flujos alternos** | 3a. Editar. 3b. Desactivar (no se elimina: conserva convocatorias históricas) |
 | **Postcondiciones** | Fuente disponible para asociar convocatorias |
 
-#### CU-02 · Cargar convocatoria *(mod. v5)*
+#### CU-02 · Cargar convocatoria *(mod. v5; mod. v6, sesión 032)*
 
 | Campo | Contenido |
 |---|---|
 | **Actor** | Administrador de Contenido |
 | **Precondiciones** | Existe al menos una fuente activa |
-| **Flujo principal** | 1. Crea la convocatoria asociada a una fuente. 2. Digita nombre, entidad convocante, descripción/objeto, monto mínimo y máximo, **cobertura —nacional, o uno o más departamentos de la lista oficial (RN-34)— y, si hace falta, el detalle en texto (municipios, zona)** *(mod. v6, sesión 019)*, fecha de apertura y de cierre **y el enlace oficial de postulación (URL del portal de la entidad convocante)**. 3. Asigna categorías: tipo de proyecto, sector, tipo de entidad elegible. 4. Queda en estado **borrador** |
-| **Flujos alternos** | 2a. Guardar incompleta y continuar después. **2b. Los montos se escriben en pesos enteros, en formato colombiano (`1.000.000`) o sin puntos (`1000000`); si el formato no es inequívoco —puntos mal agrupados, centavos, letras— se rechaza diciendo cómo escribirlo, nunca se interpreta a medias** *(mod. v6, sesión 016)* |
+| **Flujo principal** | 1. Crea la convocatoria asociada a una fuente. 2. Digita nombre, entidad convocante, descripción/objeto, monto mínimo y máximo **con su moneda (RN-40; por defecto COP)** *(sesión 032)*, **los países que pueden postularse —todos, o una lista (RN-39)—** *(sesión 032)*, **cobertura —nacional, o uno o más departamentos de la lista oficial (RN-34)— y, si hace falta, el detalle en texto (municipios, zona)** *(mod. v6, sesión 019)*, fecha de apertura y de cierre **y el enlace oficial de postulación (URL del portal de la entidad convocante)**. 3. Asigna categorías: tipo de proyecto, sector, tipo de entidad elegible. 4. Queda en estado **borrador** |
+| **Flujos alternos** | 2a. Guardar incompleta y continuar después. **2b. Los montos se escriben en pesos enteros, en formato colombiano (`1.000.000`) o sin puntos (`1000000`); si el formato no es inequívoco —puntos mal agrupados, centavos, letras— se rechaza diciendo cómo escribirlo, nunca se interpreta a medias** *(mod. v6, sesión 016)*. **2c. Colombia no está entre los países elegibles → la cobertura por departamentos no se pide (RN-34 solo aplica a Colombia)** *(sesión 032)*. **2d. La convocatoria llegó del importador (CU-48) → la ficha muestra la fuente externa, el enlace a la ficha original y lo que falta para publicarla; se completa igual que una cargada a mano (CU-49)** *(sesión 032)* |
 | **Incluye** | CU-03 |
 
 #### CU-03 · Adjuntar documentos
@@ -65,9 +65,33 @@
 | **Actor** | Reloj del sistema (pg_cron) |
 | **Flujo principal** | Job diario: las publicadas con `fecha_cierre < hoy` pasan a **cerrada** y salen del catálogo, de las sugerencias y de la generación con IA. **"Hoy" es el día en Colombia: una convocatoria vence al terminar su día de cierre en hora de Bogotá, y el job corre a medianoche de Colombia** *(mod. v6, sesión 017)* |
 
+#### CU-48 · Importar convocatorias de fuentes externas (automático) *(nuevo v6, sesión 032)*
+
+| Campo | Contenido |
+|---|---|
+| **Actor** | Sistema (tarea diaria), o un Administrador que pulsa «Importar ahora» |
+| **Descripción** | Traer cada día, de las APIs oficiales de Grants.gov, el Portal de Financiación y Licitaciones de la UE e iNNpulsa, las convocatorias nuevas o cambiadas que cumplen los filtros de cada fuente, y dejarlas en borrador para revisión (RN-38) |
+| **Precondiciones** | Al menos un conector activo (RF-110), con su fuente del catálogo asociada |
+| **Flujo principal** | 1. La tarea diaria (o «Importar ahora») abre una corrida (RF-114). 2. Por cada conector activo, en serie, pide a la API las convocatorias abiertas o próximas según sus parámetros. 3. Descarta las que no cumplen: cierre vencido o sin fecha de cierre, privadas o archivadas en la fuente, sin elegibilidad para Colombia cuando el conector lo exige, y las ya descartadas por un administrador. 4. Por cada una que queda, busca su identificador externo: **si no existe**, crea la convocatoria en `borrador` con lo que la fuente dice —nombre, entidad, descripción, fechas, montos en su moneda, enlace oficial, países si la fuente los declara— y descarga los documentos oficiales que la API ofrezca (RF-111); **si existe en borrador**, la actualiza con lo nuevo de la fuente sin pisar lo que el administrador ya completó (RF-112); **si existe publicada**, compara y, si algo cambió, registra el cambio pendiente (RF-113). 5. Cierra la corrida con sus conteos |
+| **Flujos alternos** | 2a. La API falla, tarda o responde algo inesperado → ese conector queda con error en la corrida, la corrida queda `parcial` y los demás siguen; nada importado antes se borra (RNF-36). 2b. La corrida supera su tope de tiempo o de registros → se detiene ordenadamente y la siguiente continúa. 3a. La fuente no dice qué países pueden postularse → se importa sin países y no se puede publicar hasta que el administrador los declare (RN-39). 4a. La fuente cierra o cancela una que ya estaba publicada → cambio pendiente «cerrada en la fuente» |
+| **Postcondiciones** | Borradores nuevos o actualizados marcados como importados; cambios pendientes sobre publicadas; corrida registrada. Ninguna empresa ve nada nuevo hasta que un administrador publica |
+| **Nota** | No usa IA: los datos se copian de la fuente, campo por campo. Categorías y requisitos los pone el administrador (RNF-23) |
+
+#### CU-49 · Revisar convocatorias importadas *(nuevo v6, sesión 032)*
+
+| Campo | Contenido |
+|---|---|
+| **Actor** | Administrador de Contenido (con MFA) |
+| **Descripción** | Decidir qué se publica de lo que trajo el importador y aplicar los cambios que la fuente hizo sobre las publicadas |
+| **Precondiciones** | Hay importadas en borrador o cambios pendientes |
+| **Flujo principal** | 1. Abre «Importadas» en el panel: borradores importados, el que cierra antes primero, con su fuente, la fecha de importación, los países y lo que falta para cumplir RN-01. 2. Abre una y ve, al lado, los datos tal como llegaron de la fuente y el enlace a la ficha original. 3. Completa lo que falta —países si no llegaron, cobertura si Colombia es elegible, categorías, al menos dos requisitos sacados del documento oficial, el documento si la API no lo trajo— y publica (CU-05) |
+| **Flujos alternos** | 1a. No sirve para la plataforma → «Descartar» con motivo: se borra el borrador y el identificador queda vetado para el importador (RN-38). 1b. Cambios pendientes → la pestaña «Cambios en la fuente» muestra, por publicada, el valor actual y el de la fuente; «Aplicar» lo escribe con la misma validación de RN-01 (si la deja incompleta, se rechaza) y «Descartar» lo archiva. 1c. «Cerrada en la fuente» → al aplicarlo, la convocatoria se despublica |
+| **Postcondiciones** | Lo publicado cumple RN-01; queda quién publicó, aplicó o descartó, y cuándo (RNF-11) |
+| **Incluye** | CU-02, CU-03, CU-04, CU-05 |
+
 ### Módulo B — Búsqueda y descubrimiento (Usuario Empresa)
 
-#### CU-07 · Explorar catálogo con filtros *(mod. v4)*
+#### CU-07 · Explorar catálogo con filtros *(mod. v4; mod. v6, sesión 032)*
 
 | Campo | Contenido |
 |---|---|
@@ -75,7 +99,7 @@
 | **Descripción** | Camino directo de búsqueda, navegable sin suscripción activa (modo consulta) |
 | **Precondiciones** | Sesión iniciada con cuenta de **empresa o entidad**. Visitantes y consultores no acceden al catálogo (RN-33) *(mod. v6)* |
 | **Flujo principal** | 1. Abre el catálogo (publicadas y vigentes). 2. Busca por texto libre. 3. Aplica filtros combinables: tipo de proyecto, sector, entidad, rango de monto, **departamento —trae las convocatorias de ese departamento y las de cobertura nacional—** *(mod. v6, sesión 019)*, fecha de cierre; **y, desde la sesión 029, quién puede postular, región, alcance, monto con/sin informar, cierre en los próximos N días o en un año, apertura, tipo de documento, exigencia de documentos y número máximo de requisitos (RF-12)**. 4. Ordena los resultados (RF-94) y ve sus filtros activos como etiquetas que puede quitar una a una (RF-95). 5. Resultados en < 2 s |
-| **Flujos alternos** | 2a. **Chips de búsqueda sugerida** clickeables ("innovación agro Antioquia", "cooperación internacional ambiental") que precargan filtros y enseñan a usar la herramienta *(nuevo v4)*. **Se derivan del catálogo vigente —las categorías y los departamentos más frecuentes entre las publicadas— para que ningún chip lleve a un resultado vacío** *(mod. v6, sesión 016)*. 4a. Sin resultados → chips alternativos y sugerencia de relajar filtros |
+| **Flujos alternos** | 2a. **Chips de búsqueda sugerida** clickeables ("innovación agro Antioquia", "cooperación internacional ambiental") que precargan filtros y enseñan a usar la herramienta *(nuevo v4)*. **Se derivan del catálogo vigente —las categorías y los departamentos más frecuentes entre las publicadas— para que ningún chip lleve a un resultado vacío** *(mod. v6, sesión 016)*. 4a. Sin resultados → chips alternativos y sugerencia de relajar filtros **3b. Por defecto el catálogo muestra solo las convocatorias a las que el país de la empresa puede postularse; con «incluir las de otros países» aparecen las demás, marcadas «Tu país no es elegible» y sin acciones (RN-39). Los montos se muestran en su moneda, con el equivalente aproximado en pesos cuando hay tasa de referencia (RN-40)** *(sesión 032)* |
 
 #### CU-08 · Ver detalle y descargar documentos *(mod. v4, mod. v5)*
 
@@ -160,7 +184,7 @@
 | **Precondiciones** | Proyecto registrado + suscripción activa o trial |
 | **Flujo principal** | 1. Abre "Sugerencias" desde su proyecto. 2. El sistema cruza categorías proyecto × convocatoria vigente, más monto y ubicación. **La ubicación coincide si la convocatoria es de cobertura nacional o si incluye el departamento del proyecto; el monto, si el monto buscado cae dentro del rango (un extremo que la entidad no informó no pone límite). Un criterio sobre el que el proyecto no tiene dato no coincide** *(mod. v6, sesión 019)*. 3. Presenta cada resultado con un **porcentaje de compatibilidad** (criterios coincidentes sobre criterios evaluados) y el desglose de qué coincide y qué no. 4. Ordena de mayor a menor compatibilidad. 5. Responde en < 3 s |
 | **Flujos alternos** | 2a. Sin coincidencias → indica qué atributo restringe más: **primero, los datos que le faltan al proyecto (categoría de algún tipo, monto o departamento), con el enlace para completarlos (RF-81); después, las convocatorias vigentes más cercanas —hasta 5, las que cierran antes— en 0 % y con su desglose, para que se vea por qué no coinciden. Si al proyecto no le falta nada, lo dice así: ninguna vigente coincide en ningún criterio** *(mod. v6, sesión 019)*. *Se descartó "el criterio que menos vigentes cumplen": sin ninguna coincidencia los cinco empatan en cero (decisión del Product Owner, sesión 019).* 2b. Sin suscripción vigente → no se calculan; se ofrece suscribirse |
-| **Nota** | El porcentaje es presentación del mismo cálculo determinístico de coincidencias: **no interviene IA** y así se comunica al usuario (RN-05) |
+| **Nota** | El porcentaje es presentación del mismo cálculo determinístico de coincidencias: **no interviene IA** y así se comunica al usuario (RN-05). **Solo se sugieren convocatorias a las que el país de la empresa puede postularse (RN-39); el monto en otra moneda se compara con la tasa de referencia (RN-40)** *(sesión 032)* |
 
 #### CU-36 · Ver indicadores públicos del catálogo *(nuevo v4)*
 

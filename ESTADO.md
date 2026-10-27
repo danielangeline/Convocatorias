@@ -17,6 +17,8 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 
 ## Lo último que se hizo
 
+- **Sesión 032, después: importador, países y moneda especificados** (decisión del Product Owner: «cambia la regla 4 para importar a borrador, agrega país de elegibilidad y moneda, y especifica el importador de Grants.gov, UE e iNNpulsa»; bitácora `2026-10-27-sesion-032-importador-especificado.md`). **Regla 4 de `CLAUDE.md` reescrita y regla 12 nueva.** Nuevos **RN-38** (el importador nunca publica), **RN-39** (elegibilidad por país), **RN-40** (moneda original y tasa de referencia), **RNF-36**, **CU-48**, **CU-49**, **RF-110..117**; modificados RN-01, CU-02, CU-07, CU-10, RF-05, 09, 12, 16; docs/05 §9.36 y §9.37 (8 tablas nuevas, 37 a 44, y el mapeo campo por campo de cada API, probado con llamadas reales). Todo en `pendiente`: **sin migración ni código**.
+
 - **Sesión 032: 11 convocatorias nuevas y estudio de integraciones** (a pedido del Product Owner: «mantener la base siempre actualizada, con fondos de todos los países»; bitácora `2026-10-27-sesion-032-convocatorias-y-fuentes.md`). **Carga (RF-05..09, RN-01):** Minciencias 54 y 55 del SGR (abiertas el 23-oct, cierre 13-nov, con TDR), Global EbA Fund, Cities Deliver (Rockefeller y OpenAI Foundation), CIEIF, MassChallenge Sustainable Food Challenge 2027, IWT Challenge Fund ronda 12 (Main/Extra y Evidence, Colombia elegible), Fundación Tinker 2027, EQUALS in Tech Awards 2027 y DRL/IRF del Departamento de Estado. El catálogo pasa de 11 a **22 vigentes** (10 públicas, 8 privadas, 4 de cooperación). El script de carga ahora lee lotes (`scripts/convocatorias/lote-*.mjs`) y fija el origen (RF-102). **Estudio:** APIs gratuitas probadas (Grants.gov, UE SEDIA, iNNpulsa, UKRI, Banco Mundial, SECOP) y de pago con precio (OpenGrants Developer USD 239–299/mes, GrantExec, Devex sin API). **Nada automático programado:** cambia la regla 4 de `CLAUDE.md` y espera decisión. Sin push; sin recorrido en pantalla.
 
 - **Sesión 031, al cierre: editor del proyecto por apartados y «Editar con IA» (CU-47, RF-109, 10 créditos, la IA propone y la persona acepta)**; dictado en vivo con el reconocimiento del navegador (RF-97 mod.). Migración `20261027200000` aplicada. `prueba-editar-apartado.mjs` 16/16. **Sin push**; cuentas temporales `d9cf7c` vivas para la revisión del Product Owner. Falta probar el dictado con micrófono real.
@@ -354,6 +356,8 @@ Detalle en [`docs/bitacora/2026-09-24-sesion-020.md`](docs/bitacora/2026-09-24-s
 
 ## Lo siguiente
 
+**Importador de convocatorias (sesión 032, especificado, sin construir).** Orden propuesto: (1) migración de §9.36 —países, monedas, `convocatoria_pais` con `'CO'` para las que ya existen, tasas— y su uso en `guardar_convocatoria`, `ficha_publicable`, `sugerencias_proyecto` y el catálogo (RF-116, RF-117); (2) migración de §9.37 y `registrar_importada`; (3) conector de iNNpulsa (el más simple, países fijos); (4) Grants.gov y UE; (5) panel: `/admin/importaciones`, bandeja y cambios en la fuente; (6) Vercel Cron con `CRON_SECRET`. Cada paso con su prueba (RNF-36 con respuestas grabadas).
+
 **Desde la sesión 030, lo que queda es del Product Owner** (lo que el agente podía hacer, se hizo):
 
 1. **Antes del próximo despliegue:** cargar `UPSTASH_REDIS_REST_URL` y `UPSTASH_REDIS_REST_TOKEN` en Vercel (Production y Preview). **Sin ellas, el inicio de sesión, el registro y la IA se rechazan en producción** (fail-closed, RNF-33). Opcional: rotar el token, que pasó por el chat.
@@ -491,7 +495,6 @@ Esperan al Product Owner. No bloquean el Sprint 1.
 
 | Decisión | Contexto | Cuándo hace falta |
 |---|---|---|
-| **Importación automática de convocatorias** | `docs/12-fuentes-de-convocatorias.md` §5 (sesión 032): un importador diario por API que deje borradores para que el administrador publique. Cambia la regla 4 de `CLAUDE.md` («sin scraping en el MVP») y pide decidir **país de elegibilidad** (hoy solo hay cobertura de Colombia; con fondos de otros países las sugerencias mostrarían lo que la empresa no puede pedir) y **moneda** (los montos son COP) | Antes de cargar convocatorias que no admiten empresas colombianas |
 | **Probar el dictado con voz real** | En la sesión 030 se probó con audio sintético y una llamada real a OpenAI; falta que el Product Owner dicte un proyecto suyo con el micrófono y revise la propuesta (RN-37) | Antes de anunciarlo a los pilotos |
 | **Precio del plan Consultor** | Quedó en COP $69.000 al retirarle el cupo de IA. `docs/07 §10.2` marca los planes como "a validar con los pilotos" | Antes de cobrar |
 | **Costo de la IA, créditos por plan y precios** | Decidido en la sesión 021 que va al final. Se fija con el costo medido sobre ≥10 TDR reales (RNF-21). Sesión 026: el proveedor es OpenAI. **Sesión 027: medido USD 0,016 por generación** con `gpt-5.4-mini` y un TDR de 37.000 caracteres (20 generaciones); un TDR al tope de 60.000 rondaría USD 0,02 | Sprint 5 |

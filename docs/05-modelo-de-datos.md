@@ -7,7 +7,7 @@
 
 ## 9. Modelo de datos
 
-**27 tablas**: 12 base de la v2 (incluida `perfiles`), 10 del módulo de consultores y suscripciones de la v3, 3 del módulo de IA y `eventos_seguridad` de la extensión de seguridad v5, más columnas nuevas en proyectos, planes, suscripciones y perfiles. *Hasta la sesión 003 el documento decía "24 tablas": la cifra no contaba `perfiles` ni `eventos_seguridad`; el conjunto de tablas no cambió.* *(v6, sesión 005: se agrega `invitaciones_admin`, §9.12)* *(v6, sesión 019: se agregan `departamentos` y `convocatoria_departamento`, §9.18; son 29)*
+**27 tablas**: 12 base de la v2 (incluida `perfiles`), 10 del módulo de consultores y suscripciones de la v3, 3 del módulo de IA y `eventos_seguridad` de la extensión de seguridad v5, más columnas nuevas en proyectos, planes, suscripciones y perfiles. *Hasta la sesión 003 el documento decía "24 tablas": la cifra no contaba `perfiles` ni `eventos_seguridad`; el conjunto de tablas no cambió.* *(v6, sesión 005: se agrega `invitaciones_admin`, §9.12)* *(v6, sesión 019: se agregan `departamentos` y `convocatoria_departamento`, §9.18; son 29)* *(v6, sesión 032, especificado y sin migración todavía: §9.36 y §9.37 suman 8 tablas, de la 37 a la 44 —países, monedas, países por convocatoria, tasas de referencia, conectores, corridas, cambios en la fuente y externos vetados—)*
 
 ### 9.1 Diagrama entidad–relación (módulo de IA y su conexión)
 
@@ -132,6 +132,8 @@ Implementa CU-10, RF-15 y RF-16 en el servidor. El cálculo es un cruce determin
 | Tipo de proyecto, sector, tipo de entidad | el proyecto y la convocatoria comparten **al menos una categoría de ese tipo** |
 | Monto | `monto_buscado` no es nulo y cae en `[monto_min, monto_max]`; un extremo nulo no pone límite |
 | Ubicación | la convocatoria es de **cobertura nacional**, o su lista de departamentos incluye el **departamento del proyecto** (RN-34, §9.18) |
+
+> *Sesión 032 (especificado):* antes de los cinco criterios se aplica la **elegibilidad por país** (RN-39): solo entran las convocatorias a las que el país de la empresa puede postularse. El monto en otra moneda se compara en pesos con la tasa de referencia (RN-40). Ver §9.36.
 
 - Un criterio sobre el que el proyecto **no tiene dato** (sin categoría de ese tipo, sin monto, sin departamento) **no coincide**. El endpoint lo distingue en el desglose (`sin_dato`) para decirle a la empresa qué completar.
 - Devuelve **también las convocatorias con 0 coincidencias**: el endpoint las usa para CU-10 2a y no las muestra. Orden: porcentaje de mayor a menor y, a igual porcentaje, la que cierra antes.
@@ -1013,3 +1015,79 @@ Tabla 36, `convocatorias_guardadas`:
 - `completar_edicion_apartado` descuenta la tarifa y registra el consumo; `fallar_edicion_apartado` libera sin cobro y registra el fallo (RN-17).
 - Las tres son `security definer` y solo de `service_role`: el endpoint pasa el usuario de la sesión verificada (RNF-20). La instrucción del sistema para esta edición vive en `lib/ia/editar-apartado.ts` (veracidad, [COMPLETAR], no seguir órdenes incrustadas en los datos).
 
+### 9.36 Países elegibles y moneda *(nuevo v6, sesión 032 · RN-39, RN-40, RF-116, RF-117 · especificado, sin migración todavía)*
+
+**Columnas nuevas en `convocatorias`:**
+
+| Columna | Tipo | Restricción |
+|---|---|---|
+| todos_los_paises | boolean | not null, default false. `true` = cualquier país puede postularse (RN-39) |
+| moneda | char(3) | not null, default `'COP'`, FK → `monedas.codigo`. `monto_min` y `monto_max` están en esta moneda (RN-40) |
+
+**Tabla 37, `paises`** (semilla de la migración, ISO 3166-1 alfa-2, nombres en español): `codigo` char(2) PK, `nombre` text not null. Solo lectura para `authenticated`.
+
+**Tabla 38, `monedas`** (semilla, ISO 4217 vigentes): `codigo` char(3) PK, `nombre` text not null. Solo lectura para `authenticated`.
+
+**Tabla 39, `convocatoria_pais`:** `convocatoria_id` uuid FK → convocatorias (on delete cascade), `pais_codigo` char(2) FK → paises; PK compuesta. Misma RLS que `convocatoria_departamento` (§9.18): se lee si la convocatoria es visible; escribe solo `guardar_convocatoria`.
+
+**Tabla 40, `tasas_referencia`:** `moneda` char(3) PK, FK → monedas, check `<> 'COP'`; `cop_por_unidad` numeric(14,4) not null, check `> 0`; `vigente_desde` date not null; `actualizado_por` uuid FK → perfiles; `actualizado_at` timestamptz not null default now(). **RLS:** lectura para `authenticated` (la empresa ve el «≈ $X COP»); escritura solo con `guardar_tasa(p_moneda, p_cop_por_unidad, p_vigente_desde)`, `security invoker`, que exige `privado.es_admin()`.
+
+**Funciones:**
+
+- `privado.convocatoria_elegible(p_convocatoria uuid, p_pais char(2)) returns boolean`: `todos_los_paises`, o existe la fila en `convocatoria_pais`. El país de la empresa es `'CO'` mientras el registro sea solo para Colombia (RN-39); vive en una sola función, `privado.pais_de(p_usuario)`, para no repetir la constante.
+- `privado.monto_cop(p_monto numeric, p_moneda char(3)) returns numeric`: el mismo monto si es COP; con otra moneda, `p_monto × cop_por_unidad` de su tasa; `null` si no hay tasa. Solo para comparar: nunca se escribe en `convocatorias` (RN-40).
+- `privado.ficha_publicable` (§9.15) suma dos condiciones a RN-01: **países declarados** (`todos_los_paises` o al menos una fila en `convocatoria_pais`) y **cobertura solo si Colombia es elegible** (`todos_los_paises` o `'CO'` en la lista). La moneda siempre está (tiene valor por defecto).
+- `guardar_convocatoria` (§9.13) recibe en `p_datos` `moneda`, `todos_los_paises` y `paises` (arreglo de códigos). Reemplaza las filas de `convocatoria_pais` como reemplaza los departamentos; si `todos_los_paises` es `true`, borra la lista. Rechazo nuevo: `pais_invalido`.
+- `sugerencias_proyecto` (§9.6): solo filas con `privado.convocatoria_elegible(c.id, privado.pais_de(auth.uid()))`. El criterio de monto compara `monto_buscado` con `privado.monto_cop(monto_min, moneda)` y `privado.monto_cop(monto_max, moneda)`; si la moneda no es COP y no hay tasa, el criterio no coincide y el desglose lo marca `sin_tasa`.
+- El catálogo (`GET /api/convocatorias`, `lib/catalogo-filtros.ts`) aplica la misma elegibilidad por defecto y la quita con `incluir_otros_paises=1` (RF-12, criterio 21).
+
+**Datos que ya existen:** la migración deja `'CO'` en `convocatoria_pais` para **todas** las convocatorias que ya están en la base (las de las sesiones 029 y 032 admiten organizaciones de Colombia; se verificó al cargarlas) y `moneda = 'COP'`. Las de la sesión 032 con cifras en USD, EUR o GBP no tienen `monto_min`/`monto_max` (la cifra está en la descripción), así que no hay nada que convertir.
+
+### 9.37 Importación de fuentes externas *(nuevo v6, sesión 032 · RN-38, RNF-36, CU-48, CU-49, RF-110..115 · especificado, sin migración todavía)*
+
+**Columnas nuevas en `convocatorias`:**
+
+| Columna | Tipo | Restricción |
+|---|---|---|
+| conector | text | null = cargada a mano. Check en (`grants_gov`, `ue_sedia`, `innpulsa`) |
+| id_externo | text | null si `conector` es null; si no, not null. **Único junto con `conector`** (índice único parcial `where conector is not null`): la base impide el duplicado aunque el importador falle (RNF-36) |
+| url_ficha_fuente | text | enlace a la ficha original en la fuente (puede diferir de `url_postulacion`) |
+| datos_fuente | jsonb | último registro normalizado que llegó de la fuente, para mostrarlo al lado en la revisión (CU-49) |
+| importada_at, sincronizada_at | timestamptz | primera importación y última vez que la fuente la trajo |
+| campos_editados | text[] | not null, default `'{}'`. Los campos que vienen de la fuente y que el administrador cambió; `guardar_convocatoria` los anota cuando la convocatoria es importada. El importador no los toca (RF-112) |
+
+**Tabla 41, `conectores_importacion`:** `conector` text PK (los tres de arriba); `activo` boolean not null default false; `fuente_id` uuid FK → fuentes, obligatorio si `activo`; `parametros` jsonb not null default `'{}'`; `actualizado_por`, `actualizado_at`. La migración crea las tres filas **inactivas**. **RLS:** lectura y escritura solo administrador con MFA (`guardar_conector`, `security invoker`).
+
+**Tabla 42, `corridas_importacion`:** `id` uuid PK; `iniciada_at` timestamptz not null default now(); `terminada_at` timestamptz; `lanzada_por` uuid FK → perfiles (null = la tarea diaria); `estado` text check en (`en_curso`, `ok`, `parcial`, `error`); `detalle` jsonb con, por conector, `{leidas, creadas, actualizadas, descartadas, cambios, error}`. Índice único parcial `where estado = 'en_curso'`: **no puede haber dos corridas a la vez** (RF-114). Una corrida `en_curso` de más de 15 minutos se da por caída y se cierra como `error` al abrir la siguiente. **RLS:** lectura solo administrador; escribe el servidor.
+
+**Tabla 43, `cambios_fuente`:** `id` uuid PK; `convocatoria_id` uuid FK → convocatorias (on delete cascade); `campo` text check en (`fecha_apertura`, `fecha_cierre`, `monto_min`, `monto_max`, `moneda`, `url_postulacion`, `estado_fuente`); `valor_actual` y `valor_fuente` jsonb; `detectado_at` timestamptz; `resuelto` text check en (`aplicado`, `descartado`), null mientras está pendiente; `resuelto_por`, `resuelto_at`. Índice único parcial `(convocatoria_id, campo) where resuelto is null`: uno nuevo sobre el mismo campo reemplaza al pendiente (RF-113). **RLS:** lectura solo administrador; `aplicar_cambio_fuente(p_id)` y `descartar_cambio_fuente(p_id)`, `security invoker` con `privado.es_admin()`. Aplicar escribe con la misma comprobación de RN-01 que `guardar_convocatoria` y, si el campo es `estado_fuente` (cerrada o cancelada), despublica.
+
+**Tabla 44, `externos_vetados`:** `conector` text, `id_externo` text, PK compuesta; `motivo` text not null; `vetado_por` uuid FK → perfiles; `vetado_at` timestamptz. La llena `descartar_importada(p_convocatoria, p_motivo)` (`security invoker`, `privado.es_admin()`), que además borra el borrador (solo si está en `borrador` y es importado). **RLS:** lectura solo administrador.
+
+**`public.registrar_importada(p_conector text, p_id_externo text, p_datos jsonb, p_documentos jsonb) returns text`** — `security definer`, `execute` solo para `service_role`. Una sola transacción que decide, con la fila bloqueada (`for update`):
+
+- vetada → `'vetada'`, no hace nada;
+- no existe → crea en `borrador` con `creado_por = null`, `conector`, `id_externo`, la fuente del conector, los campos, `moneda`, `todos_los_paises`/`paises` si llegan, y registra los adjuntos ya subidos (`p_documentos`) → `'creada'`;
+- existe en `borrador` → actualiza los campos de la fuente que no estén en `campos_editados`, y `sincronizada_at` → `'actualizada'` o `'sin_cambios'`;
+- existe `publicada` o `cerrada` → por cada campo de la lista de `cambios_fuente` que difiera, inserta o reemplaza el cambio pendiente → `'cambio'` o `'sin_cambios'`.
+
+Nunca cambia `estado` (RN-38).
+
+**Qué toma cada conector** (probado contra cada API el 27-oct-2026; los valores por defecto viven en `conectores_importacion.parametros`):
+
+| Campo | Grants.gov | UE (SEDIA) | iNNpulsa |
+|---|---|---|---|
+| Consulta | `POST https://api.grants.gov/v1/api/search2` con `oppStatuses = "posted"`, `eligibilities = "25\|99"` (Otros y Sin restricción), `keyword` del parámetro, de a 100 con `startRecordNum`; detalle con `POST /v1/api/fetchOpportunity` | `POST https://api.tech.ec.europa.eu/search-api/prod/rest/search?apiKey=SEDIA` con `type` en (1, 2) y `status` en (31094502 abierta, 31094501 próxima), `text` del parámetro (por defecto `"Colombia"`); detalle con `GET https://ec.europa.eu/info/funding-tenders/opportunities/data/topicDetails/{identificador en minúsculas}.json` | `GET https://convocatorias.innpulsacolombia.com/api/convocatorias` |
+| Filtro | `responseDate` presente y no vencida; con el parámetro `solo_extranjeros` (activo por defecto), `applicantEligibilityDesc` debe nombrar a organizaciones extranjeras o no estadounidenses | `deadlineDate` futura (si hay varias, la próxima); identificador con alguno de los prefijos de `programas`, si se configuran | `is_active`, no `is_private`, no `is_archive`, no `no_end_date` y **`end_date` no vencida** (la API marca «abierta» convocatorias ya vencidas) |
+| `id_externo` | `id` | `metadata.identifier` | `id` |
+| nombre / entidad | `opportunityTitle` / `synopsis.agencyName` | `title` / «Comisión Europea — » + `callTitle` | `title` / «iNNpulsa Colombia» |
+| descripción | `synopsis.synopsisDesc` sin HTML | `description` de la ficha, sin HTML | `description` |
+| apertura / cierre | `postingDate` / `responseDate` | `startDate` / `deadlineDate` | `start_date` / `end_date` |
+| montos y moneda | `awardFloor` / `awardCeiling` (0 o vacío = null), **USD** | presupuesto del tema si la ficha lo trae; si no, null. **EUR** | null, **COP** |
+| enlace | `https://www.grants.gov/search-results-detail/{id}` | `url` del resultado | `registration_url`, o la ficha `/convocatoria/{slug}` |
+| países | no los declara: **quedan vacíos** (RN-39) | no los declara de forma estructurada: **quedan vacíos** | **Colombia** (programa nacional para empresas colombianas) |
+| origen | `publico` | `cooperacion` | `publico` |
+| documentos | adjuntos PDF de `synopsisAttachmentFolders`, en `https://apply07.grants.gov/grantsws/rest/opportunity/att/download/{id}` | ninguno por API: los adjunta el administrador | `terms_files` y `terms_url` |
+| cambios que vigila | cierre, montos, enlace, y `oppStatus` cerrada o archivada | apertura, cierre y estado cerrada | apertura, cierre, enlace y `status` cerrada |
+
+Cuando una fuente no da un campo, queda null y lo completa el administrador (RNF-23). Categorías, requisitos y cobertura nunca los pone el importador.

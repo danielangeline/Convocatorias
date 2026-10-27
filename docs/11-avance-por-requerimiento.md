@@ -200,6 +200,19 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RF-82 Comparador con atributos reales | verificado | **Sesión 028:** el comparador y el modal de suscripción leen los planes activos de la base (`SincronizarPlanes`); los beneficios salen de `beneficiosDePlan` (el modal tenía una lista fija con «Soporte prioritario»); un plan inactivo no aparece. `supabase/tests/planes_suscripciones.sql` 29/29 y `scripts/prueba-planes-suscripciones.mjs` 41/41 (dos corridas); recorrido en pantalla con Playwright contra `localhost` y cuentas temporales, ya borradas |
 | RF-83 Grafo de transiciones | verificado | **Sesión 020:** trigger en la base (`privado.transicion_postulacion_permitida`, también para `service_role`) y comprobación previa en el endpoint con el mismo grafo de `lib/utils.ts`; la prueba SQL recorre los 36 pares. Cerrar exige `confirmado: true` en el endpoint además del diálogo. Verificado con `supabase/tests/postulaciones.sql` (31/31) y `scripts/prueba-postulaciones.mjs` (52/52), con las pantallas comprobadas por su HTML. Recorrido en el navegador con la cuenta de empresa del Product Owner (pendiente 12): crear con 13 ítems copiados, volver a postular abre la misma con aviso, marcas conservadas al recargar, "Presentada" con el selector limitado y la línea de tiempo |
 
+
+### 4.14 Importación de fuentes externas, países y moneda *(v6, sesión 032)*
+
+| RF | Estado | Nota |
+|---|---|---|
+| RF-110 Conectores de importación | pendiente | **Sesión 032:** especificado (CU-48, docs/05 §9.37). Las tres APIs se probaron con llamadas reales |
+| RF-111 Importación diaria a borrador | pendiente | **Sesión 032:** especificado, con el mapeo campo por campo de cada fuente |
+| RF-112 Actualizar borradores sin pisar al administrador | pendiente | **Sesión 032:** especificado |
+| RF-113 Cambios en la fuente sobre publicadas | pendiente | **Sesión 032:** especificado |
+| RF-114 Historial de corridas e «Importar ahora» | pendiente | **Sesión 032:** especificado |
+| RF-115 Bandeja de importadas | pendiente | **Sesión 032:** especificado (CU-49) |
+| RF-116 Países elegibles | pendiente | **Sesión 032:** especificado (RN-39, docs/05 §9.36) |
+| RF-117 Moneda y tasa de referencia | pendiente | **Sesión 032:** especificado (RN-40, docs/05 §9.36) |
 ---
 
 ## 23. Requerimientos no funcionales
@@ -241,6 +254,7 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RNF-33 Degradación fail-closed | verificado | 5 | **Sesión 030:** con un servidor que apunta a una URL de Upstash que no responde, la IA responde 503 y no reserva ni cobra (`PRUEBA_UPSTASH_CAIDO=1 prueba-limite-tasa.mjs`); el incidente queda en el log del servidor. Los formularios de acceso responden con un mensaje genérico |
 | RNF-34 Lenguaje sin identificadores | verificado | — | **Sesión 023 (Sprint 4 paso 5):** 24 pantallas de los tres portales y las públicas, con datos reales, sin ningún `CU-`, `RF-`, `RNF-` ni `RN-` en el texto visible |
 | RNF-35 Panel administrativo oculto *(v6, sesión 005)* | verificado | 1 | Sesión 007, criterio ejecutado con `scripts/prueba-matriz-roles.mjs` contra el build de producción (sesión 007): `/admin`, `/admin/*`, `/mfa` y `/api/admin/*` dan la misma respuesta 404 (código y cuerpo) que una ruta inventada para anónimo, empresa y consultor. En 22 archivos JS y sus HTML servidos a no administradores no aparece `/admin` ni `/mfa`; se retiraron tres rutas del panel que venían en los eventos del mock. No hay `sitemap` ni `robots.txt` |
+| RNF-36 Importación de fuentes externas *(v6, sesión 032)* | pendiente | 5 | **Sesión 032:** especificado (docs/03, docs/05 §9.37). Sin construir |
 
 ---
 
@@ -272,6 +286,9 @@ Las reglas están documentadas (RN-34 desde la sesión 019); estas son las que t
 | RN-25 El consultor ve solo el proyecto de su encargo vivo | verificado | 4 — políticas desde el Sprint 0; **sesión 023:** ampliada al checklist de la postulación vinculada (solo lectura) y probada con encargos reales: completado o rechazado, ya no lee el proyecto. **Sesión 025:** en un encargo de búsqueda, la convocatoria elegida se ve como la de uno específico, y las sugerencias del proyecto mientras esté en curso (RF-91); probado en SQL y HTTP **Sesión 027:** `encargos.sql` y `propuestas_encargo.sql` en la regresión de la sesión 027 en verde (SQL 15 suites, 330 comprobaciones + RLS; HTTP 18 suites, 763 comprobaciones, 0 fallas) |
 | RN-36 Una solicitud abierta por proyecto y consultor *(v6, sesión 023)* | verificado | 4 — índices únicos parciales (`pendiente`/`en_curso` por proyecto y consultor; `esperando_asignacion` por proyecto). Probado en SQL y HTTP **Sesión 027:** `encargos.sql` y `prueba-encargos.mjs` en la regresión de la sesión 027 en verde (SQL 15 suites, 330 comprobaciones + RLS; HTTP 18 suites, 763 comprobaciones, 0 fallas) |
 | RN-37 La IA que estructura un proyecto propone y la empresa decide *(v6, sesión 030)* | verificado | 5 — departamento y categorías solo de las listas (el servidor descarta lo demás), nada se guarda sin confirmar, explicación y audio no se conservan. HTTP y una llamada real a OpenAI: no inventó departamento, duración, presupuesto ni experiencia. **Pendiente la revisión del Product Owner con proyectos reales suyos** |
+| RN-38 El importador nunca publica *(v6, sesión 032)* | pendiente | 5 — especificado en la sesión 032 (reemplaza la regla «carga manual, sin scraping»); sin construir |
+| RN-39 Elegibilidad por país *(v6, sesión 032)* | pendiente | 5 — especificado en la sesión 032; sin construir. Hoy todas las convocatorias cargadas admiten a Colombia |
+| RN-40 Moneda original *(v6, sesión 032)* | pendiente | 5 — especificado en la sesión 032; sin construir. Hoy los montos en otra moneda van solo en la descripción |
 | RN-10 Consultor vencido no acepta *(transitorio, sesión 023)* | pendiente | 5 — hasta los planes con precio, aceptar no exige suscripción (igual que RN-08) |
 | RN-16 Gracia de 5 días con avisos | verificado | 4 — **sesión 023:** gracia también en el trial (decisión del Product Owner) y franja de aviso en el portal de la empresa, calculada en el servidor con la fecha de Colombia: desde 3 días antes, en la gracia y ya vencida. Probado por HTTP en cada momento del ciclo. El correo llega con el SMTP propio **Sesión 027:** recorrido en pantalla de la sesión 027 (Playwright contra `localhost`, cuentas temporales ya borradas): en gracia, la franja dice "Tu prueba gratuita venció el 17 de oct… te quedan 3 días"; vencida, "terminó el periodo de gracia. No puedes postular…" |
 | **RN-30 Propiedad explícita del dato** | verificado | **1** — columnas, migración y RLS desde la sesión 003. **Sesión 030 (revisión de estados viejos, ESTADO §Lo siguiente 2b):** todos los listados del portal Empresa leen de Supabase con la sesión (proyectos, postulaciones, encargos, documentos, catálogo); el aislamiento entre dos empresas lo prueban `rls_aislamiento.sql` y las suites de proyectos, postulaciones, encargos y documentos, en verde en la regresión de esta sesión |

@@ -10,12 +10,12 @@
 | Caso de uso | RF | RNF / RN |
 |---|---|---|
 | CU-01 Parametrizar fuente | RF-04 | RN-07 |
-| CU-02 Cargar convocatoria *(v5: enlace oficial; v6 sesión 019: cobertura por departamentos)* | RF-05, 06 | RNF-11, 14, 29, **RN-34** |
+| CU-02 Cargar convocatoria *(v5: enlace oficial; v6 sesión 019: cobertura por departamentos; sesión 032: países elegibles y moneda)* | RF-05, 06, **116, 117** | RNF-11, 14, 29, **RN-34**, **RN-39, 40** |
 | CU-03 Adjuntar documentos | RF-07 | RNF-02, 06, **RNF-16, RNF-18**, **RN-01** *(v6, sesion 016: una publicada no pierde su ultimo adjunto)*, *(v6, sesion 012: los adjuntos viven en un bucket privado y se entregan por URL firmada de 15 min; tipos y tamano validados en cliente, en servidor y en el propio bucket)* |
 | CU-04 Definir requisitos | RF-08 | RN-04 |
-| CU-05 Publicar *(v5: exige enlace válido; v6 sesión 019: exige cobertura)* | RF-09 | RN-01, RNF-11, 29, **RN-34** |
+| CU-05 Publicar *(v5: exige enlace válido; v6 sesión 019: exige cobertura; sesión 032: exige países)* | RF-09 | RN-01, RNF-11, 29, **RN-34**, **RN-39** |
 | CU-06 Cierre automático | RF-10 | RN-02, RNF-12 |
-| CU-07 Catálogo y chips *(v6: cerradas fuera del listado por defecto; solo empresas; sesión 016: chips derivados del catálogo vigente; sesión 019: filtro por departamento; sesión 029: 20 filtros, orden y filtros a la vista)* | RF-11, 12, 43, 94, 95 | RNF-04, **RN-02, RN-33, RN-34** |
+| CU-07 Catálogo y chips *(v6: cerradas fuera del listado por defecto; solo empresas; sesión 016: chips derivados del catálogo vigente; sesión 019: filtro por departamento; sesión 029: 20 filtros, orden y filtros a la vista)* | RF-11, 12, 43, 94, 95 | RNF-04, **RN-02, RN-33, RN-34**, **RN-39, RN-40** *(sesión 032)* |
 | CU-08 Detalle y descargas *(v5: enlace al portal; v6: solo empresas; sesión 016: descarga por URL firmada heredando la visibilidad de la fila)* | RF-13, **73** | RNF-06, **RNF-16**, **RN-33** |
 | CU-09 Proyecto enriquecido *(v6: completitud accionable; sesión 019: departamento)* | RF-14, 45, 46, 47, **81** | RN-21, RNF-03, **RNF-07**, **RN-34** |
 | **CU-43 Crear el proyecto con IA a partir de una explicación** *(nuevo v6, sesión 030)* | **RF-96, 97, 98, 99**, RF-14, 45, 52 | **RN-05, 17, 34, 37**, RNF-20, 22, 23, 24 |
@@ -23,7 +23,9 @@
 | **CU-45 Guardar convocatorias** *(nuevo v6, sesión 031)* | **RF-103**, RF-105 | RN-02, 30, 33, RNF-20, 30 |
 | **CU-46 Ajustes de la cuenta** *(nuevo v6, sesión 031)* | **RF-107**, RF-03 | RNF-30 |
 | **CU-47 Editar un apartado del proyecto, a mano o con IA** *(nuevo v6, sesión 031)* | **RF-109**, RF-14, 52, 81, 97, 100 | RN-17, 30, 37, RNF-20, 22, 23 |
-| CU-10 Sugerencias con % *(v6: solo vigentes; sesión 019: cálculo en servidor, ubicación por departamento, 2a y 2b)* | RF-15, 16, **81** | RN-05, RNF-05, **RN-02**, **RNF-20**, **RN-34** |
+| **CU-48 Importar convocatorias de fuentes externas** *(nuevo v6, sesión 032)* | **RF-110, 111, 112, 113, 114**, RF-04, 07, 116, 117 | **RN-38, 39, 40, RNF-36**, RN-01, RNF-11, 23, 25, 30 |
+| **CU-49 Revisar convocatorias importadas** *(nuevo v6, sesión 032)* | **RF-113, 115**, RF-05, 06, 07, 08, 09 | **RN-38**, RN-01, 34, 39, RNF-11, 28, 35 |
+| CU-10 Sugerencias con % *(v6: solo vigentes; sesión 019: cálculo en servidor, ubicación por departamento, 2a y 2b; sesión 032: elegibilidad por país y moneda)* | RF-15, 16, **81**, **116, 117** | RN-05, RNF-05, **RN-02**, **RNF-20**, **RN-34**, **RN-39, 40** |
 | CU-11 Iniciar postulación *(v6: vigencia verificada en servidor; sesión 020: una en curso por par)* | RF-17, 21, **78** | RN-03, 04, 19, **RNF-20**, **RN-35** |
 | CU-12 Checklist *(sesión 020: solo lectura si está cerrada)* | RF-18, 20 | **RN-35** |
 | CU-13 Estados *(v5: generar/editar documento, enlace al portal, solicitar consultor; v6: grafo de transiciones y jerarquía del portal)* | RF-19, 20, 28, 53, 73, **83** | RNF-11, 12, **RN-19**, **RN-35** |

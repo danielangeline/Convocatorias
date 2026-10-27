@@ -1,7 +1,7 @@
 # Fuentes de convocatorias e integraciones posibles
 
 > Investigación de la sesión 032 (27 de octubre de 2026), a pedido del Product Owner: «mantener la base de convocatorias siempre actualizada, con fondos de todos los países».
-> **Esto no es especificación.** Es el insumo para decidir. Hoy la regla 4 de `CLAUDE.md` dice que las convocatorias las carga un administrador y que no hay scraping en el MVP. Cualquier importación automática cambia esa regla y se especifica primero (docs/01, 02, 03, 05 y 09) antes de programarla.
+> **Esto no es especificación.** Fue el insumo para decidir. **Decidido en la sesión 032 por el Product Owner:** importar a borrador desde Grants.gov, la UE e iNNpulsa, con país de elegibilidad y moneda. Ya está especificado: regla 4 de `CLAUDE.md`, RN-38..40, RNF-36, CU-48, CU-49, RF-110..117, docs/05 §9.36 y §9.37. Si este documento y la especificación se contradicen, gana la especificación.
 
 ---
 
@@ -47,7 +47,7 @@
 - **Ecuador:** sus fondos (FonQuito, OIM, Misión Emprende 593) son solo para residentes en Ecuador y los de 2026 ya cerraron o no publican fecha.
 - **Chile, Perú, México:** CORFO, ProInnóvate y similares exigen estar constituido en el país. Start-Up Chile sí admite extranjeros; su última convocatoria cerró el 25-may-2026.
 
-## 5. Cómo se integraría (propuesta para decidir)
+## 5. Cómo se integraría *(propuesta de la sesión 032, ya especificada: ver CU-48 y docs/05 §9.37)*
 
 1. **Importador por fuente**, como tarea programada diaria (Vercel Cron o pg_cron, que ya existe): lee la API, filtra lo vigente y lo elegible, y **crea la convocatoria en estado `borrador`** con su fuente, fechas, enlace y la copia del documento oficial.
 2. **El administrador revisa y publica** desde el panel, como hoy. Eso mantiene RN-01 (ficha completa) y RNF-23 (nada inventado: requisitos y categorías los confirma una persona).

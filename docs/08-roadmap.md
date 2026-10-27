@@ -43,7 +43,7 @@ Product Owner (fundador/socio) · Scrum Master (líder técnico) · 2 desarrolla
 | E4 | Extracción de TDR con IA para **poblar el esquema**: el admin pasa de digitar a validar | El TDR ya se procesa como contexto en E-MVP |
 | E5 | Matching semántico y "consultores sugeridos para tu proyecto" | pgvector nativo + especialidades sobre el mismo catálogo |
 | E6 | Puntaje predictivo de probabilidad de éxito (estilo Capital Hub), con histórico propio de postulaciones | Estados e historial de postulaciones |
-| E7 | Scraping de fuentes (Radar) | Fuentes parametrizadas |
+| E7 | Scraping de fuentes (Radar) *(sesión 032: la importación por API de Grants.gov, UE e iNNpulsa se adelantó al MVP, siempre a borrador —RN-38, CU-48—; el raspado de páginas sigue aquí)* | Fuentes parametrizadas |
 | E8 | Comisión por encargo / pagos protegidos | Historial de encargos y calificaciones |
 | E9 | Informes de avance y cierre de proyectos aprobados | Esquema de convocatoria ganadora |
 | E10 | Expansión LATAM hispanohablante → Brasil | Arquitectura multi-fuente |
