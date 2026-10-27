@@ -7,10 +7,12 @@ import type { PropuestaProyecto } from "@/lib/types";
 import { textoCreditos, useCreditos, useTarifas } from "@/lib/hooks";
 import { Button } from "@/components/ui/Button";
 import { BotonDictado } from "./BotonDictado";
+import { cuerpoDeFormulario, desdePropuesta } from "@/components/ProyectoFormModal";
 
 /**
  * CU-43 · Primer paso de "Nuevo proyecto": la empresa cuenta su proyecto,
- * escribiendo o dictando (RF-97), y la IA arma el formulario (RF-96). Es
+ * escribiendo o dictando (RF-97), la IA arma la propuesta (RF-96) y el
+ * proyecto se guarda enseguida para editarlo en su ficha (RF-98, RN-37). Es
  * opcional: "Llenar el formulario a mano" abre CU-09 vacío, sin costo.
  */
 
@@ -18,10 +20,14 @@ const MIN = 80;
 const MAX = 8000;
 
 export function AsistenteProyecto({
+  onCreado,
   onPropuesta,
   onManual,
   onClose,
 }: {
+  /** RF-98: el proyecto ya quedó guardado; `faltantes` es lo que la explicación no dijo. */
+  onCreado: (id: string, faltantes: string[]) => void;
+  /** 6a: si el guardado falla, la propuesta abre el formulario para no perderla. */
   onPropuesta: (p: PropuestaProyecto) => void;
   onManual: () => void;
   onClose: () => void;
@@ -33,6 +39,7 @@ export function AsistenteProyecto({
   const [explicacion, setExplicacion] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [creando, setCreando] = useState(false);
+  const [etapa, setEtapa] = useState<"armando" | "guardando">("armando");
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -59,6 +66,7 @@ export function AsistenteProyecto({
       return;
     }
     setCreando(true);
+    setEtapa("armando");
     try {
       const r = await fetch("/api/proyectos/estructurar", {
         method: "POST",
@@ -73,7 +81,20 @@ export function AsistenteProyecto({
       }
       // El crédito ya se descontó: el indicador de créditos se actualiza.
       router.refresh();
-      onPropuesta(json.datos as PropuestaProyecto);
+      const propuesta = json.datos as PropuestaProyecto;
+      // RF-98: se guarda enseguida por CU-09, con las validaciones de siempre.
+      setEtapa("guardando");
+      const g = await fetch("/api/proyectos", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(cuerpoDeFormulario(desdePropuesta(propuesta))),
+      }).catch(() => null);
+      const gj = g ? await g.json().catch(() => ({})) : {};
+      if (g?.ok && gj?.datos?.id) {
+        onCreado(gj.datos.id as string, propuesta.faltantes);
+        return;
+      }
+      onPropuesta(propuesta);
     } catch {
       setError("No pudimos conectarnos. Revisa tu conexión e intenta de nuevo.");
       setCreando(false);
@@ -86,7 +107,7 @@ export function AsistenteProyecto({
         role="dialog"
         aria-modal="true"
         aria-label="Nuevo proyecto"
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-surface p-6 shadow-xl"
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-line bg-surface p-6 shadow-xl"
       >
         <div className="mb-1 flex items-center justify-between">
           <h3 className="font-display text-lg font-semibold text-ink">Nuevo proyecto</h3>
@@ -96,7 +117,7 @@ export function AsistenteProyecto({
         </div>
 
         <p className="mb-4 flex items-center gap-1.5 text-sm font-semibold text-violet-ink">
-          <Sparkles className="h-4 w-4" /> Cuéntanos tu proyecto y la IA llena el formulario
+          <Sparkles className="h-4 w-4" /> Cuéntanos tu proyecto y la IA lo crea por ti
         </p>
 
         <label htmlFor="explicacion-proyecto" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3">
@@ -110,7 +131,7 @@ export function AsistenteProyecto({
             disabled={creando}
             rows={8}
             placeholder="Escribe o dicta con el micrófono: qué problema resuelve, a quién beneficia, dónde se ejecuta, qué actividades harás, cuánto dinero buscas, en cuánto tiempo y qué experiencia tiene tu empresa."
-            className="block w-full resize-none rounded-t-xl px-3 py-2.5 text-sm outline-none disabled:bg-surface-2"
+            className="block w-full resize-none rounded-t-xl bg-surface px-3 py-2.5 text-sm text-ink outline-none disabled:bg-surface-2"
           />
           <div className="flex items-center justify-between gap-3 border-t border-line-2 px-2 py-1.5">
             <BotonDictado onTexto={agregarDictado} onError={setError} deshabilitado={creando || sinCredito} />
@@ -121,7 +142,7 @@ export function AsistenteProyecto({
         </div>
 
         <p className="mt-2 text-xs text-ink-3">
-          La IA usa solo lo que tú cuentes: lo que no digas queda vacío para que lo completes. Ni el audio ni el texto se guardan.
+          La IA usa solo lo que tú cuentes. Creamos el proyecto y lo abrimos para que revises y edites cada parte; lo que no digas queda vacío y marcado. Ni el audio ni el texto se guardan.
         </p>
 
         {sinCredito && (
@@ -145,7 +166,7 @@ export function AsistenteProyecto({
           <Button variant="ai" onClick={crear} disabled={creando || sinCredito || largo === 0}>
             {creando ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" /> Armando tu proyecto…
+                <Loader2 className="h-4 w-4 animate-spin" /> {etapa === "armando" ? "Armando tu proyecto…" : "Guardando…"}
               </>
             ) : (
               <>

@@ -23,7 +23,7 @@ export function ModalCreditos() {
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
-      <div role="dialog" aria-modal="true" aria-labelledby="titulo-sin-creditos" className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-2xl">
+      <div role="dialog" aria-modal="true" aria-labelledby="titulo-sin-creditos" className="w-full max-w-md rounded-2xl border border-line bg-surface p-6 shadow-2xl">
         <div className="mb-2 flex items-start justify-between">
           <div className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-violet/10 text-violet-ink">

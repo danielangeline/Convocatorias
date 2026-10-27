@@ -179,7 +179,7 @@ export function ListadoConvocatorias({
             role="dialog"
             aria-modal="true"
             aria-labelledby="titulo-nueva"
-            className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl"
+            className="w-full max-w-md rounded-2xl border border-line bg-surface p-6 shadow-xl"
           >
             <div className="mb-4 flex items-center justify-between">
               <h3 id="titulo-nueva" className="font-display text-lg font-semibold text-ink">

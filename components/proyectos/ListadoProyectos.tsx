@@ -88,10 +88,17 @@ export function ListadoProyectos({ proyectos, categorias }: { proyectos: Proyect
     setModalAbierto(true);
   };
 
-  // RF-98: el proyecto creado con IA lleva directo a sus convocatorias sugeridas.
-  const alCrearConIA = (id: string) => {
+  // RF-98: el proyecto creado con IA abre su ficha para revisar y editar cada
+  // parte. Lo que faltó viaja en sessionStorage, solo para el aviso de la ficha.
+  const alCrearConIA = (id: string, faltantes: string[] = []) => {
+    try {
+      sessionStorage.setItem(`proyecto-ia:${id}`, JSON.stringify(faltantes));
+    } catch {
+      /* sin almacenamiento: el aviso sale sin la lista */
+    }
+    setAsistenteAbierto(false);
     setModalAbierto(false);
-    router.push(`/proyectos/${id}/sugerencias`);
+    router.push(`/proyectos/${id}?creado=ia`);
   };
 
   const abrirEditar = (p: Proyecto) => {
@@ -198,6 +205,7 @@ export function ListadoProyectos({ proyectos, categorias }: { proyectos: Proyect
 
       {asistenteAbierto && (
         <AsistenteProyecto
+          onCreado={alCrearConIA}
           onPropuesta={(p) => abrirFormulario(p)}
           onManual={() => abrirFormulario(null)}
           onClose={() => setAsistenteAbierto(false)}

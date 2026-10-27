@@ -35,7 +35,7 @@ Reglas que se rompen con facilidad:
 
 1. **La plataforma NO radica postulaciones.** La presentación se hace en el portal de la entidad convocante. Aquí se *prepara*: buscar, evaluar compatibilidad, generar el documento base, organizar el checklist y hacer seguimiento. (RN-19)
 2. **Veracidad del contenido generado.** La IA nunca inventa datos, cifras ni antecedentes que no vengan del proyecto del usuario o de la convocatoria. Lo que falte se marca como `[COMPLETAR: ...]` y se lista al usuario. (RNF-23, RF-57)
-3. **La IA se usa en dos lugares:** generar el documento base de postulación y, desde la sesión 030, proponer el borrador de un proyecto a partir de la explicación escrita o dictada de la empresa, que ella revisa antes de guardar (CU-43, RN-37). **No** estructura el catálogo ni hace matching semántico — el matching es un cruce determinístico de atributos. (RN-05)
+3. **La IA se usa en dos lugares:** generar el documento base de postulación y, desde la sesión 030, crear un proyecto a partir de la explicación escrita o dictada de la empresa, que se guarda enseguida y ella revisa y edita en su ficha (sesión 031) (CU-43, RN-37). **No** estructura el catálogo ni hace matching semántico — el matching es un cruce determinístico de atributos. (RN-05)
 4. **Las convocatorias se cargan manualmente** por un administrador. Sin scraping en el MVP.
 5. **Cada uso exitoso de la IA cuesta su tarifa en créditos**: 100 por documento, 50 por proyecto creado con IA, 10 por ajuste desde el cuarto (los 3 primeros de cada documento son gratis); dictar no cuesta. Las tarifas las cambia el administrador (RF-100). Un uso fallido **nunca** consume créditos. (RN-17)
 6. **Suscripción y cupo se validan en el servidor y en RLS**, nunca solo en la interfaz. (RNF-20)

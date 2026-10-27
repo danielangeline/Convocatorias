@@ -12,10 +12,11 @@ export default async function DetalleProyectoPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ editar?: string }>;
+  searchParams: Promise<{ editar?: string; creado?: string }>;
 }) {
-  const [{ id }, { editar }] = await Promise.all([params, searchParams]);
+  const [{ id }, { editar, creado }] = await Promise.all([params, searchParams]);
   const [proyecto, categorias] = await Promise.all([obtenerProyecto(id), listarCategoriasActivas()]);
   const campo = EDITABLES_DESDE_SUGERENCIAS.find((c) => c === editar) ?? null;
-  return <FichaProyecto proyecto={proyecto} categorias={categorias} editar={campo} />;
+  // RF-98: `?creado=ia` llega de CU-43 y muestra el aviso para revisar cada parte.
+  return <FichaProyecto proyecto={proyecto} categorias={categorias} editar={campo} creadoConIa={creado === "ia"} />;
 }

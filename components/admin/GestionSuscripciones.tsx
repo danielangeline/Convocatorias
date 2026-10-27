@@ -284,7 +284,7 @@ export function GestionSuscripciones({
 
       {pagoDe && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <form onSubmit={confirmarPago} role="dialog" aria-modal="true" aria-labelledby="titulo-pago" className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl">
+          <form onSubmit={confirmarPago} role="dialog" aria-modal="true" aria-labelledby="titulo-pago" className="w-full max-w-md rounded-2xl border border-line bg-surface p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h3 id="titulo-pago" className="font-display text-lg font-semibold text-ink">Registrar pago y activar</h3>
               <button type="button" onClick={() => setPagoDe(null)} className="text-ink-3 hover:text-ink" aria-label="Cerrar">
@@ -354,7 +354,7 @@ export function GestionSuscripciones({
 
       {creditosDe && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <form onSubmit={confirmarCreditos} role="dialog" aria-modal="true" aria-labelledby="titulo-creditos" className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl">
+          <form onSubmit={confirmarCreditos} role="dialog" aria-modal="true" aria-labelledby="titulo-creditos" className="w-full max-w-md rounded-2xl border border-line bg-surface p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h3 id="titulo-creditos" className="font-display text-lg font-semibold text-ink">Otorgar créditos adicionales</h3>
               <button type="button" onClick={() => setCreditosDe(null)} className="text-ink-3 hover:text-ink" aria-label="Cerrar">

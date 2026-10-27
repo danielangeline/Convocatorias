@@ -300,7 +300,7 @@ export function FichaConvocatoria({
 
       {modalAbierto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div role="dialog" aria-modal="true" aria-labelledby="titulo-postular" className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl">
+          <div role="dialog" aria-modal="true" aria-labelledby="titulo-postular" className="w-full max-w-md rounded-2xl border border-line bg-surface p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h3 id="titulo-postular" className="font-display text-lg font-semibold text-ink">Confirmar postulación</h3>
               <button onClick={() => setModalAbierto(false)} className="text-ink-3 hover:text-ink" aria-label="Cerrar">

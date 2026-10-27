@@ -21,7 +21,7 @@ type ClaveContenido = CampoContenido["clave"];
 /** Campos a los que se puede saltar: los de contenido (RF-81) y los de clasificación que piden las sugerencias (CU-10 2a). */
 export type CampoEditable = ClaveContenido | "montoBuscado" | "departamento" | "categorias";
 
-type FormularioProyecto = {
+export type FormularioProyecto = {
   nombre: string;
   descripcion: string;
   montoBuscado: string;
@@ -77,8 +77,8 @@ function desdeProyecto(p: Proyecto): FormularioProyecto {
   };
 }
 
-/** CU-43 · El formulario lleno con la propuesta de la IA, para revisarla. */
-function desdePropuesta(p: PropuestaProyecto): FormularioProyecto {
+/** CU-43 · El formulario lleno con la propuesta de la IA. */
+export function desdePropuesta(p: PropuestaProyecto): FormularioProyecto {
   return {
     nombre: p.nombre,
     descripcion: p.descripcion,
@@ -95,6 +95,27 @@ function desdePropuesta(p: PropuestaProyecto): FormularioProyecto {
     duracionMeses: p.duracionMeses ? String(p.duracionMeses) : "",
     presupuestoEstimado: formatearMontoCOP(p.presupuestoEstimado),
     experienciaEmpresa: p.experienciaEmpresa,
+  };
+}
+
+/** Cuerpo de `POST/PATCH /api/proyectos` (RF-14): el servidor valida la forma y lee los montos. */
+export function cuerpoDeFormulario(form: FormularioProyecto) {
+  return {
+    nombre: form.nombre,
+    descripcion: form.descripcion,
+    montoBuscado: form.montoBuscado,
+    departamento: form.departamento,
+    ubicacion: form.ubicacion,
+    categorias: form.categorias,
+    problema: form.problema,
+    objetivoGeneral: form.objetivoGeneral,
+    objetivosEspecificos: form.objetivosEspecificos.split("\n"),
+    poblacionBeneficiaria: form.poblacionBeneficiaria,
+    actividades: form.actividades,
+    resultadosEsperados: form.resultadosEsperados,
+    duracionMeses: form.duracionMeses,
+    presupuestoEstimado: form.presupuestoEstimado,
+    experienciaEmpresa: form.experienciaEmpresa,
   };
 }
 
@@ -170,23 +191,7 @@ export function ProyectoFormModal({
     if (!form.nombre.trim()) return;
     setError(null);
     setGuardando(true);
-    const cuerpo = {
-      nombre: form.nombre,
-      descripcion: form.descripcion,
-      montoBuscado: form.montoBuscado,
-      departamento: form.departamento,
-      ubicacion: form.ubicacion,
-      categorias: form.categorias,
-      problema: form.problema,
-      objetivoGeneral: form.objetivoGeneral,
-      objetivosEspecificos: form.objetivosEspecificos.split("\n"),
-      poblacionBeneficiaria: form.poblacionBeneficiaria,
-      actividades: form.actividades,
-      resultadosEsperados: form.resultadosEsperados,
-      duracionMeses: form.duracionMeses,
-      presupuestoEstimado: form.presupuestoEstimado,
-      experienciaEmpresa: form.experienciaEmpresa,
-    };
+    const cuerpo = cuerpoDeFormulario(form);
     const respuesta = await fetch(proyecto ? `/api/proyectos/${proyecto.id}` : "/api/proyectos", {
       method: proyecto ? "PATCH" : "POST",
       headers: { "content-type": "application/json" },
@@ -223,7 +228,7 @@ export function ProyectoFormModal({
         role="dialog"
         aria-modal="true"
         aria-label={proyecto ? "Editar proyecto" : "Nuevo proyecto"}
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-surface p-6 shadow-xl"
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-line bg-surface p-6 shadow-xl"
       >
         <div className="mb-4 flex items-center justify-between">
           <h3 className="font-display text-lg font-semibold text-ink">
