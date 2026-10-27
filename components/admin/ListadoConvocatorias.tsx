@@ -6,10 +6,14 @@ import { useRouter } from "next/navigation";
 import { Plus, Pencil, FileStack, X } from "lucide-react";
 import type { ConvocatoriaAdminListado, EstadoConvocatoria, FuenteAdmin } from "@/lib/types";
 import { peticionAdmin } from "@/lib/admin/peticion";
-import { formatCOP, formatFecha, ESTADO_CONVOCATORIA_LABEL, ESTADO_CONVOCATORIA_ESTILO, cn } from "@/lib/utils";
+import { diasRestantes, formatCOP, formatFecha, ESTADO_CONVOCATORIA_LABEL, ESTADO_CONVOCATORIA_ESTILO } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 import { Button, LinkButton } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Tabs } from "@/components/ui/Tabs";
+import { DataTable } from "@/components/ui/DataTable";
+import { DeadlineChip } from "@/components/viz/Deadline";
 import { Aviso } from "@/components/identidad/Campo";
 
 const filtros: Array<{ valor: EstadoConvocatoria | "todas"; etiqueta: string }> = [
@@ -75,36 +79,28 @@ export function ListadoConvocatorias({
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Convocatorias</h1>
-          <p className="text-sm text-ink-2">Administra el ciclo de vida de cada convocatoria.</p>
-        </div>
-        <Button variant="primary" onClick={abrirCrear}>
-          <Plus className="h-4 w-4" /> Nueva convocatoria
-        </Button>
-      </div>
+      <PageHeader
+        className="mb-5"
+        titulo="Convocatorias"
+        descripcion="Administra el ciclo de vida de cada convocatoria."
+        accion={
+          <Button variant="primary" onClick={abrirCrear}>
+            <Plus className="h-4 w-4" /> Nueva convocatoria
+          </Button>
+        }
+      />
 
-      <div className="mb-4 flex flex-wrap gap-2">
-        {filtros.map((f) => (
-          <button
-            key={f.valor}
-            onClick={() => setFiltro(f.valor)}
-            aria-pressed={filtro === f.valor}
-            className={cn(
-              "rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors",
-              filtro === f.valor ? "bg-pri text-on-pri" : "bg-surface text-ink-2 ring-1 ring-inset ring-line hover:bg-surface-2"
-            )}
-          >
-            {f.etiqueta}
-            {f.valor !== "todas" && (
-              <span className="ml-1.5 text-xs opacity-70">
-                ({convocatorias.filter((c) => c.estado === f.valor).length})
-              </span>
-            )}
-          </button>
-        ))}
-      </div>
+      <Tabs
+        className="mb-4"
+        etiqueta="Estado"
+        valor={filtro}
+        onChange={setFiltro}
+        pestanas={filtros.map((f) => ({
+          valor: f.valor,
+          etiqueta: f.etiqueta,
+          conteo: f.valor === "todas" ? convocatorias.length : convocatorias.filter((c) => c.estado === f.valor).length,
+        }))}
+      />
 
       {filtradas.length === 0 ? (
         <EmptyState
@@ -117,50 +113,63 @@ export function ListadoConvocatorias({
           }
         />
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-line bg-surface">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-line bg-surface-2 text-left text-xs font-semibold uppercase tracking-wide text-ink-3">
-                <th className="px-5 py-3">Convocatoria</th>
-                <th className="px-5 py-3">Entidad</th>
-                <th className="px-5 py-3">Monto</th>
-                <th className="px-5 py-3">Cierre</th>
-                <th className="px-5 py-3">Estado</th>
-                <th className="px-5 py-3" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-line-2">
-              {filtradas.map((c) => (
-                <tr key={c.id} className="hover:bg-surface-2/60">
-                  <td className="max-w-xs px-5 py-3">
-                    <Link href={`/admin/convocatorias/${c.id}`} className="font-medium text-ink hover:text-pri-text">
-                      {c.nombre}
-                    </Link>
-                    {c.fuenteNombre && <p className="mt-0.5 text-xs text-ink-3">{c.fuenteNombre}</p>}
-                  </td>
-                  <td className="px-5 py-3 text-ink-2">{c.entidadConvocante || "—"}</td>
-                  <td className="px-5 py-3 font-tabular text-ink-2">{rango(c.montoMin, c.montoMax)}</td>
-                  <td className="px-5 py-3 text-ink-2">{formatFecha(c.fechaCierre)}</td>
-                  <td className="px-5 py-3">
-                    <Badge className={ESTADO_CONVOCATORIA_ESTILO[c.estado]}>{ESTADO_CONVOCATORIA_LABEL[c.estado]}</Badge>
-                  </td>
-                  <td className="px-5 py-3">
-                    <div className="flex justify-end">
-                      <LinkButton
-                        href={`/admin/convocatorias/${c.id}`}
-                        variant="ghost"
-                        size="sm"
-                        aria-label={`Editar ${c.nombre}`}
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </LinkButton>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable
+          etiqueta="Convocatorias"
+          filas={filtradas}
+          clave={(c) => c.id}
+          alHacerClic={(c) => router.push(`/admin/convocatorias/${c.id}`)}
+          columnas={[
+            {
+              clave: "nombre",
+              titulo: "Convocatoria",
+              ancho: "minmax(0,2.6fr)",
+              celda: (c) => (
+                <>
+                  <Link href={`/admin/convocatorias/${c.id}`} className="block truncate font-bold text-ink hover:text-pri-text">
+                    {c.nombre}
+                  </Link>
+                  <span className="mt-0.5 block truncate text-xs text-ink-3">{c.entidadConvocante || c.fuenteNombre || "—"}</span>
+                </>
+              ),
+            },
+            {
+              clave: "monto",
+              titulo: "Monto",
+              ancho: "minmax(0,1.3fr)",
+              celda: (c) => <span className="font-tabular font-semibold text-ink-2">{rango(c.montoMin, c.montoMax)}</span>,
+            },
+            {
+              clave: "cierre",
+              titulo: "Cierre",
+              ancho: "130px",
+              celda: (c) => {
+                const d = diasRestantes(c.fechaCierre);
+                return c.estado === "publicada" && d >= 0 && d < 15 ? (
+                  <DeadlineChip dias={d} />
+                ) : (
+                  <span className="text-ink-2">{formatFecha(c.fechaCierre)}</span>
+                );
+              },
+            },
+            {
+              clave: "estado",
+              titulo: "Estado",
+              ancho: "130px",
+              celda: (c) => <Badge className={ESTADO_CONVOCATORIA_ESTILO[c.estado]}>{ESTADO_CONVOCATORIA_LABEL[c.estado]}</Badge>,
+            },
+            {
+              clave: "acciones",
+              titulo: "",
+              ancho: "56px",
+              alinear: "derecha",
+              celda: (c) => (
+                <LinkButton href={`/admin/convocatorias/${c.id}`} variant="ghost" size="sm" aria-label={`Editar ${c.nombre}`}>
+                  <Pencil className="h-3.5 w-3.5" />
+                </LinkButton>
+              ),
+            },
+          ]}
+        />
       )}
 
       {modalAbierto && (

@@ -26,7 +26,7 @@ export function Tabs<T extends string>({
     <div
       role="tablist"
       aria-label={etiqueta}
-      className={cn("flex gap-1 overflow-x-auto border-b border-line", className)}
+      className={cn("flex gap-1 overflow-x-auto overflow-y-hidden border-b border-line", className)}
     >
       {pestanas.map((p) => {
         const activa = p.valor === valor;

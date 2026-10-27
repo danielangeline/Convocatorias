@@ -2,6 +2,7 @@ import {
   ClipboardList,
   CreditCard,
   FileStack,
+  Gauge,
   Layers,
   LayoutDashboard,
   Rss,
@@ -25,7 +26,7 @@ const ADMIN: GrupoMenu[] = [
   },
   {
     id: "convocatorias",
-    titulo: "Convocatorias",
+    titulo: "Catálogo",
     items: [
       { href: "/admin/convocatorias", label: "Convocatorias", icono: FileStack },
       { href: "/admin/fuentes", label: "Fuentes", icono: Rss },
@@ -52,7 +53,10 @@ const ADMIN: GrupoMenu[] = [
   {
     id: "ia",
     titulo: "Inteligencia artificial",
-    items: [{ href: "/admin/plantillas", label: "Plantillas de la IA", icono: Sparkles }],
+    items: [
+      { href: "/admin/plantillas", label: "Plantillas", icono: Sparkles },
+      { href: "/admin/consumo-ia", label: "Consumo de IA", icono: Gauge },
+    ],
   },
   {
     id: "seguridad",

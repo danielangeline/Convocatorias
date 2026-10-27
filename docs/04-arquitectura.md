@@ -74,6 +74,7 @@ Cada ruta declara los roles que admite (RNF-30). El rol se verifica en el servid
 | `/sugeridas` | Convocatorias compatibles con los proyectos, con el desglose por criterio (RF-106) *(nuevo v6, sesión 031)* | empresa | CU-10 |
 | `/guardadas` | Convocatorias guardadas por la empresa (RF-103) *(nuevo v6, sesión 031)* | empresa | CU-45 |
 | `/ajustes` | Datos de la cuenta, contraseña, sesión y preferencias del navegador (RF-107) *(nuevo v6, sesión 031)* | empresa | CU-46 |
+| `/admin/consumo-ia` | Consumo de IA del mes y últimos consumos registrados (RF-108) *(nuevo v6, sesión 031)* | administrador (aal2) | CU-31 |
 | `GET/POST /api/guardadas`, `DELETE /api/guardadas/[id]` | Listar, guardar y quitar guardadas; mismo origen en escrituras; la RLS decide (RF-103) *(nuevo v6, sesión 031)* | empresa | CU-45 |
 | `/convocatorias/[id]` | Ficha con botones **"Postular"**, **"Generar documento con IA"** e **"Ir al portal de la entidad"** *(v5)* | empresa | CU-08, 11, 33 |
 | `/convocatorias/[id]/generar` | Selección de proyecto, aviso de cupo y confirmación | empresa | CU-33 |

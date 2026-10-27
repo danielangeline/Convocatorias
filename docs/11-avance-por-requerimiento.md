@@ -81,6 +81,7 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | **RF-105** Notificaciones en el portal *(nuevo v6, sesión 031)* | servidor | **Sesión 031:** `lib/notificaciones-empresa.ts` en el layout, campana en la barra superior |
 | **RF-106** Sugeridas para ti *(nuevo v6, sesión 031)* | servidor | **Sesión 031:** `lib/compatibilidad-empresa.ts` sobre `sugerencias_proyecto`; `/sugeridas`, contador del menú y anillo en el catálogo |
 | **RF-107** Ajustes de la empresa *(nuevo v6, sesión 031)* | servidor | **Sesión 031:** `/ajustes` |
+| **RF-108** Consumo de IA en el panel *(nuevo v6, sesión 031)* | servidor | **Sesión 031:** `lib/admin/consumo.ts` sobre `consumos_ia` (política de lectura del administrador) y `tablero_suscripciones` |
 
 ### 4.5 Postulación y seguimiento
 

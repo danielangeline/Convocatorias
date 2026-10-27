@@ -1,214 +1,145 @@
-"use client";
-
 import Link from "next/link";
-import { FileStack, CheckCircle2, EyeOff, Archive, AlertTriangle, UserCheck, ClipboardList, CreditCard, Sparkles, XCircle, Wallet } from "lucide-react";
-import { useAppStore } from "@/lib/store";
-import {
-  diasRestantes,
-  formatCOP,
-  formatFecha,
-  ESTADO_CONVOCATORIA_LABEL,
-  ESTADO_CONVOCATORIA_ESTILO,
-  ESTADO_SUSCRIPCION_LABEL,
-  ESTADO_SUSCRIPCION_ESTILO,
-} from "@/lib/utils";
-import type { EstadoSuscripcion } from "@/lib/types";
-import { Badge } from "@/components/ui/Badge";
+import { ClipboardList, Clock, CreditCard, FilePen, Files } from "lucide-react";
+import type { DatosTablero } from "@/lib/admin/tablero";
+import { Card, CardHeader } from "@/components/ui/Card";
+import { KpiCard, KpiGrid } from "@/components/viz/KpiCard";
+import { WeeklyBars } from "@/components/viz/WeeklyBars";
+import { SegmentedBar } from "@/components/viz/SegmentedBar";
+import { MiniStatGrid } from "@/components/viz/MiniStatGrid";
+import { TONO_CLASE } from "@/components/viz/tonos";
+import { PerfilesEnRevision } from "./PerfilesEnRevision";
 
-const ESTADOS_SUSCRIPCION: EstadoSuscripcion[] = ["trial", "activa", "en_gracia", "vencida", "suspendida"];
+const fechaCorta = (iso: string) =>
+  new Intl.DateTimeFormat("es-CO", { day: "numeric", month: "short", timeZone: "UTC" }).format(new Date(`${iso}T00:00:00Z`)).replace(".", "");
 
 /**
- * Dashboard del panel. `perfilesEnRevision` (RF-34) y `solicitudesEquipo`
- * (RF-90) llegan del servidor; lo demás sigue en el store.
+ * Dashboard del panel (RF-42, RF-34, RF-90, RF-108): todo sale de
+ * `datosTablero()`, leído en el servidor con la sesión del administrador.
  */
-export function DashboardPanel({
-  perfilesEnRevision,
-  solicitudesEquipo,
-}: {
-  perfilesEnRevision: number;
-  solicitudesEquipo: number;
-}) {
-  const convocatorias = useAppStore((s) => s.convocatorias);
-  const suscripciones = useAppStore((s) => s.suscripciones);
-  const estadisticasIA = useAppStore((s) => s.estadisticasIA);
-
-  const totales = {
-    borrador: convocatorias.filter((c) => c.estado === "borrador").length,
-    publicada: convocatorias.filter((c) => c.estado === "publicada").length,
-    despublicada: convocatorias.filter((c) => c.estado === "despublicada").length,
-    cerrada: convocatorias.filter((c) => c.estado === "cerrada").length,
-  };
-
-  const proximasAVencer = convocatorias
-    .filter((c) => c.estado === "publicada")
-    .map((c) => ({ c, dias: diasRestantes(c.fechaCierre) }))
-    .filter((x) => x.dias >= 0 && x.dias < 15)
-    .sort((a, b) => a.dias - b.dias);
+export function DashboardPanel({ datos, solicitudesEquipo }: { datos: DatosTablero; solicitudesEquipo: number }) {
+  const s = datos.suscripciones;
+  const totalSemanas = datos.semanas.reduce((t, x) => t + x.total, 0);
+  const variacion =
+    datos.totalTrimestreAnterior > 0
+      ? Math.round(((totalSemanas - datos.totalTrimestreAnterior) / datos.totalTrimestreAnterior) * 100)
+      : null;
+  const mes = new Intl.DateTimeFormat("es-CO", { month: "long", timeZone: "America/Bogota" }).format(new Date());
+  const medio = datos.semanas[Math.floor(datos.semanas.length / 2)];
 
   return (
-    <div>
-      <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Panel general</h1>
-      <p className="text-sm text-ink-2">Resumen del estado de las convocatorias en la plataforma.</p>
+    <div className="flex flex-col gap-5">
+      <h1 className="sr-only">Panel general</h1>
+      {solicitudesEquipo > 0 && (
+        <Link
+          href="/admin/encargos"
+          className={`flex items-center gap-2 self-start rounded-xl px-3.5 py-2 text-[13px] font-bold ${TONO_CLASE.rose}`}
+        >
+          <ClipboardList className="h-4 w-4" />
+          {solicitudesEquipo} {solicitudesEquipo === 1 ? "solicitud espera" : "solicitudes esperan"} al equipo
+        </Link>
+      )}
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-4">
-        <TarjetaTotal
-          icon={FileStack}
-          etiqueta="Borrador"
-          valor={totales.borrador}
-          tono="text-ink-2 bg-surface-2"
-        />
-        <TarjetaTotal
-          icon={CheckCircle2}
+      <KpiGrid>
+        <KpiCard
           etiqueta="Publicadas"
-          valor={totales.publicada}
-          tono="text-pri-text bg-pri-soft"
+          valor={datos.publicadas}
+          nota={datos.publicadasEsteMes > 0 ? `+${datos.publicadasEsteMes} este mes` : "Vigentes en el catálogo"}
+          icono={Files}
         />
-        <TarjetaTotal
-          icon={EyeOff}
-          etiqueta="Despublicadas"
-          valor={totales.despublicada}
-          tono="text-amber-ink bg-amber/10"
+        <KpiCard
+          etiqueta="Borradores"
+          valor={datos.borradores}
+          nota={
+            datos.borradoresSinDocumentos > 0
+              ? `${datos.borradoresSinDocumentos} sin documentos adjuntos`
+              : "Todos con documentos"
+          }
+          icono={FilePen}
+          tono="sky"
         />
-        <TarjetaTotal
-          icon={Archive}
-          etiqueta="Cerradas"
-          valor={totales.cerrada}
-          tono="text-ink-3 bg-surface-2"
+        <KpiCard etiqueta="Cierran en < 15 días" valor={datos.cierranPronto.length} nota="Revisa vigencias" icono={Clock} tono="amber" />
+        <KpiCard
+          etiqueta="Suscripciones activas"
+          valor={s.activas}
+          nota={datos.conversion !== null ? `Conversión de prueba: ${datos.conversion}%` : "Sin cuentas todavía"}
+          icono={CreditCard}
+          tono="violet"
         />
-      </div>
+      </KpiGrid>
 
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
-        <Link href="/admin/consultores/revision" className="block">
-          <TarjetaTotal
-            icon={UserCheck}
-            etiqueta="Perfiles de consultor en revisión"
-            valor={perfilesEnRevision}
-            tono="text-sky-ink bg-sky/10"
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] gap-3.5">
+        <Card className="flex flex-col gap-4">
+          <CardHeader titulo="Postulaciones iniciadas" subtitulo={`Últimas ${datos.semanas.length} semanas`} />
+          <WeeklyBars
+            semanas={datos.semanas.map((w) => ({ etiqueta: `Semana del ${fechaCorta(w.inicio)}`, valor: w.total }))}
+            variacion={variacion !== null ? `${variacion >= 0 ? "+" : ""}${variacion}% vs. trimestre anterior` : undefined}
+            fechasReferencia={[fechaCorta(datos.semanas[0].inicio), fechaCorta(medio.inicio), fechaCorta(datos.semanas.at(-1)!.inicio)]}
+            etiquetaAccesible={`Postulaciones iniciadas por semana: ${totalSemanas} en ${datos.semanas.length} semanas`}
           />
-        </Link>
-        <Link href="/admin/encargos" className="block">
-          <TarjetaTotal
-            icon={ClipboardList}
-            etiqueta="Solicitudes al equipo"
-            valor={solicitudesEquipo}
-            tono="text-sky-ink bg-sky/10"
+        </Card>
+        <Card className="flex flex-col gap-4">
+          <CardHeader
+            titulo="Suscripciones por estado"
+            accion={
+              <Link href="/admin/suscripciones" className="text-[12.5px] font-bold text-pri-text">
+                Ver todas
+              </Link>
+            }
           />
-        </Link>
+          <SegmentedBar
+            etiquetaAccesible="Suscripciones por estado"
+            segmentos={[
+              { etiqueta: "Activa", valor: s.activas, tono: "pri" },
+              { etiqueta: "Prueba", valor: s.trial, tono: "sky" },
+              { etiqueta: "En gracia", valor: s.enGracia, tono: "amber" },
+              { etiqueta: "Vencida", valor: s.vencidas, tono: "rose" },
+              { etiqueta: "Suspendida", valor: s.suspendidas, tono: "neutro" },
+            ]}
+          />
+        </Card>
       </div>
 
-      <div className="mt-8 rounded-2xl border border-line bg-surface p-6">
-        <div className="mb-4 flex items-center gap-2">
-          <CreditCard className="h-4 w-4 text-pri-text" />
-          <h2 className="font-display text-base font-semibold text-ink">Suscripciones por estado</h2>
-        </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-          {ESTADOS_SUSCRIPCION.map((estado) => (
-            <Link
-              key={estado}
-              href="/admin/suscripciones"
-              className="rounded-xl border border-line-2 p-3 text-center hover:bg-surface-2"
-            >
-              <p className="font-tabular text-2xl font-bold text-ink">
-                {suscripciones.filter((s) => s.estado === estado).length}
-              </p>
-              <Badge className={ESTADO_SUSCRIPCION_ESTILO[estado]}>{ESTADO_SUSCRIPCION_LABEL[estado]}</Badge>
-            </Link>
-          ))}
-        </div>
-      </div>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,300px),1fr))] gap-3.5">
+        <PerfilesEnRevision perfiles={datos.perfilesEnRevision} />
 
-      <div className="mt-8 rounded-2xl border border-violet/30 bg-surface p-6">
-        <div className="mb-4 flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-violet-ink" />
-          <h2 className="font-display text-base font-semibold text-ink">Consumo de IA del periodo</h2>
-        </div>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <TarjetaTotal icon={Sparkles} etiqueta="Generaciones" valor={estadisticasIA.generaciones} tono="text-violet-ink bg-violet/10" />
-          <TarjetaTotal icon={ClipboardList} etiqueta="Ajustes" valor={estadisticasIA.ajustes} tono="text-violet-ink bg-violet/10" />
-          <TarjetaTotal icon={XCircle} etiqueta="Fallidas (sin costo)" valor={estadisticasIA.fallidas} tono="text-ink-3 bg-surface-2" />
-          <div className="rounded-2xl border border-line bg-surface p-5">
-            <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-amber/10 text-amber-ink">
-              <Wallet className="h-5 w-5" />
-            </div>
-            <p className="font-display font-tabular text-2xl font-bold text-ink">{formatCOP(estadisticasIA.costoEstimadoCOP)}</p>
-            <p className="text-xs text-ink-3">Costo estimado acumulado</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-8 rounded-2xl border border-line bg-surface p-6">
-        <div className="mb-4 flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 text-amber-ink" />
-          <h2 className="font-display text-base font-semibold text-ink">
-            Próximas a vencer (menos de 15 días)
-          </h2>
-        </div>
-
-        {proximasAVencer.length === 0 ? (
-          <p className="text-sm text-ink-2">No hay convocatorias por vencer en el corto plazo.</p>
-        ) : (
-          <div className="divide-y divide-line-2">
-            {proximasAVencer.map(({ c, dias }) => (
+        <Card className="flex flex-col gap-1">
+          <CardHeader className="mb-2" titulo="Cierran en menos de 15 días" />
+          {datos.cierranPronto.length === 0 ? (
+            <p className="text-[13px] text-ink-3">Ninguna convocatoria publicada cierra en los próximos 15 días.</p>
+          ) : (
+            datos.cierranPronto.slice(0, 5).map((c) => (
               <Link
                 key={c.id}
                 href={`/admin/convocatorias/${c.id}`}
-                className="flex items-center justify-between gap-4 py-3 hover:bg-surface-2"
+                className="-mx-2 flex items-center gap-3 border-b border-line-2 px-2 py-2.5 last:border-b-0 hover:bg-surface-2"
               >
-                <div>
-                  <p className="text-sm font-medium text-ink">{c.nombre}</p>
-                  <p className="text-xs text-ink-3">{c.entidadConvocante}</p>
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[13.5px] font-bold">{c.nombre}</div>
+                  <div className="truncate text-xs text-ink-3">{c.entidad}</div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-xs text-ink-3">Cierra {formatFecha(c.fechaCierre)}</span>
-                  <Badge className="bg-amber/10 text-amber-ink ring-amber/30">
-                    {dias} {dias === 1 ? "día" : "días"}
-                  </Badge>
-                </div>
+                <span
+                  className={`font-tabular rounded-md px-2 py-1 text-xs font-semibold ${TONO_CLASE[c.dias < 10 ? "rose" : "amber"]}`}
+                >
+                  {c.dias} d
+                </span>
               </Link>
-            ))}
-          </div>
-        )}
-      </div>
+            ))
+          )}
+        </Card>
 
-      <div className="mt-8 rounded-2xl border border-line bg-surface p-6">
-        <h2 className="mb-4 font-display text-base font-semibold text-ink">Todas las convocatorias</h2>
-        <div className="divide-y divide-line-2">
-          {convocatorias.map((c) => (
-            <Link
-              key={c.id}
-              href={`/admin/convocatorias/${c.id}`}
-              className="flex items-center justify-between gap-4 py-3 hover:bg-surface-2"
-            >
-              <p className="text-sm font-medium text-ink">{c.nombre}</p>
-              <Badge className={ESTADO_CONVOCATORIA_ESTILO[c.estado]}>
-                {ESTADO_CONVOCATORIA_LABEL[c.estado]}
-              </Badge>
-            </Link>
-          ))}
-        </div>
+        <MiniStatGrid
+          titulo={`Consumo de IA · ${mes}`}
+          stats={[
+            { etiqueta: "Generaciones", valor: s.generacionesExitosas.toLocaleString("es-CO") },
+            { etiqueta: "Ajustes", valor: s.ajustes.toLocaleString("es-CO") },
+            { etiqueta: "Fallidas (sin costo)", valor: s.generacionesFallidas.toLocaleString("es-CO") },
+            {
+              etiqueta: "Costo estimado USD",
+              valor: `$${s.costoUsd.toLocaleString("es-CO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+            },
+          ]}
+        />
       </div>
-    </div>
-  );
-}
-
-function TarjetaTotal({
-  icon: Icon,
-  etiqueta,
-  valor,
-  tono,
-}: {
-  icon: React.ElementType;
-  etiqueta: string;
-  valor: number;
-  tono: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-line bg-surface p-5">
-      <div className={`mb-3 flex h-9 w-9 items-center justify-center rounded-lg ${tono}`}>
-        <Icon className="h-5 w-5" />
-      </div>
-      <p className="font-display font-tabular text-3xl font-bold text-ink">{valor}</p>
-      <p className="text-xs text-ink-3">{etiqueta}</p>
     </div>
   );
 }
