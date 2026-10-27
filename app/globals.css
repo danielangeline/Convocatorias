@@ -1,64 +1,131 @@
 @import "tailwindcss";
 
-@theme {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+/* Modo oscuro por clase (next-themes, attribute="class"). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Tokens semánticos del rediseño (docs/diseno/convocatorias-app.html) ── */
+:root {
+  --bg: #f4f5f3;
+  --surface: #ffffff;
+  --surface-2: #eff1ee;
+  --side: #fafbfa;
+  --line: #e3e6e2;
+  --line-2: #eceeeb;
+  --ink: #111513;
+  --ink-2: #4b544f;
+  --ink-3: #7c8580;
+  --pri: oklch(0.55 0.13 162);
+  --pri-hover: oklch(0.49 0.13 162);
+  --pri-soft: oklch(0.95 0.035 162);
+  --pri-text: oklch(0.43 0.11 162);
+  --on-pri: #ffffff;
+  --amber: oklch(0.7 0.15 65);
+  --violet: oklch(0.58 0.16 292);
+  --sky: oklch(0.6 0.12 235);
+  --rose: oklch(0.6 0.18 22);
+  --shadow: 0 1px 2px rgba(16, 24, 20, 0.04), 0 10px 28px -14px rgba(16, 24, 20, 0.12);
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #0b0d0c;
+  --surface: #121514;
+  --surface-2: #1a1e1c;
+  --side: #0f1211;
+  --line: #242927;
+  --line-2: #1c201e;
+  --ink: #ecefed;
+  --ink-2: #a3aca7;
+  --ink-3: #6f7974;
+  --pri: oklch(0.7 0.14 162);
+  --pri-hover: oklch(0.76 0.14 162);
+  --pri-soft: oklch(0.29 0.06 162);
+  --pri-text: oklch(0.82 0.12 162);
+  --on-pri: #06110c;
+  --shadow: 0 1px 0 rgba(255, 255, 255, 0.02), 0 14px 34px -18px rgba(0, 0, 0, 0.7);
+  color-scheme: dark;
+}
+
+/* `inline` hace que las utilidades lean la variable en el elemento, de modo
+   que el cambio de tema no necesita regenerar clases. */
+@theme inline {
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, "SFMono-Regular", monospace;
 
-  /* Paleta institucional */
-  --color-primary-950: #101d33;
-  --color-primary-900: #16294a;
-  --color-primary-800: #1f3864;
-  --color-primary-700: #2a4a80;
-  --color-primary-600: #365d9c;
-  --color-primary-500: #4a74b8;
-  --color-primary-200: #c7d3e8;
-  --color-primary-100: #e3e9f4;
-  --color-primary-50: #f2f5fa;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-side: var(--side);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-pri: var(--pri);
+  --color-pri-hover: var(--pri-hover);
+  --color-pri-soft: var(--pri-soft);
+  --color-pri-text: var(--pri-text);
+  --color-on-pri: var(--on-pri);
+  --color-amber: var(--amber);
+  --color-violet: var(--violet);
+  --color-sky: var(--sky);
+  --color-rose: var(--rose);
 
-  --color-gold-700: #8a6420;
-  --color-gold-600: #a67a29;
-  --color-gold-500: #b8892b;
-  --color-gold-100: #f6ecd6;
-  --color-gold-50: #fbf6ea;
+  --shadow-card: var(--shadow);
 
-  --color-ink: #14213d;
-  --color-ink-soft: #4b5768;
-  --color-ink-faint: #8994a5;
-  --color-line: #e3e7ee;
-  --color-line-soft: #eef1f6;
-
-  --color-success: #2f7d5c;
-  --color-success-bg: #eaf6f0;
-  --color-warning: #b45309;
-  --color-warning-bg: #fdf1e2;
-  --color-danger: #b3261e;
-  --color-danger-bg: #fbeae9;
-
-  /* Acento del módulo de consultores (rojo ladrillo) */
-  --color-brick-700: #6e211a;
-  --color-brick-600: #7d2620;
-  --color-brick-500: #8a2a21;
-  --color-brick-100: #f5e1de;
-  --color-brick-50: #fbf0ee;
-
-  /* Acento del módulo de IA (verde azulado) */
-  --color-teal-800: #0c5c56;
-  --color-teal-700: #0e6b64;
-  --color-teal-600: #0f766e;
-  --color-teal-500: #14877e;
-  --color-teal-200: #a9d9d4;
-  --color-teal-100: #d3ece9;
-  --color-teal-50: #eef8f6;
+  /* ── Puente temporal: los nombres viejos apuntan a los tokens nuevos para
+        que las pantallas aún no migradas no se rompan. Se eliminan en la
+        barrida final (fase 6). ── */
+  --color-primary-950: var(--ink);
+  --color-primary-900: var(--pri-hover);
+  --color-primary-800: var(--pri);
+  --color-primary-700: var(--pri-text);
+  --color-primary-600: var(--pri);
+  --color-primary-500: var(--pri);
+  --color-primary-200: var(--line);
+  --color-primary-100: var(--pri-soft);
+  --color-primary-50: var(--pri-soft);
+  --color-gold-700: var(--amber);
+  --color-gold-600: var(--amber);
+  --color-gold-500: var(--amber);
+  --color-gold-100: var(--surface-2);
+  --color-gold-50: var(--surface-2);
+  --color-ink-soft: var(--ink-2);
+  --color-ink-faint: var(--ink-3);
+  --color-line-soft: var(--line-2);
+  --color-success: var(--pri);
+  --color-success-bg: var(--pri-soft);
+  --color-warning: var(--amber);
+  --color-warning-bg: var(--surface-2);
+  --color-danger: var(--rose);
+  --color-danger-bg: var(--surface-2);
+  --color-brick-700: var(--rose);
+  --color-brick-600: var(--rose);
+  --color-brick-500: var(--rose);
+  --color-brick-100: var(--surface-2);
+  --color-brick-50: var(--surface-2);
+  --color-teal-800: var(--violet);
+  --color-teal-700: var(--violet);
+  --color-teal-600: var(--violet);
+  --color-teal-500: var(--violet);
+  --color-teal-200: var(--line);
+  --color-teal-100: var(--surface-2);
+  --color-teal-50: var(--surface-2);
 }
 
 body {
-  background: #ffffff;
-  color: var(--color-ink);
+  background: var(--bg);
+  color: var(--ink);
   font-family: var(--font-sans);
+  transition: background-color 0.2s;
 }
 
-h1, h2, h3, h4, .font-display {
+h1,
+h2,
+h3,
+h4,
+.font-display {
   font-family: var(--font-display);
 }
 
@@ -68,13 +135,24 @@ h1, h2, h3, h4, .font-display {
 }
 
 ::selection {
-  background: var(--color-primary-100);
-  color: var(--color-primary-900);
+  background: var(--pri-soft);
+  color: var(--ink);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--ink-3);
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-primary-700);
+  outline: 2px solid var(--pri);
   outline-offset: 2px;
+}
+
+/* Badges y chips tonales: funcionan igual en claro y en oscuro. */
+.tono {
+  background: color-mix(in oklch, var(--tono) 16%, transparent);
+  color: color-mix(in oklch, var(--tono) 65%, var(--ink));
 }
 
 /* Entrada suave de los indicadores de la landing. La cifra ya es correcta en
@@ -95,8 +173,39 @@ h1, h2, h3, h4, .font-display {
   animation: entrada-suave 420ms ease-out both;
 }
 
+/* Barras de las visualizaciones: crecen desde 0 al montar (400 ms). */
+@keyframes crece-alto {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes crece-ancho {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.crece-alto {
+  transform-origin: bottom;
+  animation: crece-alto 400ms ease-out both;
+}
+
+.crece-ancho {
+  transform-origin: left;
+  animation: crece-ancho 400ms ease-out both;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .animar-entrada {
+  .animar-entrada,
+  .crece-alto,
+  .crece-ancho {
     animation: none;
   }
 }

@@ -1,10 +1,10 @@
 import { cn } from "@/lib/utils";
 
 const tonos = {
-  tipo_proyecto: "bg-primary-50 text-primary-800",
-  sector: "bg-gold-50 text-gold-700",
-  tipo_entidad: "bg-slate-100 text-ink-soft",
-  neutro: "bg-slate-100 text-ink-soft",
+  tipo_proyecto: "bg-pri-soft text-pri-text",
+  sector: "bg-[color-mix(in_oklch,var(--amber)_16%,transparent)] text-[color-mix(in_oklch,var(--amber)_62%,var(--ink))]",
+  tipo_entidad: "bg-surface-2 text-ink-2",
+  neutro: "bg-surface-2 text-ink-2",
 } as const;
 
 export function Chip({
@@ -19,7 +19,7 @@ export function Chip({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-md px-2 py-1 text-xs font-medium",
+        "inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold",
         tonos[tono],
         className
       )}

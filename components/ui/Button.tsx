@@ -1,34 +1,45 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-type Variante = "primary" | "secondary" | "ghost" | "danger" | "outline-gold" | "teal" | "brick";
+// "teal" y "brick" se conservan como alias de "ai" y "consultor" mientras las
+// pantallas migran; el rediseño usa violeta para la IA y celeste para consultores.
+type Variante =
+  | "primary"
+  | "secondary"
+  | "ghost"
+  | "danger"
+  | "outline-gold"
+  | "ai"
+  | "teal"
+  | "consultor"
+  | "brick";
 type Tamano = "sm" | "md" | "lg";
 
+const ai =
+  "bg-[color-mix(in_oklch,var(--violet)_10%,transparent)] text-[color-mix(in_oklch,var(--violet)_70%,var(--ink))] border border-[color-mix(in_oklch,var(--violet)_45%,transparent)] hover:bg-[color-mix(in_oklch,var(--violet)_18%,transparent)]";
+const consultor = "bg-sky text-white hover:brightness-95";
+
 const variantes: Record<Variante, string> = {
-  primary:
-    "bg-primary-800 text-white hover:bg-primary-900 disabled:bg-slate-300 disabled:text-slate-500",
-  secondary:
-    "bg-primary-50 text-primary-800 hover:bg-primary-100 disabled:bg-slate-100 disabled:text-slate-400",
-  ghost:
-    "bg-transparent text-ink-soft hover:bg-slate-100 disabled:text-slate-300",
-  danger:
-    "bg-danger text-white hover:bg-red-800 disabled:bg-slate-300 disabled:text-slate-500",
+  primary: "bg-pri text-on-pri hover:bg-pri-hover",
+  secondary: "bg-surface text-ink border border-line hover:bg-surface-2",
+  ghost: "bg-transparent text-ink-2 hover:bg-surface-2 hover:text-ink",
+  danger: "bg-rose text-white hover:brightness-95",
   "outline-gold":
-    "bg-white text-gold-700 ring-1 ring-inset ring-gold-500 hover:bg-gold-50 disabled:text-slate-400 disabled:ring-slate-200",
-  teal:
-    "bg-teal-600 text-white hover:bg-teal-700 disabled:bg-slate-300 disabled:text-slate-500",
-  brick:
-    "bg-brick-500 text-white hover:bg-brick-600 disabled:bg-slate-300 disabled:text-slate-500",
+    "bg-surface text-[color-mix(in_oklch,var(--amber)_62%,var(--ink))] border border-amber hover:bg-surface-2",
+  ai,
+  teal: ai,
+  consultor,
+  brick: consultor,
 };
 
 const tamanos: Record<Tamano, string> = {
-  sm: "px-3 py-1.5 text-sm",
-  md: "px-4 py-2.5 text-sm",
-  lg: "px-5 py-3 text-base",
+  sm: "h-9 px-3 text-[13px]",
+  md: "h-[38px] px-4 text-[13px]",
+  lg: "h-11 px-5 text-sm",
 };
 
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition-colors disabled:cursor-not-allowed cursor-pointer";
+  "inline-flex items-center justify-center gap-2 rounded-[10px] font-bold transition-colors cursor-pointer whitespace-nowrap disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-current/0";
 
 export function Button({
   children,
@@ -41,10 +52,7 @@ export function Button({
   size?: Tamano;
 }) {
   return (
-    <button
-      className={cn(base, variantes[variant], tamanos[size], className)}
-      {...props}
-    >
+    <button className={cn(base, variantes[variant], tamanos[size], className)} {...props}>
       {children}
     </button>
   );
@@ -64,10 +72,7 @@ export function LinkButton({
   className?: string;
 }) {
   return (
-    <Link
-      href={href}
-      className={cn(base, variantes[variant], tamanos[size], className)}
-    >
+    <Link href={href} className={cn(base, variantes[variant], tamanos[size], className)}>
       {children}
     </Link>
   );

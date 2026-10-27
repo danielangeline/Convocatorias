@@ -1,16 +1,12 @@
 import type { Metadata } from "next";
-import { Inter, Manrope, IBM_Plex_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, IBM_Plex_Mono } from "next/font/google";
+import { ThemeProvider } from "@/components/shell/ThemeProvider";
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
   subsets: ["latin"],
-});
-
-const manrope = Manrope({
-  variable: "--font-manrope",
-  subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 const plexMono = IBM_Plex_Mono({
@@ -27,12 +23,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
+    // suppressHydrationWarning: next-themes pone la clase `dark` antes de pintar.
     <html
       lang="es"
-      className={`${inter.variable} ${manrope.variable} ${plexMono.variable} h-full antialiased`}
+      suppressHydrationWarning
+      className={`${jakarta.variable} ${plexMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-white text-[var(--color-ink)]">
-        {children}
+      <body className="min-h-full flex flex-col bg-bg text-ink">
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

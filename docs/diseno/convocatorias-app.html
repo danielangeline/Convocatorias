@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:'Plus Jakarta Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button,input,select{font-family:inherit}
+[data-app]{--h:162;--bg:#F4F5F3;--surface:#FFFFFF;--surface-2:#EFF1EE;--line:#E3E6E2;--line-2:#ECEEEB;--ink:#111513;--ink-2:#4B544F;--ink-3:#7C8580;--side:#FAFBFA;--pri:oklch(0.55 0.13 var(--h));--pri-hover:oklch(0.49 0.13 var(--h));--pri-soft:oklch(0.95 0.035 var(--h));--pri-text:oklch(0.43 0.11 var(--h));--on-pri:#FFFFFF;--amber:oklch(0.70 0.15 65);--violet:oklch(0.58 0.16 292);--rose:oklch(0.60 0.18 22);--sky:oklch(0.60 0.12 235);--shadow:0 1px 2px rgba(16,24,20,.04),0 10px 28px -14px rgba(16,24,20,.12)}
+[data-app][data-theme="dark"]{--bg:#0B0D0C;--surface:#121514;--surface-2:#1A1E1C;--line:#242927;--line-2:#1C201E;--ink:#ECEFED;--ink-2:#A3ACA7;--ink-3:#6F7974;--side:#0F1211;--pri:oklch(0.70 0.14 var(--h));--pri-hover:oklch(0.76 0.14 var(--h));--pri-soft:oklch(0.29 0.06 var(--h));--pri-text:oklch(0.82 0.12 var(--h));--on-pri:#06110C;--shadow:0 1px 0 rgba(255,255,255,.02),0 14px 34px -18px rgba(0,0,0,.7)}
+[data-app]{color-scheme:light}
+[data-app][data-theme="dark"]{color-scheme:dark}
+[data-app][data-accent="cobalto"]{--h:258}
+[data-app][data-accent="ciruela"]{--h:330}
+[data-app][data-accent="petroleo"]{--h:205}
+a{color:var(--pri-text,#2f7d5c);text-decoration:none}
+a:hover{color:var(--pri,#2f7d5c);text-decoration:underline}
+::selection{background:var(--pri-soft);color:var(--ink)}
+input::placeholder{color:var(--ink-3)}
+</style>
+</helmet>
+<div data-app="1" data-theme="{{ theme }}" data-accent="{{ accent }}" style="display:flex;min-height:100vh;background:var(--bg);color:var(--ink);font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:14px;transition:background .2s">
+
+<aside style="{{ sideStyle }}">
+  <div style="display:flex;align-items:center;gap:10px;padding:18px 16px 16px;min-height:70px">
+    <div style="width:34px;height:34px;border-radius:10px;background:var(--pri);color:var(--on-pri);display:grid;place-items:center;flex:none;position:relative;overflow:hidden">
+      <span style="position:absolute;width:22px;height:22px;border-radius:50%;border:3px solid currentColor;left:6px;top:6px;opacity:.95"></span>
+      <span style="position:absolute;width:9px;height:9px;border-radius:50%;background:currentColor;right:5px;top:5px"></span>
+    </div>
+    <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}">
+      <div style="min-width:0;flex:1">
+        <div style="font-weight:800;font-size:15px;letter-spacing:-.01em;line-height:1.1">Convocatorias</div>
+        <div style="font-size:11.5px;color:var(--ink-3);margin-top:3px">{{ roleMeta.panel }}</div>
+      </div>
+    </sc-if>
+  </div>
+
+  <nav style="flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--line) transparent;padding:4px 0 12px;display:flex;flex-direction:column;gap:2px">
+    <sc-for list="{{ groups }}" as="g" hint-placeholder-count="4">
+      <div style="display:flex;flex-direction:column;gap:2px;padding:0 10px">
+        <sc-if value="{{ g.expanded }}" hint-placeholder-val="{{ true }}">
+          <button onClick="{{ g.toggle }}" style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:14px 10px 7px;background:none;border:0;cursor:pointer;color:var(--ink-3);font-weight:700;font-size:10.5px;letter-spacing:.09em;text-transform:uppercase" style-hover="color:var(--ink)">
+            <span style="display:flex;align-items:center;gap:8px">{{ g.t }}<sc-if value="{{ g.closedBadge }}"><span style="min-width:16px;height:16px;padding:0 5px;border-radius:8px;background:var(--rose);color:#fff;font-size:10px;letter-spacing:0;display:grid;place-items:center">{{ g.badgeSum }}</span></sc-if></span>
+            <span style="{{ g.chev }}"></span>
+          </button>
+        </sc-if>
+        <sc-if value="{{ g.collapsed }}">
+          <div style="height:1px;background:var(--line);margin:9px 10px"></div>
+        </sc-if>
+        <sc-if value="{{ g.show }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="2">
+              <button onClick="{{ it.go }}" title="{{ it.label }}" style="{{ it.style }}" style-hover="color:var(--ink)">
+                <span style="{{ it.ic }}"></span>
+                <sc-if value="{{ it.expanded }}" hint-placeholder-val="{{ true }}"><span style="flex:1;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ it.label }}</span></sc-if>
+                <sc-if value="{{ it.hasBadge }}"><span style="{{ it.badgeStyle }}">{{ it.badge }}</span></sc-if>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </sc-for>
+  </nav>
+
+  <div style="padding:12px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:10px">
+    <sc-if value="{{ showCredits }}">
+      <div style="padding:12px;border-radius:12px;background:var(--surface-2);display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;font-size:12px"><span style="font-weight:700">Plan Crecimiento</span><span style="font-family:'IBM Plex Mono',monospace;color:var(--ink-2)">7/10</span></div>
+        <div style="height:6px;border-radius:3px;background:var(--line);overflow:hidden"><div style="width:70%;height:100%;background:var(--violet);border-radius:3px"></div></div>
+        <div style="font-size:11.5px;color:var(--ink-3)">Créditos de IA · se renuevan el 1 nov.</div>
+      </div>
+    </sc-if>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="width:34px;height:34px;border-radius:50%;background:var(--pri-soft);color:var(--pri-text);display:grid;place-items:center;font-weight:800;font-size:12px;flex:none">{{ roleMeta.ini }}</div>
+      <sc-if value="{{ expanded }}" hint-placeholder-val="{{ true }}">
+        <div style="min-width:0;flex:1">
+          <div style="font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ roleMeta.user }}</div>
+          <div style="font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ roleMeta.org }}</div>
+        </div>
+        <button title="Cerrar sesión" style="width:30px;height:30px;border-radius:8px;border:0;background:none;color:var(--ink-3);display:grid;place-items:center;cursor:pointer" style-hover="background:var(--surface-2);color:var(--ink)"><span style="width:16px;height:16px;background:currentColor;mask:url(//unpkg.com/lucide-static@0.460.0/icons/log-out.svg) center/contain no-repeat;-webkit-mask:url(//unpkg.com/lucide-static@0.460.0/icons/log-out.svg) center/contain no-repeat"></span></button>
+      </sc-if>
+    </div>
+  </div>
+</aside>
+
+<div style="flex:1;min-width:0;display:flex;flex-direction:column">
+  <header style="position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;height:64px;padding:0 24px;background:color-mix(in oklch, var(--bg) 82%, transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line)">
+    <button onClick="{{ toggleSide }}" title="Contraer menú" style="width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);display:grid;place-items:center;cursor:pointer;flex:none" style-hover="color:var(--ink)"><span style="width:16px;height:16px;background:currentColor;mask:url(//unpkg.com/lucide-static@0.460.0/icons/panel-left.svg) center/contain no-repeat;-webkit-mask:url(//unpkg.com/lucide-static@0.460.0/icons/panel-left.svg) center/contain no-repeat"></span></button>
+    <div style="display:flex;align-items:center;gap:8px;font-size:13px;flex:0 1 auto;min-width:120px;overflow:hidden;white-space:nowrap">
+      <span style="color:var(--ink-3)">{{ crumb }}</span>
+      <span style="color:var(--ink-3)">/</span>
+      <span style="font-weight:700;overflow:hidden;text-overflow:ellipsis">{{ title }}</span>
+    </div>
+    <div style="flex:1"></div>
+    <div style="display:flex;align-items:center;gap:8px;height:36px;padding:0 10px 0 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink-3);flex:0 1 260px;min-width:140px">
+      <span style="width:15px;height:15px;flex:none;background:currentColor;mask:url(//unpkg.com/lucide-static@0.460.0/icons/search.svg) center/contain no-repeat;-webkit-mask:url(//unpkg.com/lucide-static@0.460.0/icons/search.svg) center/contain no-repeat"></span>
+      <span style="flex:1;min-width:0;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Buscar en la plataforma…</span>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;padding:2px 6px;border-radius:5px;background:var(--surface-2);border:1px solid var(--line)">⌘K</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:2px;padding:3px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line)" title="Vista de demostración">
+      <sc-for list="{{ roles }}" as="r" hint-placeholder-count="3">
+        <button onClick="{{ r.go }}" style="{{ r.style }}">{{ r.label }}</button>
+      </sc-for>
+    </div>
+    <button onClick="{{ toggleTheme }}" title="{{ themeLabel }}" style="width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);display:grid;place-items:center;cursor:pointer;flex:none" style-hover="color:var(--ink)">
+      <sc-if value="{{ isDark }}"><span style="width:16px;height:16px;background:currentColor;mask:url(//unpkg.com/lucide-static@0.460.0/icons/sun.svg) center/contain no-repeat;-webkit-mask:url(//unpkg.com/lucide-static@0.460.0/icons/sun.svg) center/contain no-repeat"></span></sc-if>
+      <sc-if value="{{ isLight }}" hint-placeholder-val="{{ true }}"><span style="width:16px;height:16px;background:currentColor;mask:url(//unpkg.com/lucide-static@0.460.0/icons/moon.svg) center/contain no-repeat;-webkit-mask:url(//unpkg.com/lucide-static@0.460.0/icons/moon.svg) center/contain no-repeat"></span></sc-if>
+    </button>
+    <button title="Notificaciones" style="position:relative;width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);display:grid;place-items:center;cursor:pointer;flex:none">
+      <span style="width:16px;height:16px;background:currentColor;mask:url(//unpkg.com/lucide-static@0.460.0/icons/bell.svg) center/contain no-repeat;-webkit-mask:url(//unpkg.com/lucide-static@0.460.0/icons/bell.svg) center/contain no-repeat"></span>
+      <span style="position:absolute;top:8px;right:9px;width:7px;height:7px;border-radius:50%;background:var(--rose);box-shadow:0 0 0 2px var(--surface)"></span>
+    </button>
+  </header>
+
+  <main style="flex:1;padding:28px 28px 48px;width:100%;max-width:1360px;margin:0 auto;display:flex;flex-direction:column;gap:20px">
+
+    <!-- EMPRESA · INICIO -->
+    <sc-if value="{{ is.eInicio }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px">
+        <div>
+          <div style="font-size:12.5px;color:var(--ink-3);font-weight:600">Martes, 27 de octubre</div>
+          <h1 style="margin:4px 0 0;font-size:28px;font-weight:800;letter-spacing:-.025em">Buenos días, Laura</h1>
+          <p style="margin:6px 0 0;color:var(--ink-2);text-wrap:pretty">Tienes <strong style="color:var(--ink)">3 convocatorias compatibles</strong> que cierran en los próximos 15 días.</p>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button style="height:38px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px" style-hover="background:var(--surface-2)"><span style="width:15px;height:15px;background:currentColor;mask:url(//unpkg.com/lucide-static@0.460.0/icons/folder-plus.svg) center/contain no-repeat;-webkit-mask:url(//unpkg.com/lucide-static@0.460.0/icons/folder-plus.svg) center/contain no-repeat"></span>Nuevo proyecto</button>
+          <button onClick="{{ goCatalogo }}" style="height:38px;padding:0 16px;border-radius:10px;border:0;background:var(--pri);color:var(--on-pri);font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px" style-hover="background:var(--pri-hover)">Explorar convocatorias<span style="width:15px;height:15px;background:currentColor;mask:url(//unpkg.com/lucide-static@0.460.0/icons/arrow-right.svg) center/contain no-repeat;-webkit-mask:url(//unpkg.com/lucide-static@0.460.0/icons/arrow-right.svg) center/contain no-repeat"></span></button>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px">
+        <sc-for list="{{ eKpis }}" as="k" hint-placeholder-count="4">
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:12.5px;font-weight:600;color:var(--ink-2)">{{ k.label }}</span>
+              <span style="{{ k.icBox }}"><span style="{{ k.ic }}"></span></span>
+            </div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:600;letter-spacing:-.03em;line-height:1">{{ k.value }}<span style="font-size:14px;color:var(--ink-3);font-weight:500">{{ k.unit }}</span></div>
+            <div style="font-size:12px;color:var(--ink-3)">{{ k.note }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:14px">
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:18px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+            <div>
+              <div style="font-weight:800;font-size:15px">Fondos disponibles para tu perfil</div>
+              <div style="font-size:12.5px;color:var(--ink-3);margin-top:3px">Monto total por mes de cierre · miles de millones COP</div>
+            </div>
+            <div style="display:flex;gap:12px;font-size:12px;color:var(--ink-2)">
+              <span style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;background:var(--pri)"></span>Públicos</span>
+              <span style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;background:var(--sky)"></span>Privados</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:14px;height:200px;padding-top:8px;border-bottom:1px solid var(--line)">
+            <sc-for list="{{ fundBars }}" as="b" hint-placeholder-count="6">
+              <div style="flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-2)">{{ b.total }}</span>
+                <div style="width:100%;max-width:46px;display:flex;flex-direction:column;gap:3px">
+                  <div style="{{ b.privStyle }}"></div>
+                  <div style="{{ b.pubStyle }}"></div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;gap:14px;margin-top:-10px">
+            <sc-for list="{{ fundBars }}" as="b" hint-placeholder-count="6">
+              <span style="flex:1;text-align:center;font-size:12px;color:var(--ink-3);font-weight:600">{{ b.m }}</span>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div style="font-weight:800;font-size:15px">Próximos cierres</div>
+            <button onClick="{{ goCatalogo }}" style="border:0;background:none;color:var(--pri-text);font-weight:700;font-size:12.5px;cursor:pointer">Ver todas</button>
+          </div>
+          <sc-for list="{{ soon }}" as="c" hint-placeholder-count="4">
+            <button onClick="{{ c.open }}" style="display:flex;align-items:center;gap:14px;padding:10px;margin:0 -10px;border:0;border-radius:12px;background:none;cursor:pointer;text-align:left;color:var(--ink)" style-hover="background:var(--surface-2)">
+              <div style="{{ c.dayBox }}">
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:600;line-height:1">{{ c.dias }}</span>
+                <span style="font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em">días</span>
+              </div>
+              <div style="min-width:0;flex:1">
+                <div style="font-weight:700;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.n }}</div>
+                <div style="font-size:12px;color:var(--ink-3);margin-top:2px">{{ c.ent }} · {{ c.monto }}</div>
+              </div>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--pri-text)">{{ c.compat }}%</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:14px">
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-weight:800;font-size:15px">Sugeridas para tus proyectos</div>
+              <div style="font-size:12.5px;color:var(--ink-3);margin-top:3px">Cruce de sector, tipo de entidad, ubicación y monto</div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">
+            <sc-for list="{{ suggested }}" as="c" hint-placeholder-count="3">
+              <button onClick="{{ c.open }}" style="display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--bg);text-align:left;cursor:pointer;color:var(--ink)" style-hover="border-color:var(--pri)">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <div style="{{ c.ring }}"><div style="width:38px;height:38px;border-radius:50%;background:var(--bg);display:grid;place-items:center;font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:600">{{ c.compat }}%</div></div>
+                  <sc-if value="{{ c.isTrib }}"><span style="padding:4px 8px;border-radius:999px;font-size:11px;font-weight:700;background:color-mix(in oklch, var(--violet) 15%, transparent);color:color-mix(in oklch, var(--violet) 70%, var(--ink))">Tributario</span></sc-if>
+                  <sc-if value="{{ c.isFondo }}"><span style="padding:4px 8px;border-radius:999px;font-size:11px;font-weight:700;background:var(--pri-soft);color:var(--pri-text)">Fondos</span></sc-if>
+                </div>
+                <div style="font-weight:700;font-size:13.5px;line-height:1.35;text-wrap:pretty">{{ c.n }}</div>
+                <div style="font-size:12px;color:var(--ink-3);margin-top:auto">{{ c.ent }}</div>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-weight:800;font-size:15px">Mis postulaciones</div>
+            <button onClick="{{ goPostulaciones }}" style="border:0;background:none;color:var(--pri-text);font-weight:700;font-size:12.5px;cursor:pointer">Abrir tablero</button>
+          </div>
+          <sc-for list="{{ myApps }}" as="p" hint-placeholder-count="4">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;justify-content:space-between;gap:10px;font-size:13px">
+                <span style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.n }}</span>
+                <span style="color:var(--ink-3);white-space:nowrap">{{ p.stage }}</span>
+              </div>
+              <div style="height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden"><div style="{{ p.bar }}"></div></div>
+              <div style="font-size:11.5px;color:var(--ink-3);font-family:'IBM Plex Mono',monospace">{{ p.done }}/{{ p.total }} requisitos · cierra en {{ p.dias }} d</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- CATÁLOGO (empresa / consultor) -->
+    <sc-if value="{{ is.catalogo }}">
+      <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px">
+        <div>
+          <h1 style="margin:0;font-size:26px;font-weight:800;letter-spacing:-.025em">{{ catTitle }}</h1>
+          <p style="margin:6px 0 0;color:var(--ink-2)">{{ resultCount }} resultados · ordenadas por compatibilidad con tus proyectos</p>
+        </div>
+        <div style="display:flex;gap:2px;padding:3px;border-radius:12px;background:var(--surface);border:1px solid var(--line)">
+          <sc-for list="{{ tipoTabs }}" as="t" hint-placeholder-count="3">
+            <button onClick="{{ t.go }}" style="{{ t.style }}"><span style="{{ t.ic }}"></span>{{ t.label }}</button>
+          </sc-for>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-wrap:wrap;align-items:center;gap:10px">
+        <label style="flex:1;min-width:240px;display:flex;align-items:center;gap:10px;height:42px;padding:0 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--ink-3)">
+          <span style="width:16px;height:16px;flex:none;background:currentColor;mask:url(//unpkg.com/lucide-static@0.460.0/icons/search.svg) center/contain no-repeat;-webkit-mask:url(//unpkg.com/lucide-static@0.460.0/icons/search.svg) center/contain no-repeat"></span>
+          <input value="{{ q }}" onChange="{{ onQ }}" placeholder="Busca por nombre, entidad o palabra clave" style="flex:1;border:0;outline:0;background:none;color:var(--ink);font-size:13.5px;height:100%">
+        </label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <sc-for list="{{ origenChips }}" as="o" hint-placeholder-count="4">
+            <button onClick="{{ o.go }}" style="{{ o.style }}">{{ o.label }}</button>
+          </sc-for>
+        </div>
+        <div style="display:flex;gap:2px;padding:3px;border-radius:10px;background:var(--surface);border:1px solid var(--line)">
+          <button onClick="{{ setGrid }}" title="Tarjetas" style="{{ gridBtn }}"><span style="width:15px;height:15px;background:currentColor;mask:url(//unpkg.com/lucide-static@0.460.0/icons/layout-grid.svg) center/contain no-repeat;-webkit-mask:url(//unpkg.com/lucide-static@0.460.0/icons/layout-grid.svg) center/contain no-repeat"></span></button>
+          <button onClick="{{ setList }}" title="Lista" style="{{ listBtn }}"><span style="width:15px;height:15px;background:currentColor;mask:url(//unpkg.com/lucide-static@0.460.0/icons/list.svg) center/contain no-repeat;-webkit-mask:url(//unpkg.com/lucide-static@0.460.0/icons/list.svg) center/contain no-repeat"></span></button>
+        </div>
+      </div>
+
+      <sc-if value="{{ noResults }}">
+        <div style="padding:56px 20px;text-align:center;border:1px dashed var(--line);border-radius:16px;color:var(--ink-2)">
+          <div style="font-weight:800;font-size:16px;color:var(--ink)">Sin resultados con esos filtros</div>
+          <div style="margin-top:6px;font-size:13px">Quita un filtro o prueba otra palabra.</div>
+          <button onClick="{{ clearFilters }}" style="margin-top:16px;height:36px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-weight:700;cursor:pointer">Limpiar filtros</button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isGrid }}" hint-placeholder-val="{{ true }}">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px">
+          <sc-for list="{{ results }}" as="c" hint-placeholder-count="6">
+            <button onClick="{{ c.open }}" style="display:flex;flex-direction:column;gap:14px;padding:18px;border-radius:16px;border:1px solid var(--line);background:var(--surface);box-shadow:var(--shadow);text-align:left;cursor:pointer;color:var(--ink);transition:transform .15s,border-color .15s" style-hover="border-color:var(--pri);transform:translateY(-2px)">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+                <div style="display:flex;flex-wrap:wrap;gap:6px">
+                  <sc-if value="{{ c.isTrib }}"><span style="padding:4px 9px;border-radius:999px;font-size:11px;font-weight:700;background:color-mix(in oklch, var(--violet) 15%, transparent);color:color-mix(in oklch, var(--violet) 70%, var(--ink))">Beneficio tributario</span></sc-if>
+                  <sc-if value="{{ c.isFondo }}"><span style="padding:4px 9px;border-radius:999px;font-size:11px;font-weight:700;background:var(--pri-soft);color:var(--pri-text)">Fondos</span></sc-if>
+                  <span style="padding:4px 9px;border-radius:999px;font-size:11px;font-weight:700;background:var(--surface-2);color:var(--ink-2)">{{ c.origen }}</span>
+                </div>
+                <div style="{{ c.ring }}"><div style="width:38px;height:38px;border-radius:50%;background:var(--surface);display:grid;place-items:center;font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:600">{{ c.compat }}%</div></div>
+              </div>
+              <div>
+                <div style="font-weight:800;font-size:15px;line-height:1.3;letter-spacing:-.01em;text-wrap:pretty">{{ c.n }}</div>
+                <div style="font-size:12.5px;color:var(--ink-3);margin-top:5px;display:flex;align-items:center;gap:6px"><span style="width:13px;height:13px;flex:none;background:currentColor;mask:url(//unpkg.com/lucide-static@0.460.0/icons/landmark.svg) center/contain no-repeat;-webkit-mask:url(//unpkg.com/lucide-static@0.460.0/icons/landmark.svg) center/contain no-repeat"></span>{{ c.ent }}</div>
+              </div>
+              <p style="margin:0;font-size:13px;line-height:1.5;color:var(--ink-2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">{{ c.desc }}</p>
+              <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:10px;padding-top:12px;border-top:1px solid var(--line-2);margin-top:auto">
+                <div>
+                  <div style="font-size:11px;color:var(--ink-3);font-weight:600">{{ c.montoLabel }}</div>
+                  <div style="font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;margin-top:2px">{{ c.monto }}</div>
+                </div>
+                <sc-if value="{{ c.urgent }}"><span style="display:flex;align-items:center;gap:5px;padding:5px 9px;border-radius:8px;font-size:12px;font-weight:700;background:color-mix(in oklch, var(--amber) 16%, transparent);color:color-mix(in oklch, var(--amber) 62%, var(--ink))"><span style="width:13px;height:13px;background:currentColor;mask:url(//unpkg.com/lucide-static@0.460.0/icons/clock.svg) center/contain no-repeat;-webkit-mask:url(//unpkg.com/lucide-static@0.460.0/icons/clock.svg) center/contain no-repeat"></span>{{ c.dias }} días</span></sc-if>
+                <sc-if value="{{ c.calm }}"><span style="font-size:12px;color:var(--ink-2);font-weight:600">Cierra en {{ c.dias }} días</span></sc-if>
+              </div>
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isList }}">
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow)">
+          <div style="display:grid;grid-template-columns:minmax(0,3fr) 120px 110px 150px 90px 70px;gap:14px;padding:12px 18px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);border-bottom:1px solid var(--line)">
+            <span>Convocatoria</span><span>Tipo</span><span>Origen</span><span>Monto</span><span>Cierre</span><span style="text-align:right">Match</span>
+          </div>
+          <sc-for list="{{ results }}" as="c" hint-placeholder-count="6">
+            <button onClick="{{ c.open }}" style="display:grid;grid-template-columns:minmax(0,3fr) 120px 110px 150px 90px 70px;gap:14px;align-items:center;width:100%;padding:14px 18px;border:0;border-bottom:1px solid var(--line-2);background:none;text-align:left;cursor:pointer;color:var(--ink);font-size:13px" style-hover="background:var(--surface-2)">
+              <span style="min-width:0"><span style="display:block;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.n }}</span><span style="display:block;font-size:12px;color:var(--ink-3);margin-top:2px">{{ c.ent }}</span></span>
+              <span style="color:var(--ink-2)">{{ c.tipoLabel }}</span>
+              <span style="color:var(--ink-2)">{{ c.origen }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-weight:600">{{ c.monto }}</span>
+              <span style="{{ c.diasText }}">{{ c.dias }} días</span>
+              <span style="text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--pri-text)">{{ c.compat }}%</span>
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+    </sc-if>
+
+    <!-- EMPRESA · POSTULACIONES -->
+    <sc-if value="{{ is.eKanban }}">
+      <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px">
+        <div>
+          <h1 style="margin:0;font-size:26px;font-weight:800;letter-spacing:-.025em">Postulaciones</h1>
+          <p style="margin:6px 0 0;color:var(--ink-2)">Prepara aquí; radica en el portal de cada entidad.</p>
+        </div>
+        <button onClick="{{ goCatalogo }}" style="height:38px;padding:0 16px;border-radius:10px;border:0;background:var(--pri);color:var(--on-pri);font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px" style-hover="background:var(--pri-hover)"><span style="width:15px;height:15px;background:currentColor;mask:url(//unpkg.com/lucide-static@0.460.0/icons/plus.svg) center/contain no-repeat;-webkit-mask:url(//unpkg.com/lucide-static@0.460.0/icons/plus.svg) center/contain no-repeat"></span>Nueva postulación</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(240px,1fr));gap:14px;overflow-x:auto;padding-bottom:6px">
+        <sc-for list="{{ columns }}" as="col" hint-placeholder-count="4">
+          <div style="background:var(--surface-2);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px;min-height:420px">
+            <div style="display:flex;align-items:center;gap:8px;padding:4px 6px 6px">
+              <span style="{{ col.dot }}"></span>
+              <span style="font-weight:800;font-size:13px">{{ col.t }}</span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-3)">{{ col.count }}</span>
+            </div>
+            <sc-for list="{{ col.cards }}" as="p" hint-placeholder-count="2">
+              <div style="background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:var(--shadow)">
+                <div style="font-size:11.5px;color:var(--ink-3);font-weight:600">{{ p.ent }}</div>
+                <div style="font-weight:700;font-size:13.5px;line-height:1.35;text-wrap:pretty">{{ p.n }}</div>
+                <div style="font-size:12px;color:var(--ink-2)">Proyecto: {{ p.proj }}</div>
+                <div style="height:5px;border-radius:3px;background:var(--surface-2);overflow:hidden"><div style="{{ p.bar }}"></div></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:11.5px">
+                  <span style="font-family:'IBM Plex Mono',monospace;color:var(--ink-3)">{{ p.done }}/{{ p.total }} requisitos</span>
+                  <span style="{{ p.diasStyle }}">{{ p.diasLabel }}</span>
+                </div>
+                <sc-if value="{{ p.hasCons }}">
+                  <div style="display:flex;align-items:center;gap:8px;padding-top:10px;border-top:1px solid var(--line-2);font-size:12px;color:var(--ink-2)">
+                    <span style="width:22px;height:22px;border-radius:50%;background:color-mix(in oklch, var(--sky) 18%, transparent);color:color-mix(in oklch, var(--sky) 70%, var(--ink));display:grid;place-items:center;font-size:9.5px;font-weight:800">{{ p.consIni }}</span>
+                    Con {{ p.cons }}
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <!-- CONSULTOR · INICIO / ENCARGOS -->
+    <sc-if value="{{ is.cHome }}">
+      <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px">
+        <div>
+          <div style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--pri-soft);color:var(--pri-text);font-size:11.5px;font-weight:700"><span style="width:6px;height:6px;border-radius:50%;background:var(--pri)"></span>Perfil aprobado · visible en el directorio</div>
+          <h1 style="margin:10px 0 0;font-size:28px;font-weight:800;letter-spacing:-.025em">{{ cTitle }}</h1>
+          <p style="margin:6px 0 0;color:var(--ink-2)">{{ cSub }}</p>
+        </div>
+      </div>
+
+      <sc-if value="{{ is.cInicio }}">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px">
+          <sc-for list="{{ cKpis }}" as="k" hint-placeholder-count="4">
+            <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <span style="font-size:12.5px;font-weight:600;color:var(--ink-2)">{{ k.label }}</span>
+                <span style="{{ k.icBox }}"><span style="{{ k.ic }}"></span></span>
+              </div>
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:600;letter-spacing:-.03em;line-height:1">{{ k.value }}<span style="font-size:14px;color:var(--ink-3);font-weight:500">{{ k.unit }}</span></div>
+              <div style="font-size:12px;color:var(--ink-3)">{{ k.note }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:14px">
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-weight:800;font-size:15px">Solicitudes nuevas</div>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-3)">{{ reqCount }} pendientes</span>
+          </div>
+          <sc-if value="{{ noReqs }}"><div style="padding:28px;text-align:center;color:var(--ink-3);font-size:13px;border:1px dashed var(--line);border-radius:12px">Todo al día. Te avisaremos cuando llegue una nueva solicitud.</div></sc-if>
+          <sc-for list="{{ requests }}" as="r" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:12px;border:1px solid var(--line);background:var(--bg)">
+              <div style="display:flex;justify-content:space-between;gap:10px">
+                <div style="min-width:0">
+                  <div style="font-weight:700;font-size:13.5px">{{ r.task }}</div>
+                  <div style="font-size:12px;color:var(--ink-3);margin-top:3px">{{ r.emp }} · {{ r.conv }}</div>
+                </div>
+                <span style="font-size:11.5px;color:var(--ink-3);white-space:nowrap">{{ r.when }}</span>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button onClick="{{ r.accept }}" style="height:32px;padding:0 12px;border-radius:8px;border:0;background:var(--pri);color:var(--on-pri);font-weight:700;font-size:12.5px;cursor:pointer" style-hover="background:var(--pri-hover)">Aceptar</button>
+                <button onClick="{{ r.decline }}" style="height:32px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);font-weight:700;font-size:12.5px;cursor:pointer" style-hover="color:var(--ink)">Rechazar</button>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:16px">
+          <div style="font-weight:800;font-size:15px">Tu perfil público</div>
+          <div style="display:flex;align-items:center;gap:16px">
+            <div style="width:84px;height:84px;border-radius:50%;background:conic-gradient(var(--pri) 306deg, var(--surface-2) 0);display:grid;place-items:center;flex:none"><div style="width:70px;height:70px;border-radius:50%;background:var(--surface);display:grid;place-items:center;font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600">85%</div></div>
+            <div style="font-size:13px;color:var(--ink-2);line-height:1.5;text-wrap:pretty">Los perfiles completos reciben en promedio el doble de solicitudes. Te faltan 2 pasos.</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ profileSteps }}" as="s" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px">
+                <span style="{{ s.box }}"><span style="{{ s.ic }}"></span></span>
+                <span style="{{ s.txt }}">{{ s.t }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow)">
+        <div style="padding:18px 20px;font-weight:800;font-size:15px;border-bottom:1px solid var(--line)">Encargos en curso</div>
+        <div style="overflow-x:auto">
+          <div style="min-width:760px">
+            <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,2fr) 140px 120px;gap:14px;padding:12px 20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);border-bottom:1px solid var(--line)">
+              <span>Empresa · tarea</span><span>Convocatoria</span><span>Entrega</span><span>Estado</span>
+            </div>
+            <sc-for list="{{ jobs }}" as="j" hint-placeholder-count="4">
+              <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,2fr) 140px 120px;gap:14px;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line-2);font-size:13px">
+                <span style="min-width:0"><span style="display:block;font-weight:700">{{ j.emp }}</span><span style="display:block;font-size:12px;color:var(--ink-3);margin-top:2px">{{ j.task }}</span></span>
+                <span style="color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ j.conv }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace;color:var(--ink-2)">{{ j.due }}</span>
+                <span><span style="{{ j.badge }}">{{ j.status }}</span></span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ADMIN · PANEL -->
+    <sc-if value="{{ is.aInicio }}">
+      <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px">
+        <div>
+          <h1 style="margin:0;font-size:28px;font-weight:800;letter-spacing:-.025em">Panel general</h1>
+          <p style="margin:6px 0 0;color:var(--ink-2)">Estado del catálogo, la red de consultores y las suscripciones.</p>
+        </div>
+        <button onClick="{{ goAdminConv }}" style="height:38px;padding:0 16px;border-radius:10px;border:0;background:var(--pri);color:var(--on-pri);font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px" style-hover="background:var(--pri-hover)"><span style="width:15px;height:15px;background:currentColor;mask:url(//unpkg.com/lucide-static@0.460.0/icons/plus.svg) center/contain no-repeat;-webkit-mask:url(//unpkg.com/lucide-static@0.460.0/icons/plus.svg) center/contain no-repeat"></span>Nueva convocatoria</button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px">
+        <sc-for list="{{ aKpis }}" as="k" hint-placeholder-count="4">
+          <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:12.5px;font-weight:600;color:var(--ink-2)">{{ k.label }}</span>
+              <span style="{{ k.icBox }}"><span style="{{ k.ic }}"></span></span>
+            </div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:600;letter-spacing:-.03em;line-height:1">{{ k.value }}</div>
+            <div style="font-size:12px;color:var(--ink-3)">{{ k.note }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:14px">
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start">
+            <div>
+              <div style="font-weight:800;font-size:15px">Postulaciones iniciadas</div>
+              <div style="font-size:12.5px;color:var(--ink-3);margin-top:3px">Últimas 12 semanas</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600">412</div>
+              <div style="font-size:12px;color:var(--pri-text);font-weight:700">+18% vs. trimestre anterior</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:8px;height:180px;border-bottom:1px solid var(--line)">
+            <sc-for list="{{ weekBars }}" as="b" hint-placeholder-count="12">
+              <div style="flex:1;height:100%;display:flex;align-items:flex-end" title="{{ b.v }}"><div style="{{ b.style }}"></div></div>
+            </sc-for>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-3);margin-top:-8px"><span>3 ago</span><span>14 sep</span><span>26 oct</span></div>
+        </div>
+
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:16px">
+          <div style="font-weight:800;font-size:15px">Suscripciones por estado</div>
+          <div style="display:flex;height:12px;border-radius:6px;overflow:hidden;gap:2px">
+            <sc-for list="{{ subs }}" as="s" hint-placeholder-count="5"><div style="{{ s.seg }}"></div></sc-for>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <sc-for list="{{ subs }}" as="s" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line-2);font-size:13px">
+                <span style="{{ s.dot }}"></span>
+                <span style="flex:1;color:var(--ink-2)">{{ s.t }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-weight:600">{{ s.v }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:14px">
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <div style="font-weight:800;font-size:15px">Perfiles en revisión</div>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ink-3)">{{ reviewCount }}</span>
+          </div>
+          <sc-if value="{{ noReview }}"><div style="padding:24px;text-align:center;color:var(--ink-3);font-size:13px;border:1px dashed var(--line);border-radius:12px">No hay perfiles pendientes.</div></sc-if>
+          <sc-for list="{{ review }}" as="r" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line-2)">
+              <span style="width:34px;height:34px;border-radius:50%;background:color-mix(in oklch, var(--sky) 18%, transparent);color:color-mix(in oklch, var(--sky) 70%, var(--ink));display:grid;place-items:center;font-size:11.5px;font-weight:800;flex:none">{{ r.ini }}</span>
+              <div style="min-width:0;flex:1">
+                <div style="font-weight:700;font-size:13px">{{ r.n }}</div>
+                <div style="font-size:12px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.spec }}</div>
+              </div>
+              <button onClick="{{ r.approve }}" title="Aprobar" style="width:30px;height:30px;border-radius:8px;border:0;background:var(--pri-soft);color:var(--pri-text);display:grid;place-items:center;cursor:pointer"><span style="width:15px;height:15px;background:currentColor;mask:url(//unpkg.com/lucide-static@0.460.0/icons/check.svg) center/contain no-repeat;-webkit-mask:url(//unpkg.com/lucide-static@0.460.0/icons/check.svg) center/contain no-repeat"></span></button>
+              <button onClick="{{ r.reject }}" title="Rechazar" style="width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink-3);display:grid;place-items:center;cursor:pointer"><span style="width:15px;height:15px;background:currentColor;mask:url(//unpkg.com/lucide-static@0.460.0/icons/x.svg) center/contain no-repeat;-webkit-mask:url(//unpkg.com/lucide-static@0.460.0/icons/x.svg) center/contain no-repeat"></span></button>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:6px">
+          <div style="font-weight:800;font-size:15px;margin-bottom:8px">Cierran en menos de 15 días</div>
+          <sc-for list="{{ soon }}" as="c" hint-placeholder-count="4">
+            <div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line-2)">
+              <div style="min-width:0;flex:1">
+                <div style="font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.n }}</div>
+                <div style="font-size:12px;color:var(--ink-3)">{{ c.ent }}</div>
+              </div>
+              <span style="padding:4px 8px;border-radius:7px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:600;background:color-mix(in oklch, var(--amber) 16%, transparent);color:color-mix(in oklch, var(--amber) 62%, var(--ink))">{{ c.dias }} d</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:center;gap:8px"><span style="width:16px;height:16px;background:var(--violet);mask:url(//unpkg.com/lucide-static@0.460.0/icons/sparkles.svg) center/contain no-repeat;-webkit-mask:url(//unpkg.com/lucide-static@0.460.0/icons/sparkles.svg) center/contain no-repeat"></span><span style="font-weight:800;font-size:15px">Consumo de IA · octubre</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <sc-for list="{{ iaStats }}" as="s" hint-placeholder-count="4">
+              <div style="padding:12px;border-radius:12px;background:var(--surface-2)">
+                <div style="font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600">{{ s.v }}</div>
+                <div style="font-size:11.5px;color:var(--ink-3);margin-top:3px">{{ s.t }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ADMIN · CONVOCATORIAS -->
+    <sc-if value="{{ is.aConv }}">
+      <div style="display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px">
+        <div>
+          <h1 style="margin:0;font-size:26px;font-weight:800;letter-spacing:-.025em">Convocatorias</h1>
+          <p style="margin:6px 0 0;color:var(--ink-2)">Carga manual con datos estructurados y documentos adjuntos.</p>
+        </div>
+        <button style="height:38px;padding:0 16px;border-radius:10px;border:0;background:var(--pri);color:var(--on-pri);font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px" style-hover="background:var(--pri-hover)"><span style="width:15px;height:15px;background:currentColor;mask:url(//unpkg.com/lucide-static@0.460.0/icons/plus.svg) center/contain no-repeat;-webkit-mask:url(//unpkg.com/lucide-static@0.460.0/icons/plus.svg) center/contain no-repeat"></span>Nueva convocatoria</button>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow)">
+        <div style="display:flex;gap:4px;padding:10px 12px;border-bottom:1px solid var(--line);overflow-x:auto">
+          <sc-for list="{{ adminTabs }}" as="t" hint-placeholder-count="5">
+            <button onClick="{{ t.go }}" style="{{ t.style }}">{{ t.label }}<span style="font-family:'IBM Plex Mono',monospace;font-size:11px;opacity:.7">{{ t.count }}</span></button>
+          </sc-for>
+        </div>
+        <div style="overflow-x:auto">
+          <div style="min-width:820px">
+            <div style="display:grid;grid-template-columns:minmax(0,3fr) 130px 130px 110px 110px 40px;gap:14px;padding:12px 20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);border-bottom:1px solid var(--line)">
+              <span>Convocatoria</span><span>Tipo</span><span>Estado</span><span>Cierre</span><span>Postulaciones</span><span></span>
+            </div>
+            <sc-for list="{{ adminRows }}" as="c" hint-placeholder-count="8">
+              <div style="display:grid;grid-template-columns:minmax(0,3fr) 130px 130px 110px 110px 40px;gap:14px;align-items:center;padding:13px 20px;border-bottom:1px solid var(--line-2);font-size:13px">
+                <span style="min-width:0"><span style="display:block;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.n }}</span><span style="display:block;font-size:12px;color:var(--ink-3);margin-top:2px">{{ c.ent }} · {{ c.origen }}</span></span>
+                <span style="color:var(--ink-2)">{{ c.tipoLabel }}</span>
+                <span><span style="{{ c.estadoBadge }}">{{ c.estado }}</span></span>
+                <span style="font-family:'IBM Plex Mono',monospace;color:var(--ink-2)">{{ c.fecha }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-weight:600">{{ c.posts }}</span>
+                <button title="Acciones" style="width:30px;height:30px;border-radius:8px;border:0;background:none;color:var(--ink-3);display:grid;place-items:center;cursor:pointer" style-hover="background:var(--surface-2);color:var(--ink)"><span style="width:16px;height:16px;background:currentColor;mask:url(//unpkg.com/lucide-static@0.460.0/icons/ellipsis.svg) center/contain no-repeat;-webkit-mask:url(//unpkg.com/lucide-static@0.460.0/icons/ellipsis.svg) center/contain no-repeat"></span></button>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- PENDIENTE -->
+    <sc-if value="{{ is.pending }}">
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;min-height:60vh;border:1px dashed var(--line);border-radius:20px;padding:40px">
+        <span style="width:52px;height:52px;border-radius:14px;background:var(--pri-soft);color:var(--pri-text);display:grid;place-items:center"><span style="{{ pendingIc }}"></span></span>
+        <div style="font-size:20px;font-weight:800;letter-spacing:-.02em">{{ title }}</div>
+        <div style="max-width:420px;color:var(--ink-2);font-size:13.5px;line-height:1.55;text-wrap:pretty">Esta vista usa la misma estructura del sistema: encabezado, filtros y tabla o tarjetas. Se detalla en la próxima iteración.</div>
+      </div>
+    </sc-if>
+  </main>
+</div>
+
+<!-- DRAWER -->
+<sc-if value="{{ hasSel }}">
+  <div onClick="{{ closeSel }}" style="position:fixed;inset:0;background:rgba(5,10,8,.42);backdrop-filter:blur(2px);z-index:40"></div>
+  <aside style="position:fixed;top:0;right:0;bottom:0;width:min(480px,100vw);background:var(--surface);border-left:1px solid var(--line);z-index:41;display:flex;flex-direction:column;box-shadow:-20px 0 60px -30px rgba(0,0,0,.4)">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid var(--line)">
+      <div style="display:flex;gap:6px">
+        <sc-if value="{{ sel.isTrib }}"><span style="padding:4px 9px;border-radius:999px;font-size:11px;font-weight:700;background:color-mix(in oklch, var(--violet) 15%, transparent);color:color-mix(in oklch, var(--violet) 70%, var(--ink))">Beneficio tributario</span></sc-if>
+        <sc-if value="{{ sel.isFondo }}"><span style="padding:4px 9px;border-radius:999px;font-size:11px;font-weight:700;background:var(--pri-soft);color:var(--pri-text)">Fondos</span></sc-if>
+        <span style="padding:4px 9px;border-radius:999px;font-size:11px;font-weight:700;background:var(--surface-2);color:var(--ink-2)">{{ sel.origen }}</span>
+      </div>
+      <button onClick="{{ closeSel }}" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);display:grid;place-items:center;cursor:pointer"><span style="width:15px;height:15px;background:currentColor;mask:url(//unpkg.com/lucide-static@0.460.0/icons/x.svg) center/contain no-repeat;-webkit-mask:url(//unpkg.com/lucide-static@0.460.0/icons/x.svg) center/contain no-repeat"></span></button>
+    </div>
+    <div style="flex:1;overflow-y:auto;padding:22px 20px;display:flex;flex-direction:column;gap:22px">
+      <div>
+        <h2 style="margin:0;font-size:21px;font-weight:800;letter-spacing:-.02em;line-height:1.25;text-wrap:pretty">{{ sel.n }}</h2>
+        <div style="margin-top:8px;font-size:13px;color:var(--ink-2)">{{ sel.ent }}</div>
+        <p style="margin:14px 0 0;font-size:13.5px;line-height:1.6;color:var(--ink-2);text-wrap:pretty">{{ sel.desc }}</p>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+        <div style="padding:12px;border-radius:12px;background:var(--surface-2)"><div style="font-size:11px;color:var(--ink-3);font-weight:600">{{ sel.montoLabel }}</div><div style="font-family:'IBM Plex Mono',monospace;font-weight:600;margin-top:4px;font-size:13px">{{ sel.monto }}</div></div>
+        <div style="padding:12px;border-radius:12px;background:var(--surface-2)"><div style="font-size:11px;color:var(--ink-3);font-weight:600">Cierra en</div><div style="font-family:'IBM Plex Mono',monospace;font-weight:600;margin-top:4px;font-size:13px">{{ sel.dias }} días</div></div>
+        <div style="padding:12px;border-radius:12px;background:var(--surface-2)"><div style="font-size:11px;color:var(--ink-3);font-weight:600">Cobertura</div><div style="font-weight:700;margin-top:4px;font-size:13px">{{ sel.cob }}</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-weight:800;font-size:14px">Compatibilidad</span><span style="font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:18px;color:var(--pri-text)">{{ sel.compat }}%</span></div>
+        <sc-for list="{{ sel.crit }}" as="k" hint-placeholder-count="4">
+          <div style="display:flex;align-items:center;gap:10px;font-size:13px">
+            <span style="{{ k.box }}"><span style="{{ k.ic }}"></span></span>
+            <span style="flex:1;color:var(--ink-2)">{{ k.t }}</span>
+            <span style="font-size:12px;color:var(--ink-3)">{{ k.v }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <span style="font-weight:800;font-size:14px">Requisitos</span>
+        <sc-for list="{{ sel.req }}" as="r" hint-placeholder-count="4">
+          <div style="display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--ink-2);line-height:1.45"><span style="width:6px;height:6px;border-radius:50%;background:var(--ink-3);margin-top:7px;flex:none"></span>{{ r }}</div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;padding:16px 20px;border-top:1px solid var(--line)">
+      <button style="flex:1;height:42px;border-radius:10px;border:0;background:var(--pri);color:var(--on-pri);font-weight:700;font-size:13.5px;cursor:pointer" style-hover="background:var(--pri-hover)">Iniciar postulación</button>
+      <button style="height:42px;padding:0 14px;border-radius:10px;border:1px solid color-mix(in oklch, var(--violet) 45%, transparent);background:color-mix(in oklch, var(--violet) 10%, transparent);color:color-mix(in oklch, var(--violet) 70%, var(--ink));font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:7px"><span style="width:15px;height:15px;background:currentColor;mask:url(//unpkg.com/lucide-static@0.460.0/icons/wand-sparkles.svg) center/contain no-repeat;-webkit-mask:url(//unpkg.com/lucide-static@0.460.0/icons/wand-sparkles.svg) center/contain no-repeat"></span>Documento con IA</button>
+      <button title="Guardar" style="width:42px;height:42px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);display:grid;place-items:center;cursor:pointer"><span style="width:16px;height:16px;background:currentColor;mask:url(//unpkg.com/lucide-static@0.460.0/icons/bookmark.svg) center/contain no-repeat;-webkit-mask:url(//unpkg.com/lucide-static@0.460.0/icons/bookmark.svg) center/contain no-repeat"></span></button>
+    </div>
+  </aside>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;accent&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;esmeralda&quot;,&quot;cobalto&quot;,&quot;petroleo&quot;,&quot;ciruela&quot;],&quot;default&quot;:&quot;esmeralda&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Marca&quot;},&quot;startTheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Marca&quot;},&quot;startCollapsed&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Menú&quot;}}">
+const ICV = '0.460.0';
+const icon = (n, s = 16, extra = {}) => {
+  const m = `url(//unpkg.com/lucide-static@${ICV}/icons/${n}.svg) center/contain no-repeat`;
+  return Object.assign({ width: s + 'px', height: s + 'px', flex: 'none', background: 'currentColor', mask: m, WebkitMask: m }, extra);
+};
+const tone = (v, pct = 16, mix = 65) => ({ background: `color-mix(in oklch, var(--${v}) ${pct}%, transparent)`, color: `color-mix(in oklch, var(--${v}) ${mix}%, var(--ink))` });
+
+const NAV = {
+  empresa: [
+    { k: 'g', t: 'General', items: [['inicio', 'Inicio', 'layout-dashboard']] },
+    { k: 'd', t: 'Descubrir', items: [['catalogo', 'Convocatorias', 'search'], ['sugeridas', 'Sugeridas para ti', 'sparkles', 3], ['tributarios', 'Beneficios tributarios', 'receipt-text'], ['guardadas', 'Guardadas', 'bookmark']] },
+    { k: 't', t: 'Mi trabajo', items: [['proyectos', 'Proyectos', 'folder-kanban'], ['postulaciones', 'Postulaciones', 'square-kanban'], ['documentos', 'Documentos con IA', 'file-text']] },
+    { k: 'c', t: 'Consultores', items: [['directorio', 'Directorio', 'users'], ['encargos', 'Mis encargos', 'briefcase', 1]] },
+    { k: 'a', t: 'Cuenta', items: [['suscripcion', 'Plan y créditos', 'credit-card'], ['ajustes', 'Ajustes', 'settings']] },
+  ],
+  consultor: [
+    { k: 'g', t: 'General', items: [['inicio', 'Inicio', 'layout-dashboard']] },
+    { k: 't', t: 'Trabajo', items: [['solicitudes', 'Solicitudes', 'inbox', 3], ['encargos', 'Encargos', 'briefcase'], ['documentos', 'Documentos compartidos', 'file-text'], ['catalogo', 'Buscar convocatorias', 'search']] },
+    { k: 'p', t: 'Mi perfil', items: [['perfil', 'Perfil público', 'user-round'], ['resenas', 'Reseñas', 'star']] },
+    { k: 'a', t: 'Cuenta', items: [['suscripcion', 'Suscripción', 'credit-card']] },
+  ],
+  admin: [
+    { k: 'g', t: 'General', items: [['inicio', 'Panel general', 'layout-dashboard']] },
+    { k: 'c', t: 'Catálogo', items: [['convocatorias', 'Convocatorias', 'files'], ['fuentes', 'Fuentes', 'rss'], ['categorias', 'Categorías', 'tags']] },
+    { k: 'k', t: 'Consultores', items: [['revision', 'Perfiles en revisión', 'user-check', 3], ['consultores', 'Consultores', 'users'], ['solicitudes', 'Solicitudes al equipo', 'clipboard-list', 2]] },
+    { k: 's', t: 'Suscripciones', items: [['planes', 'Planes', 'layers'], ['suscripciones', 'Suscripciones', 'credit-card']] },
+    { k: 'i', t: 'Inteligencia artificial', items: [['plantillas', 'Plantillas', 'sparkles'], ['consumo', 'Consumo de IA', 'gauge']] },
+    { k: 'x', t: 'Seguridad', items: [['eventos', 'Eventos y bloqueos', 'shield-alert'], ['admins', 'Administradores', 'user-cog']] },
+  ],
+};
+const ROLE = {
+  empresa: { label: 'Empresa', panel: 'Portal empresa', user: 'Laura Méndez', org: 'Agroinnova S.A.S.', ini: 'LM' },
+  consultor: { label: 'Consultor', panel: 'Portal consultor', user: 'Andrés Ríos', org: 'Formulación de proyectos', ini: 'AR' },
+  admin: { label: 'Admin', panel: 'Panel administrativo', user: 'Daniela Ortiz', org: 'Propietaria', ini: 'DO' },
+};
+
+const CONV = [
+  { id: 1, n: 'Beneficios tributarios por inversión en CTeI 2026', ent: 'Minciencias · CNBT', tipo: 'trib', origen: 'Público', monto: '30% deducción', montoLabel: 'Beneficio', dias: 12, compat: 92, cob: 'Nacional', estado: 'Publicada', posts: 38, desc: 'Deducción en renta del 30% del valor invertido en proyectos calificados de ciencia, tecnología e innovación, ejecutados directamente o a través de actores reconocidos.', req: ['Proyecto calificado por el Consejo Nacional de Beneficios Tributarios', 'Presupuesto detallado por rubros y vigencias', 'Certificado de existencia y representación legal', 'Carta de aval de la entidad ejecutora'] },
+  { id: 2, n: 'Fondo Emprender — Convocatoria nacional', ent: 'SENA', tipo: 'fondo', origen: 'Público', monto: 'Hasta $150 M', montoLabel: 'Capital semilla', dias: 21, compat: 88, cob: 'Nacional', estado: 'Publicada', posts: 61, desc: 'Capital semilla condonable para emprendimientos con plan de negocio viable, liderados por aprendices, egresados o población priorizada.', req: ['Plan de negocio en el formato oficial', 'Acreditar condición de beneficiario', 'Proyección financiera a 3 años', 'Documento de identidad del emprendedor'] },
+  { id: 3, n: 'Escalamiento de empresas con potencial de alto impacto', ent: 'iNNpulsa Colombia', tipo: 'fondo', origen: 'Público', monto: 'Hasta $300 M', montoLabel: 'Cofinanciación', dias: 34, compat: 81, cob: 'Nacional', estado: 'Publicada', posts: 22, desc: 'Cofinanciación no reembolsable y acompañamiento técnico para empresas con ventas crecientes que buscan entrar a nuevos mercados.', req: ['Ventas mínimas en los últimos dos años', 'Estados financieros certificados', 'Contrapartida mínima del 30%', 'Plan de escalamiento'] },
+  { id: 4, n: 'Línea verde de economía circular', ent: 'Bancóldex', tipo: 'fondo', origen: 'Público', monto: 'Hasta $2.000 M', montoLabel: 'Crédito', dias: 9, compat: 64, cob: 'Nacional', estado: 'Publicada', posts: 14, desc: 'Crédito con tasa compensada para proyectos de eficiencia energética, gestión de residuos y reconversión productiva.', req: ['Estudio técnico del proyecto', 'Indicadores ambientales esperados', 'Capacidad de endeudamiento'] },
+  { id: 5, n: 'Emprendimientos sostenibles en territorios rurales', ent: 'Fondo Acción', tipo: 'fondo', origen: 'Privado', monto: 'Hasta $120 M', montoLabel: 'Donación', dias: 45, compat: 77, cob: 'Pacífico, Caribe', estado: 'Publicada', posts: 9, desc: 'Apoyo a iniciativas productivas que conservan la biodiversidad y generan ingresos para comunidades rurales.', req: ['Presencia en los departamentos priorizados', 'Aliado comunitario', 'Plan de sostenibilidad'] },
+  { id: 6, n: 'Premio a la innovación social empresarial', ent: 'Fundación Bolívar Davivienda', tipo: 'fondo', origen: 'Privado', monto: '$80 M', montoLabel: 'Premio', dias: 6, compat: 70, cob: 'Nacional', estado: 'Publicada', posts: 27, desc: 'Reconocimiento a modelos de negocio que resuelven un problema social de forma rentable y escalable.', req: ['Mínimo 2 años de operación', 'Evidencia de impacto', 'Video de presentación de 3 minutos'] },
+  { id: 7, n: 'Descuento tributario por I+D+i (art. 256 E.T.)', ent: 'Minciencias', tipo: 'trib', origen: 'Público', monto: '25% descuento', montoLabel: 'Beneficio', dias: 60, compat: 85, cob: 'Nacional', estado: 'Publicada', posts: 19, desc: 'Descuento en el impuesto de renta del 25% de las inversiones en investigación, desarrollo tecnológico e innovación.', req: ['Proyecto calificado como I+D+i', 'Soportes de ejecución presupuestal', 'Certificación del revisor fiscal'] },
+  { id: 8, n: 'Programa de crecimiento empresarial', ent: 'Cámara de Comercio de Bogotá', tipo: 'fondo', origen: 'Privado', monto: 'Hasta $50 M', montoLabel: 'Cofinanciación', dias: 28, compat: 73, cob: 'Bogotá D.C.', estado: 'Borrador', posts: 0, desc: 'Acompañamiento y cofinanciación para pymes con matrícula mercantil vigente en Bogotá.', req: ['Matrícula mercantil renovada', 'Diagnóstico empresarial', 'Contrapartida del 20%'] },
+  { id: 9, n: 'Fondo regional para la reactivación del Pacífico', ent: 'Cooperación internacional', tipo: 'fondo', origen: 'Cooperación', monto: 'Hasta $400 M', montoLabel: 'Subvención', dias: 14, compat: 79, cob: 'Pacífico', estado: 'Publicada', posts: 11, desc: 'Subvenciones para organizaciones y empresas que generen empleo formal en municipios del litoral Pacífico.', req: ['Propuesta técnica y presupuesto en USD', 'Registro en el sistema de proveedores', 'Cartas de apoyo locales'] },
+  { id: 10, n: 'Exención de renta por inversión en el campo', ent: 'DIAN · MinAgricultura', tipo: 'trib', origen: 'Público', monto: 'Renta exenta', montoLabel: 'Beneficio', dias: 90, compat: 68, cob: 'Nacional', estado: 'Despublicada', posts: 3, desc: 'Renta exenta para nuevas inversiones en sociedades que incrementen la productividad del sector agropecuario.', req: ['Constitución de la sociedad', 'Inversión mínima acreditada', 'Generación de empleo'] },
+];
+
+class Component extends DCLogic {
+  state = { role: 'empresa', screen: { empresa: 'inicio', consultor: 'inicio', admin: 'inicio' }, theme: null, collapsed: null, closed: {}, tipo: 'todos', origen: 'todos', q: '', sel: null, view: 'grid', adminTab: 'todas', reqDone: [], reviewDone: [] };
+
+  componentDidMount() {
+    try { const t = localStorage.getItem('cv-theme'); if (t) this.setState({ theme: t }); } catch (e) {}
+  }
+  setTheme(t) { this.setState({ theme: t }); try { localStorage.setItem('cv-theme', t); } catch (e) {} }
+  go(scr) {
+    const role = this.state.role;
+    const patch = { screen: { ...this.state.screen, [role]: scr }, sel: null };
+    if (scr === 'tributarios') patch.tipo = 'trib';
+    else if (scr === 'catalogo' || scr === 'sugeridas') patch.tipo = 'todos';
+    this.setState(patch);
+  }
+  open(c) { this.setState({ sel: c.id }); }
+
+  renderVals() {
+    const s = this.state, p = this.props;
+    const theme = s.theme || p.startTheme || 'light';
+    const collapsed = s.collapsed ?? !!p.startCollapsed;
+    const expanded = !collapsed;
+    const role = s.role, scr = s.screen[role];
+    const groupsDef = NAV[role];
+
+    let crumb = '', title = '', curIcon = 'layout-dashboard';
+    groupsDef.forEach(g => g.items.forEach(([k, l, ic]) => { if (k === scr) { crumb = g.t; title = l; curIcon = ic; } }));
+
+    const groups = groupsDef.map(g => {
+      const isClosed = !!s.closed[role + g.k];
+      const badgeSum = g.items.reduce((a, it) => a + (it[3] || 0), 0);
+      return {
+        t: g.t, expanded, collapsed, show: collapsed || !isClosed, closedBadge: isClosed && badgeSum > 0, badgeSum,
+        toggle: () => this.setState(st => ({ closed: { ...st.closed, [role + g.k]: !st.closed[role + g.k] } })),
+        chev: icon('chevron-down', 14, { transition: 'transform .2s', transform: isClosed ? 'rotate(-90deg)' : 'none' }),
+        items: g.items.map(([k, label, ic, badge]) => {
+          const active = k === scr;
+          return {
+            label, expanded, hasBadge: !!badge, badge,
+            go: () => this.go(k),
+            ic: icon(ic, 17),
+            style: { position: 'relative', display: 'flex', alignItems: 'center', gap: '11px', width: '100%', height: '38px', padding: collapsed ? '0' : '0 10px', justifyContent: collapsed ? 'center' : 'flex-start', border: 0, borderRadius: '10px', cursor: 'pointer', fontWeight: active ? 700 : 600, fontSize: '13.5px', background: active ? 'var(--pri-soft)' : 'transparent', color: active ? 'var(--pri-text)' : 'var(--ink-2)', transition: 'background .15s' },
+            badgeStyle: collapsed
+              ? { position: 'absolute', top: '6px', right: '10px', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--rose)', fontSize: 0, boxShadow: '0 0 0 2px var(--side)' }
+              : { minWidth: '20px', height: '20px', padding: '0 6px', borderRadius: '10px', background: 'var(--rose)', color: '#fff', fontSize: '11px', fontWeight: 700, display: 'grid', placeItems: 'center' },
+          };
+        }),
+      };
+    });
+
+    const sideStyle = { position: 'sticky', top: 0, height: '100vh', flex: 'none', width: collapsed ? '76px' : '264px', display: 'flex', flexDirection: 'column', background: 'var(--side)', borderRight: '1px solid var(--line)', transition: 'width .22s ease', overflow: 'hidden' };
+
+    const roles = Object.keys(ROLE).map(r => ({
+      label: ROLE[r].label,
+      go: () => this.setState({ role: r, sel: null }),
+      style: { height: '28px', padding: '0 11px', borderRadius: '7px', border: 0, cursor: 'pointer', fontWeight: 700, fontSize: '12px', background: r === role ? 'var(--surface)' : 'transparent', color: r === role ? 'var(--ink)' : 'var(--ink-3)', boxShadow: r === role ? '0 1px 2px rgba(0,0,0,.08)' : 'none' },
+    }));
+
+    const ring = (pct, size = 44) => ({ width: size + 'px', height: size + 'px', borderRadius: '50%', flex: 'none', display: 'grid', placeItems: 'center', background: `conic-gradient(${pct >= 80 ? 'var(--pri)' : 'var(--amber)'} ${pct * 3.6}deg, var(--surface-2) 0)` });
+    const dec = c => ({
+      ...c, isTrib: c.tipo === 'trib', isFondo: c.tipo === 'fondo', tipoLabel: c.tipo === 'trib' ? 'Tributario' : 'Fondos',
+      urgent: c.dias < 15, calm: c.dias >= 15, ring: ring(c.compat),
+      diasText: c.dias < 15 ? { color: 'color-mix(in oklch, var(--amber) 62%, var(--ink))', fontWeight: 700 } : { color: 'var(--ink-2)' },
+      dayBox: Object.assign({ width: '46px', height: '46px', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px', flex: 'none' }, c.dias < 10 ? tone('rose', 14, 70) : tone('amber', 16, 62)),
+      open: () => this.open(c),
+    });
+
+    const all = CONV.filter(c => c.estado === 'Publicada').map(dec);
+    const soon = all.filter(c => c.dias < 15).sort((a, b) => a.dias - b.dias);
+    const suggested = [...all].sort((a, b) => b.compat - a.compat).slice(0, 3);
+
+    const q = s.q.trim().toLowerCase();
+    let results = all.filter(c => (s.tipo === 'todos' || c.tipo === s.tipo) && (s.origen === 'todos' || c.origen === s.origen) && (!q || (c.n + ' ' + c.ent).toLowerCase().includes(q)));
+    results.sort((a, b) => b.compat - a.compat);
+
+    const tipoTabs = [['todos', 'Todas', 'layers'], ['fondo', 'Fondos y financiación', 'coins'], ['trib', 'Beneficios tributarios', 'receipt-text']].map(([k, label, ic]) => ({
+      label, ic: icon(ic, 15), go: () => this.setState({ tipo: k }),
+      style: { height: '34px', padding: '0 13px', borderRadius: '9px', border: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', fontWeight: 700, fontSize: '12.5px', background: s.tipo === k ? 'var(--pri)' : 'transparent', color: s.tipo === k ? 'var(--on-pri)' : 'var(--ink-2)' },
+    }));
+    const origenChips = [['todos', 'Todo origen'], ['Público', 'Público'], ['Privado', 'Privado'], ['Cooperación', 'Cooperación']].map(([k, label]) => ({
+      label, go: () => this.setState({ origen: k }),
+      style: { height: '34px', padding: '0 13px', borderRadius: '999px', cursor: 'pointer', fontWeight: 600, fontSize: '12.5px', border: '1px solid ' + (s.origen === k ? 'var(--ink)' : 'var(--line)'), background: s.origen === k ? 'var(--ink)' : 'var(--surface)', color: s.origen === k ? 'var(--bg)' : 'var(--ink-2)' },
+    }));
+    const vbtn = on => ({ width: '34px', height: '30px', borderRadius: '7px', border: 0, cursor: 'pointer', display: 'grid', placeItems: 'center', background: on ? 'var(--surface-2)' : 'transparent', color: on ? 'var(--ink)' : 'var(--ink-3)' });
+
+    const kpiBox = v => Object.assign({ width: '32px', height: '32px', borderRadius: '9px', display: 'grid', placeItems: 'center' }, v === 'pri' ? { background: 'var(--pri-soft)', color: 'var(--pri-text)' } : tone(v, 16, 68));
+    const kpi = (label, value, unit, note, ic, v) => ({ label, value, unit, note, ic: icon(ic, 16), icBox: kpiBox(v) });
+
+    const eKpis = [
+      kpi('Compatibles contigo', '18', '', '+5 nuevas esta semana', 'target', 'pri'),
+      kpi('Postulaciones activas', '4', '', '2 listas para radicar', 'square-kanban', 'sky'),
+      kpi('Monto en juego', '$1.240', ' M', 'COP en 4 postulaciones', 'coins', 'amber'),
+      kpi('Créditos de IA', '7', ' /10', 'Se renuevan el 1 de noviembre', 'sparkles', 'violet'),
+    ];
+    const fund = [['Nov', 1.8, 0.6], ['Dic', 3.2, 0.9], ['Ene', 2.1, 1.4], ['Feb', 4.1, 1.1], ['Mar', 2.6, 0.7], ['Abr', 1.3, 0.5]];
+    const fmax = 5.4;
+    const fundBars = fund.map(([m, pu, pr]) => ({ m, total: '$' + (pu + pr).toFixed(1).replace('.', ','), pubStyle: { height: (pu / fmax * 150) + 'px', background: 'var(--pri)', borderRadius: '3px 3px 0 0' }, privStyle: { height: (pr / fmax * 150) + 'px', background: 'var(--sky)', borderRadius: '6px 6px 3px 3px' } }));
+
+    const APPS = [
+      { n: 'Beneficios tributarios por inversión en CTeI 2026', ent: 'Minciencias', proj: 'Bioinsumos de café', col: 0, done: 2, total: 7, dias: 12 },
+      { n: 'Fondo regional para la reactivación del Pacífico', ent: 'Cooperación internacional', proj: 'Planta de secado', col: 0, done: 1, total: 6, dias: 14 },
+      { n: 'Escalamiento de empresas de alto impacto', ent: 'iNNpulsa Colombia', proj: 'Exportación a Perú', col: 1, done: 4, total: 8, dias: 34, cons: 'Andrés Ríos', consIni: 'AR' },
+      { n: 'Fondo Emprender — Convocatoria nacional', ent: 'SENA', proj: 'Bioinsumos de café', col: 2, done: 6, total: 6, dias: 21 },
+      { n: 'Premio a la innovación social empresarial', ent: 'Fundación Bolívar Davivienda', proj: 'Red de caficultoras', col: 2, done: 3, total: 3, dias: 6, cons: 'Marcela Gil', consIni: 'MG' },
+      { n: 'Descuento tributario por I+D+i', ent: 'Minciencias', proj: 'Bioinsumos de café', col: 3, done: 5, total: 5, dias: -3 },
+    ];
+    const COLS = [['En preparación', 'ink-3'], ['Documentos', 'sky'], ['Lista para radicar', 'amber'], ['Radicada', 'pri']];
+    const appDec = a => ({
+      ...a, hasCons: !!a.cons,
+      bar: { width: Math.round(a.done / a.total * 100) + '%', height: '100%', borderRadius: '3px', background: a.done === a.total ? 'var(--pri)' : 'var(--sky)' },
+      diasLabel: a.dias < 0 ? 'Radicada hace ' + (-a.dias) + ' d' : 'Cierra en ' + a.dias + ' d',
+      diasStyle: a.dias >= 0 && a.dias < 15 ? { fontWeight: 700, color: 'color-mix(in oklch, var(--amber) 62%, var(--ink))' } : { color: 'var(--ink-3)' },
+      stage: COLS[a.col][0],
+    });
+    const columns = COLS.map(([t, v], i) => {
+      const cards = APPS.filter(a => a.col === i).map(appDec);
+      return { t, count: cards.length, cards, dot: { width: '8px', height: '8px', borderRadius: '50%', background: `var(--${v})` } };
+    });
+    const myApps = APPS.filter(a => a.col < 3).slice(0, 4).map(appDec);
+
+    const REQS = [
+      { id: 1, task: 'Formular proyecto y presupuesto', emp: 'Agroinnova S.A.S.', conv: 'Beneficios tributarios CTeI', when: 'Hace 2 h' },
+      { id: 2, task: 'Revisar documento generado con IA', emp: 'Textiles Andinos', conv: 'Escalamiento iNNpulsa', when: 'Hace 5 h' },
+      { id: 3, task: 'Buscar convocatoria adecuada', emp: 'Solar Caribe', conv: 'Sin convocatoria aún', when: 'Ayer' },
+    ];
+    const requests = REQS.filter(r => !s.reqDone.includes(r.id)).map(r => ({ ...r, accept: () => this.setState(st => ({ reqDone: [...st.reqDone, r.id] })), decline: () => this.setState(st => ({ reqDone: [...st.reqDone, r.id] })) }));
+    const cKpis = [
+      kpi('Solicitudes nuevas', String(requests.length), '', 'Responde en menos de 48 h', 'inbox', 'rose'),
+      kpi('Encargos en curso', '4', '', '1 entrega esta semana', 'briefcase', 'sky'),
+      kpi('Calificación', '4,8', ' /5', '32 reseñas de empresas', 'star', 'amber'),
+      kpi('Completados', '27', '', 'Desde que te uniste', 'circle-check', 'pri'),
+    ];
+    const badge = v => Object.assign({ display: 'inline-block', padding: '4px 9px', borderRadius: '999px', fontSize: '11.5px', fontWeight: 700, whiteSpace: 'nowrap' }, v === 'pri' ? { background: 'var(--pri-soft)', color: 'var(--pri-text)' } : v === 'muted' ? { background: 'var(--surface-2)', color: 'var(--ink-2)' } : tone(v, 16, 65));
+    const jobs = [
+      ['Agroinnova S.A.S.', 'Ajustar presupuesto', 'Escalamiento iNNpulsa', '30 oct', 'En curso', 'sky'],
+      ['Textiles Andinos', 'Formulación completa', 'Fondo Emprender', '04 nov', 'En curso', 'sky'],
+      ['Café de Origen', 'Revisión final', 'Premio innovación social', '28 oct', 'Por entregar', 'amber'],
+      ['Solar Caribe', 'Checklist de requisitos', 'Línea verde Bancóldex', '12 nov', 'Esperando info', 'muted'],
+    ].map(([emp, task, conv, due, status, v]) => ({ emp, task, conv, due, status, badge: badge(v) }));
+    const steps = [['Datos básicos y especialidad', 1], ['Hoja de vida', 1], ['Portafolio de proyectos', 1], ['Redes y sitio web', 0], ['Tarifas de referencia', 0]];
+    const profileSteps = steps.map(([t, ok]) => ({ t, box: Object.assign({ width: '20px', height: '20px', borderRadius: '6px', display: 'grid', placeItems: 'center', flex: 'none' }, ok ? { background: 'var(--pri)', color: 'var(--on-pri)' } : { border: '1.5px solid var(--line)', color: 'transparent' }), ic: icon('check', 12), txt: ok ? { color: 'var(--ink-3)', textDecoration: 'line-through' } : { color: 'var(--ink)', fontWeight: 600 } }));
+
+    const aKpis = [
+      kpi('Publicadas', '52', '', '+6 este mes · meta ≥ 50', 'files', 'pri'),
+      kpi('Borradores', '9', '', '3 sin documentos adjuntos', 'file-pen', 'sky'),
+      kpi('Cierran en < 15 días', String(soon.length), '', 'Revisa vigencias', 'clock', 'amber'),
+      kpi('Suscripciones activas', '64', '', 'Conversión de prueba: 34%', 'credit-card', 'violet'),
+    ];
+    const weeks = [18, 22, 19, 27, 31, 26, 34, 38, 33, 41, 45, 52];
+    const wmax = 56;
+    const weekBars = weeks.map((v, i) => ({ v, style: { width: '100%', height: (v / wmax * 100) + '%', borderRadius: '5px 5px 2px 2px', background: i === weeks.length - 1 ? 'var(--pri)' : 'color-mix(in oklch, var(--pri) 35%, var(--surface-2))' } }));
+    const SUBS = [['Activa', 64, 'pri'], ['Prueba', 18, 'sky'], ['En gracia', 7, 'amber'], ['Vencida', 9, 'rose'], ['Suspendida', 2, 'ink-3']];
+    const subs = SUBS.map(([t, v, c]) => ({ t, v, seg: { flex: v, background: `var(--${c})` }, dot: { width: '8px', height: '8px', borderRadius: '2px', background: `var(--${c})` } }));
+    const REV = [
+      { id: 1, n: 'Marcela Gil', ini: 'MG', spec: 'Proyectos de CTeI · Antioquia' },
+      { id: 2, n: 'Jorge Patiño', ini: 'JP', spec: 'Cooperación internacional · Cali' },
+      { id: 3, n: 'Sofía Arango', ini: 'SA', spec: 'Beneficios tributarios · Bogotá' },
+    ];
+    const review = REV.filter(r => !s.reviewDone.includes(r.id)).map(r => ({ ...r, approve: () => this.setState(st => ({ reviewDone: [...st.reviewDone, r.id] })), reject: () => this.setState(st => ({ reviewDone: [...st.reviewDone, r.id] })) }));
+    const iaStats = [['214', 'Generaciones'], ['96', 'Ajustes'], ['4', 'Fallidas (sin costo)'], ['$312.400', 'Costo estimado COP']].map(([v, t]) => ({ v, t }));
+
+    const ESTV = { Publicada: 'pri', Borrador: 'muted', Despublicada: 'amber', Cerrada: 'muted' };
+    const adminAll = CONV.map(c => ({ ...dec(c), fecha: c.estado === 'Borrador' ? '—' : `${c.dias} días`, estadoBadge: badge(ESTV[c.estado]) }));
+    const tabsDef = [['todas', 'Todas'], ['Publicada', 'Publicadas'], ['Borrador', 'Borradores'], ['Despublicada', 'Despublicadas']];
+    const adminTabs = tabsDef.map(([k, label]) => ({
+      label, count: k === 'todas' ? adminAll.length : adminAll.filter(c => c.estado === k).length,
+      go: () => this.setState({ adminTab: k }),
+      style: { height: '32px', padding: '0 12px', borderRadius: '8px', border: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '7px', fontWeight: 700, fontSize: '12.5px', whiteSpace: 'nowrap', background: s.adminTab === k ? 'var(--surface-2)' : 'transparent', color: s.adminTab === k ? 'var(--ink)' : 'var(--ink-3)' },
+    }));
+    const adminRows = adminAll.filter(c => s.adminTab === 'todas' || c.estado === s.adminTab);
+
+    const selC = s.sel ? CONV.find(c => c.id === s.sel) : null;
+    let sel = null;
+    if (selC) {
+      const d = dec(selC);
+      const crit = [['Sector agroindustrial', true, 'Coincide'], ['Tipo de entidad: S.A.S.', true, 'Coincide'], ['Ubicación: Huila', selC.compat > 72, selC.compat > 72 ? 'Cubierta' : 'Parcial'], ['Monto de tu proyecto', selC.compat > 84, selC.compat > 84 ? 'Dentro del rango' : 'Revisar']];
+      d.crit = crit.map(([t, ok, v]) => ({ t, v, ic: icon(ok ? 'check' : 'minus', 12), box: Object.assign({ width: '20px', height: '20px', borderRadius: '6px', display: 'grid', placeItems: 'center', flex: 'none' }, ok ? { background: 'var(--pri-soft)', color: 'var(--pri-text)' } : tone('amber', 18, 62)) }));
+      sel = d;
+    }
+
+    const isCat = (role === 'empresa' && ['catalogo', 'sugeridas', 'tributarios'].includes(scr)) || (role === 'consultor' && scr === 'catalogo');
+    const is = {
+      eInicio: role === 'empresa' && scr === 'inicio',
+      catalogo: isCat,
+      eKanban: role === 'empresa' && scr === 'postulaciones',
+      cHome: role === 'consultor' && ['inicio', 'solicitudes', 'encargos'].includes(scr),
+      cInicio: role === 'consultor' && scr === 'inicio',
+      aInicio: role === 'admin' && scr === 'inicio',
+      aConv: role === 'admin' && scr === 'convocatorias',
+    };
+    is.pending = !Object.values(is).some(Boolean);
+
+    return {
+      theme, accent: p.accent || 'esmeralda', isDark: theme === 'dark', isLight: theme !== 'dark',
+      themeLabel: theme === 'dark' ? 'Modo claro' : 'Modo oscuro',
+      toggleTheme: () => this.setTheme(theme === 'dark' ? 'light' : 'dark'),
+      toggleSide: () => this.setState({ collapsed: !collapsed }),
+      expanded, collapsed, sideStyle, groups, roles, roleMeta: ROLE[role],
+      showCredits: role === 'empresa' && expanded,
+      crumb, title, is, pendingIc: icon(curIcon, 24),
+      goCatalogo: () => this.go('catalogo'), goPostulaciones: () => this.go('postulaciones'), goAdminConv: () => this.go('convocatorias'),
+      eKpis, fundBars, soon, suggested, myApps, columns,
+      catTitle: scr === 'tributarios' ? 'Beneficios tributarios' : scr === 'sugeridas' ? 'Sugeridas para ti' : 'Convocatorias',
+      q: s.q, onQ: e => this.setState({ q: e.target.value }),
+      tipoTabs, origenChips, results, resultCount: results.length, noResults: results.length === 0,
+      clearFilters: () => this.setState({ q: '', tipo: 'todos', origen: 'todos' }),
+      isGrid: s.view === 'grid', isList: s.view === 'list',
+      setGrid: () => this.setState({ view: 'grid' }), setList: () => this.setState({ view: 'list' }),
+      gridBtn: vbtn(s.view === 'grid'), listBtn: vbtn(s.view === 'list'),
+      cTitle: scr === 'inicio' ? 'Hola, Andrés' : 'Solicitudes y encargos',
+      cSub: scr === 'inicio' ? 'Esto es lo que necesita tu atención hoy.' : 'Acepta solicitudes y haz seguimiento a tus entregas.',
+      cKpis, requests, reqCount: requests.length, noReqs: requests.length === 0, profileSteps, jobs,
+      aKpis, weekBars, subs, review, reviewCount: review.length, noReview: review.length === 0, iaStats,
+      adminTabs, adminRows,
+      hasSel: !!sel, sel: sel || {}, closeSel: () => this.setState({ sel: null }),
+    };
+  }
+}
+</script>
+</body>
+</html>

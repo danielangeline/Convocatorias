@@ -51,6 +51,14 @@ export function diasRestantes(fechaCierre: string): number {
   return Math.round(diff / (1000 * 60 * 60 * 24));
 }
 
+// Tonos de badge sobre los tokens del rediseño (claro y oscuro).
+const TONO_AMBER = "bg-[color-mix(in_oklch,var(--amber)_16%,transparent)] text-[color-mix(in_oklch,var(--amber)_62%,var(--ink))]";
+const TONO_SKY = "bg-[color-mix(in_oklch,var(--sky)_16%,transparent)] text-[color-mix(in_oklch,var(--sky)_65%,var(--ink))]";
+const TONO_ROSE = "bg-[color-mix(in_oklch,var(--rose)_16%,transparent)] text-[color-mix(in_oklch,var(--rose)_65%,var(--ink))]";
+const TONO_VIOLET = "bg-[color-mix(in_oklch,var(--violet)_16%,transparent)] text-[color-mix(in_oklch,var(--violet)_65%,var(--ink))]";
+const TONO_PRI = "bg-pri-soft text-pri-text";
+const TONO_NEUTRO = "bg-surface-2 text-ink-2";
+
 export function cn(...clases: Array<string | false | null | undefined>): string {
   return clases.filter(Boolean).join(" ");
 }
@@ -63,10 +71,10 @@ export const ESTADO_CONVOCATORIA_LABEL: Record<EstadoConvocatoria, string> = {
 };
 
 export const ESTADO_CONVOCATORIA_ESTILO: Record<EstadoConvocatoria, string> = {
-  borrador: "bg-slate-100 text-slate-600 ring-slate-200",
-  publicada: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  despublicada: "bg-amber-50 text-amber-700 ring-amber-200",
-  cerrada: "bg-slate-100 text-slate-500 ring-slate-200",
+  borrador: TONO_NEUTRO,
+  publicada: TONO_PRI,
+  despublicada: TONO_AMBER,
+  cerrada: TONO_NEUTRO,
 };
 
 export const ESTADO_POSTULACION_LABEL: Record<EstadoPostulacion, string> = {
@@ -79,12 +87,12 @@ export const ESTADO_POSTULACION_LABEL: Record<EstadoPostulacion, string> = {
 };
 
 export const ESTADO_POSTULACION_ESTILO: Record<EstadoPostulacion, string> = {
-  en_preparacion: "bg-slate-100 text-slate-600 ring-slate-200",
-  presentada: "bg-blue-50 text-blue-700 ring-blue-200",
-  en_evaluacion: "bg-amber-50 text-amber-700 ring-amber-200",
-  aprobada: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  rechazada: "bg-red-50 text-red-700 ring-red-200",
-  cerrada: "bg-slate-100 text-slate-500 ring-slate-200",
+  en_preparacion: TONO_NEUTRO,
+  presentada: TONO_SKY,
+  en_evaluacion: TONO_AMBER,
+  aprobada: TONO_PRI,
+  rechazada: TONO_ROSE,
+  cerrada: TONO_NEUTRO,
 };
 
 export const ESTADO_POSTULACION_ORDEN: EstadoPostulacion[] = [
@@ -148,11 +156,11 @@ export const ESTADO_PERFIL_LABEL: Record<EstadoPerfilConsultor, string> = {
 };
 
 export const ESTADO_PERFIL_ESTILO: Record<EstadoPerfilConsultor, string> = {
-  incompleto: "bg-slate-100 text-slate-600 ring-slate-200",
-  en_revision: "bg-amber-50 text-amber-700 ring-amber-200",
-  aprobado: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  rechazado: "bg-danger-bg text-danger ring-red-200",
-  suspendido: "bg-slate-100 text-slate-500 ring-slate-200",
+  incompleto: TONO_NEUTRO,
+  en_revision: TONO_AMBER,
+  aprobado: TONO_PRI,
+  rechazado: TONO_ROSE,
+  suspendido: TONO_NEUTRO,
 };
 
 export const ESTADO_ENCARGO_LABEL: Record<EstadoEncargo, string> = {
@@ -167,14 +175,14 @@ export const ESTADO_ENCARGO_LABEL: Record<EstadoEncargo, string> = {
 };
 
 export const ESTADO_ENCARGO_ESTILO: Record<EstadoEncargo, string> = {
-  esperando_asignacion: "bg-brick-50 text-brick-700 ring-brick-100",
-  atendido: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  pendiente: "bg-amber-50 text-amber-700 ring-amber-200",
-  en_curso: "bg-blue-50 text-blue-700 ring-blue-200",
-  rechazado: "bg-danger-bg text-danger ring-red-200",
-  completado: "bg-primary-50 text-primary-800 ring-primary-100",
-  calificado: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  cancelado: "bg-slate-100 text-slate-500 ring-slate-200",
+  esperando_asignacion: TONO_ROSE,
+  atendido: TONO_PRI,
+  pendiente: TONO_AMBER,
+  en_curso: TONO_SKY,
+  rechazado: TONO_ROSE,
+  completado: TONO_PRI,
+  calificado: TONO_PRI,
+  cancelado: TONO_NEUTRO,
 };
 
 export const ESTADO_SUSCRIPCION_LABEL: Record<EstadoSuscripcion, string> = {
@@ -186,11 +194,11 @@ export const ESTADO_SUSCRIPCION_LABEL: Record<EstadoSuscripcion, string> = {
 };
 
 export const ESTADO_SUSCRIPCION_ESTILO: Record<EstadoSuscripcion, string> = {
-  trial: "bg-gold-50 text-gold-700 ring-gold-100",
-  activa: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  en_gracia: "bg-amber-50 text-amber-700 ring-amber-200",
-  vencida: "bg-danger-bg text-danger ring-red-200",
-  suspendida: "bg-slate-100 text-slate-500 ring-slate-200",
+  trial: TONO_SKY,
+  activa: TONO_PRI,
+  en_gracia: TONO_AMBER,
+  vencida: TONO_ROSE,
+  suspendida: TONO_NEUTRO,
 };
 
 export const ESTADO_PROPUESTA_LABEL: Record<EstadoPropuesta, string> = {
@@ -201,10 +209,10 @@ export const ESTADO_PROPUESTA_LABEL: Record<EstadoPropuesta, string> = {
 };
 
 export const ESTADO_PROPUESTA_ESTILO: Record<EstadoPropuesta, string> = {
-  propuesta: "bg-primary-50 text-primary-800 ring-primary-200",
-  elegida: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  retirada: "bg-slate-100 text-slate-500 ring-slate-200",
-  descartada: "bg-slate-100 text-slate-500 ring-slate-200",
+  propuesta: TONO_PRI,
+  elegida: TONO_PRI,
+  retirada: TONO_NEUTRO,
+  descartada: TONO_NEUTRO,
 };
 
 export const TIPO_AYUDA_LABEL: Record<TipoAyudaEncargo, string> = {
@@ -213,8 +221,8 @@ export const TIPO_AYUDA_LABEL: Record<TipoAyudaEncargo, string> = {
 };
 
 export const TIPO_AYUDA_ESTILO: Record<TipoAyudaEncargo, string> = {
-  convocatoria_especifica: "bg-teal-50 text-teal-700 ring-teal-200",
-  buscar_convocatoria: "bg-brick-50 text-brick-700 ring-brick-100",
+  convocatoria_especifica: TONO_VIOLET,
+  buscar_convocatoria: TONO_ROSE,
 };
 
 export const TIPO_EVENTO_SEGURIDAD_LABEL: Record<TipoEventoSeguridad, string> = {
@@ -229,14 +237,14 @@ export const TIPO_EVENTO_SEGURIDAD_LABEL: Record<TipoEventoSeguridad, string> = 
 };
 
 export const TIPO_EVENTO_SEGURIDAD_ESTILO: Record<TipoEventoSeguridad, string> = {
-  login_fallido: "bg-amber-50 text-amber-700 ring-amber-200",
-  acceso_denegado: "bg-danger-bg text-danger ring-red-200",
-  limite_tasa: "bg-brick-50 text-brick-700 ring-brick-100",
-  mfa_activado: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  mfa_fallido: "bg-danger-bg text-danger ring-red-200",
-  admin_invitado: "bg-primary-50 text-primary-700 ring-primary-100",
-  invitacion_cancelada: "bg-slate-100 text-slate-600 ring-slate-200",
-  admin_revocado: "bg-danger-bg text-danger ring-red-200",
+  login_fallido: TONO_AMBER,
+  acceso_denegado: TONO_ROSE,
+  limite_tasa: TONO_ROSE,
+  mfa_activado: TONO_PRI,
+  mfa_fallido: TONO_ROSE,
+  admin_invitado: TONO_PRI,
+  invitacion_cancelada: TONO_NEUTRO,
+  admin_revocado: TONO_ROSE,
 };
 
 export function formatFechaHora(iso: string): string {

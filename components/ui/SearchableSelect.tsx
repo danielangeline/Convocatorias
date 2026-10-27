@@ -56,7 +56,7 @@ export function SearchableSelect({
   return (
     <div ref={contenedorRef} className={cn("relative", className)}>
       <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint" />
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" />
         <input
           value={abierto ? query : (seleccionada?.label ?? "")}
           onFocus={() => {
@@ -65,13 +65,13 @@ export function SearchableSelect({
           }}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={placeholder}
-          className="w-full rounded-lg border border-line py-2 pl-9 pr-3 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+          className="w-full h-[42px] rounded-xl border border-line bg-surface text-ink py-2 pl-9 pr-3 text-sm outline-none focus:border-pri"
         />
       </div>
       {abierto && (
-        <div className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border border-line bg-white py-1 shadow-lg">
+        <div className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-xl border border-line bg-surface py-1 shadow-card">
           {filtradas.length === 0 ? (
-            <p className="px-3 py-2 text-sm text-ink-faint">{vacioLabel}</p>
+            <p className="px-3 py-2 text-sm text-ink-3">{vacioLabel}</p>
           ) : (
             filtradas.map((o) => (
               <button
@@ -84,12 +84,12 @@ export function SearchableSelect({
                   setQuery("");
                 }}
                 className={cn(
-                  "flex w-full flex-col px-3 py-2 text-left text-sm hover:bg-primary-50",
-                  o.value === value && "bg-primary-50 font-medium text-primary-800"
+                  "flex w-full flex-col px-3 py-2 text-left text-sm hover:bg-surface-2",
+                  o.value === value && "bg-pri-soft font-medium text-pri-text"
                 )}
               >
                 <span>{o.label}</span>
-                {o.sublabel && <span className="text-xs text-ink-faint">{o.sublabel}</span>}
+                {o.sublabel && <span className="text-xs text-ink-3">{o.sublabel}</span>}
               </button>
             ))
           )}
