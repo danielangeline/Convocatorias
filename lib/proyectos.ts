@@ -57,7 +57,7 @@ export function toneCompletitud(porcentaje: number): "bajo" | "medio" | "alto" {
 }
 
 export const ESTILO_COMPLETITUD: Record<"bajo" | "medio" | "alto", string> = {
-  bajo: "bg-danger-bg text-danger ring-red-200",
-  medio: "bg-amber-50 text-amber-700 ring-amber-200",
-  alto: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  bajo: "bg-rose/10 text-rose-ink",
+  medio: "bg-amber/10 text-amber-ink",
+  alto: "bg-pri-soft text-pri-text",
 };

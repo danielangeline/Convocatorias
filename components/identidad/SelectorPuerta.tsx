@@ -33,12 +33,12 @@ export function SelectorPuerta({
           <label
             key={valor}
             className={cn(
-              "cursor-pointer rounded-xl border p-3 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary-100",
+              "cursor-pointer rounded-xl border p-3 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-pri-soft",
               puerta === valor
                 ? valor === "empresa"
-                  ? "border-primary-500 bg-primary-50"
-                  : "border-brick-500 bg-brick-50"
-                : "border-line hover:bg-slate-50"
+                  ? "border-pri bg-pri-soft"
+                  : "border-sky bg-sky/10"
+                : "border-line hover:bg-surface-2"
             )}
           >
             <input
@@ -55,7 +55,7 @@ export function SelectorPuerta({
               <Icono className="h-4 w-4 shrink-0" /> {TITULO_PUERTA[valor]}
             </span>
             {detalle && (
-              <span id={`puerta-${valor}-detalle`} className="mt-1 block text-xs text-ink-soft">
+              <span id={`puerta-${valor}-detalle`} className="mt-1 block text-xs text-ink-2">
                 {detalle[valor]}
               </span>
             )}

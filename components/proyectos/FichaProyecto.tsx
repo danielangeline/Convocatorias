@@ -99,10 +99,10 @@ export function FichaProyecto({
             <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-ink-2">{proyecto.descripcion}</p>
           </div>
           <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
-            <Button variant="teal" size="lg" onClick={abrirSelectorGenerar}>
+            <Button variant="ai" size="lg" onClick={abrirSelectorGenerar}>
               <Sparkles className="h-4 w-4" /> Generar documento para una convocatoria...
             </Button>
-            <Button variant="brick" size="lg" onClick={abrirFlujo}>
+            <Button variant="consultor" size="lg" onClick={abrirFlujo}>
               <UserPlus className="h-4 w-4" /> Solicitar consultor
             </Button>
             <Button variant="ghost" size="lg" onClick={() => abrirEdicion()}>

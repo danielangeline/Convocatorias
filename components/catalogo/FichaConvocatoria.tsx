@@ -271,7 +271,7 @@ export function FichaConvocatoria({
               )}
               {guardada !== undefined && !cerrada && <BotonGuardar convocatoriaId={convocatoria.id} inicial={guardada} />}
               <Button
-                variant="teal"
+                variant="ai"
                 size="lg"
                 disabled={cerrada}
                 onClick={() => {

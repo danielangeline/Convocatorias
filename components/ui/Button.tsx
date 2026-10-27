@@ -1,19 +1,15 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-// "teal" y "brick" se conservan como alias de "ai" y "consultor" mientras las
-// pantallas migran; el rediseño usa violeta para la IA y celeste para consultores.
+// Violeta para la IA y celeste para la identidad de consultor.
 type Variante =
   | "primary"
   | "secondary"
   | "ghost"
   | "danger"
-  | "outline-gold"
   | "outline-amber"
   | "ai"
-  | "teal"
-  | "consultor"
-  | "brick";
+  | "consultor";
 type Tamano = "sm" | "md" | "lg";
 
 const ai =
@@ -27,12 +23,8 @@ const variantes: Record<Variante, string> = {
   danger: "bg-rose text-white hover:brightness-95",
   "outline-amber":
     "bg-surface text-amber-ink border border-amber hover:bg-surface-2",
-  "outline-gold":
-    "bg-surface text-[color-mix(in_oklch,var(--amber)_62%,var(--ink))] border border-amber hover:bg-surface-2",
   ai,
-  teal: ai,
   consultor,
-  brick: consultor,
 };
 
 const tamanos: Record<Tamano, string> = {

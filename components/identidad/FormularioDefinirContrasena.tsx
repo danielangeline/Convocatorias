@@ -74,21 +74,21 @@ export function FormularioDefinirContrasena() {
 
   return (
     <div>
-      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-50 text-primary-700">
+      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-pri-soft text-pri-text">
         <KeyRound className="h-6 w-6" />
       </span>
       <h1 className="mt-4 font-display text-xl font-bold text-ink">Define tu contraseña</h1>
 
-      {fase === "cargando" && <p className="mt-2 text-sm text-ink-soft">Validando el enlace…</p>}
+      {fase === "cargando" && <p className="mt-2 text-sm text-ink-2">Validando el enlace…</p>}
 
       {fase === "enlace_invalido" && (
         <div className="mt-4">
           <Aviso tipo="error">
             El enlace no es válido o ya expiró.
           </Aviso>
-          <p className="mt-3 text-sm text-ink-soft">
+          <p className="mt-3 text-sm text-ink-2">
             Si estabas recuperando tu contraseña,{" "}
-            <Link href="/auth/recuperar" className="font-semibold text-primary-800 hover:underline">
+            <Link href="/auth/recuperar" className="font-semibold text-pri-text hover:underline">
               pide un enlace nuevo
             </Link>
             . Si te invitaron, pide a quien te invitó que reenvíe la invitación.

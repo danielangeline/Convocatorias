@@ -64,7 +64,7 @@ export function TarifasIA({ tarifas }: { tarifas: Tarifas }) {
               />
             </label>
             <Button
-              variant="teal"
+              variant="ai"
               size="sm"
               onClick={() => guardar(a.clave)}
               disabled={ocupado !== null || Number(valores[a.clave]) === tarifas[a.clave]}

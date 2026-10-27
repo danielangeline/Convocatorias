@@ -378,7 +378,7 @@ export function GestionSuscripciones({
             {errorModal && <div className="mt-4"><Aviso tipo="error">{errorModal}</Aviso></div>}
             <div className="mt-6 flex justify-end gap-3">
               <Button type="button" variant="ghost" onClick={() => setCreditosDe(null)}>Cancelar</Button>
-              <Button type="submit" variant="teal" disabled={ocupado}>Otorgar créditos</Button>
+              <Button type="submit" variant="ai" disabled={ocupado}>Otorgar créditos</Button>
             </div>
           </form>
         </div>

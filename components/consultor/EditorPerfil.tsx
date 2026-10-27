@@ -685,7 +685,7 @@ function BannerEstado({
         <Badge className={ESTADO_PERFIL_ESTILO["incompleto"]}>{ESTADO_PERFIL_LABEL["incompleto"]}</Badge>
         <p className="text-sm text-ink-2">{aviso}</p>
       </div>
-      <Button variant="brick" size="sm" className="mt-3" onClick={onEnviar} disabled={deshabilitado || faltan.length > 0}>
+      <Button variant="consultor" size="sm" className="mt-3" onClick={onEnviar} disabled={deshabilitado || faltan.length > 0}>
         {enviando ? "Enviando…" : "Enviar a revisión"}
       </Button>
     </div>

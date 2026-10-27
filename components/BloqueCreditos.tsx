@@ -30,7 +30,7 @@ export function BloqueCreditos() {
         <span className="text-ink-2">Disponibles este periodo</span>
         <span className="font-tabular text-lg font-bold text-ink">{n(disponibles)}</span>
       </div>
-      <ProgressBar porcentaje={porcentajeUsado} tono="teal" className="mt-2" />
+      <ProgressBar porcentaje={porcentajeUsado} tono="violet" className="mt-2" />
       {!vigente && (
         <p className="mt-2 text-xs text-rose-ink">Sin una suscripción vigente no puedes generar ni ajustar documentos con IA.</p>
       )}

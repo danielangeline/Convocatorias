@@ -6,10 +6,10 @@ import { cn } from "@/lib/utils";
 import { Badge } from "./ui/Badge";
 import { ProgressBar } from "./ui/ProgressBar";
 
-const TONO_BARRA: Record<"bajo" | "medio" | "alto", "danger" | "warning" | "success"> = {
-  bajo: "danger",
-  medio: "warning",
-  alto: "success",
+const TONO_BARRA: Record<"bajo" | "medio" | "alto", "rose" | "amber" | "pri"> = {
+  bajo: "rose",
+  medio: "amber",
+  alto: "pri",
 };
 
 export function CompletitudBadge({ proyecto, className }: { proyecto: Proyecto; className?: string }) {

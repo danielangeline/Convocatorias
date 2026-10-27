@@ -37,8 +37,8 @@ export function AvisoPuerta({ rol }: { rol: Puerta }) {
       role="status"
       className={
         rol === "empresa"
-          ? "flex items-start gap-3 rounded-xl border border-primary-100 bg-primary-50 px-4 py-3 text-sm text-primary-900"
-          : "flex items-start gap-3 rounded-xl border border-brick-100 bg-brick-50 px-4 py-3 text-sm text-brick-700"
+          ? "flex items-start gap-3 rounded-xl border border-line bg-pri-soft px-4 py-3 text-sm text-pri-text"
+          : "flex items-start gap-3 rounded-xl border border-sky/30 bg-sky/10 px-4 py-3 text-sm text-sky-ink"
       }
     >
       <Info className="mt-0.5 h-4 w-4 shrink-0" />

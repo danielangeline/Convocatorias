@@ -1,21 +1,13 @@
 import { cn } from "@/lib/utils";
 
 type Tono = "pri" | "sky" | "violet" | "amber" | "rose";
-// Los tonos viejos siguen aceptándose mientras las pantallas migran.
-type TonoLegado = "primary" | "gold" | "teal" | "danger" | "warning" | "success";
 
-const relleno: Record<Tono | TonoLegado, string> = {
+const relleno: Record<Tono, string> = {
   pri: "bg-pri",
   sky: "bg-sky",
   violet: "bg-violet",
   amber: "bg-amber",
   rose: "bg-rose",
-  primary: "bg-pri",
-  gold: "bg-amber",
-  teal: "bg-violet",
-  danger: "bg-rose",
-  warning: "bg-amber",
-  success: "bg-pri",
 };
 
 export function ProgressBar({
@@ -26,7 +18,7 @@ export function ProgressBar({
 }: {
   porcentaje: number;
   className?: string;
-  tono?: Tono | TonoLegado;
+  tono?: Tono;
   altura?: number;
 }) {
   const valor = Math.max(0, Math.min(100, porcentaje));

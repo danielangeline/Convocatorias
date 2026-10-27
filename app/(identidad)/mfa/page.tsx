@@ -16,8 +16,8 @@ export default async function MfaPage() {
     <>
       <SincronizarSesion datos={datos} />
       <FormularioMfa />
-      <div className="mt-6 flex justify-center border-t border-line-soft pt-4">
-        <MenuUsuario tono="primary" />
+      <div className="mt-6 flex justify-center border-t border-line-2 pt-4">
+        <MenuUsuario tono="pri" />
       </div>
     </>
   );

@@ -373,10 +373,10 @@ export function DetallePostulacion({
                     </option>
                   ))}
                 </select>
-                <Button variant="teal" size="sm" onClick={vincularYContinuar} disabled={!proyectoParaVincular || ocupado}>
+                <Button variant="ai" size="sm" onClick={vincularYContinuar} disabled={!proyectoParaVincular || ocupado}>
                   Vincular y generar
                 </Button>
-                <Button variant="brick" size="sm" onClick={vincularYSolicitarConsultor} disabled={!proyectoParaVincular || ocupado}>
+                <Button variant="consultor" size="sm" onClick={vincularYSolicitarConsultor} disabled={!proyectoParaVincular || ocupado}>
                   Vincular y solicitar consultor
                 </Button>
               </div>

@@ -79,45 +79,6 @@
   --color-rose-ink: color-mix(in oklch, var(--rose) 65%, var(--ink));
 
   --shadow-card: var(--shadow);
-
-  /* ── Puente temporal: los nombres viejos apuntan a los tokens nuevos para
-        que las pantallas aún no migradas no se rompan. Se eliminan en la
-        barrida final (fase 6). ── */
-  --color-primary-950: var(--ink);
-  --color-primary-900: var(--pri-hover);
-  --color-primary-800: var(--pri);
-  --color-primary-700: var(--pri-text);
-  --color-primary-600: var(--pri);
-  --color-primary-500: var(--pri);
-  --color-primary-200: var(--line);
-  --color-primary-100: var(--pri-soft);
-  --color-primary-50: var(--pri-soft);
-  --color-gold-700: var(--amber);
-  --color-gold-600: var(--amber);
-  --color-gold-500: var(--amber);
-  --color-gold-100: var(--surface-2);
-  --color-gold-50: var(--surface-2);
-  --color-ink-soft: var(--ink-2);
-  --color-ink-faint: var(--ink-3);
-  --color-line-soft: var(--line-2);
-  --color-success: var(--pri);
-  --color-success-bg: var(--pri-soft);
-  --color-warning: var(--amber);
-  --color-warning-bg: var(--surface-2);
-  --color-danger: var(--rose);
-  --color-danger-bg: var(--surface-2);
-  --color-brick-700: var(--rose);
-  --color-brick-600: var(--rose);
-  --color-brick-500: var(--rose);
-  --color-brick-100: var(--surface-2);
-  --color-brick-50: var(--surface-2);
-  --color-teal-800: var(--violet);
-  --color-teal-700: var(--violet);
-  --color-teal-600: var(--violet);
-  --color-teal-500: var(--violet);
-  --color-teal-200: var(--line);
-  --color-teal-100: var(--surface-2);
-  --color-teal-50: var(--surface-2);
 }
 
 body {

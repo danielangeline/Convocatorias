@@ -184,7 +184,7 @@ export function DirectorioConsultores({ consultores }: { consultores: ConsultorD
                   step={0.5}
                   value={ratingMin}
                   onChange={(e) => setRatingMin(Number(e.target.value))}
-                  className="w-full accent-primary-700"
+                  className="w-full accent-pri"
                 />
               </div>
             </aside>

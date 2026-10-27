@@ -134,7 +134,7 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
 
       {generando ? (
         <div className="flex flex-col items-center justify-center rounded-2xl border border-violet/30 bg-violet/10 px-6 py-20 text-center">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-violet/30 border-t-teal-600" />
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-violet/30 border-t-violet" />
           <p className="mt-5 font-display text-base font-semibold text-ink">Generando tu documento…</p>
           <p className="mt-1.5 text-sm text-ink-2">{MENSAJES_CARGA[mensajeIndex]}</p>
         </div>
@@ -225,7 +225,7 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
             una base: los datos que falten quedan marcados como pendientes, nunca se inventan.
           </p>
           <div className="mt-3 flex items-center justify-end">
-            <Button variant="teal" size="lg" disabled={!seleccionId} onClick={iniciarGeneracion}>
+            <Button variant="ai" size="lg" disabled={!seleccionId} onClick={iniciarGeneracion}>
               <Sparkles className="h-4 w-4" /> {documentoExistente ? `Generar versión nueva (${textoCreditos(costo)})` : `Generar documento (${textoCreditos(costo)})`}
             </Button>
           </div>

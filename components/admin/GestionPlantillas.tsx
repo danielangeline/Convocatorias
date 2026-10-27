@@ -239,7 +239,7 @@ export function GestionPlantillas({ plantillas, tipo = "documento" }: { plantill
                 <Check className="h-4 w-4" /> Activar la versión {seleccionada.version}
               </Button>
             )}
-            <Button variant="teal" onClick={guardar} disabled={ocupado || sinCambios}>
+            <Button variant="ai" onClick={guardar} disabled={ocupado || sinCambios}>
               Guardar como versión nueva
             </Button>
           </div>

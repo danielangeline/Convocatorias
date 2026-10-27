@@ -19,12 +19,12 @@ export function FormularioLogin({ puertaInicial, errorInicial }: { puertaInicial
       <Campo etiqueta="Correo" name="correo" type="email" autoComplete="email" required />
       <Campo etiqueta="Contraseña" name="contrasena" type="password" autoComplete="current-password" required />
       <p className="-mt-2 text-right text-xs">
-        <Link href="/auth/recuperar" className="font-semibold text-primary-800 hover:underline">
+        <Link href="/auth/recuperar" className="font-semibold text-pri-text hover:underline">
           ¿Olvidaste tu contraseña?
         </Link>
       </p>
       {estado.error && <Aviso tipo="error">{estado.error}</Aviso>}
-      <Button type="submit" variant={puerta === "empresa" ? "primary" : "brick"} className="w-full" disabled={enviando}>
+      <Button type="submit" variant={puerta === "empresa" ? "primary" : "consultor"} className="w-full" disabled={enviando}>
         {enviando ? "Entrando…" : "Entrar"}
       </Button>
     </form>

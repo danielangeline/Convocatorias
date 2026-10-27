@@ -8,6 +8,8 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { LinkButton } from "@/components/ui/Button";
+import { Logo } from "@/components/shell/Logo";
+import { ThemeToggle } from "@/components/shell/ThemeToggle";
 import { ContadorAnimado } from "@/components/ContadorAnimado";
 import { haySesion } from "@/lib/auth";
 import { obtenerIndicadores } from "@/lib/catalogo";
@@ -26,7 +28,7 @@ const PUERTAS = [
     titulo: "Soy consultor",
     texto: "Publica tu perfil y recibe encargos de empresas que preparan sus postulaciones. Tu perfil pasa por revisión.",
     icono: HardHat,
-    tono: "brick",
+    tono: "consultor",
   },
 ] as const;
 
@@ -36,20 +38,12 @@ export default async function LandingPage() {
   const [conSesion, indicadores] = await Promise.all([haySesion(), obtenerIndicadores()]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-white">
-      <header className="border-b border-line-soft">
+    <div className="flex min-h-screen flex-col bg-bg">
+      <header className="border-b border-line-2">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
-          <div className="flex min-w-0 items-center gap-2.5">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-800 text-white">
-              <Building2 className="h-5 w-5" strokeWidth={2} />
-            </span>
-            <span className="hidden font-display text-[15px] font-bold leading-none text-ink min-[420px]:inline">
-              Gestión de
-              <br />
-              Convocatorias
-            </span>
-          </div>
+          <Logo />
           <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            <ThemeToggle />
             {conSesion ? (
               // RF-84: /login lleva a cada cuenta al portal de su rol (y al administrador sin MFA, a /mfa).
               <LinkButton href="/login" variant="primary" size="sm" className="whitespace-nowrap">
@@ -69,16 +63,16 @@ export default async function LandingPage() {
         </div>
       </header>
 
-      <section className="relative overflow-hidden border-b border-line-soft bg-primary-50/50">
+      <section className="relative overflow-hidden border-b border-line-2 bg-pri-soft/50">
         <div className="mx-auto grid max-w-7xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:px-8 lg:py-28">
           <div>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-gold-50 px-3 py-1 text-xs font-semibold text-gold-700 ring-1 ring-gold-100">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber/10 px-3 py-1 text-xs font-semibold text-amber-ink ring-1 ring-amber/30">
               Hecho para empresas y entidades colombianas
             </span>
-            <h1 className="mt-5 font-display text-4xl font-extrabold leading-[1.08] tracking-tight text-primary-950 sm:text-5xl">
+            <h1 className="mt-5 font-display text-4xl font-extrabold leading-[1.08] tracking-tight text-ink sm:text-5xl">
               La financiación de tu empresa, en un solo expediente.
             </h1>
-            <p className="mt-5 max-w-xl text-lg text-ink-soft">
+            <p className="mt-5 max-w-xl text-lg text-ink-2">
               Encuentra convocatorias de Minciencias, cámaras de comercio,
               cooperación internacional y fondos regionales. Postúlate,
               cumple los requisitos y haz seguimiento sin perder el hilo.
@@ -87,19 +81,19 @@ export default async function LandingPage() {
             <div className="mt-10 grid grid-cols-2 gap-6 border-t border-line pt-6 sm:grid-cols-4">
               <div>
                 <ContadorAnimado valor={indicadores.convocatoriasVigentes} />
-                <p className="text-xs text-ink-faint">Convocatorias vigentes</p>
+                <p className="text-xs text-ink-3">Convocatorias vigentes</p>
               </div>
               <div>
                 <ContadorAnimado valor={indicadores.montoDisponible} variante="cop-corto" />
-                <p className="text-xs text-ink-faint">Monto total disponible</p>
+                <p className="text-xs text-ink-3">Monto total disponible</p>
               </div>
               <div>
                 <ContadorAnimado valor={indicadores.entidades} />
-                <p className="text-xs text-ink-faint">Entidades convocantes</p>
+                <p className="text-xs text-ink-3">Entidades convocantes</p>
               </div>
               <div>
                 <ContadorAnimado valor={indicadores.consultoresAprobados} />
-                <p className="text-xs text-ink-faint">Consultores aprobados</p>
+                <p className="text-xs text-ink-3">Consultores aprobados</p>
               </div>
             </div>
             )}
@@ -110,31 +104,31 @@ export default async function LandingPage() {
             {PUERTAS.map(({ puerta, titulo, texto, icono: Icono, tono }) => (
               <div
                 key={puerta}
-                className="rounded-2xl border border-line bg-white p-5 shadow-[0_16px_40px_-24px_rgba(31,56,100,0.4)]"
+                className="rounded-2xl border border-line bg-surface p-5 shadow-card"
               >
                 <div className="flex items-center gap-3">
                   <span
                     className={
                       tono === "primary"
-                        ? "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-800 text-white"
-                        : "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brick-500 text-white"
+                        ? "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-pri text-on-pri"
+                        : "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky text-white"
                     }
                   >
                     <Icono className="h-5 w-5" strokeWidth={1.75} />
                   </span>
                   <h2 className="font-display text-lg font-bold text-ink">{titulo}</h2>
                 </div>
-                <p className="mt-3 text-sm text-ink-soft">{texto}</p>
+                <p className="mt-3 text-sm text-ink-2">{texto}</p>
                 <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
-                  <LinkButton href={`/registro?puerta=${puerta}`} variant={tono === "primary" ? "primary" : "brick"}>
+                  <LinkButton href={`/registro?puerta=${puerta}`} variant={tono === "primary" ? "primary" : "consultor"}>
                     Crear cuenta <ArrowRight className="h-4 w-4" />
                   </LinkButton>
                   <Link
                     href={`/login?puerta=${puerta}`}
                     className={
                       tono === "primary"
-                        ? "text-sm font-semibold text-primary-800 hover:underline"
-                        : "text-sm font-semibold text-brick-600 hover:underline"
+                        ? "text-sm font-semibold text-pri-text hover:underline"
+                        : "text-sm font-semibold text-sky-ink hover:underline"
                     }
                   >
                     Ya tengo cuenta
@@ -171,35 +165,34 @@ export default async function LandingPage() {
                 "Consulta el estado de cada postulación y la línea de tiempo completa, desde preparación hasta el resultado final.",
             },
           ].map(({ icon: Icon, titulo, texto }) => (
-            <div key={titulo} className="rounded-2xl border border-line-soft p-6">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary-800 text-white">
+            <div key={titulo} className="rounded-2xl border border-line-2 p-6">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-pri text-on-pri">
                 <Icon className="h-5 w-5" strokeWidth={1.75} />
               </div>
               <h3 className="mt-4 font-display text-base font-semibold text-ink">{titulo}</h3>
-              <p className="mt-2 text-sm text-ink-soft">{texto}</p>
+              <p className="mt-2 text-sm text-ink-2">{texto}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="border-t border-line-soft bg-primary-950">
+      <section className="border-t border-line-2 bg-pri-soft">
         <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 px-4 py-16 text-center sm:px-6 lg:px-8">
-          <h2 className="font-display text-2xl font-bold text-white sm:text-3xl">
+          <h2 className="text-2xl font-extrabold tracking-[-0.025em] text-ink sm:text-3xl">
             Tu próxima fuente de financiación puede estar a un clic
           </h2>
-          <p className="max-w-xl text-white/70">
+          <p className="max-w-xl text-ink-2">
             Entra por tu puerta: como empresa o entidad para encontrar y preparar
             postulaciones, o como consultor para acompañarlas.
           </p>
           <div className="mt-2 flex flex-wrap justify-center gap-3">
-            <LinkButton href="/registro?puerta=empresa" variant="outline-gold" size="lg">
+            <LinkButton href="/registro?puerta=empresa" variant="outline-amber" size="lg">
               Soy empresa o entidad
             </LinkButton>
             <LinkButton
               href="/registro?puerta=consultor"
-              variant="ghost"
+              variant="secondary"
               size="lg"
-              className="text-white ring-1 ring-white/30 hover:bg-white/10"
             >
               Soy consultor
             </LinkButton>
@@ -207,7 +200,7 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <footer className="border-t border-line-soft py-6 text-center text-xs text-ink-faint">
+      <footer className="border-t border-line-2 py-6 text-center text-xs text-ink-3">
         Plataforma de Gestión de Convocatorias — las cifras del catálogo se calculan en vivo.
       </footer>
     </div>

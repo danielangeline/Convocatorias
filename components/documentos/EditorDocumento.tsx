@@ -244,7 +244,7 @@ export function EditorDocumento({
 
       {ocupado === "regenerar" && (
         <div className="mb-4 flex items-center gap-3 rounded-xl border border-violet/30 bg-violet/10 px-4 py-3 text-sm text-violet-ink">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-violet/30 border-t-teal-600" />
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-violet/30 border-t-violet" />
           Generando la versión nueva. Puede tardar hasta dos minutos; si falla, no se descuenta ningún crédito.
         </div>
       )}
@@ -294,7 +294,7 @@ export function EditorDocumento({
                 placeholder="Ej. hazlo más breve"
                 className="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-violet"
               />
-              <Button variant="teal" onClick={enviarAjuste} disabled={!instruccion.trim() || ocupado !== null}>
+              <Button variant="ai" onClick={enviarAjuste} disabled={!instruccion.trim() || ocupado !== null}>
                 {ocupado === "ajustar" ? "Aplicando… (hasta 2 min)" : "Aplicar ajuste"}
               </Button>
             </div>
@@ -350,7 +350,7 @@ export function EditorDocumento({
               <Button variant="ghost" onClick={() => setConfirmandoRegenerar(false)}>
                 Cancelar
               </Button>
-              <Button variant="teal" onClick={confirmarRegenerar}>
+              <Button variant="ai" onClick={confirmarRegenerar}>
                 Regenerar ({textoCreditos(tarifas.generacion)})
               </Button>
             </div>

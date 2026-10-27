@@ -249,9 +249,9 @@ export const ESTADO_DOCUMENTO_LABEL: Record<string, string> = {
 };
 
 export const ESTADO_DOCUMENTO_ESTILO: Record<string, string> = {
-  generado: "bg-teal-50 text-teal-700 ring-teal-200",
-  editado: "bg-amber-50 text-amber-700 ring-amber-200",
-  exportado: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  generado: "bg-violet/10 text-violet-ink",
+  editado: "bg-amber/10 text-amber-ink",
+  exportado: "bg-pri-soft text-pri-text",
 };
 
 export function postulacionParaProyectoConv(

@@ -142,7 +142,7 @@ export function AsistenteProyecto({
           <Button variant="ghost" onClick={onManual} disabled={creando}>
             <PencilLine className="h-4 w-4" /> Llenar el formulario a mano
           </Button>
-          <Button variant="teal" onClick={crear} disabled={creando || sinCredito || largo === 0}>
+          <Button variant="ai" onClick={crear} disabled={creando || sinCredito || largo === 0}>
             {creando ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" /> Armando tu proyecto…

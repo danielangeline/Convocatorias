@@ -35,7 +35,7 @@ export default function DocumentosPage() {
           titulo="Aún no has generado documentos"
           descripcion="Desde la ficha de una convocatoria o de un proyecto puedes generar un borrador de propuesta con IA."
           accion={
-            <LinkButton href="/convocatorias" variant="teal">
+            <LinkButton href="/convocatorias" variant="ai">
               Explorar convocatorias
             </LinkButton>
           }

@@ -99,12 +99,12 @@ export function FormularioMfa() {
 
   return (
     <div>
-      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-50 text-primary-700">
+      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-pri-soft text-pri-text">
         <ShieldCheck className="h-6 w-6" />
       </span>
       <h1 className="mt-4 font-display text-xl font-bold text-ink">Verificación en dos pasos</h1>
 
-      {estado.fase === "cargando" && <p className="mt-2 text-sm text-ink-soft">Preparando la verificación…</p>}
+      {estado.fase === "cargando" && <p className="mt-2 text-sm text-ink-2">Preparando la verificación…</p>}
       {estado.fase === "fallo" && (
         <div className="mt-4">
           <Aviso tipo="error">{estado.mensaje}</Aviso>
@@ -113,28 +113,28 @@ export function FormularioMfa() {
 
       {estado.fase === "enrolar" && (
         <>
-          <p className="mt-2 text-sm text-ink-soft">
+          <p className="mt-2 text-sm text-ink-2">
             Ninguna sesión administrativa opera sin un segundo factor. Escanea este código con tu aplicación
             autenticadora (Google Authenticator, Microsoft Authenticator, 1Password…) y escribe el código que genera.
           </p>
-          <div className="mt-4 flex justify-center rounded-xl border border-line bg-white p-4">
+          <div className="mt-4 flex justify-center rounded-xl border border-line bg-surface p-4">
             {/* El QR llega como data URL SVG desde Supabase Auth. */}
             <img src={estado.qr} alt="Código QR para la aplicación autenticadora" className="h-44 w-44" />
           </div>
-          <p className="mt-2 break-all text-center text-xs text-ink-faint">
-            ¿No puedes escanear? Clave: <span className="font-tabular text-ink-soft">{estado.secreto}</span>
+          <p className="mt-2 break-all text-center text-xs text-ink-3">
+            ¿No puedes escanear? Clave: <span className="font-tabular text-ink-2">{estado.secreto}</span>
           </p>
         </>
       )}
 
       {estado.fase === "verificar" && (
-        <p className="mt-2 text-sm text-ink-soft">Escribe el código de 6 dígitos de tu aplicación autenticadora.</p>
+        <p className="mt-2 text-sm text-ink-2">Escribe el código de 6 dígitos de tu aplicación autenticadora.</p>
       )}
 
       {(estado.fase === "enrolar" || estado.fase === "verificar") && (
         <form onSubmit={verificar} className="mt-4 space-y-3">
           <label className="block">
-            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3">
               Código de 6 dígitos
             </span>
             <input
@@ -144,7 +144,7 @@ export function FormularioMfa() {
               inputMode="numeric"
               autoComplete="one-time-code"
               autoFocus
-              className="w-full rounded-lg border border-line px-3 py-2 text-center font-tabular text-lg tracking-[0.3em] outline-none focus:border-primary-500"
+              className="w-full rounded-lg border border-line px-3 py-2 text-center font-tabular text-lg tracking-[0.3em] outline-none focus:border-pri bg-surface text-ink"
             />
           </label>
           {error && <Aviso tipo="error">{error}</Aviso>}

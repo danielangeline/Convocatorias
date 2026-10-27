@@ -22,11 +22,11 @@ export function FormularioRegistro({ puertaInicial }: { puertaInicial: Puerta })
   if (estado.mensaje) {
     return (
       <div className="mt-6 flex flex-col items-center gap-3 text-center">
-        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-teal-50 text-teal-700">
+        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-violet/10 text-violet-ink">
           <MailCheck className="h-6 w-6" />
         </span>
         <p className="font-display text-lg font-bold text-ink">Revisa tu correo</p>
-        <p className="text-sm text-ink-soft">{estado.mensaje}</p>
+        <p className="text-sm text-ink-2">{estado.mensaje}</p>
       </div>
     );
   }
@@ -50,13 +50,13 @@ export function FormularioRegistro({ puertaInicial }: { puertaInicial: Puerta })
         ayuda="Mínimo 8 caracteres."
       />
       {/* RF-88: sin marcar por defecto; el servidor la vuelve a exigir. */}
-      <label className="flex items-start gap-2.5 text-sm text-ink-soft">
+      <label className="flex items-start gap-2.5 text-sm text-ink-2">
         <input
           type="checkbox"
           name="consentimiento_datos"
           value="si"
           required
-          className="mt-0.5 h-4 w-4 shrink-0 rounded border-line accent-primary-600"
+          className="mt-0.5 h-4 w-4 shrink-0 rounded border-line accent-pri bg-surface text-ink"
         />
         <span>
           Autorizo el tratamiento de mis datos personales para crear y operar mi cuenta en la plataforma, conforme a la
@@ -64,7 +64,7 @@ export function FormularioRegistro({ puertaInicial }: { puertaInicial: Puerta })
         </span>
       </label>
       {estado.error && <Aviso tipo="error">{estado.error}</Aviso>}
-      <Button type="submit" variant={rol === "empresa" ? "primary" : "brick"} className="w-full" disabled={enviando}>
+      <Button type="submit" variant={rol === "empresa" ? "primary" : "consultor"} className="w-full" disabled={enviando}>
         {enviando ? "Creando cuenta…" : rol === "empresa" ? "Crear cuenta y empezar el trial" : "Crear cuenta de consultor"}
       </Button>
     </form>

@@ -18,15 +18,15 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
 
   return (
     <>
-      <h1 className="font-display text-2xl font-bold text-ink">Iniciar sesión</h1>
-      <p className="mt-1 text-sm text-ink-soft">Elige tu puerta y entra con el correo y la contraseña de tu cuenta.</p>
+      <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Iniciar sesión</h1>
+      <p className="mt-1 text-sm text-ink-2">Elige tu puerta y entra con el correo y la contraseña de tu cuenta.</p>
       <FormularioLogin
         puertaInicial={puertaInicial}
         errorInicial={error === "enlace" ? "El enlace de confirmación no es válido o ya expiró." : undefined}
       />
-      <p className="mt-6 text-center text-sm text-ink-soft">
+      <p className="mt-6 text-center text-sm text-ink-2">
         ¿No tienes cuenta?{" "}
-        <Link href={`/registro?puerta=${puertaInicial}`} className="font-semibold text-primary-800 hover:underline">
+        <Link href={`/registro?puerta=${puertaInicial}`} className="font-semibold text-pri-text hover:underline">
           Regístrate
         </Link>
       </p>

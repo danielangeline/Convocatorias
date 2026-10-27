@@ -127,12 +127,12 @@ export function BotonDictado({
       <button
         type="button"
         onClick={detener}
-        className="inline-flex items-center gap-2 rounded-full bg-rose/10 px-3 py-1.5 text-xs font-semibold text-rose-ink ring-1 ring-inset ring-rose/30 hover:bg-red-100"
+        className="inline-flex items-center gap-2 rounded-full bg-rose/10 px-3 py-1.5 text-xs font-semibold text-rose-ink ring-1 ring-inset ring-rose/30 hover:bg-rose/15"
         aria-label="Detener la grabación y transcribir"
       >
         <span className="relative flex h-2.5 w-2.5">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-500" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose opacity-75" />
+          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-rose" />
         </span>
         {formatoTiempo(segundos)}
         <Square className="h-3 w-3 fill-current" />

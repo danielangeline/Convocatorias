@@ -233,7 +233,7 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
               Solicitar para mi tarea
             </Button>
           ) : (
-            <Button variant="brick" size="lg" onClick={abrirSolicitudDirecta} className="w-full shrink-0 sm:w-auto">
+            <Button variant="consultor" size="lg" onClick={abrirSolicitudDirecta} className="w-full shrink-0 sm:w-auto">
               <UserPlus className="h-4 w-4" /> Solicitar a este consultor
             </Button>
           )}
