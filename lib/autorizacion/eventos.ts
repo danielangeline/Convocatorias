@@ -39,5 +39,6 @@ export async function registrarAccesoDenegado(datos: {
 }
 
 export function ipDeCabeceras(cabeceras: Headers): string | null {
-  return cabeceras.get("x-forwarded-for")?.split(",")[0]?.trim() || cabeceras.get("x-real-ip") || null;
+  // En Vercel la plataforma fija x-real-ip con la IP real del cliente (sesión 030).
+  return cabeceras.get("x-real-ip") || cabeceras.get("x-forwarded-for")?.split(",")[0]?.trim() || null;
 }

@@ -18,10 +18,12 @@ import { createClient } from "@supabase/supabase-js";
 
 export type NombreLimite = "login" | "registro" | "recuperacion" | "ia";
 
-type Sujeto = "correo" | "ip" | "usuario";
+type Sujeto = "correo" | "cuenta" | "ip" | "usuario";
 
 const LIMITES: Record<NombreLimite, { ventanaSeg: number; maximos: Partial<Record<Sujeto, number>> }> = {
-  login: { ventanaSeg: 600, maximos: { correo: 8, ip: 50 } },
+  // correo = correo + IP (nadie bloquea a otro desde otra máquina); cuenta = el
+  // correo solo, más alto, contra probar una misma cuenta desde muchas IP.
+  login: { ventanaSeg: 600, maximos: { correo: 8, cuenta: 30, ip: 50 } },
   registro: { ventanaSeg: 3600, maximos: { ip: 10 } },
   recuperacion: { ventanaSeg: 3600, maximos: { correo: 3, ip: 10 } },
   ia: { ventanaSeg: 600, maximos: { usuario: 30 } },
@@ -34,10 +36,10 @@ export type Veredicto =
   | { ok: false; motivo: "limite"; reintentarEnSeg: number }
   | { ok: false; motivo: "no_disponible" };
 
-type Identidad = { correo?: string | null; ip?: string | null; usuarioId?: string | null };
+type Identidad = { correo?: string | null; cuenta?: string | null; ip?: string | null; usuarioId?: string | null };
 
 function valorDe(sujeto: Sujeto, id: Identidad): string | null {
-  const v = sujeto === "correo" ? id.correo : sujeto === "ip" ? id.ip : id.usuarioId;
+  const v = sujeto === "correo" ? id.correo : sujeto === "cuenta" ? id.cuenta : sujeto === "ip" ? id.ip : id.usuarioId;
   return v ? v.trim().toLowerCase().slice(0, 200) : null;
 }
 

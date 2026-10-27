@@ -15,7 +15,9 @@ export interface ResultadoFormulario {
 
 async function ipDeLaPeticion(): Promise<string | null> {
   const h = await headers();
-  const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() || h.get("x-real-ip");
+  // En Vercel las dos las fija la plataforma con la IP real del cliente; se
+  // prefiere x-real-ip (revisión de seguridad de la sesión 030).
+  const ip = h.get("x-real-ip") || h.get("x-forwarded-for")?.split(",")[0]?.trim();
   return ip || null;
 }
 
@@ -108,9 +110,10 @@ export async function iniciarSesion(_previo: ResultadoFormulario, formulario: Fo
   // RF-66, RNF-27: por correo e IP juntos, contra adivinar la contraseña de una
   // cuenta, y por IP, contra probar muchas cuentas. Antes de llamar a Auth. El
   // correo va con la IP para que nadie bloquee a otro escribiendo mal su correo
-  // desde otra máquina (revisión de seguridad de la sesión 030).
+  // desde otra máquina; y la cuenta sola, con un tope más alto, contra probarla
+  // desde muchas IP (revisiones de seguridad de la sesión 030).
   const ip = await ipDeLaPeticion();
-  const limite = await comprobarLimite("login", { correo: `${correo}|${ip ?? "sin-ip"}`, ip }, "/login");
+  const limite = await comprobarLimite("login", { correo: `${correo}|${ip ?? "sin-ip"}`, cuenta: correo, ip }, "/login");
   if (!limite.ok) return { error: mensajeLimite(limite) };
 
   const supabase = await crearClienteServidor();
