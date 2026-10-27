@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sparkles, X } from "lucide-react";
 import { useAppStore } from "@/lib/store";
-import type { Proyecto } from "@/lib/types";
+import type { PropuestaProyecto, Proyecto } from "@/lib/types";
 import type { CampoContenido } from "@/lib/proyectos";
 import { formatearMontoCOP } from "@/lib/montos";
 import { DEPARTAMENTOS } from "@/lib/departamentos";
@@ -77,6 +77,27 @@ function desdeProyecto(p: Proyecto): FormularioProyecto {
   };
 }
 
+/** CU-43 · El formulario lleno con la propuesta de la IA, para revisarla. */
+function desdePropuesta(p: PropuestaProyecto): FormularioProyecto {
+  return {
+    nombre: p.nombre,
+    descripcion: p.descripcion,
+    montoBuscado: formatearMontoCOP(p.montoBuscado),
+    departamento: p.departamento ?? "",
+    ubicacion: p.ubicacion,
+    categorias: p.categorias,
+    problema: p.problema,
+    objetivoGeneral: p.objetivoGeneral,
+    objetivosEspecificos: p.objetivosEspecificos.join("\n"),
+    poblacionBeneficiaria: p.poblacionBeneficiaria,
+    actividades: p.actividades,
+    resultadosEsperados: p.resultadosEsperados,
+    duracionMeses: p.duracionMeses ? String(p.duracionMeses) : "",
+    presupuestoEstimado: formatearMontoCOP(p.presupuestoEstimado),
+    experienciaEmpresa: p.experienciaEmpresa,
+  };
+}
+
 /**
  * Se monta solo cuando está abierto: el estado inicial se calcula en el
  * montaje y no hay que reiniciarlo desde un efecto.
@@ -84,12 +105,18 @@ function desdeProyecto(p: Proyecto): FormularioProyecto {
 export function ProyectoFormModal({
   proyecto,
   campoInicial,
+  propuesta,
+  onCreado,
   onClose,
 }: {
   /** `null` crea un proyecto nuevo; un proyecto lo edita. */
   proyecto: Proyecto | null;
   /** Campo al que saltar al abrir (RF-81, CU-10 2a). */
   campoInicial?: CampoEditable | null;
+  /** CU-43 · Propuesta de la IA con la que se llena un proyecto nuevo. */
+  propuesta?: PropuestaProyecto | null;
+  /** Se llama con el id del proyecto recién creado, en lugar de cerrar (RF-98). */
+  onCreado?: (id: string) => void;
   onClose: () => void;
 }) {
   // Sprint 2 paso 4: las categorías reales, para que las sugerencias crucen con las convocatorias.
@@ -99,8 +126,14 @@ export function ProyectoFormModal({
   const [guardando, setGuardando] = useState(false);
 
   const [form, setForm] = useState<FormularioProyecto>(() =>
-    proyecto ? desdeProyecto(proyecto) : formularioVacio
+    proyecto ? desdeProyecto(proyecto) : propuesta ? desdePropuesta(propuesta) : formularioVacio
   );
+
+  // CU-43 7a: la propuesta ya costó un crédito; se advierte antes de descartarla.
+  const cerrar = () => {
+    if (propuesta && !window.confirm("¿Cerrar sin crear el proyecto? Perderás lo que armó la IA y el crédito ya se usó.")) return;
+    onClose();
+  };
 
   // Salta al campo que el usuario quiere completar y le da el foco.
   useEffect(() => {
@@ -116,11 +149,11 @@ export function ProyectoFormModal({
   // Cerrar con Escape.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") cerrar();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  });
 
   const toggleCategoria = (id: string) => {
     setForm((f) => ({
@@ -165,6 +198,10 @@ export function ProyectoFormModal({
       setError(json.error ?? "No pudimos guardar el proyecto. Intenta de nuevo.");
       return;
     }
+    if (!proyecto && onCreado) {
+      onCreado((json.datos as Proyecto).id);
+      return;
+    }
     router.refresh();
     onClose();
   };
@@ -192,10 +229,31 @@ export function ProyectoFormModal({
           <h3 className="font-display text-lg font-semibold text-ink">
             {proyecto ? "Editar proyecto" : "Nuevo proyecto"}
           </h3>
-          <button onClick={onClose} className="text-ink-faint hover:text-ink" aria-label="Cerrar">
+          <button onClick={cerrar} className="text-ink-faint hover:text-ink" aria-label="Cerrar">
             <X className="h-5 w-5" />
           </button>
         </div>
+
+        {propuesta && (
+          <div className="mb-4 rounded-xl bg-teal-50 p-3 text-sm text-teal-800 ring-1 ring-inset ring-teal-100">
+            <p className="flex items-center gap-1.5 font-semibold">
+              <Sparkles className="h-4 w-4" /> La IA llenó el formulario con lo que contaste
+            </p>
+            <p className="mt-1 text-xs text-teal-700">
+              Revisa y corrige todo antes de crear el proyecto: las categorías y el departamento deciden qué convocatorias te sugerimos.
+            </p>
+            {propuesta.faltantes.length > 0 && (
+              <div className="mt-2 text-xs">
+                <p className="font-semibold">No lo mencionaste; complétalo si lo tienes:</p>
+                <ul className="mt-1 list-disc space-y-0.5 pl-5">
+                  {propuesta.faltantes.map((f) => (
+                    <li key={f}>{f}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="space-y-4">
           <Campo etiqueta="Nombre del proyecto" htmlFor="campo-nombre">
@@ -363,7 +421,7 @@ export function ProyectoFormModal({
         )}
 
         <div className="mt-6 flex justify-end gap-3">
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={cerrar}>
             Cancelar
           </Button>
           <Button variant="primary" onClick={guardar} disabled={!form.nombre.trim() || guardando}>

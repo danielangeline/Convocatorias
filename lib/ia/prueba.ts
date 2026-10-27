@@ -1,5 +1,14 @@
 import "server-only";
-import { ErrorIA, type PeticionRedaccion, type ProveedorIA, type ResultadoRedaccion } from "./tipos";
+import {
+  ErrorIA,
+  type PeticionEstructuracion,
+  type PeticionRedaccion,
+  type PeticionTranscripcion,
+  type ProveedorIA,
+  type ResultadoEstructuracion,
+  type ResultadoRedaccion,
+  type ResultadoTranscripcion,
+} from "./tipos";
 
 /**
  * Proveedor de prueba (RNF-22): responde sin llamar a nadie, para las pruebas
@@ -50,5 +59,45 @@ export const proveedorPrueba: ProveedorIA = {
       tokensEntrada,
       tokensSalida: 150,
     };
+  },
+
+  // CU-43 · Tampoco inventa: copia la explicación como descripción y deja el
+  // resto vacío, con la lista de faltantes.
+  async estructurar(p: PeticionEstructuracion): Promise<ResultadoEstructuracion> {
+    const demora = Number(process.env.IA_PRUEBA_DEMORA_MS ?? 300);
+    await new Promise((r) => setTimeout(r, Math.min(demora, p.plazoMs)));
+    const tokensEntrada = Math.ceil((p.instrucciones.length + p.mensaje.length) / 4);
+    if (demora >= p.plazoMs) throw new ErrorIA("El proveedor de IA no respondió a tiempo", "plazo");
+    if (p.mensaje.includes("FALLA_IA_PRUEBA")) {
+      throw new ErrorIA("Fallo simulado del proveedor de prueba", "proveedor", tokensEntrada, 0);
+    }
+    const explicacion = p.mensaje.match(/<explicacion_de_la_empresa>\n?([\s\S]*?)\n?<\/explicacion_de_la_empresa>/)?.[1]?.trim() ?? "";
+    return {
+      json: {
+        nombre: explicacion.split(/[.\n]/)[0].slice(0, 80),
+        descripcion: explicacion,
+        montoBuscado: null,
+        departamento: null,
+        ubicacion: "",
+        categorias: ["c1", "c999"],
+        problema: "",
+        objetivoGeneral: "",
+        objetivosEspecificos: [],
+        poblacionBeneficiaria: "",
+        actividades: "",
+        resultadosEsperados: "",
+        duracionMeses: null,
+        presupuestoEstimado: null,
+        experienciaEmpresa: "",
+        faltantes: ["Monto que busca", "Departamento donde se ejecuta"],
+      },
+      tokensEntrada,
+      tokensSalida: 120,
+    };
+  },
+
+  async transcribir(p: PeticionTranscripcion): Promise<ResultadoTranscripcion> {
+    if (p.audio.size < 100) throw new ErrorIA("Audio vacío", "respuesta_invalida");
+    return { texto: `Transcripción de prueba de ${p.audio.size} bytes.`, segundos: null };
   },
 };

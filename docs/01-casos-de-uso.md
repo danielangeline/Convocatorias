@@ -1,4 +1,4 @@
-# Casos de uso (CU-01 a CU-40)
+# Casos de uso (CU-01 a CU-43)
 
 > Parte de la especificación del MVP **v6** · Plataforma de Gestión de Convocatorias.
 > Índice general en `docs/README.md`. Contexto rápido en `CLAUDE.md`.
@@ -91,8 +91,20 @@
 | **Actor** | Usuario Empresa |
 | **Descripción** | El proyecto deja de ser solo un conjunto de atributos de filtrado y pasa a ser **el insumo de contenido de la generación con IA**. Se llena una vez y se reutiliza en todas las postulaciones |
 | **Flujo principal** | 1. **Datos de clasificación** (los que alimentan filtros y sugerencias): nombre, monto buscado, **departamento donde se ejecuta (uno, de la lista oficial, RN-34) y, opcional, el municipio o detalle en texto** *(mod. v6, sesión 019)*, categorías (tipo de proyecto, sector, tipo de entidad). 2. **Datos de contenido** (los que alimentan la IA): problema que resuelve, objetivo general, objetivos específicos, población beneficiaria, actividades principales, resultados esperados, duración en meses, presupuesto estimado y experiencia o trayectoria de la empresa. 3. El sistema calcula y muestra un **indicador de completitud del proyecto**, advirtiendo que a mayor completitud, mejor el documento generado |
-| **Flujos alternos** | 1a. Guardar con solo los datos de clasificación: sirve para buscar, pero al generar documento el sistema avisa qué falta. 2a. Editar o eliminar un proyecto propio. **Al eliminar se avisa antes de que se perderán sus documentos generados; un proyecto con encargos no se puede eliminar.** **Los montos (monto buscado, presupuesto) se escriben en formato colombiano, como en CU-02 2b** *(mod. v6, sesión 018)* |
+| **Flujos alternos** | 0a. **Crear a partir de una explicación, con IA (CU-43):** antes del formulario, la empresa puede contar el proyecto escribiendo o dictando y recibir el formulario ya lleno para revisarlo. Es opcional; el formulario manual sigue disponible sin costo *(nuevo v6, sesión 030)*. 1a. Guardar con solo los datos de clasificación: sirve para buscar, pero al generar documento el sistema avisa qué falta. 2a. Editar o eliminar un proyecto propio. **Al eliminar se avisa antes de que se perderán sus documentos generados; un proyecto con encargos no se puede eliminar.** **Los montos (monto buscado, presupuesto) se escriben en formato colombiano, como en CU-02 2b** *(mod. v6, sesión 018)* |
 | **Postcondiciones** | Proyecto disponible para sugerencias (CU-10), generación con IA (CU-33) y solicitud de consultor (CU-19). **Los campos que el indicador de completitud señala como faltantes se pueden diligenciar desde la propia ficha, sin volver al listado (RF-81)** *(ampliado en v6)* |
+
+#### CU-43 · Crear el proyecto a partir de una explicación, con IA *(nuevo v6, sesión 030)*
+
+| Campo | Contenido |
+|---|---|
+| **Actor** | Usuario Empresa, con apoyo del Servicio de IA |
+| **Descripción** | Atajo opcional de CU-09: la empresa cuenta su proyecto con sus palabras —escribiendo o dictando— y la IA lo convierte en un **borrador del formulario de CU-09**, con los datos de clasificación (los que usan los filtros y las sugerencias) y los de contenido. **Nada se guarda hasta que la empresa lo revisa y confirma** |
+| **Precondiciones** | Sesión de empresa; suscripción vigente o trial; al menos un crédito de IA disponible (RN-17) |
+| **Flujo principal** | 1. En "Nuevo proyecto", antes del formulario, ve la opción "Cuéntanos tu proyecto". 2. Escribe la explicación o pulsa el **micrófono**: graba en el navegador y, al detener, el audio se transcribe y el texto se añade al cuadro, donde se puede corregir (RF-97). 3. Pulsa "Crear con IA". 4. El sistema envía la explicación junto con la lista oficial de departamentos y las categorías activas, y recibe una propuesta: nombre, descripción, monto buscado, departamento, municipio, categorías y los nueve campos de contenido, más la lista de lo que la explicación no dice (RF-96). 5. Se descuenta un crédito. 6. Se abre el formulario de CU-09 lleno con la propuesta, con aviso de que la sugirió la IA y con los datos faltantes señalados. 7. La empresa edita lo que quiera y pulsa "Crear proyecto". 8. El sistema guarda (CU-09) y lleva a las **sugerencias del proyecto (CU-10)**, ordenadas por compatibilidad (RF-98) |
+| **Flujos alternos** | 1a. Prefiere llenarlo a mano → "Llenar el formulario" abre CU-09 vacío, sin costo. 2a. El navegador no graba o el permiso del micrófono se niega → se avisa y se puede escribir. 2b. La grabación llega a 5 minutos → se detiene sola y se transcribe lo grabado. 2c. Falla la transcripción → se avisa, el texto ya escrito se conserva y no se cobra. 3a. Explicación de menos de 80 caracteres → se pide más detalle, sin llamar a la IA. 3b. Sin crédito o sin suscripción vigente → se explica y se ofrecen el formulario manual y la compra de créditos. 4a. La IA falla o no responde a tiempo → se avisa, **no se cobra** (RN-17) y la explicación se conserva para reintentar. 7a. Cierra el formulario sin guardar → el crédito ya se consumió, porque la propuesta se entregó; se advierte antes de cerrar |
+| **Postcondiciones** | Proyecto creado como en CU-09, con categorías y departamento; consumo de IA registrado con su crédito (RF-52). **Ni la explicación ni el audio se guardan** |
+| **Nota** | La IA **propone, no decide**: los atributos los confirma la empresa y la compatibilidad sigue siendo el cruce determinístico de CU-10 (RN-05). La IA no inventa: un monto, una cifra, un plazo o un antecedente que la explicación no dice queda vacío y se señala (RNF-23, RN-37) |
 
 #### CU-10 · Obtener convocatorias sugeridas *(mod. v4 — porcentaje)*
 
@@ -405,6 +417,7 @@
 - CU-03 **incluido en** CU-02 · CU-05 **exige** CU-02+03+04 · CU-11 **incluye** el checklist desde CU-04.
 - CU-33 usa la plantilla activa definida en CU-37.
 - CU-33 **depende de** CU-09 (contenido del proyecto), CU-03 y CU-04 (contexto de la convocatoria) y CU-35 (cupo). CU-34 **extiende** CU-33.
+- CU-43 **extiende** CU-09 *(sesión 030)*: es otra forma de llenar el mismo formulario y termina en CU-09 y CU-10.
 - CU-19 **nace dentro de** CU-09; CU-22 y CU-23 son **caminos alternos**; CU-24 solo sobre encargos completados.
 - CU-25 es **precondición** de CU-20. CU-32 y CU-35 son **precondiciones transversales** de CU-10, CU-11, CU-18, CU-19, CU-20 y CU-33.
 - **CU-41 es la única puerta de entrada al rol administrador** *(nuevo v6)*: CU-42 la completa y CU-38 es su último paso. CU-14 nunca produce administradores (RN-06, RN-31, RN-32).

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FolderKanban, Plus, Pencil, Trash2, MapPin, Wallet, Sparkles, UserPlus } from "lucide-react";
-import type { Categoria, Proyecto } from "@/lib/types";
+import type { Categoria, PropuestaProyecto, Proyecto } from "@/lib/types";
 import { formatCOP } from "@/lib/utils";
 import { useAccesoSuscripcion } from "@/lib/hooks";
 import { Button } from "@/components/ui/Button";
@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { CompletitudBadge } from "@/components/CompletitudProyecto";
 import { SolicitarConsultorModal } from "@/components/SolicitarConsultorModal";
 import { ProyectoFormModal } from "@/components/ProyectoFormModal";
+import { AsistenteProyecto } from "./AsistenteProyecto";
 import { textoUbicacionProyecto } from "@/lib/departamentos";
 
 /**
@@ -59,6 +60,9 @@ export function ListadoProyectos({ proyectos, categorias }: { proyectos: Proyect
 
   const [modalAbierto, setModalAbierto] = useState(false);
   const [editando, setEditando] = useState<Proyecto | null>(null);
+  // CU-43: "Nuevo proyecto" abre primero el asistente; su propuesta llena el formulario.
+  const [asistenteAbierto, setAsistenteAbierto] = useState(false);
+  const [propuesta, setPropuesta] = useState<PropuestaProyecto | null>(null);
   const [proyectoConsultorId, setProyectoConsultorId] = useState<string | null>(null);
   const proyectoParaConsultor = proyectos.find((p) => p.id === proyectoConsultorId) ?? null;
 
@@ -74,7 +78,20 @@ export function ListadoProyectos({ proyectos, categorias }: { proyectos: Proyect
 
   const abrirCrear = () => {
     setEditando(null);
+    setPropuesta(null);
+    setAsistenteAbierto(true);
+  };
+
+  const abrirFormulario = (p: PropuestaProyecto | null) => {
+    setPropuesta(p);
+    setAsistenteAbierto(false);
     setModalAbierto(true);
+  };
+
+  // RF-98: el proyecto creado con IA lleva directo a sus convocatorias sugeridas.
+  const alCrearConIA = (id: string) => {
+    setModalAbierto(false);
+    router.push(`/proyectos/${id}/sugerencias`);
   };
 
   const abrirEditar = (p: Proyecto) => {
@@ -179,8 +196,20 @@ export function ListadoProyectos({ proyectos, categorias }: { proyectos: Proyect
         </div>
       )}
 
+      {asistenteAbierto && (
+        <AsistenteProyecto
+          onPropuesta={(p) => abrirFormulario(p)}
+          onManual={() => abrirFormulario(null)}
+          onClose={() => setAsistenteAbierto(false)}
+        />
+      )}
       {modalAbierto && (
-        <ProyectoFormModal proyecto={editando} onClose={() => setModalAbierto(false)} />
+        <ProyectoFormModal
+          proyecto={editando}
+          propuesta={editando ? null : propuesta}
+          onCreado={!editando && propuesta ? alCrearConIA : undefined}
+          onClose={() => setModalAbierto(false)}
+        />
       )}
 
       {proyectoParaConsultor && (

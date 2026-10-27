@@ -213,7 +213,7 @@ function rechazo(error: PostgrestError, accion: string): { ok: false; status: nu
 }
 
 /** RF-52 · Costo estimado en USD con los precios de la plantilla. */
-function costo(entrada: number | null, salida: number | null, precioEntrada: number, precioSalida: number): number | null {
+export function costo(entrada: number | null, salida: number | null, precioEntrada: number, precioSalida: number): number | null {
   if (entrada === null && salida === null) return null;
   return Number((((entrada ?? 0) * precioEntrada + (salida ?? 0) * precioSalida) / 1_000_000).toFixed(6));
 }

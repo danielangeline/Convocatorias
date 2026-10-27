@@ -894,3 +894,34 @@ Hasta esta sesión solo existía en la base el plan Trial: los planes de pago, l
 **Job 3 con la fecha de Colombia.** El reinicio mensual del cupo pasa a `privado.reiniciar_creditos()`, con `privado.hoy_colombia()` en vez de `current_date` (UTC), igual que los jobs 1 y 2. La regla no cambia (RN-18): las suscripciones `trial` y `activa` cuyo periodo cumplió un mes ponen en cero lo usado y avanzan `periodo_creditos_inicio` los meses enteros transcurridos; los paquetes no se tocan.
 
 **Lo que se mantiene transitorio:** RN-08 y RN-10 (el consultor aparece en el directorio y acepta encargos sin suscripción). Exigirla ahora sacaría del directorio a todos los consultores aprobados, que no tienen fila; se activa cuando el Product Owner lo decida, con los consultores ya suscritos.
+
+### 9.29 Crear el proyecto con IA a partir de una explicación *(nuevo v6, sesión 030 · CU-43, RF-96, RF-97, RN-17, RN-37)*
+
+Migración `20261026100000_estructuracion_proyecto_ia`. La empresa cuenta su proyecto (escrito o dictado) y la IA propone el formulario de CU-09; **el proyecto no se guarda aquí**, sino con `guardar_proyecto` (§9.17) cuando la empresa confirma.
+
+**Columnas nuevas en `plantillas_generacion`:** `modelo_transcripcion` (text, not null, default `gpt-4o-mini-transcribe`, mismo formato que `modelo`) y `precio_transcripcion_usd_min` (numeric, not null, ≥ 0, default 0,003). La estructuración usa el `modelo` y los precios por token de la plantilla activa. **Sus instrucciones viven en el código** (`lib/ia/estructurar.ts`), versionadas con el repositorio: la plantilla editable de RF-63 es la del documento base (decisión de la sesión 030).
+
+**`consumos_ia.tipo`** admite además `estructuracion` y `transcripcion`. Ambos sin `documento_id`.
+
+**RESERVAS_ESTRUCTURACION** *(tabla 33)* — la reserva del crédito mientras la IA arma la propuesta
+
+| Campo | Tipo | Restricción |
+|---|---|---|
+| id | uuid | PK |
+| usuario_id | uuid | FK → perfiles, `on delete cascade` |
+| plantilla_id | uuid | FK → plantillas_generacion |
+| creada_at | timestamptz | default `now()` |
+
+Índice `(usuario_id, creada_at)`. **RLS:** la empresa lee las suyas; nadie escribe desde el cliente. `privado.reservas_de()` suma ahora también las reservas de menos de 5 minutos, así que una estructuración en curso cuenta contra el cupo de la generación y de los ajustes, y viceversa.
+
+| Función (solo `service_role`) | Comprueba | Qué hace |
+|---|---|---|
+| `iniciar_estructuracion(p_usuario)` | rol empresa (`no_es_empresa`); suscripción vigente (`sin_suscripcion`); cupo menos reservas > 0 (`sin_creditos`); plantilla activa (`sin_plantilla`) | Bloquea la suscripción, libera las reservas de más de 5 minutos como consumo fallido, inserta la reserva y devuelve su id, el modelo y los precios |
+| `completar_estructuracion(p_reserva, tokens, costo, modelo, duración)` | la reserva existe (`estructuracion_no_encontrada`) | Borra la reserva, **descuenta el crédito** (plan primero, después paquetes) y registra el consumo con crédito |
+| `fallar_estructuracion(p_reserva, p_mensaje, tokens, costo, modelo, duración)` | — | Borra la reserva y registra el consumo **sin crédito** (RN-17) |
+| `iniciar_transcripcion(p_usuario)` | rol empresa; suscripción vigente; cupo menos reservas > 0 (el dictado solo sirve para estructurar); **menos de 30 transcripciones hoy** en hora de Colombia (`tope_transcripciones`) | Devuelve el modelo de transcripción y su precio por minuto. No reserva |
+| `registrar_transcripcion(p_usuario, p_exito, p_mensaje, p_costo, p_modelo, p_duracion_ms)` | — | Consumo `transcripcion`, sin crédito |
+
+El tope diario se cuenta antes de llamar al proveedor: varias transcripciones simultáneas pueden pasarlo por unas pocas. Se aceptó porque la transcripción no cobra crédito y el límite de tasa general (RNF-27) llegará con Upstash.
+
+**En el servidor** (`lib/proyectos-ia-servidor.ts`): explicación de 80 a 8 000 caracteres; audio de hasta 4 MB (Vercel no acepta más de 4,5 MB por petición) y de tipo `audio/*`. Las categorías activas van al modelo con claves cortas (`c1`, `c2`, …) que el servidor traduce a sus ids: una clave desconocida se descarta, igual que un departamento fuera de la lista oficial (RN-34, RN-37). Ni la explicación ni el audio se guardan.

@@ -58,7 +58,8 @@ const PREFIJOS: [string, Regla][] = [
   ["/api/convocatorias", EMPRESA],
   ["/api/indicadores", { tipo: "publica" }],
   // Sprint 3: proyectos de la empresa (RN-30), incluidas sus sugerencias
-  // (/api/proyectos/[id]/sugerencias, CU-10).
+  // (/api/proyectos/[id]/sugerencias, CU-10), y la creación con IA
+  // (/api/proyectos/estructurar y /api/proyectos/transcribir, CU-43).
   ["/api/proyectos", EMPRESA],
   ["/proyectos", EMPRESA],
   // Sprint 5: documentos con IA. Generar y exportar son solo de la empresa

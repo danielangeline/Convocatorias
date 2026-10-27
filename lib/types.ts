@@ -774,3 +774,27 @@ export interface DatosSesion {
   plan: Plan | null;
   consultor: PerfilConsultor | null;
 }
+
+/**
+ * CU-43, RF-96 · Propuesta de proyecto que arma la IA con la explicación de la
+ * empresa. Mismos nombres que el formulario de CU-09; no se guarda hasta que
+ * la empresa la confirma (RN-37).
+ */
+export interface PropuestaProyecto {
+  nombre: string;
+  descripcion: string;
+  montoBuscado: number | null;
+  departamento: string | null;
+  ubicacion: string;
+  categorias: string[];
+  problema: string;
+  objetivoGeneral: string;
+  objetivosEspecificos: string[];
+  poblacionBeneficiaria: string;
+  actividades: string;
+  resultadosEsperados: string;
+  duracionMeses: number | null;
+  presupuestoEstimado: number | null;
+  experienciaEmpresa: string;
+  faltantes: string[];
+}

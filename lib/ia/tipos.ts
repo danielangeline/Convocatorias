@@ -45,9 +45,43 @@ export class ErrorIA extends Error {
   }
 }
 
+/** CU-43, RF-96 · Pedir la propuesta de proyecto a partir de una explicación. */
+export interface PeticionEstructuracion {
+  modelo: string;
+  instrucciones: string;
+  mensaje: string;
+  /** El esquema JSON estricto de la respuesta (`lib/ia/estructurar.ts`). */
+  esquema: Record<string, unknown>;
+  maxTokensSalida: number;
+  plazoMs: number;
+}
+
+export interface ResultadoEstructuracion {
+  /** El JSON tal como lo devolvió el modelo: lo valida `leerPropuesta`. */
+  json: unknown;
+  tokensEntrada: number;
+  tokensSalida: number;
+}
+
+/** RF-97 · Transcribir el dictado. */
+export interface PeticionTranscripcion {
+  modelo: string;
+  audio: Blob;
+  nombreArchivo: string;
+  plazoMs: number;
+}
+
+export interface ResultadoTranscripcion {
+  texto: string;
+  /** Segundos de audio facturados, si el proveedor los informa. */
+  segundos: number | null;
+}
+
 export interface ProveedorIA {
   readonly nombre: string;
   redactar(peticion: PeticionRedaccion): Promise<ResultadoRedaccion>;
+  estructurar(peticion: PeticionEstructuracion): Promise<ResultadoEstructuracion>;
+  transcribir(peticion: PeticionTranscripcion): Promise<ResultadoTranscripcion>;
 }
 
 /** Esquema de la respuesta: un documento con título y secciones. */

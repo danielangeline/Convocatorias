@@ -46,7 +46,7 @@ El MVP valida tres hipótesis: (1) que una empresa encuentra la convocatoria cor
 |---|---|
 | **Mercado** | Solo Colombia: Minciencias, cámaras de comercio, cooperación internacional, fondos regionales |
 | **Ingesta** | Carga **manual** por un administrador: datos estructurados digitados + documentos adjuntos (TDR, términos, anexos). Sin scraping |
-| **IA acotada** | La IA **no** estructura el catálogo ni hace matching semántico. Su único uso en el MVP es **generar el documento base de postulación** a partir del proyecto del usuario y del contexto de la convocatoria (datos estructurados + requisitos + TDR adjunto) |
+| **IA acotada** | La IA **no** estructura el catálogo ni hace matching semántico. Tiene dos usos en el MVP: **generar el documento base de postulación** a partir del proyecto del usuario y del contexto de la convocatoria (datos estructurados + requisitos + TDR adjunto) y, *desde la sesión 030*, **proponer el borrador de un proyecto a partir de la explicación de la empresa** (CU-43, RN-37), que la empresa revisa antes de guardar |
 | **Búsqueda sin IA** | Catálogo con filtros por categorías + sugerencias por cruce de atributos, presentadas como **porcentaje de compatibilidad** con desglose por criterio |
 | **La plataforma no presenta la postulación** | La radicación se hace en el portal de la entidad convocante. La plataforma acompaña la **preparación**: encontrar, evaluar compatibilidad, generar el documento base, organizar el checklist y hacer seguimiento |
 | **Red de consultores** | Tercer rol: perfil con portafolio, hoja de vida y redes; ingreso aprobado por administradores; encargos por tarea desde el proyecto (directorio o asignación interna); rating por encargo completado |
