@@ -18,12 +18,12 @@ import { createClient } from "@supabase/supabase-js";
 
 export type NombreLimite = "login" | "registro" | "recuperacion" | "ia";
 
-type Sujeto = "correo" | "cuenta" | "ip" | "usuario";
+type Sujeto = "correo" | "ip" | "usuario";
 
 const LIMITES: Record<NombreLimite, { ventanaSeg: number; maximos: Partial<Record<Sujeto, number>> }> = {
-  // correo = correo + IP (nadie bloquea a otro desde otra máquina); cuenta = el
-  // correo solo, más alto, contra probar una misma cuenta desde muchas IP.
-  login: { ventanaSeg: 600, maximos: { correo: 8, cuenta: 30, ip: 50 } },
+  // correo = correo + IP (nadie bloquea a otro desde otra máquina). Contra probar
+  // una misma cuenta desde muchas IP están los fallos por cuenta, más abajo.
+  login: { ventanaSeg: 600, maximos: { correo: 8, ip: 50 } },
   registro: { ventanaSeg: 3600, maximos: { ip: 10 } },
   recuperacion: { ventanaSeg: 3600, maximos: { correo: 3, ip: 10 } },
   ia: { ventanaSeg: 600, maximos: { usuario: 30 } },
@@ -36,10 +36,10 @@ export type Veredicto =
   | { ok: false; motivo: "limite"; reintentarEnSeg: number }
   | { ok: false; motivo: "no_disponible" };
 
-type Identidad = { correo?: string | null; cuenta?: string | null; ip?: string | null; usuarioId?: string | null };
+type Identidad = { correo?: string | null; ip?: string | null; usuarioId?: string | null };
 
 function valorDe(sujeto: Sujeto, id: Identidad): string | null {
-  const v = sujeto === "correo" ? id.correo : sujeto === "cuenta" ? id.cuenta : sujeto === "ip" ? id.ip : id.usuarioId;
+  const v = sujeto === "correo" ? id.correo : sujeto === "ip" ? id.ip : id.usuarioId;
   return v ? v.trim().toLowerCase().slice(0, 200) : null;
 }
 
@@ -147,4 +147,72 @@ export async function limitarIA(usuarioId: string, ruta: string): Promise<NextRe
   if (v.ok) return null;
   if (v.motivo === "no_disponible") return NextResponse.json({ error: mensajeLimite(v) }, { status: 503 });
   return NextResponse.json({ error: mensajeLimite(v) }, { status: 429, headers: { "Retry-After": String(v.reintentarEnSeg) } });
+}
+
+// ---------------------------------------------------------------------------
+// Fallos por cuenta (RF-66, revisiones de seguridad de la sesión 030)
+//
+// Contra probar una misma cuenta desde muchas IP, sin dejar que un tercero
+// bloquee al dueño: solo cuentan los intentos FALLIDOS, y pasado el tope se
+// rechazan las IP nuevas pero no aquellas desde las que la cuenta ya entró
+// bien en los últimos 30 días.
+// ---------------------------------------------------------------------------
+
+const FALLOS_CUENTA = { maximo: 30, ventanaSeg: 600 } as const;
+const IP_CONOCIDA_SEG = 30 * 24 * 3600;
+
+const normalizarCorreo = (correo: string) => correo.trim().toLowerCase().slice(0, 200);
+const claveFallos = (correo: string) =>
+  "lt:login:fallos_cuenta:" + normalizarCorreo(correo) + ":" + Math.floor(Date.now() / 1000 / FALLOS_CUENTA.ventanaSeg);
+const claveIpConocida = (correo: string, ip: string) => "lt:login:ip_conocida:" + normalizarCorreo(correo) + ":" + ip;
+
+/** Antes de llamar a Auth: ¿la cuenta superó el tope de fallos y esta IP es nueva para ella? */
+export async function cuentaBloqueadaParaIp(correo: string, ip: string | null): Promise<Veredicto> {
+  try {
+    const [fallos, conocida] = await upstash([
+      ["GET", claveFallos(correo)],
+      ["EXISTS", ip ? claveIpConocida(correo, ip) : "lt:sin-ip"],
+    ]);
+    if (Number(fallos ?? 0) <= FALLOS_CUENTA.maximo || Number(conocida) === 1) return { ok: true };
+    const ahora = Math.floor(Date.now() / 1000);
+    const fin = (Math.floor(ahora / FALLOS_CUENTA.ventanaSeg) + 1) * FALLOS_CUENTA.ventanaSeg;
+    return { ok: false, motivo: "limite", reintentarEnSeg: Math.max(1, fin - ahora) };
+  } catch (e) {
+    console.error("Límite de tasa: Upstash no respondió (fallos de cuenta); se rechaza", e instanceof Error ? e.message : e);
+    return { ok: false, motivo: "no_disponible" };
+  }
+}
+
+/** Tras un fallo de Auth: suma el fallo y, al cruzar el tope, deja el evento para el panel. */
+export async function registrarFalloCuenta(correo: string, ip: string | null): Promise<void> {
+  const clave = claveFallos(correo);
+  try {
+    const [n] = await upstash([["INCR", clave], ["EXPIRE", clave, FALLOS_CUENTA.ventanaSeg + 60]]);
+    if (Number(n) === FALLOS_CUENTA.maximo + 1) {
+      const fin = (Math.floor(Date.now() / 1000 / FALLOS_CUENTA.ventanaSeg) + 1) * FALLOS_CUENTA.ventanaSeg;
+      const { error } = await servicio().from("eventos_seguridad").insert({
+        tipo: "limite_tasa",
+        ip,
+        ruta: "/login",
+        detalle:
+          "Más de " + FALLOS_CUENTA.maximo + " inicios de sesión fallidos para " + correo + " en " +
+          FALLOS_CUENTA.ventanaSeg / 60 + " minutos; solo entran las IP conocidas de la cuenta",
+        bloqueado_hasta: new Date(fin * 1000).toISOString(),
+        clave_limite: clave,
+      });
+      if (error) console.error("Límite de tasa: no se pudo registrar el bloqueo de cuenta", error.message);
+    }
+  } catch (e) {
+    console.error("Límite de tasa: no se pudo contar el fallo de la cuenta", e instanceof Error ? e.message : e);
+  }
+}
+
+/** Tras un inicio correcto: recuerda la IP como conocida para la cuenta. */
+export async function recordarIpConocida(correo: string, ip: string | null): Promise<void> {
+  if (!ip) return;
+  try {
+    await upstash([["SET", claveIpConocida(correo, ip), "1", "EX", IP_CONOCIDA_SEG]]);
+  } catch (e) {
+    console.error("Límite de tasa: no se pudo recordar la IP", e instanceof Error ? e.message : e);
+  }
 }

@@ -963,7 +963,7 @@ Migración `20261026130000_bloqueos_limite_tasa`. El conteo vive en **Upstash Re
 
 | Límite | Sujeto y máximo | Ventana | Dónde |
 |---|---|---|---|
-| `login` | correo + IP 8 · cuenta 30 · IP 50 | 10 min | `iniciarSesion` (el correo va con la IP para que nadie bloquee a otro desde otra máquina; la cuenta sola, más alta, contra un ataque desde muchas IP) |
+| `login` | correo + IP 8 · IP 50 · **fallos por cuenta 30** | 10 min | `iniciarSesion`. El correo va con la IP para que nadie bloquee a otro desde otra máquina. Los fallos por cuenta (`lt:login:fallos_cuenta:…`) se suman solo cuando Auth rechaza la contraseña; pasado el tope se rechazan las IP nuevas, pero no las que la cuenta usó con éxito en los últimos 30 días (`lt:login:ip_conocida:…`). Al cruzarlo queda un evento liberable desde el panel |
 | `registro` | IP 10 | 1 h | `registrarse` |
 | `recuperacion` | correo 3 · IP 10 | 1 h | `pedirRecuperacion` (pasado el límite responde el mensaje de siempre y no envía) |
 | `ia` | usuario 30 | 10 min | generar, ajustar, estructurar y transcribir, antes de reservar crédito |

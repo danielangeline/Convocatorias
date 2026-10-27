@@ -6,7 +6,7 @@ import { crearClienteServidor, crearClienteServicio } from "@/lib/supabase/servi
 import { obtenerSesion } from "@/lib/auth";
 import { AVISO_PUERTA, puertaDeParametro, rutaInicioDeRol } from "@/lib/rutas";
 import type { RolUsuario } from "@/lib/types";
-import { comprobarLimite, mensajeLimite } from "@/lib/limite-tasa";
+import { comprobarLimite, cuentaBloqueadaParaIp, mensajeLimite, recordarIpConocida, registrarFalloCuenta } from "@/lib/limite-tasa";
 
 export interface ResultadoFormulario {
   error?: string;
@@ -110,11 +110,14 @@ export async function iniciarSesion(_previo: ResultadoFormulario, formulario: Fo
   // RF-66, RNF-27: por correo e IP juntos, contra adivinar la contraseña de una
   // cuenta, y por IP, contra probar muchas cuentas. Antes de llamar a Auth. El
   // correo va con la IP para que nadie bloquee a otro escribiendo mal su correo
-  // desde otra máquina; y la cuenta sola, con un tope más alto, contra probarla
-  // desde muchas IP (revisiones de seguridad de la sesión 030).
+  // desde otra máquina. Contra probar una cuenta desde muchas IP cuentan sus
+  // fallos, y pasado el tope solo entran las IP desde las que ya entró bien:
+  // así un tercero no deja afuera al dueño (revisiones de seguridad, sesión 030).
   const ip = await ipDeLaPeticion();
-  const limite = await comprobarLimite("login", { correo: `${correo}|${ip ?? "sin-ip"}`, cuenta: correo, ip }, "/login");
+  const limite = await comprobarLimite("login", { correo: `${correo}|${ip ?? "sin-ip"}`, ip }, "/login");
   if (!limite.ok) return { error: mensajeLimite(limite) };
+  const cuenta = await cuentaBloqueadaParaIp(correo, ip);
+  if (!cuenta.ok) return { error: mensajeLimite(cuenta) };
 
   const supabase = await crearClienteServidor();
   const { data, error } = await supabase.auth.signInWithPassword({ email: correo, password: contrasena });
@@ -124,9 +127,12 @@ export async function iniciarSesion(_previo: ResultadoFormulario, formulario: Fo
       return { error: "Todavía no confirmas tu correo. Revisa tu bandeja de entrada." };
     }
     await registrarEvento("login_fallido", { ruta: "/login", detalle: `Inicio de sesión fallido para ${correo}` });
+    await registrarFalloCuenta(correo, ip);
     // Mismo mensaje exista o no la cuenta: no se revela qué correos están registrados.
     return { error: "Correo o contraseña incorrectos." };
   }
+
+  await recordarIpConocida(correo, ip);
 
   // El mismo cliente ya tiene la sesión en memoria.
   const { data: perfil } = await supabase.from("perfiles").select("rol").eq("id", data.user.id).maybeSingle();
