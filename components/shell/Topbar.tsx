@@ -4,6 +4,8 @@ import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Menu, PanelLeft, Search } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
+import { Notificaciones } from "./Notificaciones";
+import type { Notificacion } from "@/lib/notificaciones-empresa";
 
 export function Topbar({
   grupo,
@@ -11,6 +13,7 @@ export function Topbar({
   conBusqueda,
   alContraer,
   alAbrirMovil,
+  notificaciones,
 }: {
   grupo: string;
   pantalla: string;
@@ -18,6 +21,7 @@ export function Topbar({
   conBusqueda: boolean;
   alContraer: () => void;
   alAbrirMovil: () => void;
+  notificaciones?: Notificacion[];
 }) {
   const router = useRouter();
   const campo = useRef<HTMLInputElement>(null);
@@ -71,13 +75,14 @@ export function Topbar({
             ref={campo}
             name="q"
             aria-label="Buscar convocatorias"
-            placeholder="Buscar convocatorias…"
+            placeholder="Buscar en la plataforma…"
             className="min-w-0 flex-1 bg-transparent text-[13px] text-ink outline-none"
           />
           <kbd className="font-tabular rounded-[5px] border border-line bg-surface-2 px-1.5 py-0.5 text-[11px]">⌘K</kbd>
         </form>
       )}
       <ThemeToggle />
+      {notificaciones && <Notificaciones avisos={notificaciones} />}
     </header>
   );
 }

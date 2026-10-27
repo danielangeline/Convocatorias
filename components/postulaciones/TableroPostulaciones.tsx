@@ -10,12 +10,14 @@ import { Badge } from "@/components/ui/Badge";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { KanbanBoard, type ColumnaKanban } from "@/components/viz/KanbanBoard";
 import type { Tono } from "@/components/viz/tonos";
-import { ESTADO_POSTULACION_ESTILO, ESTADO_POSTULACION_LABEL, ESTADO_POSTULACION_ORDEN, formatFecha } from "@/lib/utils";
+import { ETAPAS_TABLERO, ETAPA_LABEL, type EtapaPostulacion } from "@/lib/etapas-postulacion";
+import { ESTADO_POSTULACION_ESTILO, ESTADO_POSTULACION_LABEL, formatFecha } from "@/lib/utils";
 import type { EstadoPostulacion } from "@/lib/types";
 
 export interface ItemTablero {
   id: string;
   estado: EstadoPostulacion;
+  etapa: EtapaPostulacion;
   nombre: string;
   entidad: string;
   proyecto: string;
@@ -24,28 +26,32 @@ export interface ItemTablero {
   /** Días al cierre; nulo si la convocatoria ya no está disponible. */
   dias: number | null;
   cierre: string | null;
+  /** Días desde que se radicó (RN-19: en el portal de la entidad). */
+  radicadaHace: number | null;
+  consultor: string | null;
 }
 
-const TONO_ESTADO: Record<EstadoPostulacion, Tono> = {
-  en_preparacion: "neutro",
-  presentada: "sky",
-  en_evaluacion: "amber",
-  aprobada: "pri",
-  rechazada: "rose",
-  cerrada: "neutro",
+const TONO_ETAPA: Record<EtapaPostulacion, Tono> = {
+  preparacion: "neutro",
+  documentos: "sky",
+  lista: "amber",
+  radicada: "pri",
+  resuelta: "neutro",
 };
 
-/** CU-13 · Tablero por estado de la postulación, con vista de lista alternativa. */
+/** CU-13, RF-104 · Tablero por etapa (vista sobre los estados reales) y lista alternativa. */
 export function TableroPostulaciones({ items }: { items: ItemTablero[] }) {
   const [vista, setVista] = useState<"tablero" | "lista">("tablero");
   const router = useRouter();
 
-  const columnas: ColumnaKanban[] = ESTADO_POSTULACION_ORDEN.map((estado) => ({
-    clave: estado,
-    titulo: ESTADO_POSTULACION_LABEL[estado],
-    tono: TONO_ESTADO[estado],
+  const columnas: ColumnaKanban[] = ETAPAS_TABLERO.filter(
+    (e) => e !== "resuelta" || items.some((i) => i.etapa === "resuelta")
+  ).map((etapa) => ({
+    clave: etapa,
+    titulo: ETAPA_LABEL[etapa],
+    tono: TONO_ETAPA[etapa],
     tarjetas: items
-      .filter((i) => i.estado === estado)
+      .filter((i) => i.etapa === etapa)
       .map((i) => ({
         id: i.id,
         entidad: i.entidad,
@@ -53,7 +59,16 @@ export function TableroPostulaciones({ items }: { items: ItemTablero[] }) {
         proyecto: i.proyecto,
         hechos: i.hechos,
         total: i.total,
-        dias: i.dias !== null && i.dias >= 0 ? i.dias : null,
+        dias: i.dias !== null && i.dias >= 0 && i.etapa !== "resuelta" ? i.dias : null,
+        consultor: i.consultor ?? undefined,
+        nota:
+          i.etapa === "radicada" && i.radicadaHace !== null
+            ? i.radicadaHace === 0
+              ? "Radicada hoy"
+              : `Radicada hace ${i.radicadaHace} d`
+            : i.etapa === "resuelta"
+              ? ESTADO_POSTULACION_LABEL[i.estado]
+              : undefined,
       })),
   }));
 
@@ -75,7 +90,7 @@ export function TableroPostulaciones({ items }: { items: ItemTablero[] }) {
         <KanbanBoard
           columnas={columnas}
           renderTarjeta={(t, contenido) => (
-            <Link href={`/postulaciones/${t.id}`} className="block rounded-xl outline-offset-2 hover:[&>div]:border-pri">
+            <Link href={`/postulaciones/${t.id}`} className="block rounded-xl hover:[&>div]:border-pri">
               {contenido}
             </Link>
           )}
@@ -101,9 +116,15 @@ export function TableroPostulaciones({ items }: { items: ItemTablero[] }) {
               ),
             },
             {
+              clave: "etapa",
+              titulo: "Etapa",
+              ancho: "150px",
+              celda: (i) => <span className="font-semibold text-ink-2">{ETAPA_LABEL[i.etapa]}</span>,
+            },
+            {
               clave: "estado",
               titulo: "Estado",
-              ancho: "150px",
+              ancho: "140px",
               celda: (i) => <Badge className={ESTADO_POSTULACION_ESTILO[i.estado]}>{ESTADO_POSTULACION_LABEL[i.estado]}</Badge>,
             },
             {

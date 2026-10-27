@@ -47,6 +47,8 @@ export function EditorConvocatoria({
     descripcion: convocatoria.descripcion,
     ubicacion: convocatoria.ubicacion,
     urlPostulacion: convocatoria.urlPostulacion,
+    tipo: convocatoria.tipo,
+    origen: convocatoria.origen,
     montoMin: formatearMontoCOP(convocatoria.montoMin),
     montoMax: formatearMontoCOP(convocatoria.montoMax),
     fechaApertura: convocatoria.fechaApertura ?? "",
@@ -283,6 +285,19 @@ export function EditorConvocatoria({
                 maxLength={300}
               />
               <p className="mt-1 text-xs text-ink-3">Se muestra en la ficha; no se usa para filtrar ni para las sugerencias.</p>
+            </Campo>
+            <Campo etiqueta="Tipo de convocatoria">
+              <select {...campo("tipo")} className={claseCampo}>
+                <option value="fondo">Fondos y financiación</option>
+                <option value="beneficio_tributario">Beneficio tributario</option>
+              </select>
+            </Campo>
+            <Campo etiqueta="Origen">
+              <select {...campo("origen")} className={claseCampo}>
+                <option value="publico">Público</option>
+                <option value="privado">Privado</option>
+                <option value="cooperacion">Cooperación internacional</option>
+              </select>
             </Campo>
             <Campo etiqueta="Enlace oficial de postulación (URL del portal de la entidad)" span2>
               <input

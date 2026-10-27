@@ -14,11 +14,16 @@ export function StackedBarChart({
   datos,
   etiquetaAccesible,
   unaSerie = false,
+  etiquetaPrivado = "Privados",
+  formatear = montoCorto,
 }: {
   datos: BarraApilada[];
   etiquetaAccesible: string;
   /** Sin distinción público/privado (si el dato no existe): solo la serie pri y sin leyenda. */
   unaSerie?: boolean;
+  etiquetaPrivado?: string;
+  /** Cómo se escribe cada total (por defecto, abreviado en M o mM). */
+  formatear?: (valor: number) => string;
 }) {
   const max = Math.max(0, ...datos.map((d) => d.publico + d.privado));
   if (datos.length === 0 || max === 0) {
@@ -34,7 +39,7 @@ export function StackedBarChart({
         </span>
         <span className="flex items-center gap-1.5">
           <span className="h-2 w-2 rounded-sm bg-sky" />
-          Privados
+          {etiquetaPrivado}
         </span>
       </div>
       <div
@@ -48,13 +53,13 @@ export function StackedBarChart({
           const hPriv = (d.privado / max) * alto;
           return (
             <div key={d.etiqueta} className="flex h-full flex-1 flex-col items-center justify-end gap-1.5">
-              <span className="font-tabular text-[11px] text-ink-2">{montoCorto(total)}</span>
+              <span className="font-tabular text-[11px] text-ink-2">{formatear(total)}</span>
               <div className="flex w-full max-w-[46px] flex-col gap-[3px]">
                 {hPriv > 0 && (
                   <div
                     className="crece-alto rounded-t-md rounded-b-[3px] bg-sky"
                     style={{ height: Math.max(3, hPriv) }}
-                    title={`Privados: ${montoCorto(d.privado)} COP`}
+                    title={`${etiquetaPrivado}: ${formatear(d.privado)} COP`}
                   />
                 )}
                 {hPub > 0 && (
@@ -65,7 +70,7 @@ export function StackedBarChart({
                       borderTopLeftRadius: hPriv > 0 ? 3 : 6,
                       borderTopRightRadius: hPriv > 0 ? 3 : 6,
                     }}
-                    title={`Públicos: ${montoCorto(d.publico)} COP`}
+                    title={`Públicos: ${formatear(d.publico)} COP`}
                   />
                 )}
               </div>
@@ -86,15 +91,15 @@ export function StackedBarChart({
           <tr>
             <th>Mes</th>
             <th>Públicos</th>
-            <th>Privados</th>
+            <th>{etiquetaPrivado}</th>
           </tr>
         </thead>
         <tbody>
           {datos.map((d) => (
             <tr key={d.etiqueta}>
               <td>{d.etiqueta}</td>
-              <td>{montoCorto(d.publico)}</td>
-              <td>{montoCorto(d.privado)}</td>
+              <td>{formatear(d.publico)}</td>
+              <td>{formatear(d.privado)}</td>
             </tr>
           ))}
         </tbody>

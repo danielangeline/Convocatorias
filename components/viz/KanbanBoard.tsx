@@ -11,6 +11,8 @@ export interface TarjetaKanban {
   dias: number | null;
   consultor?: string;
   href?: string;
+  /** Reemplaza «Cierra en N d» (p. ej. «Radicada hace 3 d»). */
+  nota?: string;
 }
 
 export interface ColumnaKanban {
@@ -38,7 +40,7 @@ export function KanbanBoard({
   renderTarjeta?: (t: TarjetaKanban, contenido: React.ReactNode) => React.ReactNode;
 }) {
   return (
-    <div className="grid grid-flow-col auto-cols-[minmax(240px,1fr)] gap-3.5 overflow-x-auto pb-1.5">
+    <div className="grid grid-flow-col auto-cols-[minmax(220px,1fr)] gap-3.5 overflow-x-auto pb-1.5">
       {columnas.map((col) => (
         <section
           key={col.clave}
@@ -51,8 +53,6 @@ export function KanbanBoard({
             <span className="font-tabular text-xs text-ink-3">{col.tarjetas.length}</span>
           </header>
           {col.tarjetas.map((t) => {
-            const urgencia =
-              t.dias === null ? "neutro" : t.dias < 10 ? "rose" : t.dias < 15 ? "amber" : "neutro";
             const contenido = (
               <div className="flex flex-col gap-2.5 rounded-xl border border-line bg-surface p-3.5 shadow-card">
                 <div className="text-[11.5px] font-semibold text-ink-3">{t.entidad}</div>
@@ -67,10 +67,12 @@ export function KanbanBoard({
                   <span className="font-tabular text-ink-3">
                     {t.hechos}/{t.total} requisitos
                   </span>
-                  {t.dias !== null && (
-                    <span className={`rounded-md px-1.5 py-0.5 font-bold ${TONO_CLASE[urgencia]}`}>
-                      {t.dias} d
-                    </span>
+                  {t.nota ? (
+                    <span className="text-ink-3">{t.nota}</span>
+                  ) : (
+                    t.dias !== null && (
+                      <span className={t.dias < 15 ? "font-bold text-amber-ink" : "text-ink-3"}>Cierra en {t.dias} d</span>
+                    )
                   )}
                 </div>
                 {t.consultor && (

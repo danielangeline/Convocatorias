@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, LayoutGrid, List, Search, SlidersHorizontal, X } from "lucide-react";
+import { ChevronDown, Coins, LayoutGrid, Layers, List, ReceiptText, Search, SlidersHorizontal, X } from "lucide-react";
 import { cn, diasRestantes, formatFecha, formatRangoCOP } from "@/lib/utils";
 import {
   DIAS_CIERRE,
@@ -19,7 +19,7 @@ import {
 } from "@/lib/catalogo-filtros";
 import { leerMontoCOP } from "@/lib/montos";
 import { DEPARTAMENTOS, REGIONES, esCodigoDepartamento, nombreDepartamento, type ClaveRegion } from "@/lib/departamentos";
-import type { Categoria, Convocatoria, TipoDocumento } from "@/lib/types";
+import type { Categoria, Convocatoria, OrigenConvocatoria, TipoConvocatoria, TipoDocumento } from "@/lib/types";
 import { ConvocatoriaCard } from "@/components/ConvocatoriaCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
@@ -94,8 +94,11 @@ export function CatalogoEmpresa({
   categorias,
   rutaFicha,
   soloVigentes = false,
-  titulo = "Convocatorias disponibles",
+  titulo = "Convocatorias",
   busquedaInicial = "",
+  tipoInicial = "todas",
+  compatibilidad,
+  guardadas: guardadasIniciales,
 }: {
   convocatorias: Convocatoria[];
   categorias: Categoria[];
@@ -104,6 +107,12 @@ export function CatalogoEmpresa({
   titulo?: string;
   /** Búsqueda que llega de la barra superior (`/convocatorias?q=`). */
   busquedaInicial?: string;
+  /** RF-102: tipo preseleccionado (`/convocatorias?tipo=`). */
+  tipoInicial?: TipoConvocatoria | "todas";
+  /** Porcentaje de compatibilidad por convocatoria (CU-10); sin él no hay anillo ni orden por compatibilidad. */
+  compatibilidad?: Record<string, number>;
+  /** RF-103: ids guardados; sin la prop no se ofrece guardar (p. ej. el consultor). */
+  guardadas?: string[];
 }) {
   const tiposProyecto = useMemo(() => categorias.filter((c) => c.tipo === "tipo_proyecto"), [categorias]);
   const sectores = useMemo(() => categorias.filter((c) => c.tipo === "sector"), [categorias]);
@@ -113,7 +122,44 @@ export function CatalogoEmpresa({
   const router = useRouter();
   const [f, setF] = useState<Filtros>(SIN_FILTROS);
   const [orden, setOrden] = useState<ClaveOrden | "">("");
-  const [filtrosAbiertos, setFiltrosAbiertos] = useState(true);
+  const [filtrosAbiertos, setFiltrosAbiertos] = useState(false);
+  const [tipo, setTipoEstado] = useState<TipoConvocatoria | "todas">(tipoInicial);
+  const [origen, setOrigen] = useState<OrigenConvocatoria | "todos">("todos");
+  const [guardadas, setGuardadas] = useState(() => new Set(guardadasIniciales ?? []));
+  const [errorGuardar, setErrorGuardar] = useState<string | null>(null);
+  // La dirección refleja el tipo (para el menú «Beneficios tributarios») sin recargar ni perder los filtros.
+  const setTipo = (t: TipoConvocatoria | "todas") => {
+    setTipoEstado(t);
+    const url = new URL(window.location.href);
+    if (t === "todas") url.searchParams.delete("tipo");
+    else url.searchParams.set("tipo", t);
+    window.history.replaceState(null, "", url.toString());
+  };
+  const alternarGuardada = async (id: string) => {
+    const estaba = guardadas.has(id);
+    setErrorGuardar(null);
+    setGuardadas((prev) => {
+      const n = new Set(prev);
+      if (estaba) n.delete(id);
+      else n.add(id);
+      return n;
+    });
+    const r = await fetch(estaba ? `/api/guardadas/${id}` : "/api/guardadas", {
+      method: estaba ? "DELETE" : "POST",
+      headers: { "content-type": "application/json" },
+      body: estaba ? undefined : JSON.stringify({ convocatoriaId: id }),
+    }).catch(() => null);
+    if (!r?.ok) {
+      // El servidor manda: si falló, se deshace el cambio y se avisa.
+      setGuardadas((prev) => {
+        const n = new Set(prev);
+        if (estaba) n.add(id);
+        else n.delete(id);
+        return n;
+      });
+      setErrorGuardar("No pudimos actualizar tus guardadas. Inténtalo otra vez.");
+    }
+  };
   const set = <K extends keyof Filtros>(clave: K, valor: Filtros[K]) => setF((prev) => ({ ...prev, [clave]: valor }));
   const alternar = <K extends "tipoProyecto" | "sector" | "tipoEntidad" | "tipoDoc">(clave: K, valor: Filtros[K][number]) =>
     setF((prev) => {
@@ -121,9 +167,16 @@ export function CatalogoEmpresa({
       return { ...prev, [clave]: lista.includes(valor as string) ? lista.filter((v) => v !== valor) : [...lista, valor] };
     });
 
+  // RF-102: tipo y origen recortan el conjunto antes que los 20 filtros (sus conteos salen de lo que queda).
   const convocatorias = useMemo(
-    () => (f.incluirCerradas ? todas : todas.filter((c) => c.estado !== "cerrada")),
-    [todas, f.incluirCerradas]
+    () =>
+      todas.filter(
+        (c) =>
+          (f.incluirCerradas || c.estado !== "cerrada") &&
+          (tipo === "todas" || (c.tipo ?? "fondo") === tipo) &&
+          (origen === "todos" || (c.origen ?? "publico") === origen)
+      ),
+    [todas, f.incluirCerradas, tipo, origen]
   );
 
   const entidades = useMemo(() => {
@@ -178,9 +231,15 @@ export function CatalogoEmpresa({
       exigeDocumentos: f.exigeDocumentos,
       maxRequisitos: maxReq,
     });
-    // RF-94: sin orden elegido se conserva el del servidor.
-    return orden ? ordenarCatalogo(filtradas, orden) : filtradas;
-  }, [convocatorias, busqueda, f, orden, lecturaHasta, lecturaDesde, maxReq]);
+    // RF-94: con orden elegido, ese; si no, por compatibilidad con los proyectos (CU-10)
+    // cuando la hay, y si no, el del servidor.
+    if (orden) return ordenarCatalogo(filtradas, orden);
+    if (compatibilidad && Object.keys(compatibilidad).length > 0) {
+      return [...filtradas].sort((a, b) => (compatibilidad[b.id] ?? -1) - (compatibilidad[a.id] ?? -1));
+    }
+    return filtradas;
+  }, [convocatorias, busqueda, f, orden, lecturaHasta, lecturaDesde, maxReq, compatibilidad]);
+  const porCompatibilidad = !orden && !!compatibilidad && Object.keys(compatibilidad).length > 0;
 
   // RF-95: cada filtro activo, con su valor y la forma de quitarlo.
   const nombreCategoria = (id: string) => categorias.find((c) => c.id === id)?.nombre ?? "Categoría";
@@ -240,17 +299,20 @@ export function CatalogoEmpresa({
         titulo={titulo}
         descripcion={
           <span aria-live="polite">
-            {resultados.length} {resultados.length === 1 ? "convocatoria encontrada" : "convocatorias encontradas"}
+            {resultados.length} {resultados.length === 1 ? "resultado" : "resultados"}
+            {porCompatibilidad && " · ordenadas por compatibilidad con tus proyectos"}
           </span>
         }
         accion={
           <Segmented
-            etiqueta="Vista"
-            valor={vista}
-            onChange={setVista}
+            grande
+            etiqueta="Tipo de convocatoria"
+            valor={tipo}
+            onChange={setTipo}
             opciones={[
-              { valor: "tarjetas", titulo: "Tarjetas", etiqueta: <LayoutGrid className="h-4 w-4" aria-label="Tarjetas" /> },
-              { valor: "lista", titulo: "Lista", etiqueta: <List className="h-4 w-4" aria-label="Lista" /> },
+              { valor: "todas", etiqueta: <><Layers className="h-4 w-4" />Todas</> },
+              { valor: "fondo", etiqueta: <><Coins className="h-4 w-4" />Fondos y financiación</> },
+              { valor: "beneficio_tributario", etiqueta: <><ReceiptText className="h-4 w-4" />Beneficios tributarios</> },
             ]}
           />
         }
@@ -262,7 +324,7 @@ export function CatalogoEmpresa({
           <input
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Buscar por nombre, entidad o palabra clave..."
+            placeholder="Busca por nombre, entidad o palabra clave"
             aria-label="Buscar convocatorias"
             className="h-[42px] w-full rounded-xl border border-line bg-surface py-2.5 pl-9 pr-4 text-[13.5px] text-ink outline-none placeholder:text-ink-3 focus:border-pri"
           />
@@ -280,11 +342,53 @@ export function CatalogoEmpresa({
             </option>
           ))}
         </select>
-        <Button variant={filtrosAbiertos ? "secondary" : "outline-amber"} size="md" onClick={() => setFiltrosAbiertos((v) => !v)} className="sm:w-auto">
+        <Button variant={filtrosAbiertos ? "secondary" : "outline-amber"} size="md" onClick={() => setFiltrosAbiertos((v) => !v)} className="h-[42px] sm:w-auto">
           <SlidersHorizontal className="h-4 w-4" />
           Filtros {activos.length > 0 && `(${activos.length})`}
         </Button>
       </div>
+
+      <div className="mb-4 flex flex-wrap items-center gap-2.5">
+        <div role="group" aria-label="Origen" className="flex flex-wrap gap-1.5">
+          {(
+            [
+              ["todos", "Todo origen"],
+              ["publico", "Público"],
+              ["privado", "Privado"],
+              ["cooperacion", "Cooperación"],
+            ] as const
+          ).map(([valor, etiqueta]) => (
+            <button
+              key={valor}
+              type="button"
+              aria-pressed={origen === valor}
+              onClick={() => setOrigen(valor)}
+              className={cn(
+                "h-10 cursor-pointer rounded-full border px-4 text-[13px] font-semibold transition-colors",
+                origen === valor ? "border-ink bg-ink text-bg" : "border-line bg-surface text-ink-2 hover:text-ink"
+              )}
+            >
+              {etiqueta}
+            </button>
+          ))}
+        </div>
+        <div className="flex-1" />
+        <Segmented
+          etiqueta="Vista"
+          valor={vista}
+          onChange={setVista}
+          opciones={[
+            { valor: "tarjetas", titulo: "Tarjetas", etiqueta: <LayoutGrid className="h-4 w-4" aria-label="Tarjetas" /> },
+            { valor: "lista", titulo: "Lista", etiqueta: <List className="h-4 w-4" aria-label="Lista" /> },
+          ]}
+        />
+      </div>
+
+      {errorGuardar && (
+        <p role="alert" className="mb-4 rounded-lg bg-rose/10 px-4 py-3 text-sm text-rose-ink">
+          {errorGuardar}
+        </p>
+      )}
 
       {activos.length > 0 && (
         <div className="mb-4 flex flex-wrap items-center gap-2" aria-label="Filtros activos">
@@ -506,6 +610,22 @@ export function CatalogoEmpresa({
                     ),
                   },
                   {
+                    clave: "tipo",
+                    titulo: "Tipo",
+                    ancho: "120px",
+                    celda: (c) => <span className="text-ink-2">{c.tipo === "beneficio_tributario" ? "Tributario" : "Fondos"}</span>,
+                  },
+                  {
+                    clave: "origen",
+                    titulo: "Origen",
+                    ancho: "110px",
+                    celda: (c) => (
+                      <span className="text-ink-2">
+                        {c.origen === "privado" ? "Privado" : c.origen === "cooperacion" ? "Cooperación" : "Público"}
+                      </span>
+                    ),
+                  },
+                  {
                     clave: "monto",
                     titulo: "Monto",
                     ancho: "minmax(0,1.6fr)",
@@ -524,12 +644,36 @@ export function CatalogoEmpresa({
                       );
                     },
                   },
+                  ...(compatibilidad
+                    ? [
+                        {
+                          clave: "match",
+                          titulo: "Match",
+                          ancho: "70px",
+                          alinear: "derecha" as const,
+                          celda: (c: Convocatoria) =>
+                            compatibilidad[c.id] !== undefined ? (
+                              <span className="font-tabular font-semibold text-pri-text">{compatibilidad[c.id]}%</span>
+                            ) : (
+                              <span className="text-ink-3">—</span>
+                            ),
+                        },
+                      ]
+                    : []),
                 ]}
               />
             ) : (
               <div className="grid gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
                 {resultados.map((c) => (
-                  <ConvocatoriaCard key={c.id} convocatoria={c} categorias={categorias} href={rutaFicha?.(c.id)} />
+                  <ConvocatoriaCard
+                    key={c.id}
+                    convocatoria={c}
+                    categorias={categorias}
+                    href={rutaFicha?.(c.id)}
+                    compatibilidad={compatibilidad?.[c.id]}
+                    guardada={guardadasIniciales ? guardadas.has(c.id) : undefined}
+                    onGuardar={guardadasIniciales ? () => alternarGuardada(c.id) : undefined}
+                  />
                 ))}
               </div>
             )

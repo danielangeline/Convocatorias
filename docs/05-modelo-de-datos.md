@@ -983,3 +983,24 @@ Migración `20261026140000_creditos_por_tarifa`. Por decisión del Product Owner
 **Cobro.** `privado.descontar_creditos(p_suscripcion, p_cantidad)` reemplaza a `descontar_credito`: toma primero lo que queda del plan y el resto de los paquetes (RN-18); si no alcanza, `sin_creditos`. `privado.reservas_de()` suma ahora créditos: cada generación, ajuste que cobra y estructuración en curso cuenta su tarifa. `iniciar_generacion`, `preparar_ajuste`, `iniciar_estructuracion` e `iniciar_transcripcion` exigen que **el saldo libre alcance la tarifa** (el dictado, la de estructurar), y `completar_*` descuentan la tarifa. `consumos_ia.creditos` (int, ≥ 0; solo si `credito_descontado`) guarda cuánto se cobró; `tablero_suscripciones` suma esos créditos.
 
 **Conversión de lo existente (×100).** `creditos_usados_periodo`, `creditos_extra` y `pagos_suscripcion.creditos` se multiplicaron por 100 (1 crédito valía un documento, que ahora cuesta 100), y los consumos ya cobrados quedaron con `creditos = 100`: nadie perdió lo que tenía. **Planes:** Trial 125, Esencial 350, Pro 800 (decisión del Product Owner). Topes: plan hasta 1 000 000 créditos al mes y paquete de 1 a 100 000.
+
+### 9.33 Tipo y origen de la convocatoria *(nuevo v6, sesión 031 · RF-102, migración `20261027100000`)*
+
+- `convocatorias.tipo_convocatoria` text not null default `'fondo'`, check en (`fondo`, `beneficio_tributario`).
+- `convocatorias.origen` text not null default `'publico'`, check en (`publico`, `privado`, `cooperacion`).
+- Índice `convocatorias_tipo_origen_idx (tipo_convocatoria, origen)`.
+- `guardar_convocatoria()` (§9.13) recibe `tipo_convocatoria` y `origen` en `p_datos`; si no llegan, conserva los que había. No entran en RN-01: tienen valor por defecto.
+- Las 11 publicadas de la sesión 029 se clasificaron por su entidad convocante: privadas BloombergNEF, eMerge Americas, MIIA y SAE, South Summit; cooperación UNICEF Venture Fund y EU-LAC; el resto, públicas. Todas son de fondos.
+
+### 9.34 Convocatorias guardadas *(nuevo v6, sesión 031 · RF-103, CU-45, migración `20261027100000`)*
+
+Tabla 36, `convocatorias_guardadas`:
+
+| Columna | Tipo | Restricción |
+|---|---|---|
+| usuario_id | uuid | FK → perfiles, not null, default `auth.uid()` · **RLS** · PK compuesta |
+| convocatoria_id | uuid | FK → convocatorias (on delete cascade), not null · PK compuesta |
+| creado_at | timestamptz | not null, default now() |
+
+**RLS:** el dueño lee y borra las suyas; insertar exige `usuario_id = auth.uid()`, rol empresa y que la convocatoria sea visible para quien inserta (la política de `convocatorias` decide, RN-33). Sin `update`. `anon` sin permisos. Índice por `convocatoria_id` para el borrado en cascada.
+

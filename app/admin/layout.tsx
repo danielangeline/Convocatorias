@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { AppShell } from "@/components/shell/AppShell";
+import { AdminShell } from "@/components/shell/AdminShell";
 import { SincronizarSesion } from "@/components/SincronizarSesion";
 import { exigirRol } from "@/lib/auth";
 import { contarSolicitudesEquipo } from "@/lib/encargos-servidor";
@@ -23,17 +23,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <>
       <SincronizarSesion datos={datos} />
-      <AppShell
-        rol="administrador"
+      <AdminShell
         esPropietario={datos.sesion.esPropietario}
-        ancho="max-w-6xl"
         contadores={{
           "/admin/encargos": solicitudesEquipo,
           "/admin/consultores/revision": perfilesEnRevision,
         }}
       >
         <main className="flex-1">{children}</main>
-      </AppShell>
+      </AdminShell>
     </>
   );
 }

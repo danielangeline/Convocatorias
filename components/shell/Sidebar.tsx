@@ -55,6 +55,7 @@ export function Sidebar({
   rol,
   grupos,
   pathname,
+  consulta,
   contadores,
   contraido,
   alNavegar,
@@ -62,6 +63,7 @@ export function Sidebar({
   rol: RolShell;
   grupos: GrupoMenu[];
   pathname: string;
+  consulta: string;
   contadores: Record<string, number>;
   contraido: boolean;
   alNavegar: () => void;
@@ -69,7 +71,7 @@ export function Sidebar({
   const sesion = useAppStore((s) => s.sesion);
   const [cerradosRaw, fijarCerrados] = useAlmacenLocal(`shell:${rol}:grupos-cerrados`, "");
   const cerrados = new Set(cerradosRaw.split(",").filter(Boolean));
-  const activo = itemActivo(grupos, pathname);
+  const activo = itemActivo(grupos, pathname, consulta);
 
   const alternar = (id: string) => {
     const nuevo = new Set(cerrados);

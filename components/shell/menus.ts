@@ -1,21 +1,16 @@
 import {
   ClipboardCheck,
-  ClipboardList,
   CreditCard,
-  FileStack,
   FolderKanban,
-  House,
+  Bookmark,
+  LayoutGrid,
+  ReceiptText,
+  Settings,
+  WandSparkles,
   Handshake,
-  LayoutDashboard,
-  Layers,
-  Rss,
   Search,
-  ShieldAlert,
   Sparkles,
-  Tags,
   User,
-  UserCheck,
-  UserCog,
   Users,
   type LucideIcon,
 } from "lucide-react";
@@ -42,19 +37,24 @@ export const PORTAL: Record<RolShell, string> = {
   administrador: "Panel administrativo",
 };
 
-// Solo rutas que existen. Las opciones del diseño sin pantalla propia
-// (Guardadas, Reseñas, Consumo de IA, Beneficios tributarios) quedan en el
-// backlog de la bitácora 031.
+// Solo rutas que existen. «Beneficios tributarios» es el catálogo con el tipo
+// preseleccionado (RF-102); un href con consulta solo se marca activo cuando
+// la consulta coincide.
 const EMPRESA: GrupoMenu[] = [
   {
     id: "general",
     titulo: "General",
-    items: [{ href: "/inicio", label: "Inicio", icono: House }],
+    items: [{ href: "/inicio", label: "Inicio", icono: LayoutGrid }],
   },
   {
     id: "descubrir",
     titulo: "Descubrir",
-    items: [{ href: "/convocatorias", label: "Convocatorias", icono: Search }],
+    items: [
+      { href: "/convocatorias", label: "Convocatorias", icono: Search },
+      { href: "/sugeridas", label: "Sugeridas para ti", icono: WandSparkles },
+      { href: "/convocatorias?tipo=beneficio_tributario", label: "Beneficios tributarios", icono: ReceiptText },
+      { href: "/guardadas", label: "Guardadas", icono: Bookmark },
+    ],
   },
   {
     id: "trabajo",
@@ -76,7 +76,10 @@ const EMPRESA: GrupoMenu[] = [
   {
     id: "cuenta",
     titulo: "Cuenta",
-    items: [{ href: "/suscripcion", label: "Plan y créditos", icono: CreditCard }],
+    items: [
+      { href: "/suscripcion", label: "Plan y créditos", icono: CreditCard },
+      { href: "/ajustes", label: "Ajustes", icono: Settings },
+    ],
   },
 ];
 
@@ -101,72 +104,29 @@ const CONSULTOR: GrupoMenu[] = [
   },
 ];
 
-const ADMIN: GrupoMenu[] = [
-  {
-    id: "general",
-    titulo: "General",
-    items: [{ href: "/admin", label: "Panel general", icono: LayoutDashboard, exacto: true }],
-  },
-  {
-    id: "convocatorias",
-    titulo: "Convocatorias",
-    items: [
-      { href: "/admin/convocatorias", label: "Convocatorias", icono: FileStack },
-      { href: "/admin/fuentes", label: "Fuentes", icono: Rss },
-      { href: "/admin/categorias", label: "Categorías", icono: Tags },
-    ],
-  },
-  {
-    id: "consultores",
-    titulo: "Consultores",
-    items: [
-      { href: "/admin/consultores/revision", label: "Perfiles en revisión", icono: UserCheck },
-      { href: "/admin/consultores", label: "Consultores", icono: Users },
-      { href: "/admin/encargos", label: "Solicitudes al equipo", icono: ClipboardList },
-    ],
-  },
-  {
-    id: "suscripciones",
-    titulo: "Suscripciones",
-    items: [
-      { href: "/admin/planes", label: "Planes", icono: Layers },
-      { href: "/admin/suscripciones", label: "Suscripciones", icono: CreditCard },
-    ],
-  },
-  {
-    id: "ia",
-    titulo: "Inteligencia artificial",
-    items: [{ href: "/admin/plantillas", label: "Plantillas de la IA", icono: Sparkles }],
-  },
-  {
-    id: "seguridad",
-    titulo: "Seguridad",
-    items: [{ href: "/admin/seguridad", label: "Eventos y bloqueos", icono: ShieldAlert }],
-  },
-];
-
-// Solo el Propietario ve la sección; a los demás el servidor les responde 404 (RF-86).
-const PROPIETARIO: GrupoMenu = {
-  id: "propietario",
-  titulo: "Propietario",
-  items: [{ href: "/admin/administradores", label: "Administradores", icono: UserCog }],
-};
-
-export function gruposDeRol(rol: RolShell, esPropietario: boolean): GrupoMenu[] {
-  if (rol === "empresa") return EMPRESA;
-  if (rol === "consultor") return CONSULTOR;
-  return esPropietario ? [...ADMIN, PROPIETARIO] : ADMIN;
+/** El menú del panel vive en `menus-admin.ts`: el JS del portal no nombra sus rutas (RNF-35). */
+export function gruposDeRol(rol: "empresa" | "consultor"): GrupoMenu[] {
+  return rol === "empresa" ? EMPRESA : CONSULTOR;
 }
 
 /** El ítem activo es el de href más largo que coincide con la ruta (evita que
  *  /admin/consultores se marque también en /admin/consultores/revision). */
-export function itemActivo(grupos: GrupoMenu[], pathname: string): { grupo: GrupoMenu; item: ItemMenu } | null {
+export function itemActivo(
+  grupos: GrupoMenu[],
+  pathname: string,
+  consulta: string = ""
+): { grupo: GrupoMenu; item: ItemMenu } | null {
   let mejor: { grupo: GrupoMenu; item: ItemMenu } | null = null;
+  const actual = new URLSearchParams(consulta);
   for (const grupo of grupos) {
     for (const item of grupo.items) {
-      const coincide = item.exacto
-        ? pathname === item.href
-        : pathname === item.href || pathname.startsWith(item.href + "/");
+      const [ruta, q] = item.href.split("?");
+      const pide = new URLSearchParams(q ?? "");
+      const consultaCoincide = [...pide.entries()].every(([k, v]) => actual.get(k) === v);
+      // Sin consulta propia, el ítem no se marca si la consulta actual es la de otro ítem.
+      const otroLaReclama = !q && grupos.some((g) => g.items.some((x) => x.href.startsWith(ruta + "?") && [...new URLSearchParams(x.href.split("?")[1]).entries()].every(([k, v]) => actual.get(k) === v)));
+      const coincideRuta = item.exacto ? pathname === ruta : pathname === ruta || pathname.startsWith(ruta + "/");
+      const coincide = coincideRuta && consultaCoincide && !otroLaReclama;
       if (coincide && (!mejor || item.href.length > mejor.item.href.length)) mejor = { grupo, item };
     }
   }

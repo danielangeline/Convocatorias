@@ -5,7 +5,7 @@ import { cache } from "react";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { firmarDescarga } from "@/lib/supabase/descarga";
 import { hoyColombia } from "@/lib/fechas";
-import type { Categoria, Convocatoria, Documento, EstadoConvocatoria, TipoCategoria, TipoDocumento, TipoRequisito } from "@/lib/types";
+import type { Categoria, Convocatoria, Documento, EstadoConvocatoria, OrigenConvocatoria, TipoConvocatoria, TipoCategoria, TipoDocumento, TipoRequisito } from "@/lib/types";
 
 /**
  * Catálogo de convocatorias para la empresa (RF-11, RF-12, RF-13, CU-07, CU-08 ·
@@ -14,7 +14,7 @@ import type { Categoria, Convocatoria, Documento, EstadoConvocatoria, TipoCatego
  */
 
 export const COLUMNAS_CONVOCATORIA =
-  "id, nombre, entidad_convocante, descripcion, monto_min, monto_max, ubicacion_cobertura, cobertura_nacional, fecha_apertura, fecha_cierre, url_postulacion, estado, convocatoria_categoria (categoria_id), convocatoria_departamento (departamento_codigo), requisitos_convocatoria (id, descripcion, tipo, obligatorio, orden), documentos_convocatoria (id, tipo_doc, nombre, storage_path, tamano_bytes)";
+  "id, nombre, entidad_convocante, descripcion, monto_min, monto_max, ubicacion_cobertura, cobertura_nacional, fecha_apertura, fecha_cierre, url_postulacion, estado, tipo_convocatoria, origen, publicada_at, convocatoria_categoria (categoria_id), convocatoria_departamento (departamento_codigo), requisitos_convocatoria (id, descripcion, tipo, obligatorio, orden), documentos_convocatoria (id, tipo_doc, nombre, storage_path, tamano_bytes)";
 
 const BUCKET = "documentos-convocatorias";
 
@@ -31,6 +31,9 @@ export type FilaConvocatoria = {
   fecha_cierre: string;
   url_postulacion: string | null;
   estado: EstadoConvocatoria;
+  tipo_convocatoria: TipoConvocatoria;
+  origen: OrigenConvocatoria;
+  publicada_at: string | null;
   convocatoria_categoria: { categoria_id: string }[];
   convocatoria_departamento: { departamento_codigo: string }[];
   requisitos_convocatoria: { id: string; descripcion: string; tipo: TipoRequisito; obligatorio: boolean; orden: number }[];
@@ -69,6 +72,9 @@ export function aConvocatoria(f: FilaConvocatoria): Convocatoria {
       })
     ),
     urlPostulacion: f.url_postulacion ?? undefined,
+    tipo: f.tipo_convocatoria,
+    origen: f.origen,
+    publicadaAt: f.publicada_at,
   };
 }
 

@@ -29,7 +29,7 @@ export function ModalSuscripcion() {
   const planesRol = planes.filter((p) => p.rol === rolPlan && !p.esTrial && p.activo !== false);
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/ p-4">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
       <div role="dialog" aria-modal="true" aria-labelledby="titulo-suscribete" className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-surface p-6 shadow-2xl sm:p-8">
         <div className="mb-2 flex items-start justify-between">
           <div className="flex items-center gap-3">

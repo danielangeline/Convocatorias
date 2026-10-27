@@ -1,5 +1,7 @@
 import type {
   EstadoConvocatoria,
+  OrigenConvocatoria,
+  TipoConvocatoria,
   EstadoEncargo,
   EstadoPropuesta,
   EstadoPerfilConsultor,
@@ -62,6 +64,17 @@ const TONO_NEUTRO = "bg-surface-2 text-ink-2";
 export function cn(...clases: Array<string | false | null | undefined>): string {
   return clases.filter(Boolean).join(" ");
 }
+
+export const TIPO_CONVOCATORIA_LABEL: Record<TipoConvocatoria, string> = {
+  fondo: "Fondos",
+  beneficio_tributario: "Beneficio tributario",
+};
+
+export const ORIGEN_CONVOCATORIA_LABEL: Record<OrigenConvocatoria, string> = {
+  publico: "Público",
+  privado: "Privado",
+  cooperacion: "Cooperación",
+};
 
 export const ESTADO_CONVOCATORIA_LABEL: Record<EstadoConvocatoria, string> = {
   borrador: "Borrador",

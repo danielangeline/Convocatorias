@@ -1,5 +1,6 @@
 import { FichaConvocatoria } from "@/components/catalogo/FichaConvocatoria";
 import { listarCategoriasActivas, obtenerFicha } from "@/lib/catalogo";
+import { listarGuardadas } from "@/lib/guardadas-servidor";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -7,9 +8,10 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // verla, para ella no existe (RN-33).
 export default async function DetalleConvocatoriaPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [convocatoria, categorias] = await Promise.all([
+  const [convocatoria, categorias, guardadas] = await Promise.all([
     UUID.test(id) ? obtenerFicha(id) : Promise.resolve(null),
     listarCategoriasActivas(),
+    listarGuardadas(),
   ]);
-  return <FichaConvocatoria convocatoria={convocatoria} categorias={categorias} />;
+  return <FichaConvocatoria convocatoria={convocatoria} categorias={categorias} guardada={guardadas.includes(id)} />;
 }

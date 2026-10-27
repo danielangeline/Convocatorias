@@ -71,6 +71,10 @@ Cada ruta declara los roles que admite (RNF-30). El rol se verifica en el servid
 | `/` | Landing con **indicadores agregados del catálogo** —ninguna convocatoria visible sin cuenta de empresa, RN-33— y las dos puertas de entrada | pública | CU-14, CU-36 |
 | `/convocatorias` | Catálogo con búsqueda, filtros y **chips sugeridos**; las cerradas quedan fuera por defecto y solo aparecen bajo filtro explícito (RF-11, RN-02) | empresa | CU-07 |
 | `/inicio` | Inicio de la empresa: indicadores, fondos por mes de cierre, próximos cierres, sugeridas y avance de postulaciones, solo con datos reales (RF-101) *(nuevo v6, sesión 031)* | empresa | CU-44 |
+| `/sugeridas` | Convocatorias compatibles con los proyectos, con el desglose por criterio (RF-106) *(nuevo v6, sesión 031)* | empresa | CU-10 |
+| `/guardadas` | Convocatorias guardadas por la empresa (RF-103) *(nuevo v6, sesión 031)* | empresa | CU-45 |
+| `/ajustes` | Datos de la cuenta, contraseña, sesión y preferencias del navegador (RF-107) *(nuevo v6, sesión 031)* | empresa | CU-46 |
+| `GET/POST /api/guardadas`, `DELETE /api/guardadas/[id]` | Listar, guardar y quitar guardadas; mismo origen en escrituras; la RLS decide (RF-103) *(nuevo v6, sesión 031)* | empresa | CU-45 |
 | `/convocatorias/[id]` | Ficha con botones **"Postular"**, **"Generar documento con IA"** e **"Ir al portal de la entidad"** *(v5)* | empresa | CU-08, 11, 33 |
 | `/convocatorias/[id]/generar` | Selección de proyecto, aviso de cupo y confirmación | empresa | CU-33 |
 | `/proyectos` · `/proyectos/[id]` | Lista y ficha del proyecto con **indicador de completitud accionable —los campos faltantes se editan aquí mismo (RF-81)**—, botón "Solicitar consultor" y "Generar documento para..." | empresa | CU-09, 19, 33 |

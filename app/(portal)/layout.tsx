@@ -20,6 +20,9 @@ import { listarPostulaciones, sinConvocatoria } from "@/lib/postulaciones-servid
 import { aEncargoBase, listarEncargosEmpresa } from "@/lib/encargos-servidor";
 import { aDocumentoStore, listarDocumentos } from "@/lib/documentos-servidor";
 import { leerTarifas, listarPlanesDelRol } from "@/lib/suscripcion-servidor";
+import { listarGuardadas } from "@/lib/guardadas-servidor";
+import { compatibilidadEmpresa, nuevasEstaSemana } from "@/lib/compatibilidad-empresa";
+import { notificacionesEmpresa } from "@/lib/notificaciones-empresa";
 
 // Portal Empresa: solo rol empresa (RNF-30, docs/04 §8.2). proxy.ts ya lo
 // aplica; esta es la segunda barrera.
@@ -43,6 +46,10 @@ export default async function PortalLayout({ children }: { children: React.React
     supabase.from("perfiles").select("consentimiento_datos_at").eq("id", datos.sesion.usuarioId).maybeSingle(),
     leerTarifas(),
   ]);
+  // RF-103, RF-105, RF-106: guardadas, avisos de la campana y compatibles nuevas.
+  const [guardadas, compat] = await Promise.all([listarGuardadas(), compatibilidadEmpresa()]);
+  const sugeridasNuevas = nuevasEstaSemana([...compat.porConvocatoria.values()], convocatorias);
+  const notificaciones = notificacionesEmpresa({ postulaciones, encargos, guardadas, catalogo: convocatorias });
   const faltaConsentimiento = !consentimiento.error && !consentimiento.data?.consentimiento_datos_at;
 
   // Contador del menú: encargos que siguen abiertos (presentación).
@@ -59,7 +66,11 @@ export default async function PortalLayout({ children }: { children: React.React
       <SincronizarPostulaciones postulaciones={postulaciones.map(sinConvocatoria)} />
       <SincronizarEncargos encargos={encargos.map(aEncargoBase)} />
       <SincronizarDocumentos documentos={documentos.map(aDocumentoStore)} />
-      <AppShell rol="empresa" contadores={{ "/encargos": encargosAbiertos }}>
+      <AppShell
+        rol="empresa"
+        contadores={{ "/encargos": encargosAbiertos, "/sugeridas": sugeridasNuevas }}
+        notificaciones={notificaciones}
+      >
         {/* RF-84: aviso si entró por la puerta del otro rol */}
         <Suspense>
           <div className="mb-6 empty:hidden">
@@ -70,9 +81,6 @@ export default async function PortalLayout({ children }: { children: React.React
         {/* RN-16: aviso de vencimiento y gracia */}
         <AvisoSuscripcion suscripcion={datos.suscripcion} />
         <main className="flex-1">{children}</main>
-        <footer className="mt-10 border-t border-line-2 pt-5 text-center text-xs text-ink-3">
-          Plataforma de Gestión de Convocatorias — la cuenta, la suscripción, los planes, el catálogo, los proyectos, las postulaciones, los consultores, los encargos y los documentos son reales; el resto, datos de ejemplo.
-        </footer>
       </AppShell>
       <ModalSuscripcion />
       <ModalCreditos />

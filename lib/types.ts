@@ -28,6 +28,11 @@ export interface Requisito {
   orden: number;
 }
 
+/** RF-102 · Tipo de convocatoria: fondos (financiación) o beneficio tributario. */
+export type TipoConvocatoria = "fondo" | "beneficio_tributario";
+/** RF-102 · Origen de quien convoca. */
+export type OrigenConvocatoria = "publico" | "privado" | "cooperacion";
+
 export interface Convocatoria {
   id: string;
   nombre: string;
@@ -49,6 +54,11 @@ export interface Convocatoria {
   requisitos: Requisito[];
   // Enlace oficial de postulación (RF-05, RF-09, RF-73) — obligatorio para publicar (RN-01).
   urlPostulacion?: string;
+  /** RF-102. Ausentes solo en los datos de ejemplo: se leen como fondo / público. */
+  tipo?: TipoConvocatoria;
+  origen?: OrigenConvocatoria;
+  /** Cuándo se publicó (para «nuevas esta semana»); nulo si nunca se publicó. */
+  publicadaAt?: string | null;
 }
 
 export interface Proyecto {
@@ -744,6 +754,8 @@ export interface ConvocatoriaAdmin {
   fechaApertura: string | null;
   fechaCierre: string;
   urlPostulacion: string;
+  tipo: TipoConvocatoria;
+  origen: OrigenConvocatoria;
   estado: EstadoConvocatoria;
   publicadaAt: string | null;
   actualizadoAt: string;

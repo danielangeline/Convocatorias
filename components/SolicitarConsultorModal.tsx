@@ -102,7 +102,7 @@ function ContenidoSolicitud({ proyecto, onClose, convocatoriaFijaId }: Solicitar
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/ p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div role="dialog" aria-modal="true" aria-labelledby="titulo-solicitud" className="w-full max-w-lg rounded-2xl bg-surface p-6 shadow-xl">
         <div className="mb-4 flex items-center justify-between">
           <h3 id="titulo-solicitud" className="font-display text-lg font-semibold text-ink">

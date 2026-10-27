@@ -11,6 +11,8 @@ import type {
   ConvocatoriaAdminListado,
   DocumentoAdmin,
   EstadoConvocatoria,
+  OrigenConvocatoria,
+  TipoConvocatoria,
   FuenteAdmin,
   RequisitoAdmin,
   TipoCategoria,
@@ -304,12 +306,15 @@ export async function listarConvocatorias(): Promise<ConvocatoriaAdminListado[]>
   }));
 }
 
+const TIPOS_CONVOCATORIA: TipoConvocatoria[] = ["fondo", "beneficio_tributario"];
+const ORIGENES_CONVOCATORIA: OrigenConvocatoria[] = ["publico", "privado", "cooperacion"];
+
 export async function obtenerConvocatoria(id: string): Promise<ConvocatoriaAdmin | null> {
   const supabase = await crearClienteServidor();
   const { data: c, error } = await supabase
     .from("convocatorias")
     .select(
-      "id, fuente_id, nombre, entidad_convocante, descripcion, monto_min, monto_max, ubicacion_cobertura, cobertura_nacional, fecha_apertura, fecha_cierre, url_postulacion, estado, publicada_at, actualizado_at, convocatoria_categoria (categoria_id), convocatoria_departamento (departamento_codigo), requisitos_convocatoria (id, descripcion, tipo, obligatorio, orden), documentos_convocatoria (id, tipo_doc, nombre, tipo_mime, tamano_bytes, creado_at)"
+      "id, fuente_id, nombre, entidad_convocante, descripcion, monto_min, monto_max, ubicacion_cobertura, cobertura_nacional, fecha_apertura, fecha_cierre, url_postulacion, tipo_convocatoria, origen, estado, publicada_at, actualizado_at, convocatoria_categoria (categoria_id), convocatoria_departamento (departamento_codigo), requisitos_convocatoria (id, descripcion, tipo, obligatorio, orden), documentos_convocatoria (id, tipo_doc, nombre, tipo_mime, tamano_bytes, creado_at)"
     )
     .eq("id", id)
     .maybeSingle();
@@ -351,6 +356,8 @@ export async function obtenerConvocatoria(id: string): Promise<ConvocatoriaAdmin
     fechaApertura: c.fecha_apertura,
     fechaCierre: c.fecha_cierre,
     urlPostulacion: c.url_postulacion ?? "",
+    tipo: c.tipo_convocatoria as TipoConvocatoria,
+    origen: c.origen as OrigenConvocatoria,
     estado: c.estado as EstadoConvocatoria,
     publicadaAt: c.publicada_at,
     actualizadoAt: c.actualizado_at,
@@ -434,6 +441,12 @@ export async function guardarConvocatoria(id: string, cuerpo: Cuerpo): Promise<R
   const url = enlace(cuerpo?.urlPostulacion, "Enlace oficial de postulación");
   if (!url.ok) return url;
 
+  // RF-102 · Tipo y origen, de las listas cerradas.
+  const tipo = cuerpo?.tipo === undefined ? "" : String(cuerpo.tipo);
+  if (tipo && !TIPOS_CONVOCATORIA.includes(tipo as TipoConvocatoria)) return invalido("Tipo de convocatoria no válido.");
+  const origen = cuerpo?.origen === undefined ? "" : String(cuerpo.origen);
+  if (origen && !ORIGENES_CONVOCATORIA.includes(origen as OrigenConvocatoria)) return invalido("Origen de la convocatoria no válido.");
+
   const categorias = cuerpo?.categorias ?? [];
   if (!Array.isArray(categorias) || categorias.length > 100 || !categorias.every((c) => typeof c === "string" && UUID.test(c))) {
     return invalido("Categorías no válidas.");
@@ -478,6 +491,8 @@ export async function guardarConvocatoria(id: string, cuerpo: Cuerpo): Promise<R
       fecha_apertura: apertura,
       fecha_cierre: cierre,
       url_postulacion: url.valor,
+      tipo_convocatoria: tipo,
+      origen,
     },
     p_categorias: [...new Set(categorias as string[])],
     p_requisitos: requisitos.map((r) => ({ id: r.id ?? "", descripcion: r.descripcion, tipo: r.tipo, obligatorio: r.obligatorio })),

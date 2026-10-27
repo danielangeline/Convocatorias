@@ -195,8 +195,10 @@ try {
   ok(!pagina.texto.includes("Bogotá Reactiva"), "empresa - /convocatorias ya no muestra datos de ejemplo");
   // Los datos de la cerrada viajan a la pantalla (la empresa puede leerla, para el
   // filtro); lo que no debe haber es su tarjeta pintada.
-  ok(new RegExp(`<h3[^>]*>Convocatoria pública ${sufijo}</h3>`).test(pagina.texto)
-    && !new RegExp(`<h3[^>]*>Convocatoria cerrada ${sufijo}</h3>`).test(pagina.texto),
+  // Desde la sesión 031 el nombre va dentro del enlace de la tarjeta.
+  const tarjeta = (nombre) => new RegExp(`<h3[^>]*>(<a[^>]*>)?${nombre}(</a>)?</h3>`);
+  ok(tarjeta(`Convocatoria pública ${sufijo}`).test(pagina.texto)
+    && !tarjeta(`Convocatoria cerrada ${sufijo}`).test(pagina.texto),
     "empresa - /convocatorias pinta la vigente y no la cerrada sin el filtro");
   const paginaCer = await pedir(emp, `/convocatorias/${cer}`);
   ok(paginaCer.status === 200 && paginaCer.texto.includes("ya cerró") && !paginaCer.texto.includes("Ir al portal de la entidad"),

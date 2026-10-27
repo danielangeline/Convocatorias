@@ -118,6 +118,28 @@
 | **Flujos alternos** | 2a. Sin proyectos → en vez de sugeridas se invita a crear el primero (CU-09 o CU-43). 2b. Sin postulaciones → se invita a explorar el catálogo. Un bloque sin datos no se dibuja con valores inventados (RNF-23) |
 | **Postcondiciones** | Ninguna: es de solo lectura |
 
+
+#### CU-45 · Guardar convocatorias *(nuevo v6, sesión 031)*
+
+| Campo | Contenido |
+|---|---|
+| **Actor** | Usuario Empresa |
+| **Descripción** | Marcar convocatorias del catálogo para revisarlas después, sin postular |
+| **Precondiciones** | Sesión de empresa. La convocatoria es una que la empresa ya puede ver (RN-33) |
+| **Flujo principal** | 1. En la tarjeta del catálogo o en la ficha, pulsa el marcador «Guardar». 2. El sistema la guarda para esa empresa. 3. En «Guardadas» ve sus convocatorias guardadas, de la más reciente a la más antigua. 4. Pulsa de nuevo el marcador para quitarla |
+| **Flujos alternos** | 1a. La convocatoria ya cerró → sigue en «Guardadas», atenuada y sin acciones (RN-02), y no se puede volver a guardar. 2a. Falla el guardado → la marca vuelve a como estaba y se avisa |
+| **Postcondiciones** | La convocatoria queda (o deja de estar) en las guardadas de la empresa. Si cierra en los próximos 7 días, aparece en la campana (RF-105) |
+
+#### CU-46 · Ajustes de la cuenta *(nuevo v6, sesión 031)*
+
+| Campo | Contenido |
+|---|---|
+| **Actor** | Usuario Empresa |
+| **Descripción** | Ver los datos de la cuenta y cambiar las preferencias de este navegador |
+| **Precondiciones** | Sesión de empresa |
+| **Flujo principal** | 1. Abre «Ajustes». 2. Ve la empresa, la persona de contacto y el correo con que se registró. 3. Puede pedir el cambio de contraseña (lleva a CU-15), cerrar la sesión, elegir el tema (claro, oscuro o el del sistema) y restablecer el menú lateral |
+| **Postcondiciones** | El tema y el menú se recuerdan en este navegador; los datos de la cuenta no cambian desde aquí |
+
 #### CU-10 · Obtener convocatorias sugeridas *(mod. v4 — porcentaje)*
 
 | Campo | Contenido |

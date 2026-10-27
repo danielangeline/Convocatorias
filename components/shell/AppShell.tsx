@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { gruposDeRol, itemActivo, type RolShell } from "./menus";
+import { gruposDeRol, itemActivo, type GrupoMenu, type RolShell } from "./menus";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 import { useAlmacenLocal } from "./useAlmacenLocal";
+import type { Notificacion } from "@/lib/notificaciones-empresa";
 
 /**
  * Shell común de los tres portales: menú lateral agrupado y barra superior.
@@ -15,20 +16,25 @@ import { useAlmacenLocal } from "./useAlmacenLocal";
  */
 export function AppShell({
   rol,
-  esPropietario = false,
+  grupos: gruposPropios,
   contadores = {},
   ancho = "max-w-[1360px]",
+  notificaciones,
   children,
 }: {
   rol: RolShell;
-  esPropietario?: boolean;
+  /** El panel pasa su menú (`AdminShell`); el portal usa el de su rol. */
+  grupos?: GrupoMenu[];
   contadores?: Record<string, number>;
   ancho?: string;
+  /** Solo el portal Empresa tiene avisos (RF-105); sin la prop no hay campana. */
+  notificaciones?: Notificacion[];
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const grupos = gruposDeRol(rol, esPropietario);
-  const activo = itemActivo(grupos, pathname);
+  const grupos = gruposPropios ?? gruposDeRol(rol === "administrador" ? "empresa" : rol);
+  const consulta = useSearchParams().toString();
+  const activo = itemActivo(grupos, pathname, consulta);
   const [contraidoRaw, fijarContraido] = useAlmacenLocal("shell:contraido", "0");
   const contraido = contraidoRaw === "1";
   const [movil, setMovil] = useState(false);
@@ -46,6 +52,7 @@ export function AppShell({
           rol={rol}
           grupos={grupos}
           pathname={pathname}
+          consulta={consulta}
           contadores={contadores}
           contraido={contraido}
           alNavegar={() => {}}
@@ -66,6 +73,7 @@ export function AppShell({
               rol={rol}
               grupos={grupos}
               pathname={pathname}
+          consulta={consulta}
               contadores={contadores}
               contraido={false}
               alNavegar={() => setMovil(false)}
@@ -81,6 +89,7 @@ export function AppShell({
           conBusqueda={rol === "empresa"}
           alContraer={() => fijarContraido(contraido ? "0" : "1")}
           alAbrirMovil={() => setMovil(true)}
+          notificaciones={notificaciones}
         />
         <div className={cn("mx-auto flex w-full flex-1 flex-col px-4 pb-12 pt-6 sm:px-7 sm:pt-7", ancho)}>
           {children}

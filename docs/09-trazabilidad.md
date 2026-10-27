@@ -20,6 +20,8 @@
 | CU-09 Proyecto enriquecido *(v6: completitud accionable; sesión 019: departamento)* | RF-14, 45, 46, 47, **81** | RN-21, RNF-03, **RNF-07**, **RN-34** |
 | **CU-43 Crear el proyecto con IA a partir de una explicación** *(nuevo v6, sesión 030)* | **RF-96, 97, 98, 99**, RF-14, 45, 52 | **RN-05, 17, 34, 37**, RNF-20, 22, 23, 24 |
 | **CU-44 Ver el inicio de la empresa** *(nuevo v6, sesión 031)* | **RF-101**, RF-15, 16, 20, 39 | RN-16, 30, 33, RNF-23, 30 |
+| **CU-45 Guardar convocatorias** *(nuevo v6, sesión 031)* | **RF-103**, RF-105 | RN-02, 30, 33, RNF-20, 30 |
+| **CU-46 Ajustes de la cuenta** *(nuevo v6, sesión 031)* | **RF-107**, RF-03 | RNF-30 |
 | CU-10 Sugerencias con % *(v6: solo vigentes; sesión 019: cálculo en servidor, ubicación por departamento, 2a y 2b)* | RF-15, 16, **81** | RN-05, RNF-05, **RN-02**, **RNF-20**, **RN-34** |
 | CU-11 Iniciar postulación *(v6: vigencia verificada en servidor; sesión 020: una en curso por par)* | RF-17, 21, **78** | RN-03, 04, 19, **RNF-20**, **RN-35** |
 | CU-12 Checklist *(sesión 020: solo lectura si está cerrada)* | RF-18, 20 | **RN-35** |

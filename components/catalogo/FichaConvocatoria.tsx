@@ -1,5 +1,6 @@
 "use client";
 
+import { BotonGuardar } from "./BotonGuardar";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -47,6 +48,7 @@ export function FichaConvocatoria({
   volver = { href: "/convocatorias", etiqueta: "Volver al catálogo" },
   documentosBase,
   acciones,
+  guardada,
 }: {
   convocatoria: Convocatoria | null;
   categorias: Categoria[];
@@ -54,6 +56,8 @@ export function FichaConvocatoria({
   /** Ruta de la API de sus adjuntos, sin `/{docId}/enlace`. */
   documentosBase?: string;
   acciones?: React.ReactNode;
+  /** RF-103: con la prop se ofrece guardar (solo la empresa). */
+  guardada?: boolean;
 }) {
   const router = useRouter();
   const proyectos = useProyectosPropios();
@@ -265,6 +269,7 @@ export function FichaConvocatoria({
                   </Button>
                 </a>
               )}
+              {guardada !== undefined && !cerrada && <BotonGuardar convocatoriaId={convocatoria.id} inicial={guardada} />}
               <Button
                 variant="teal"
                 size="lg"
@@ -294,7 +299,7 @@ export function FichaConvocatoria({
       </div>
 
       {modalAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/ p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div role="dialog" aria-modal="true" aria-labelledby="titulo-postular" className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h3 id="titulo-postular" className="font-display text-lg font-semibold text-ink">Confirmar postulación</h3>
