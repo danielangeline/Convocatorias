@@ -22,6 +22,15 @@ Producción local con la **IA real (OpenAI)** y una empresa temporal: explicaci�
 
 **No se probó el dictado con micrófono**: el navegador del panel no tiene micrófono. El botón y la transcripción no cambiaron en esta sesión (RF-97, verificados en la sesión 030).
 
+## Después: dictado en vivo (RF-97, mod.)
+
+A pedido del Product Owner («que mientras hablo se vayan escribiendo las palabras»). Se le ofrecieron tres caminos (OpenAI en tiempo real, reconocimiento del navegador, tramos de pocos segundos) y eligió **el reconocimiento del navegador**.
+
+- `BotonDictado`: si el navegador trae `SpeechRecognition` (Chrome, Edge, Safari reciente), dicta en vivo en español de Colombia, con resultados parciales y continuos; se reanuda solo tras un silencio y se detiene a los 5 minutos. Si no lo trae, sigue la grabación con transcripción de OpenAI de antes.
+- `AsistenteProyecto`: el cuadro muestra lo ya fijado más lo que aún se está reconociendo (de solo lectura mientras tanto), y avisa que el reconocimiento lo hace el navegador («en Chrome, con el servicio de voz de Google»).
+- Documentado en RF-97 (docs/02) y CU-43 paso 2 (docs/01): el dictado en vivo no pasa por esta plataforma ni por OpenAI, no consume crédito ni cuenta en el tope diario.
+- **Verificación:** el navegador del panel bloquea el micrófono, así que se probó con un reconocedor simulado inyectado en la página: el texto parcial apareció a los 2 s («Escuchando · 0:02»), las frases fijas se fueron sumando y al detener quedó el texto completo, editable. **Falta la prueba con micrófono real en Chrome o Edge.**
+
 ## Decisiones tomadas
 
 - **El endpoint de estructurar sigue sin guardar** (RF-96): guarda la pantalla con el mismo endpoint de CU-09. Así no se duplican las validaciones y la base sigue siendo la única que decide la forma.

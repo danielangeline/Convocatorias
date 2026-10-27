@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, PencilLine, Sparkles, X } from "lucide-react";
 import type { PropuestaProyecto } from "@/lib/types";
 import { textoCreditos, useCreditos, useTarifas } from "@/lib/hooks";
 import { Button } from "@/components/ui/Button";
-import { BotonDictado } from "./BotonDictado";
+import { BotonDictado, dictadoEnVivoDisponible } from "./BotonDictado";
 import { cuerpoDeFormulario, desdePropuesta } from "@/components/ProyectoFormModal";
 
 /**
@@ -15,6 +15,8 @@ import { cuerpoDeFormulario, desdePropuesta } from "@/components/ProyectoFormMod
  * proyecto se guarda enseguida para editarlo en su ficha (RF-98, RN-37). Es
  * opcional: "Llenar el formulario a mano" abre CU-09 vacío, sin costo.
  */
+
+const sinSuscripcion = () => () => {};
 
 const MIN = 80;
 const MAX = 8000;
@@ -37,6 +39,9 @@ export function AsistenteProyecto({
   // RN-17: crear con IA cuesta la tarifa vigente (50 al iniciar la sesión 030).
   const costo = useTarifas().estructuracion;
   const [explicacion, setExplicacion] = useState("");
+  // RF-97 en vivo: lo que el navegador aún está reconociendo (puede cambiar).
+  const [parcial, setParcial] = useState("");
+  const enVivo = useSyncExternalStore(sinSuscripcion, dictadoEnVivoDisponible, () => false);
   const [error, setError] = useState<string | null>(null);
   const [creando, setCreando] = useState(false);
   const [etapa, setEtapa] = useState<"armando" | "guardando">("armando");
@@ -126,15 +131,17 @@ export function AsistenteProyecto({
         <div className="rounded-xl border border-line focus-within:border-violet">
           <textarea
             id="explicacion-proyecto"
-            value={explicacion}
+            value={parcial ? `${explicacion ? `${explicacion.trimEnd()} ` : ""}${parcial}` : explicacion}
             onChange={(e) => setExplicacion(e.target.value.slice(0, MAX))}
+            readOnly={parcial !== ""}
+            aria-live="polite"
             disabled={creando}
             rows={8}
             placeholder="Escribe o dicta con el micrófono: qué problema resuelve, a quién beneficia, dónde se ejecuta, qué actividades harás, cuánto dinero buscas, en cuánto tiempo y qué experiencia tiene tu empresa."
             className="block w-full resize-none rounded-t-xl bg-surface px-3 py-2.5 text-sm text-ink outline-none disabled:bg-surface-2"
           />
           <div className="flex items-center justify-between gap-3 border-t border-line-2 px-2 py-1.5">
-            <BotonDictado onTexto={agregarDictado} onError={setError} deshabilitado={creando || sinCredito} />
+            <BotonDictado onTexto={agregarDictado} onParcial={setParcial} onError={setError} deshabilitado={creando || sinCredito} />
             <span className={`text-xs ${largo > 0 && largo < MIN ? "text-amber-ink" : "text-ink-3"}`}>
               {largo < MIN ? `${largo}/${MIN} caracteres mínimos` : `${largo.toLocaleString("es-CO")} caracteres`}
             </span>
@@ -142,6 +149,7 @@ export function AsistenteProyecto({
         </div>
 
         <p className="mt-2 text-xs text-ink-3">
+          {enVivo && "Al dictar, las palabras aparecen mientras hablas: las reconoce tu navegador (en Chrome, con el servicio de voz de Google). "}
           La IA usa solo lo que tú cuentes. Creamos el proyecto y lo abrimos para que revises y edites cada parte; lo que no digas queda vacío y marcado. Ni el audio ni el texto se guardan.
         </p>
 
