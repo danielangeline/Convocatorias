@@ -97,6 +97,7 @@ Next.js (App Router) + TypeScript + Tailwind, desplegado en **Vercel**. Backend 
 | Sprints, hitos, qué viene después del MVP | `docs/08-roadmap.md` (cronograma original de 18 semanas) |
 | **El plan de 30 días en curso, ceremonias y definición de terminado** | `docs/10-plan-de-desarrollo.md` |
 | **Qué requerimiento está hecho y cuál falta** | `docs/11-avance-por-requerimiento.md` |
+| Fuentes de convocatorias, APIs (gratis y de pago) y cómo se integrarían | `docs/12-fuentes-de-convocatorias.md` (investigación, no especificación) |
 | **Qué se hizo en cada sesión y por qué** | `docs/bitacora/` |
 | Qué RF/RNF cubre cada caso de uso | `docs/09-trazabilidad.md` |
 | Todo junto (solo si hace falta) | `docs/99-especificacion-completa.md` |
