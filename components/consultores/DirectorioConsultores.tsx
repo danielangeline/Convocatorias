@@ -202,7 +202,7 @@ export function DirectorioConsultores({ consultores }: { consultores: ConsultorD
                     <Link
                       key={c.id}
                       href={`/consultores/${c.id}`}
-                      className="flex flex-col rounded-2xl border border-line p-5 transition-colors hover:border-sky/30 hover:bg-sky/10"
+                      className="flex flex-col rounded-2xl border border-line bg-surface shadow-card p-5 transition-colors hover:border-sky/30 hover:bg-sky/10"
                     >
                       <div className="flex items-center gap-3">
                         {c.fotoUrl ? (

@@ -51,7 +51,7 @@ export default function DocumentosPage() {
               <Link
                 key={doc.id}
                 href={`/documentos/${doc.id}`}
-                className="flex flex-col rounded-2xl border border-line p-5 transition-colors hover:border-violet/30 hover:bg-violet/10"
+                className="flex flex-col rounded-2xl border border-line bg-surface p-5 shadow-card transition-colors hover:border-violet/30 hover:bg-violet/10"
               >
                 <div className="flex items-start justify-between gap-2">
                   <Badge className={ESTADO_DOCUMENTO_ESTILO[doc.estado]}>{ESTADO_DOCUMENTO_LABEL[doc.estado]}</Badge>

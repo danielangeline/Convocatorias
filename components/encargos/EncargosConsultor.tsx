@@ -33,6 +33,9 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { RatingStars } from "@/components/RatingStars";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Tabs } from "@/components/ui/Tabs";
+import { KpiCard, KpiGrid } from "@/components/viz/KpiCard";
 
 type Pestana = "solicitudes" | "en_curso" | "historial";
 
@@ -42,7 +45,17 @@ type Pestana = "solicitudes" | "en_curso" | "historial";
  * valida la base (RF-30, RF-32), y la pantalla se recarga con
  * `router.refresh()`. El correo de la empresa solo llega tras aceptar (RF-70).
  */
-export function EncargosConsultor({ encargos }: { encargos: EncargoConsultor[] }) {
+export function EncargosConsultor({
+  encargos,
+  ratingPromedio,
+  completados,
+  aprobado,
+}: {
+  encargos: EncargoConsultor[];
+  ratingPromedio?: number;
+  completados?: number;
+  aprobado?: boolean;
+}) {
   const router = useRouter();
   const [pestana, setPestana] = useState<Pestana>("solicitudes");
   const [notas, setNotas] = useState<Record<string, string>>({});
@@ -54,7 +67,7 @@ export function EncargosConsultor({ encargos }: { encargos: EncargoConsultor[] }
   const historial = encargos.filter((e) => ["completado", "calificado", "rechazado", "cancelado"].includes(e.estado));
 
   const pestanas: Array<{ valor: Pestana; etiqueta: string; total: number }> = [
-    { valor: "solicitudes", etiqueta: "Solicitudes", total: solicitudes.length },
+    { valor: "solicitudes", etiqueta: "Solicitudes nuevas", total: solicitudes.length },
     { valor: "en_curso", etiqueta: "En curso", total: enCurso.length },
     { valor: "historial", etiqueta: "Historial", total: historial.length },
   ];
@@ -86,9 +99,31 @@ export function EncargosConsultor({ encargos }: { encargos: EncargoConsultor[] }
 
   return (
     <div>
+      <PageHeader
+        className="mb-5"
+        eyebrow={
+          aprobado ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-pri-soft px-2.5 py-1 text-[11.5px] font-bold text-pri-text">
+              <span className="h-1.5 w-1.5 rounded-full bg-pri" />
+              Perfil aprobado · visible en el directorio
+            </span>
+          ) : undefined
+        }
+        titulo="Mis encargos"
+        descripcion="Gestiona las tareas que las empresas te solicitan."
+      />
+
       <div className="mb-6">
-        <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Mis encargos</h1>
-        <p className="text-sm text-ink-2">Gestiona las tareas que las empresas te solicitan.</p>
+        <KpiGrid>
+          <KpiCard etiqueta="Solicitudes nuevas" valor={solicitudes.length} nota="Esperan tu respuesta" icono={ClipboardList} tono="amber" />
+          <KpiCard etiqueta="Encargos en curso" valor={enCurso.length} nota="Aceptados y sin completar" icono={Target} tono="sky" />
+          {ratingPromedio !== undefined && (completados ?? 0) > 0 && (
+            <KpiCard etiqueta="Calificación" valor={ratingPromedio.toFixed(1)} sufijo=" /5" nota="Promedio de las empresas" icono={CheckCircle2} />
+          )}
+          {completados !== undefined && (
+            <KpiCard etiqueta="Completados" valor={completados} nota="Encargos terminados" icono={Check} tono="violet" />
+          )}
+        </KpiGrid>
       </div>
 
       {error && (
@@ -97,22 +132,13 @@ export function EncargosConsultor({ encargos }: { encargos: EncargoConsultor[] }
         </p>
       )}
 
-      <div className="mb-6 flex gap-2 border-b border-line-2" role="tablist">
-        {pestanas.map((p) => (
-          <button
-            key={p.valor}
-            role="tab"
-            aria-selected={pestana === p.valor}
-            onClick={() => setPestana(p.valor)}
-            className={cn(
-              "border-b-2 px-3 py-2.5 text-sm font-semibold transition-colors",
-              pestana === p.valor ? "border-sky text-sky-ink" : "border-transparent text-ink-2 hover:text-ink"
-            )}
-          >
-            {p.etiqueta} ({p.total})
-          </button>
-        ))}
-      </div>
+      <Tabs
+        className="mb-6"
+        etiqueta="Encargos"
+        valor={pestana}
+        onChange={setPestana}
+        pestanas={pestanas.map((p) => ({ valor: p.valor, etiqueta: p.etiqueta, conteo: p.total }))}
+      />
 
       {pestana === "solicitudes" &&
         (solicitudes.length === 0 ? (

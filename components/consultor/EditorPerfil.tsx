@@ -1,5 +1,7 @@
 "use client";
 
+import { CompatRing } from "@/components/viz/CompatRing";
+import { ChecklistSteps } from "@/components/viz/ChecklistSteps";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -196,6 +198,15 @@ export function EditorPerfil({
     !perfil.tieneHojaDeVida && "hoja de vida en PDF",
   ].filter(Boolean) as string[];
 
+  // Anillo y pasos de completitud: la misma lista de `faltan`, solo presentada.
+  const pasos = [
+    { etiqueta: "Foto de perfil", hecho: !!perfil.fotoUrl },
+    { etiqueta: "Descripción de lo que haces", hecho: !!form.descripcion.trim() },
+    { etiqueta: "Al menos una especialidad", hecho: form.especialidades.length > 0 },
+    { etiqueta: "Hoja de vida en PDF", hecho: !!perfil.tieneHojaDeVida },
+  ];
+  const completitud = Math.round((pasos.filter((p) => p.hecho).length / pasos.length) * 100);
+
   const bloqueado = !perfil.consentimientoDatos;
 
   return (
@@ -203,6 +214,14 @@ export function EditorPerfil({
       <div className="mb-6">
         <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Mi perfil de consultor</h1>
         <p className="text-sm text-ink-2">Completa tu perfil para que las empresas puedan encontrarte en el directorio.</p>
+      </div>
+
+      <div className="mb-6 flex flex-wrap items-center gap-5 rounded-2xl border border-line bg-surface p-5 shadow-card">
+        <CompatRing porcentaje={completitud} tamano={84} etiqueta="Perfil completo" />
+        <div className="min-w-[220px] flex-1">
+          <h2 className="mb-3 text-[15px] font-extrabold">Tu perfil público</h2>
+          <ChecklistSteps pasos={pasos} />
+        </div>
       </div>
 
       {bloqueado ? (

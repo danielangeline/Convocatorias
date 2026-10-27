@@ -129,7 +129,7 @@ export function TarjetaSugerencia({ s, href }: { s: Sugerencia; href?: string })
   return (
     <Link
       href={href ?? `/convocatorias/${convocatoria.id}`}
-      className="block rounded-2xl border border-line p-5 transition-colors hover:border-line hover:bg-pri-soft/30"
+      className="block rounded-2xl border border-line bg-surface shadow-card p-5 transition-colors hover:border-line hover:bg-pri-soft/30"
     >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-start gap-4">
