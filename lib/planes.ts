@@ -21,14 +21,19 @@ export interface BeneficioPlan {
   destacado?: boolean;
 }
 
-/** Cupo de IA redactado en términos de lo que el usuario obtiene. */
-export function textoCreditos(plan: Plan): string {
+/**
+ * Cupo de IA en créditos y en lo que alcanza (RN-17: cada documento cuesta la
+ * tarifa de generación, 100 al iniciar la sesión 030).
+ */
+export function textoCreditosPlan(plan: Plan, tarifaDocumento: number): string {
   const n = plan.creditosIaMensuales;
   if (n <= 0) return "Sin créditos de IA incluidos";
-  return n === 1 ? "1 documento con IA al mes" : `${n} documentos con IA al mes`;
+  const documentos = tarifaDocumento > 0 ? Math.floor(n / tarifaDocumento) : 0;
+  const alcance = documentos === 1 ? "1 documento" : `${documentos} documentos`;
+  return `${n.toLocaleString("es-CO")} créditos de IA al mes (hasta ${alcance})`;
 }
 
-export function beneficiosDePlan(plan: Plan): BeneficioPlan[] {
+export function beneficiosDePlan(plan: Plan, tarifaDocumento: number): BeneficioPlan[] {
   const comunes: BeneficioPlan[] =
     plan.rol === "consultor"
       ? [
@@ -44,7 +49,7 @@ export function beneficiosDePlan(plan: Plan): BeneficioPlan[] {
   // El cupo solo se enuncia cuando el plan lo incluye (RF-41): el plan de
   // consultor no tiene cupo propio, y anunciarlo como "0" sería ruido.
   if (plan.creditosIaMensuales > 0) {
-    return [{ texto: textoCreditos(plan), destacado: true }, ...comunes];
+    return [{ texto: textoCreditosPlan(plan, tarifaDocumento), destacado: true }, ...comunes];
   }
   return comunes;
 }
@@ -56,7 +61,7 @@ export function beneficiosDePlan(plan: Plan): BeneficioPlan[] {
  */
 export function planesIndistinguibles(planes: Plan[]): Array<[string, string]> {
   const choques: Array<[string, string]> = [];
-  const firma = (p: Plan) => beneficiosDePlan(p).map((b) => b.texto).join("|");
+  const firma = (p: Plan) => beneficiosDePlan(p, 1).map((b) => b.texto).join("|");
   for (let i = 0; i < planes.length; i++) {
     for (let j = i + 1; j < planes.length; j++) {
       if (planes[i].rol !== planes[j].rol) continue;

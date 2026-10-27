@@ -52,9 +52,9 @@ begin
   select id into v_cons from public.planes where nombre = 'Consultor' and rol = 'consultor';
   select id into v_sus_e1 from public.suscripciones where usuario_id = v_e1;
 
-  v_res := v_res || format(E'\n%s §9.28: planes semilla de docs/07 (Esencial 10, Pro 30, Consultor 0)',
-    case when (select creditos_ia_mensuales from public.planes where id = v_esencial) = 10
-              and (select creditos_ia_mensuales from public.planes where id = v_pro) = 30
+  v_res := v_res || format(E'\n%s §9.32: planes de docs/07 por tarifa (Esencial 350, Pro 800, Consultor 0)',
+    case when (select creditos_ia_mensuales from public.planes where id = v_esencial) = 350
+              and (select creditos_ia_mensuales from public.planes where id = v_pro) = 800
               and (select creditos_ia_mensuales from public.planes where id = v_cons) = 0 then 'OK   ' else 'FALLA' end);
 
   -- ---------------------------------------------------------------- quien no es admin con aal2
@@ -126,7 +126,7 @@ begin
     get stacked diagnostics v_msg = pg_exception_hint; if v_msg = 'nombre_repetido' then v_n := v_n + 1; end if; end;
   begin perform public.guardar_plan(null, 'Con IA', 'consultor', 1, 1, 5, true); exception when check_violation then v_n := v_n + 1; end;
   begin perform public.guardar_plan(null, 'Caro', 'empresa', 100000001, 1, 1, true); exception when check_violation then v_n := v_n + 1; end;
-  begin perform public.guardar_plan(null, 'Muchos', 'empresa', 1, 1, 1001, true); exception when check_violation then v_n := v_n + 1; end;
+  begin perform public.guardar_plan(null, 'Muchos', 'empresa', 1, 1, 1000001, true); exception when check_violation then v_n := v_n + 1; end;
   begin perform public.guardar_plan(null, 'Negativo', 'empresa', -1, 1, 1, true); exception when check_violation then v_n := v_n + 1; end;
   begin perform public.guardar_plan(null, '   ', 'empresa', 1, 1, 1, true); exception when check_violation then v_n := v_n + 1; end;
   begin perform public.guardar_plan(v_trial, 'Trial', 'empresa', 1000, 0, 3, true, 7); exception when others then
@@ -230,13 +230,13 @@ begin
     get stacked diagnostics v_msg = pg_exception_hint; if v_msg = 'consultor_sin_creditos' then v_n := v_n + 1; end if; end;
   begin perform public.otorgar_creditos_extra(v_sus_e1, 0, 0); exception when others then
     get stacked diagnostics v_msg = pg_exception_hint; if v_msg = 'dato_invalido' then v_n := v_n + 1; end if; end;
-  begin perform public.otorgar_creditos_extra(v_sus_e1, 101, 0); exception when others then
+  begin perform public.otorgar_creditos_extra(v_sus_e1, 100001, 0); exception when others then
     get stacked diagnostics v_msg = pg_exception_hint; if v_msg = 'dato_invalido' then v_n := v_n + 1; end if; end;
   begin perform public.otorgar_creditos_extra(v_sus_e1, 5, -1); exception when others then
     get stacked diagnostics v_msg = pg_exception_hint; if v_msg = 'dato_invalido' then v_n := v_n + 1; end if; end;
   begin perform public.otorgar_creditos_extra(gen_random_uuid(), 5, 0); exception when others then
     get stacked diagnostics v_msg = pg_exception_hint; if v_msg = 'suscripcion_no_existe' then v_n := v_n + 1; end if; end;
-  v_res := v_res || format(E'\n%s RN-28/RF-51: consultor, 0, 101, monto negativo e inexistente -> %s de 5 rechazos',
+  v_res := v_res || format(E'\n%s RN-28/RF-51: consultor, 0, 100001, monto negativo e inexistente -> %s de 5 rechazos',
     case when v_n = 5 then 'OK   ' else 'FALLA' end, v_n);
 
   -- RF-42: cuentas y tablero.
@@ -244,7 +244,7 @@ begin
   select * into v_fila from public.cuentas_suscripcion_admin() where usuario_id = v_e1;
   v_res := v_res || format(E'\n%s RF-42: las cuentas traen empresas y el consultor aprobado, no el que no lo está ni el admin (%s de 3), con nombre, correo y cupo',
     case when v_n = 3 and v_fila.nombre = 'Empresa Uno' and v_fila.correo = 'se1@prueba.co' and v_fila.plan_nombre = 'Empresa Pro'
-              and v_fila.creditos_incluidos = 30 and v_fila.creditos_extra = 16 then 'OK   ' else 'FALLA' end, v_n);
+              and v_fila.creditos_incluidos = 800 and v_fila.creditos_extra = 16 then 'OK   ' else 'FALLA' end, v_n);
   select * into v_fila from public.tablero_suscripciones();
   v_res := v_res || format(E'\n%s RF-42: el tablero cuenta por estado (activas %s, trial %s) y trae el consumo del mes',
     case when v_fila.activas >= 2 and v_fila.trial >= 1 and v_fila.costo_usd is not null then 'OK   ' else 'FALLA' end,

@@ -131,7 +131,7 @@ export function ProyectoFormModal({
 
   // CU-43 7a: la propuesta ya costó un crédito; se advierte antes de descartarla.
   const cerrar = () => {
-    if (propuesta && !window.confirm("¿Cerrar sin crear el proyecto? Perderás lo que armó la IA y el crédito ya se usó.")) return;
+    if (propuesta && !window.confirm("¿Cerrar sin crear el proyecto? Perderás lo que armó la IA y los créditos ya se usaron.")) return;
     onClose();
   };
 

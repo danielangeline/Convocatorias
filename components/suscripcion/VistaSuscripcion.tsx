@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { CreditCard, Receipt, Check, Sparkles, Info } from "lucide-react";
 import { useAppStore } from "@/lib/store";
-import { useAccesoSuscripcion } from "@/lib/hooks";
+import { useAccesoSuscripcion, useTarifas } from "@/lib/hooks";
 import type { Pago, RolPlan } from "@/lib/types";
 import { cn, formatCOP, formatFecha, ESTADO_SUSCRIPCION_LABEL, ESTADO_SUSCRIPCION_ESTILO } from "@/lib/utils";
 import { beneficiosDePlan, CONTRATAR_EN_PILOTO } from "@/lib/planes";
@@ -20,6 +20,7 @@ import { BloqueCreditos } from "@/components/BloqueCreditos";
  * (RN-28). En el piloto no se contrata desde aquí (CU-28 paso 3).
  */
 export function VistaSuscripcion({ rol, pagos }: { rol: RolPlan; pagos: Pago[] }) {
+  const tarifaDocumento = useTarifas().generacion;
   const { suscripcion, diasRestantes } = useAccesoSuscripcion();
   const planes = useAppStore((s) => s.planes);
   const [modalidad, setModalidad] = useState<"mensual" | "anual">("mensual");
@@ -121,7 +122,7 @@ export function VistaSuscripcion({ rol, pagos }: { rol: RolPlan; pagos: Pago[] }
                     <p className="text-xs font-semibold text-gold-600">Ahorras {formatCOP(ahorro)} frente a pagar mes a mes</p>
                   )}
                   <ul className="mt-4 flex-1 space-y-2 text-sm text-ink-soft">
-                    {beneficiosDePlan(plan).map((b) => (
+                    {beneficiosDePlan(plan, tarifaDocumento).map((b) => (
                       <li key={b.texto} className={cn("flex items-start gap-2", b.destacado && "font-semibold text-teal-700")}>
                         {b.destacado ? <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0" /> : <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" />}
                         {b.texto}

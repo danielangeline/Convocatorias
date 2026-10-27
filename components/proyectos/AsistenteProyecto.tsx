@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, PencilLine, Sparkles, X } from "lucide-react";
 import type { PropuestaProyecto } from "@/lib/types";
-import { useCreditos } from "@/lib/hooks";
+import { textoCreditos, useCreditos, useTarifas } from "@/lib/hooks";
 import { Button } from "@/components/ui/Button";
 import { BotonDictado } from "./BotonDictado";
 
@@ -28,6 +28,8 @@ export function AsistenteProyecto({
 }) {
   const router = useRouter();
   const { disponibles, vigente } = useCreditos();
+  // RN-17: crear con IA cuesta la tarifa vigente (50 al iniciar la sesión 030).
+  const costo = useTarifas().estructuracion;
   const [explicacion, setExplicacion] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [creando, setCreando] = useState(false);
@@ -41,7 +43,7 @@ export function AsistenteProyecto({
   }, [onClose, creando]);
 
   const largo = explicacion.trim().length;
-  const sinCredito = !vigente || disponibles <= 0;
+  const sinCredito = !vigente || disponibles < costo;
 
   const agregarDictado = (texto: string) => {
     setExplicacion((actual) => {
@@ -125,7 +127,7 @@ export function AsistenteProyecto({
         {sinCredito && (
           <p className="mt-3 rounded-lg bg-gold-50 px-3 py-2.5 text-sm text-gold-700">
             {vigente
-              ? "No te quedan créditos de IA. Puedes llenar el formulario a mano sin costo."
+              ? `Crear con IA cuesta ${textoCreditos(costo)} y te quedan ${textoCreditos(disponibles)}. Puedes llenar el formulario a mano sin costo.`
               : "Necesitas una suscripción vigente para crear el proyecto con IA. Puedes llenar el formulario a mano."}
           </p>
         )}
@@ -147,7 +149,7 @@ export function AsistenteProyecto({
               </>
             ) : (
               <>
-                <Sparkles className="h-4 w-4" /> Crear con IA · 1 crédito
+                <Sparkles className="h-4 w-4" /> Crear con IA · {textoCreditos(costo)}
               </>
             )}
           </Button>

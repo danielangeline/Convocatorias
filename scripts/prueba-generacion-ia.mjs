@@ -66,6 +66,9 @@ try {
   };
   const e1 = await crearCuenta("empresa", "empresa1", { nombre_empresa: `Empresa Uno ${sufijo}` });
   const e2 = await crearCuenta("empresa", "empresa2", { nombre_empresa: `Empresa Dos ${sufijo}` });
+  // Sesión 030 (§9.32): créditos por tarifa (generar 100, ajuste 10). El trial trae 125;
+  // con 200 de paquete alcanza para generar, el cuarto ajuste y regenerar.
+  await svc.from("suscripciones").update({ creditos_extra: 200 }).eq("usuario_id", e1.id);
   const a = await crearCuenta("consultor", "consultor-a");
   await svc.from("consultor_perfiles").update({ nombre_profesional: `Consultora ${sufijo}`, estado_perfil: "aprobado" }).eq("id", a.id);
 
@@ -111,7 +114,7 @@ try {
   const gen = await api(e1, "POST", "/api/documentos/generar", { proyectoId: p1.id, convocatoriaId: cA });
   const d1 = gen.json?.datos?.id;
   ok(gen.status === 201 && d1, `CU-33: genera (${gen.status}, ${Date.now() - t0} ms)`);
-  ok((await creditos(e1.id)).creditos_usados_periodo === 1, "RF-48: descuenta un crédito");
+  ok((await creditos(e1.id)).creditos_usados_periodo === 100, "RF-48: descuenta la tarifa de generar (100)");
   const leido = await api(e1, "GET", `/api/documentos/${d1}`);
   const doc = leido.json?.datos;
   ok(leido.status === 200 && doc?.secciones?.length === 9 && doc.secciones[0].titulo === "Resumen ejecutivo",
@@ -131,7 +134,7 @@ try {
   const editado = await api(e1, "PATCH", `/api/documentos/${d1}`, { secciones });
   ok(editado.status === 200 && editado.json?.datos?.estado === "editado" && editado.json.datos.pendientes.length === 8 && editado.json.datos.ultimaEdicionPor === "empresa",
     "RF-58: edición libre, recalcula pendientes y marca editado");
-  ok((await creditos(e1.id)).creditos_usados_periodo === 1, "RF-58: editar no cuesta");
+  ok((await creditos(e1.id)).creditos_usados_periodo === 100, "RF-58: editar no cuesta");
   ok((await api(e2, "PATCH", `/api/documentos/${d1}`, { secciones })).status === 404, "RN-22: otra empresa no lo edita -> 404");
   ok((await api(e1, "PATCH", `/api/documentos/${d1}`, { secciones: [] })).status === 400, "RF-58: sin secciones -> 400");
 
@@ -146,9 +149,9 @@ try {
     const r = await api(e1, "POST", `/api/documentos/${d1}/ajustar`, { indicacion: `hazlo más breve ${i}` });
     ok(r.status === 200 && r.json?.datos?.ajustesUsados === i, `RF-59: ajuste gratis ${i} (${r.status})`);
   }
-  ok((await creditos(e1.id)).creditos_usados_periodo === 1, "RN-17: tres ajustes gratis no cobran");
+  ok((await creditos(e1.id)).creditos_usados_periodo === 100, "RN-17: tres ajustes gratis no cobran");
   const cuarto = await api(e1, "POST", `/api/documentos/${d1}/ajustar`, { indicacion: "usa un tono más técnico" });
-  ok(cuarto.status === 200 && (await creditos(e1.id)).creditos_usados_periodo === 2, "RN-17: el cuarto cobra un crédito");
+  ok(cuarto.status === 200 && (await creditos(e1.id)).creditos_usados_periodo === 110, "RN-17: el cuarto cobra la tarifa de ajuste (10)");
   ok((await api(e1, "POST", `/api/documentos/${d1}/ajustar`, { indicacion: "x" })).status === 400, "CU-34: indicación vacía -> 400");
 
   // --- Regenerar (CU-34 5a, RF-61) -----------------------------------------------------
@@ -156,15 +159,18 @@ try {
   const d2 = regen.json?.datos?.id;
   const { data: v2 } = await svc.from("documentos_generados").select("version, documento_padre_id").eq("id", d2).single();
   ok(regen.status === 201 && v2?.version === 2 && v2.documento_padre_id === d1, "RF-61: regenerar crea la versión 2 y conserva la 1");
-  ok((await creditos(e1.id)).creditos_usados_periodo === 3, "RN-17: regenerar cobra un crédito");
+  const trasRegenerar = await creditos(e1.id);
+  ok(trasRegenerar.creditos_usados_periodo === 125 && trasRegenerar.creditos_extra === 115,
+    `RN-17, RN-18: regenerar cobra 100, 15 del plan y 85 del paquete (usados ${trasRegenerar.creditos_usados_periodo}, extra ${trasRegenerar.creditos_extra})`);
   const lista2 = await api(e1, "GET", "/api/documentos");
   ok(lista2.json?.datos?.length === 1 && lista2.json.datos[0].id === d2, "RF-61: la lista muestra solo la última versión");
 
   // --- RF-50: sin cupo ---------------------------------------------------------------------
+  await svc.from("suscripciones").update({ creditos_extra: 5 }).eq("usuario_id", e1.id);
   const sinCupo = await api(e1, "POST", "/api/documentos/generar", { proyectoId: p1.id, convocatoriaId: cA });
-  ok(sinCupo.status === 402, `RF-50: agotados los 3 créditos del trial, no genera -> ${sinCupo.status}`);
+  ok(sinCupo.status === 402, `RF-50: con 5 créditos libres no alcanza para generar (100) -> ${sinCupo.status}`);
   ok((await api(e1, "POST", `/api/documentos/${d1}/ajustar`, { indicacion: "otra vez más breve" })).status === 402,
-    "RF-50: ni un quinto ajuste -> 402");
+    "RF-50: ni un quinto ajuste (10) -> 402");
 
   // --- Exportar (RF-60, RF-72) --------------------------------------------------------------
   const word = await api(e1, "GET", `/api/documentos/${d2}/exportar`);
@@ -202,7 +208,7 @@ try {
   await svc.from("documentos_generados").update({ ajustes_usados: 3 }).eq("id", d2);
   const rf77 = await api(a, "POST", `/api/documentos/${d2}/ajustar`, { indicacion: "hazlo más breve" });
   ok(rf77.status === 402 && /Avísale/.test(rf77.json?.error ?? ""), `RF-77: sin cupo de la empresa, se le pide avisarle (${rf77.status})`);
-  await svc.from("suscripciones").update({ creditos_extra: 1 }).eq("usuario_id", e1.id);
+  await svc.from("suscripciones").update({ creditos_extra: 10 }).eq("usuario_id", e1.id);
   const rn28 = await api(a, "POST", `/api/documentos/${d2}/ajustar`, { indicacion: "hazlo más breve" });
   const { data: consumoA } = await svc.from("consumos_ia").select("empresa_id, credito_descontado").eq("documento_id", d2).eq("usuario_id", a.id).eq("credito_descontado", true);
   ok(rn28.status === 200 && (await creditos(e1.id)).creditos_extra === 0 && consumoA?.[0]?.empresa_id === e1.id, "RN-28: el cuarto ajuste del consultor se cobra a la empresa");

@@ -25,6 +25,11 @@ declare
   v_n int; v_m int;
   v_o text;
 begin
+  -- Sesión 030 (§9.32): estas comprobaciones son de la mecánica de reservas y
+  -- cobro; con tarifa 1 y un trial de 3 dicen lo mismo que antes. Las tarifas
+  -- reales se prueban en creditos_por_tarifa.sql. Todo se revierte al final.
+  update public.tarifas_ia set creditos = 1;
+  update public.planes set creditos_ia_mensuales = 3 where es_trial;
   insert into auth.users (id, email, raw_user_meta_data) values
     (v_e1, 'ge1@prueba.co', '{"rol": "empresa", "nombre": "Ana", "nombre_empresa": "Empresa Uno", "consentimiento_datos": "true"}'),
     (v_e2, 'ge2@prueba.co', '{"rol": "empresa", "nombre": "Beto", "nombre_empresa": "Empresa Dos", "consentimiento_datos": "true"}'),

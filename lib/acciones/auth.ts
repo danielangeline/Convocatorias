@@ -105,9 +105,12 @@ export async function iniciarSesion(_previo: ResultadoFormulario, formulario: Fo
   const contrasena = String(formulario.get("contrasena") ?? "");
   if (!correo || !contrasena) return { error: "Escribe tu correo y tu contraseña." };
 
-  // RF-66, RNF-27: por correo, contra adivinar la contraseña de una cuenta, y
-  // por IP, contra probar muchas cuentas. Antes de llamar a Auth.
-  const limite = await comprobarLimite("login", { correo, ip: await ipDeLaPeticion() }, "/login");
+  // RF-66, RNF-27: por correo e IP juntos, contra adivinar la contraseña de una
+  // cuenta, y por IP, contra probar muchas cuentas. Antes de llamar a Auth. El
+  // correo va con la IP para que nadie bloquee a otro escribiendo mal su correo
+  // desde otra máquina (revisión de seguridad de la sesión 030).
+  const ip = await ipDeLaPeticion();
+  const limite = await comprobarLimite("login", { correo: `${correo}|${ip ?? "sin-ip"}`, ip }, "/login");
   if (!limite.ok) return { error: mensajeLimite(limite) };
 
   const supabase = await crearClienteServidor();
@@ -153,9 +156,16 @@ export async function pedirRecuperacion(_previo: ResultadoFormulario, formulario
   const correo = String(formulario.get("correo") ?? "").trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) return { error: "Escribe un correo válido." };
 
-  // RF-66, RNF-27: no se usa el formulario para inundar de correos a nadie.
+  // Mismo mensaje exista o no la cuenta, se envíe o no: no se revela qué correos
+  // están registrados ni se bloquea a nadie.
+  const generico = {
+    mensaje: `Si ${correo} tiene una cuenta, te enviamos un enlace para definir una contraseña nueva. Vence en 1 hora.`,
+  };
+
+  // RF-66, RNF-27: no se usa el formulario para inundar de correos a nadie. Pasado
+  // el límite (o con Upstash caído) se responde igual y no se envía nada más.
   const limite = await comprobarLimite("recuperacion", { correo, ip: await ipDeLaPeticion() }, "/auth/recuperar");
-  if (!limite.ok) return { error: mensajeLimite(limite) };
+  if (!limite.ok) return generico;
 
   const servicio = crearClienteServicio();
   const { error } = await servicio.auth.resetPasswordForEmail(correo, {
@@ -166,11 +176,8 @@ export async function pedirRecuperacion(_previo: ResultadoFormulario, formulario
   }
   if (error) console.error("resetPasswordForEmail falló", error.code, error.message);
 
-  // Mismo mensaje exista o no la cuenta, y aunque el envío falle por otra
-  // causa: no se revela qué correos están registrados.
-  return {
-    mensaje: `Si ${correo} tiene una cuenta, te enviamos un enlace para definir una contraseña nueva. Vence en 1 hora.`,
-  };
+  // Aunque el envío falle por otra causa, la respuesta es la misma.
+  return generico;
 }
 
 export async function cerrarSesion() {

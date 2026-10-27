@@ -66,6 +66,18 @@
         "IA_PROVEEDOR": "prueba",
         "UPSTASH_REDIS_REST_URL": "https://127.0.0.1:9"
       }
+    },
+    {
+      "name": "prod-ia-real",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "next",
+        "start",
+        "-p",
+        "3102"
+      ],
+      "port": 3102,
+      "autoPort": false
     }
   ]
 }

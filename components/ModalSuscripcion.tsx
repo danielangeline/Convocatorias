@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Lock, X, Check, Sparkles, Info } from "lucide-react";
 import { useAppStore } from "@/lib/store";
-import { useAccesoSuscripcion } from "@/lib/hooks";
+import { useAccesoSuscripcion, useTarifas } from "@/lib/hooks";
 import { beneficiosDePlan, CONTRATAR_EN_PILOTO } from "@/lib/planes";
 import { cn, formatCOP } from "@/lib/utils";
 
@@ -19,6 +19,7 @@ export function ModalSuscripcion() {
   const motivo = useAppStore((s) => s.motivoModalSuscripcion);
   const cerrar = useAppStore((s) => s.cerrarModalSuscripcion);
   const planes = useAppStore((s) => s.planes);
+  const tarifaDocumento = useTarifas().generacion;
   const { rol } = useAccesoSuscripcion();
   const [modalidad, setModalidad] = useState<"mensual" | "anual">("mensual");
 
@@ -70,7 +71,7 @@ export function ModalSuscripcion() {
                   <span className="text-sm text-ink-faint"> / {modalidad === "anual" ? "año" : "mes"}</span>
                 </p>
                 <ul className="mt-4 flex-1 space-y-2 text-sm text-ink-soft">
-                  {beneficiosDePlan(plan).map((b) => (
+                  {beneficiosDePlan(plan, tarifaDocumento).map((b) => (
                     <li key={b.texto} className={cn("flex items-start gap-2", b.destacado && "font-semibold text-teal-700")}>
                       {b.destacado ? <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0" /> : <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" />}
                       {b.texto}

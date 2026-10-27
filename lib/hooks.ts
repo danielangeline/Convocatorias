@@ -125,3 +125,13 @@ export function useCategoriaPorId() {
     return (id: string) => porId.get(id);
   }, [categorias]);
 }
+
+/** RN-17, RF-100 · Las tarifas vigentes de la IA. */
+export function useTarifas() {
+  return useAppStore((s) => s.tarifas);
+}
+
+/** "1 crédito", "1.500 créditos". */
+export function textoCreditos(n: number): string {
+  return `${n.toLocaleString("es-CO")} ${n === 1 ? "crédito" : "créditos"}`;
+}

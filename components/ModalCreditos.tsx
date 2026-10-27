@@ -2,7 +2,7 @@
 
 import { Sparkles, X, Info } from "lucide-react";
 import { useAppStore } from "@/lib/store";
-import { useCreditos } from "@/lib/hooks";
+import { textoCreditos, useCreditos } from "@/lib/hooks";
 import { CONTRATAR_EN_PILOTO } from "@/lib/planes";
 import { formatFecha } from "@/lib/utils";
 import { Button } from "./ui/Button";
@@ -42,11 +42,11 @@ export function ModalCreditos() {
         <div className="mt-4 rounded-xl bg-slate-50 p-4 text-sm">
           <div className="flex items-center justify-between">
             <span className="text-ink-soft">Créditos disponibles</span>
-            <span className="font-tabular font-bold text-ink">{disponibles}</span>
+            <span className="font-tabular font-bold text-ink">{disponibles.toLocaleString("es-CO")}</span>
           </div>
           <p className="mt-2 text-xs text-ink-faint">
-            Tu plan incluye {incluidos} {incluidos === 1 ? "crédito" : "créditos"} al mes
-            {extra > 0 && ` y tienes ${extra} de paquetes, que no expiran`}.
+            Tu plan incluye {textoCreditos(incluidos)} al mes
+            {extra > 0 && ` y tienes ${extra.toLocaleString("es-CO")} de paquetes, que no expiran`}.
             {fechaReinicio && ` El cupo del plan se renueva el ${formatFecha(fechaReinicio)}.`}
           </p>
         </div>

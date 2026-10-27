@@ -123,7 +123,7 @@ try {
     [{ nombre: "", rol: "empresa", precioMensual: "1", precioAnual: "1", creditosIaMensuales: 1 }, 400, "sin nombre"],
     [{ nombre: "Y", rol: "admin", precioMensual: "1", precioAnual: "1", creditosIaMensuales: 1 }, 400, "rol inválido"],
     [{ nombre: "Y", rol: "empresa", precioMensual: "1.000000", precioAnual: "1", creditosIaMensuales: 1 }, 400, "precio mal escrito"],
-    [{ nombre: "Y", rol: "empresa", precioMensual: "1", precioAnual: "1", creditosIaMensuales: 1001 }, 400, "créditos sobre el tope"],
+    [{ nombre: "Y", rol: "empresa", precioMensual: "1", precioAnual: "1", creditosIaMensuales: 1000001 }, 400, "créditos sobre el tope"],
     [{ nombre: "Y", rol: "consultor", precioMensual: "1", precioAnual: "1", creditosIaMensuales: 5 }, 400, "consultor con créditos (RN-28)"],
     [{ nombre: "empresa pro", rol: "empresa", precioMensual: "1", precioAnual: "1", creditosIaMensuales: 1 }, 409, "nombre repetido"],
   ];
@@ -170,7 +170,18 @@ try {
   ok(paquete.status === 200 && susUno2.creditos_extra === 10, `RF-51: paquete de 10 créditos (${paquete.status}, extra ${susUno2.creditos_extra})`);
   const susCons = (await svc.from("suscripciones").select("id").eq("usuario_id", cons.id).single()).data;
   ok((await api(adm, "POST", `/api/admin/suscripciones/${susCons.id}/creditos`, { cantidad: 5 })).status === 409, "RN-28: al consultor no se le otorgan créditos -> 409");
-  ok((await api(adm, "POST", `/api/admin/suscripciones/${susUno[0].id}/creditos`, { cantidad: 101 })).status === 400, "RF-51: más de 100 -> 400");
+  ok((await api(adm, "POST", `/api/admin/suscripciones/${susUno[0].id}/creditos`, { cantidad: 100001 })).status === 400, "RF-51: más de 100.000 -> 400");
+
+  // --- Tarifas de la IA (RF-100, sesión 030). La base es la de producción: se guarda el mismo valor.
+  const { data: tarifaDoc } = await svc.from("tarifas_ia").select("creditos").eq("accion", "generacion").single();
+  ok((await api(uno.s, "PATCH", "/api/admin/tarifas/generacion", { creditos: 1 })).status === 404, "RF-100/RF-85: la empresa no cambia tarifas -> 404");
+  ok((await api(adm, "PATCH", "/api/admin/tarifas/generacion", { creditos: 0 })).status === 400, "RF-100: tarifa 0 -> 400");
+  ok((await api(adm, "PATCH", "/api/admin/tarifas/inventada", { creditos: 5 })).status === 404, "RF-100: acción que no existe -> 404");
+  const tarifaIgual = await api(adm, "PATCH", "/api/admin/tarifas/generacion", { creditos: tarifaDoc.creditos });
+  const { data: tarifaDespues } = await svc.from("tarifas_ia").select("creditos, actualizado_por").eq("accion", "generacion").single();
+  ok(tarifaIgual.status === 200 && tarifaDespues.creditos === tarifaDoc.creditos && tarifaDespues.actualizado_por,
+    `RF-100: el administrador con MFA guarda la tarifa y queda el autor (${tarifaIgual.status}, ${tarifaDespues.creditos})`);
+  await svc.from("tarifas_ia").update({ actualizado_por: null }).eq("accion", "generacion");
 
   // --- Vista del suscriptor (RF-41, RF-82, CU-30) --------------------------------------------
   const vista = await api(uno.s, "GET", "/suscripcion");

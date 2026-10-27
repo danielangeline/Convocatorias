@@ -6,19 +6,19 @@ import { SincronizarPlanes } from "@/components/SincronizarPlanes";
 import { Suspense } from "react";
 import { AvisoPuerta } from "@/components/identidad/AvisoPuerta";
 import { exigirRol } from "@/lib/auth";
-import { listarPlanesDelRol } from "@/lib/suscripcion-servidor";
+import { leerTarifas, listarPlanesDelRol } from "@/lib/suscripcion-servidor";
 
 // Portal Consultor: solo rol consultor (RNF-30). proxy.ts ya lo aplica; esta
 // es la segunda barrera.
 export default async function ConsultorLayout({ children }: { children: React.ReactNode }) {
   const datos = await exigirRol(["consultor"], { ruta: "portal consultor" });
   // Sprint 5: los planes activos de consultor (RF-82, docs/05 §9.28).
-  const planes = await listarPlanesDelRol("consultor");
+  const [planes, tarifas] = await Promise.all([listarPlanesDelRol("consultor"), leerTarifas()]);
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <SincronizarSesion datos={datos} />
-      <SincronizarPlanes planes={planes} />
+      <SincronizarPlanes planes={planes} tarifas={tarifas} />
       <ConsultorNavbar />
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
         {/* RF-84: aviso si entró por la puerta del otro rol */}

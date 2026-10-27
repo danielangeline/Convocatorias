@@ -87,8 +87,12 @@ try {
   const posiciones = SECCIONES.map((sec) => titulos.findIndex((t) => norma(t).includes(norma(sec).split(" ").slice(0, 2).join(" "))));
   ok(r.status === 201 && posiciones.every((x) => x >= 0), `RF-56: aparecen las cinco secciones que pide el TDR (${posiciones.join(", ")})`);
   ok(posiciones.every((x, i) => i === 0 || x > posiciones[i - 1]), "RF-56: y en el orden del TDR");
-  const { data: c } = await svc.from("consumos_ia").select("costo_estimado").eq("empresa_id", cuenta).maybeSingle();
+  const { data: c } = await svc.from("consumos_ia").select("costo_estimado, creditos").eq("empresa_id", cuenta).maybeSingle();
   console.log(`Gasto: USD ${Number(c?.costo_estimado ?? 0).toFixed(4)}`);
+  // Sesión 030 (§9.32): generar cobra la tarifa vigente, no 1 crédito.
+  const { data: t } = await svc.from("tarifas_ia").select("creditos").eq("accion", "generacion").single();
+  const { data: sus } = await svc.from("suscripciones").select("creditos_usados_periodo").eq("usuario_id", cuenta).single();
+  ok(c?.creditos === t.creditos && sus.creditos_usados_periodo === t.creditos, `RN-17: la generación real cobra la tarifa (${c?.creditos} de ${t.creditos})`);
 } catch (e) {
   console.error("ERROR", e);
   fallas++;

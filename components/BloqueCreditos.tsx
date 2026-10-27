@@ -1,7 +1,7 @@
 "use client";
 
 import { Sparkles } from "lucide-react";
-import { useCreditos } from "@/lib/hooks";
+import { useCreditos, useTarifas } from "@/lib/hooks";
 import { formatFecha } from "@/lib/utils";
 import { ProgressBar } from "./ui/ProgressBar";
 
@@ -12,6 +12,8 @@ import { ProgressBar } from "./ui/ProgressBar";
  */
 export function BloqueCreditos() {
   const { suscripcion, vigente, disponibles, usados, incluidos, extra, fechaReinicio } = useCreditos();
+  const tarifas = useTarifas();
+  const n = (v: number) => v.toLocaleString("es-CO");
 
   if (!suscripcion || incluidos + extra === 0) return null;
 
@@ -26,7 +28,7 @@ export function BloqueCreditos() {
 
       <div className="mt-4 flex items-center justify-between text-sm">
         <span className="text-ink-soft">Disponibles este periodo</span>
-        <span className="font-tabular text-lg font-bold text-ink">{disponibles}</span>
+        <span className="font-tabular text-lg font-bold text-ink">{n(disponibles)}</span>
       </div>
       <ProgressBar porcentaje={porcentajeUsado} tono="teal" className="mt-2" />
       {!vigente && (
@@ -35,21 +37,33 @@ export function BloqueCreditos() {
 
       <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
         <div>
-          <p className="font-tabular text-sm font-semibold text-ink">{usados}</p>
+          <p className="font-tabular text-sm font-semibold text-ink">{n(usados)}</p>
           <p className="text-xs text-ink-faint">Usados del plan</p>
         </div>
         <div>
-          <p className="font-tabular text-sm font-semibold text-ink">{incluidos}</p>
+          <p className="font-tabular text-sm font-semibold text-ink">{n(incluidos)}</p>
           <p className="text-xs text-ink-faint">Incluidos al mes</p>
         </div>
         <div>
-          <p className="font-tabular text-sm font-semibold text-ink">{extra}</p>
+          <p className="font-tabular text-sm font-semibold text-ink">{n(extra)}</p>
           <p className="text-xs text-ink-faint">De paquetes (no expiran)</p>
         </div>
         <div>
           <p className="font-tabular text-sm font-semibold text-ink">{fechaReinicio ? formatFecha(fechaReinicio) : "—"}</p>
           <p className="text-xs text-ink-faint">Se renueva el</p>
         </div>
+      </div>
+
+      {/* RN-17: cuánto cuesta cada uso (tarifas vigentes, RF-100). */}
+      <div className="mt-5 border-t border-teal-100 pt-4">
+        <p className="text-xs font-semibold uppercase tracking-wide text-ink-faint">Cuánto cuesta cada uso</p>
+        <ul className="mt-2 grid gap-1.5 text-sm text-ink-soft sm:grid-cols-2">
+          <li className="flex justify-between gap-3"><span>Generar o regenerar un documento</span><span className="font-tabular font-semibold text-ink">{n(tarifas.generacion)}</span></li>
+          <li className="flex justify-between gap-3"><span>Crear un proyecto con IA</span><span className="font-tabular font-semibold text-ink">{n(tarifas.estructuracion)}</span></li>
+          <li className="flex justify-between gap-3"><span>Ajuste con IA (desde el cuarto de cada documento)</span><span className="font-tabular font-semibold text-ink">{n(tarifas.ajuste)}</span></li>
+          <li className="flex justify-between gap-3"><span>Dictar, editar a mano y los 3 primeros ajustes</span><span className="font-semibold text-teal-700">Gratis</span></li>
+        </ul>
+        <p className="mt-2 text-xs text-ink-faint">Si un uso falla, no se descuenta nada.</p>
       </div>
     </div>
   );

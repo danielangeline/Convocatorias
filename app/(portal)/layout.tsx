@@ -19,7 +19,7 @@ import { listarProyectos } from "@/lib/proyectos-servidor";
 import { listarPostulaciones, sinConvocatoria } from "@/lib/postulaciones-servidor";
 import { aEncargoBase, listarEncargosEmpresa } from "@/lib/encargos-servidor";
 import { aDocumentoStore, listarDocumentos } from "@/lib/documentos-servidor";
-import { listarPlanesDelRol } from "@/lib/suscripcion-servidor";
+import { leerTarifas, listarPlanesDelRol } from "@/lib/suscripcion-servidor";
 
 // Portal Empresa: solo rol empresa (RNF-30, docs/04 §8.2). proxy.ts ya lo
 // aplica; esta es la segunda barrera.
@@ -31,7 +31,7 @@ export default async function PortalLayout({ children }: { children: React.React
   // Sprint 4 paso 3: y sus encargos. Sprint 5: y sus documentos generados y los
   // planes activos de empresa (RF-82, docs/05 §9.28).
   const supabase = await crearClienteServidor();
-  const [convocatorias, categorias, proyectos, postulaciones, encargos, documentos, planes, consentimiento] = await Promise.all([
+  const [convocatorias, categorias, proyectos, postulaciones, encargos, documentos, planes, consentimiento, tarifas] = await Promise.all([
     listarCatalogo(),
     listarCategoriasActivas(),
     listarProyectos(),
@@ -41,13 +41,14 @@ export default async function PortalLayout({ children }: { children: React.React
     listarPlanesDelRol("empresa"),
     // RF-88: las cuentas anteriores a la casilla del registro aceptan en el portal.
     supabase.from("perfiles").select("consentimiento_datos_at").eq("id", datos.sesion.usuarioId).maybeSingle(),
+    leerTarifas(),
   ]);
   const faltaConsentimiento = !consentimiento.error && !consentimiento.data?.consentimiento_datos_at;
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <SincronizarSesion datos={datos} />
-      <SincronizarPlanes planes={planes} />
+      <SincronizarPlanes planes={planes} tarifas={tarifas} />
       <SincronizarCatalogo convocatorias={convocatorias} categorias={categorias} />
       <SincronizarProyectos proyectos={proyectos} />
       <SincronizarPostulaciones postulaciones={postulaciones.map(sinConvocatoria)} />

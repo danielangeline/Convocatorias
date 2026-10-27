@@ -9,7 +9,7 @@ import { Aviso, Campo } from "./Campo";
 import { SelectorPuerta } from "./SelectorPuerta";
 
 const DETALLE: Record<Puerta, string> = {
-  empresa: "Busca convocatorias y prepara postulaciones. Prueba gratis 7 días con 3 créditos de IA.",
+  empresa: "Busca convocatorias y prepara postulaciones. Prueba gratis 7 días con créditos de IA incluidos.",
   consultor: "Ofrece tus servicios. Tu perfil pasa por revisión antes de publicarse.",
 };
 

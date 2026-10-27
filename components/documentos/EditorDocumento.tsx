@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { dividirPorPendientes, extraerPendientes, ESTADO_DOCUMENTO_LABEL, ESTADO_DOCUMENTO_ESTILO, EJEMPLOS_AJUSTE } from "@/lib/documentos";
-import { useAccesoSuscripcion, useCreditos } from "@/lib/hooks";
+import { textoCreditos, useAccesoSuscripcion, useCreditos, useTarifas } from "@/lib/hooks";
 import { pedir } from "@/lib/pedir";
 import { cn } from "@/lib/utils";
 import type { DocumentoServidor, SeccionDocumento } from "@/lib/types";
@@ -55,6 +55,8 @@ export function EditorDocumento({
   const abrirModalCreditos = useAppStore((s) => s.abrirModalCreditos);
   const { requerirAcceso } = useAccesoSuscripcion();
   const { disponibles } = useCreditos();
+  // RN-17: tarifas vigentes del ajuste (desde el cuarto) y de regenerar.
+  const tarifas = useTarifas();
   const esConsultor = rol === "consultor";
 
   const [documento, setDocumento] = useState(inicial);
@@ -93,7 +95,7 @@ export function EditorDocumento({
     if (!instruccion.trim()) return;
     if (!esConsultor && ajustesGratisRestantes === 0) {
       if (!requerirAcceso("pedir un ajuste a la IA")) return;
-      if (disponibles <= 0) return abrirModalCreditos("pedir un ajuste a la IA");
+      if (disponibles < tarifas.ajuste) return abrirModalCreditos("pedir un ajuste a la IA");
     }
     setOcupado("ajustar");
     setError(null);
@@ -109,7 +111,7 @@ export function EditorDocumento({
   const confirmarRegenerar = async () => {
     setConfirmandoRegenerar(false);
     if (!requerirAcceso("regenerar este documento")) return;
-    if (disponibles <= 0) return abrirModalCreditos("regenerar este documento");
+    if (disponibles < tarifas.generacion) return abrirModalCreditos("regenerar este documento");
     setOcupado("regenerar");
     setError(null);
     const r = await pedir<{ id: string }>("/api/documentos/generar", {
@@ -270,8 +272,8 @@ export function EditorDocumento({
               {ajustesGratisRestantes > 0
                 ? `${ajustesGratisRestantes} de 3 ajustes gratis restantes.`
                 : esConsultor
-                  ? "Ya se usaron los 3 ajustes gratis de este documento. El siguiente consume 1 crédito de la empresa."
-                  : "Ya usaste tus 3 ajustes gratis para este documento. El siguiente consumirá 1 crédito."}
+                  ? `Ya se usaron los 3 ajustes gratis de este documento. Cada ajuste más consume ${textoCreditos(tarifas.ajuste)} de la empresa.`
+                  : `Ya usaste tus 3 ajustes gratis para este documento. Cada ajuste más consume ${textoCreditos(tarifas.ajuste)}.`}
             </p>
             <div className="mt-3 flex flex-wrap gap-1.5">
               {EJEMPLOS_AJUSTE.map((ej) => (
@@ -341,7 +343,7 @@ export function EditorDocumento({
               </button>
             </div>
             <p className="text-sm text-ink-soft">
-              Esto consumirá 1 crédito y creará la versión {documento.version + 1} a partir de los datos actuales del
+              Esto consumirá {textoCreditos(tarifas.generacion)} y creará la versión {documento.version + 1} a partir de los datos actuales del
               proyecto. Esta versión, con sus ediciones, se conserva.
             </p>
             <div className="mt-6 flex justify-end gap-3">
@@ -349,7 +351,7 @@ export function EditorDocumento({
                 Cancelar
               </Button>
               <Button variant="teal" onClick={confirmarRegenerar}>
-                Regenerar (1 crédito)
+                Regenerar ({textoCreditos(tarifas.generacion)})
               </Button>
             </div>
           </div>

@@ -1,6 +1,6 @@
 import "server-only";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
-import type { Pago, Plan, RolPlan } from "@/lib/types";
+import { TARIFAS_POR_DEFECTO, type Pago, type Plan, type RolPlan, type TarifasIA } from "@/lib/types";
 
 /**
  * CU-28, CU-30 · RF-41, RF-82 · Lo que el suscriptor lee de su plan (docs/05
@@ -49,4 +49,16 @@ export async function listarPagosPropios(): Promise<Pago[]> {
     modalidad: f.modalidad as "mensual" | "anual" | null,
     creditos: f.creditos,
   }));
+}
+
+/** RN-17, RF-100 · Las tarifas vigentes de la IA, para mostrar el costo de cada acción. */
+export async function leerTarifas(): Promise<TarifasIA> {
+  const supabase = await crearClienteServidor();
+  const { data, error } = await supabase.from("tarifas_ia").select("accion, creditos");
+  if (error) throw new Error(`Tarifas: leer falló (${error.code})`);
+  const tarifas = { ...TARIFAS_POR_DEFECTO };
+  for (const f of (data ?? []) as { accion: string; creditos: number }[]) {
+    if (f.accion === "generacion" || f.accion === "estructuracion" || f.accion === "ajuste") tarifas[f.accion] = f.creditos;
+  }
+  return tarifas;
 }

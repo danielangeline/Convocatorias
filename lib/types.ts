@@ -798,3 +798,16 @@ export interface PropuestaProyecto {
   experienciaEmpresa: string;
   faltantes: string[];
 }
+
+/**
+ * RN-17, RF-100 · Cuántos créditos cuesta cada uso de la IA (docs/05 §9.32).
+ * Es un dato de la base que el administrador cambia; estos valores solo se usan
+ * mientras la pantalla aún no recibió los del servidor.
+ */
+export interface TarifasIA {
+  generacion: number;
+  estructuracion: number;
+  ajuste: number;
+}
+
+export const TARIFAS_POR_DEFECTO: TarifasIA = { generacion: 100, estructuracion: 50, ajuste: 10 };

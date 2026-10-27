@@ -12,7 +12,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
-import { useAccesoSuscripcion, useCreditos, useDocumentosPropios, useProyectosPropios, useCategoriaPorId } from "@/lib/hooks";
+import { textoCreditos, useAccesoSuscripcion, useCreditos, useDocumentosPropios, useProyectosPropios, useCategoriaPorId, useTarifas } from "@/lib/hooks";
 import { documentoParaProyectoConv } from "@/lib/documentos";
 import { pedir } from "@/lib/pedir";
 import { calcularCompletitud } from "@/lib/proyectos";
@@ -42,6 +42,8 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
   const documentos = useDocumentosPropios();
   const { requerirAcceso } = useAccesoSuscripcion();
   const { disponibles } = useCreditos();
+  // RN-17: generar cuesta la tarifa vigente (100 al iniciar la sesión 030).
+  const costo = useTarifas().generacion;
 
   const [seleccionId, setSeleccionId] = useState<string | null>(proyectoParaGenerar);
   const [generando, setGenerando] = useState(false);
@@ -81,7 +83,7 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
   const iniciarGeneracion = async () => {
     if (!seleccionId) return;
     if (!requerirAcceso("generar un documento con IA")) return;
-    if (disponibles <= 0) {
+    if (disponibles < costo) {
       abrirModalCreditos("generar un documento con IA");
       return;
     }
@@ -126,7 +128,7 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
 
       <div className="mb-6 flex items-center justify-between gap-3 rounded-xl border border-teal-100 bg-teal-50/60 px-5 py-3">
         <p className="text-sm text-teal-800">
-          Te quedan <strong>{disponibles}</strong> {disponibles === 1 ? "crédito" : "créditos"}. Generar consumirá 1.
+          Te quedan <strong>{textoCreditos(disponibles)}</strong>. Generar consumirá {textoCreditos(costo)}.
         </p>
       </div>
 
@@ -224,7 +226,7 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
           </p>
           <div className="mt-3 flex items-center justify-end">
             <Button variant="teal" size="lg" disabled={!seleccionId} onClick={iniciarGeneracion}>
-              <Sparkles className="h-4 w-4" /> {documentoExistente ? "Generar versión nueva (1 crédito)" : "Generar documento (1 crédito)"}
+              <Sparkles className="h-4 w-4" /> {documentoExistente ? `Generar versión nueva (${textoCreditos(costo)})` : `Generar documento (${textoCreditos(costo)})`}
             </Button>
           </div>
         </>

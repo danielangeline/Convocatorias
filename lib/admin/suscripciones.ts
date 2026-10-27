@@ -15,7 +15,8 @@ const invalido = (error: string) => ({ ok: false as const, status: 400, error })
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const FECHA = /^\d{4}-\d{2}-\d{2}$/;
 
-export const LIMITES_PLAN = { nombreMax: 80, precioMax: 100_000_000, creditosMax: 1_000, diasTrialMax: 60, paqueteMax: 100 } as const;
+// Sesión 030: los créditos se cuentan por tarifa (RN-17), así que los topes suben.
+export const LIMITES_PLAN = { nombreMax: 80, precioMax: 100_000_000, creditosMax: 1_000_000, diasTrialMax: 60, paqueteMax: 100_000 } as const;
 
 const MENSAJES: Record<string, { status: number; error: string }> = {
   no_es_admin: { status: 404, error: "No encontrado." },
@@ -211,4 +212,28 @@ export async function suspenderSuscripcion(suscripcionId: string): Promise<Resul
         ? `Suscripción suspendida. Se cancelaron ${cancelados} ${cancelados === 1 ? "encargo" : "encargos"} del consultor.`
         : "Suscripción suspendida.",
   };
+}
+
+// ---------------------------------------------------------------------------
+// RF-100 · Tarifas de créditos de la IA (docs/05 §9.32)
+// ---------------------------------------------------------------------------
+
+const ACCIONES_TARIFA = ["generacion", "estructuracion", "ajuste"] as const;
+
+/** Cuerpo: { creditos }. Cambia cuántos créditos cuesta una acción; rige desde el siguiente uso. */
+export async function guardarTarifa(accion: string, cuerpo: Record<string, unknown> | null): Promise<Resultado> {
+  if (!(ACCIONES_TARIFA as readonly string[]).includes(accion)) return { ok: false, status: 404, error: "Esa acción no existe." };
+  const creditos = Number(cuerpo?.creditos);
+  if (!Number.isInteger(creditos) || creditos < 1 || creditos > 100_000) {
+    return { ok: false, status: 400, error: "La tarifa debe ser un número entero de créditos, de 1 a 100.000." };
+  }
+  const supabase = await crearClienteServidor();
+  const { error } = await supabase.rpc("guardar_tarifa", { p_accion: accion, p_creditos: creditos });
+  if (error) {
+    if (error.hint === "no_es_admin") return { ok: false, status: 404, error: "No encontrado." };
+    if (error.hint === "dato_invalido") return { ok: false, status: 400, error: "La tarifa debe ser un número entero de créditos, de 1 a 100.000." };
+    console.error("Tarifas: guardar falló", error.code, error.message);
+    return { ok: false, status: 500, error: "No pudimos completar la acción. Intenta de nuevo." };
+  }
+  return { ok: true, aviso: "Tarifa guardada: rige desde el siguiente uso." };
 }

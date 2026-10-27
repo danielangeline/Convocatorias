@@ -41,6 +41,7 @@ import type {
   Suscripcion,
   TipoAyudaEncargo,
 } from "./types";
+import { TARIFAS_POR_DEFECTO, type TarifasIA } from "./types";
 
 let contador = 1000;
 function nuevoId(prefijo: string): string {
@@ -165,6 +166,10 @@ interface AppState {
   // Planes: los reales del rol, leídos en el servidor (RF-82, docs/05 §9.28).
   // Crear, editar, activar suscripciones y otorgar paquetes van por /api/admin.
   hidratarPlanes: (planes: Plan[]) => void;
+
+  // RN-17, RF-100: cuántos créditos cuesta cada uso de la IA (leídas en el servidor).
+  tarifas: TarifasIA;
+  hidratarTarifas: (tarifas: TarifasIA) => void;
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -178,6 +183,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   encargos: encargosIniciales,
   calificaciones: calificacionesIniciales,
   planes: planesIniciales,
+  tarifas: TARIFAS_POR_DEFECTO,
+  hidratarTarifas: (tarifas) => set({ tarifas }),
   suscripciones: suscripcionesIniciales,
   pagos: pagosIniciales,
   documentos: documentosIniciales,

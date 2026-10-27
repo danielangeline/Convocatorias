@@ -110,7 +110,7 @@ try {
   ok(Array.isArray(p?.categorias) && p.categorias.length === 1 && idsActivos.has(p.categorias[0]),
     "RN-37: la clave conocida se traduce a una categoría activa y la desconocida se descarta");
   ok(p?.montoBuscado === null && p?.departamento === null && p?.faltantes?.length === 2, "RN-37: lo no dicho queda vacío y se lista en faltantes");
-  ok((await usados(e1.id)) === 1, "RN-17: la propuesta entregada cobra un crédito");
+  ok((await usados(e1.id)) === 50, "RN-17: la propuesta entregada cobra la tarifa de crear proyecto (50)");
   const ce = (await consumos(e1.id, "estructuracion")).filter((x) => x.exito);
   ok(ce.length === 1 && ce[0].credito_descontado && ce[0].modelo, "RF-52: consumo con éxito, crédito y modelo");
   const { count: proyectos } = await svc.from("proyectos").select("id", { count: "exact", head: true }).eq("usuario_id", e1.id);
@@ -127,7 +127,7 @@ try {
   // --- Transcribir (RF-97) -----------------------------------------------------------
   const t = await api(e1, "POST", "/api/proyectos/transcribir", undefined, { formulario: audio(2000) });
   ok(t.status === 200 && /Transcripción de prueba/.test(t.json?.datos?.texto ?? ""), `RF-97: transcribe el audio (${t.status})`);
-  ok((await usados(e1.id)) === 1, "RF-97: transcribir no cobra crédito");
+  ok((await usados(e1.id)) === 50, "RF-97: transcribir no cobra créditos");
   const ct = await consumos(e1.id, "transcripcion");
   ok(ct.length === 1 && ct[0].exito && !ct[0].credito_descontado && Number(ct[0].costo_estimado) > 0, "RF-52: la transcripción queda registrada con su costo estimado");
   ok((await api(e1, "POST", "/api/proyectos/transcribir", undefined, { formulario: new FormData() })).status === 400, "RF-97: sin audio -> 400");
@@ -135,7 +135,8 @@ try {
   ok((await api(e1, "POST", "/api/proyectos/transcribir", undefined, { formulario: audio(4 * 1024 * 1024 + 10) })).status === 413, "RF-97: más de 4 MB -> 413");
 
   // --- Sin crédito (CU-43 3b) --------------------------------------------------------
-  await svc.from("suscripciones").update({ creditos_usados_periodo: 3 }).eq("usuario_id", e1.id);
+  // 125 del trial menos 100 usados: quedan 25, menos que la tarifa de crear proyecto (50).
+  await svc.from("suscripciones").update({ creditos_usados_periodo: 100 }).eq("usuario_id", e1.id);
   const sinCredito = await api(e1, "POST", "/api/proyectos/estructurar", { explicacion: EXPLICACION });
   ok(sinCredito.status === 402 && /a mano/.test(sinCredito.json?.error ?? ""), `CU-43 3b: sin crédito -> 402 y ofrece el formulario (${sinCredito.status})`);
   ok((await api(e1, "POST", "/api/proyectos/transcribir", undefined, { formulario: audio(2000) })).status === 402, "RF-97: sin crédito tampoco transcribe -> 402");

@@ -61,8 +61,8 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000000c2', 'c2@prueba.co', '{"rol": "consultor", "nombre": "Consultor dos"}'),
   ('00000000-0000-0000-0000-0000000000ad', 'ad@prueba.co', '{"rol": "administrador", "nombre": "Admin"}');
 
-select pg_temp.ok((select count(*) from public.planes where es_trial and activo and dias_trial = 7 and creditos_ia_mensuales = 3) = 1,
-  'Registro: existe un único plan trial activo de 7 días y 3 créditos (RF-37)');
+select pg_temp.ok((select count(*) from public.planes where es_trial and activo and dias_trial = 7 and creditos_ia_mensuales = 125) = 1,
+  'Registro: existe un único plan trial activo de 7 días y 125 créditos (RF-37, §9.32)');
 select pg_temp.ok((select rol from public.perfiles where id = '00000000-0000-0000-0000-0000000000e1') = 'empresa'
   and (select nombre_empresa from public.perfiles where id = '00000000-0000-0000-0000-0000000000e1') = 'Uno SAS',
   'Registro: la empresa nace con su perfil y nombre de empresa');
@@ -146,7 +146,7 @@ grant select on proyectos_previos to authenticated;
 -- 0 · Cobertura (RNF-25): toda tabla de public con RLS y al menos una política
 -- ---------------------------------------------------------------------------
 
-select pg_temp.ok(count(*) = 34, 'hay 34 tablas en public (27 + departamentos y convocatoria_departamento, sesión 019, + encargo_historial, sesión 023, + encargo_propuestas, sesión 025, + documento_lecturas, sesión 026, + reservas_estructuracion y plantillas_proyecto, sesión 030)') from pg_tables where schemaname = 'public';
+select pg_temp.ok(count(*) = 35, 'hay 35 tablas en public (27 + departamentos y convocatoria_departamento, sesión 019, + encargo_historial, sesión 023, + encargo_propuestas, sesión 025, + documento_lecturas, sesión 026, + reservas_estructuracion, plantillas_proyecto y tarifas_ia, sesión 030)') from pg_tables where schemaname = 'public';
 select pg_temp.ok(bool_and(c.relrowsecurity), 'todas las tablas tienen RLS habilitado')
 from pg_class c join pg_namespace n on n.oid = c.relnamespace
 where n.nspname = 'public' and c.relkind = 'r';

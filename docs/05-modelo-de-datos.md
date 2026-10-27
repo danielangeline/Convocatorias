@@ -963,9 +963,9 @@ Migración `20261026130000_bloqueos_limite_tasa`. El conteo vive en **Upstash Re
 
 | Límite | Sujeto y máximo | Ventana | Dónde |
 |---|---|---|---|
-| `login` | correo 8 · IP 50 | 10 min | `iniciarSesion` |
+| `login` | correo + IP 8 · IP 50 | 10 min | `iniciarSesion` (el correo va con la IP: nadie bloquea a otro desde otra máquina) |
 | `registro` | IP 10 | 1 h | `registrarse` |
-| `recuperacion` | correo 3 · IP 10 | 1 h | `pedirRecuperacion` |
+| `recuperacion` | correo 3 · IP 10 | 1 h | `pedirRecuperacion` (pasado el límite responde el mensaje de siempre y no envía) |
 | `ia` | usuario 30 | 10 min | generar, ajustar, estructurar y transcribir, antes de reservar crédito |
 
 Al pasarse, el sujeto queda bloqueado hasta el fin de la ventana: 429 con `Retry-After` en los endpoints y un mensaje con los minutos en los formularios. **El primer exceso de cada ventana** inserta un evento `limite_tasa` con `bloqueado_hasta` (el fin de la ventana) y `clave_limite`. **Si Upstash no responde o falta su configuración, se rechaza** (503 en los endpoints, mensaje genérico en los formularios) y queda en el log del servidor (RNF-33).
@@ -973,3 +973,13 @@ Al pasarse, el sujeto queda bloqueado hasta el fin de la ventana: 429 con `Retry
 **Columnas nuevas en `eventos_seguridad`:** `clave_limite` (text, ≤ 300, solo en `limite_tasa`) y `liberado_por` (uuid, FK → perfiles).
 
 **`public.liberar_bloqueo(p_evento) returns text`** — administrador con aal2 (`no_es_admin`); solo un `limite_tasa` con `bloqueado_hasta` futuro (`bloqueo_no_existe`). Pone `bloqueado_hasta = now()` y `liberado_por`, y devuelve la clave. El servidor borra **primero** el contador en Upstash y solo si lo logra llama a la función: así nunca se marca liberado a alguien que sigue bloqueado.
+
+### 9.32 Créditos por tarifa *(nuevo v6, sesión 030 · RN-17, RN-18, RF-48, RF-50, RF-51, RF-100)*
+
+Migración `20261026140000_creditos_por_tarifa`. Por decisión del Product Owner, cada uso de la IA deja de costar 1 crédito y cuesta **su tarifa**.
+
+**TARIFAS_IA** *(tabla 35)* — `accion` (PK: `generacion`, `estructuracion`, `ajuste`), `creditos` (int, 1 a 100 000), `actualizado_por` (FK → perfiles), `actualizado_at`. Semilla: **generación 100, estructuración 50, ajuste 10** (desde el cuarto de cada documento; los 3 primeros siguen gratis). Dictar no tiene tarifa: no cuesta. **RLS:** quien tiene sesión lee (las pantallas muestran el costo de cada acción); nadie escribe directo. `public.guardar_tarifa(p_accion, p_creditos)` —administrador con aal2 (`no_es_admin`), 1 a 100 000 (`dato_invalido`), acción existente (`tarifa_no_existe`)— la cambia y deja autor y fecha; rige desde el siguiente uso. `privado.tarifa(p_accion)` la lee para las funciones.
+
+**Cobro.** `privado.descontar_creditos(p_suscripcion, p_cantidad)` reemplaza a `descontar_credito`: toma primero lo que queda del plan y el resto de los paquetes (RN-18); si no alcanza, `sin_creditos`. `privado.reservas_de()` suma ahora créditos: cada generación, ajuste que cobra y estructuración en curso cuenta su tarifa. `iniciar_generacion`, `preparar_ajuste`, `iniciar_estructuracion` e `iniciar_transcripcion` exigen que **el saldo libre alcance la tarifa** (el dictado, la de estructurar), y `completar_*` descuentan la tarifa. `consumos_ia.creditos` (int, ≥ 0; solo si `credito_descontado`) guarda cuánto se cobró; `tablero_suscripciones` suma esos créditos.
+
+**Conversión de lo existente (×100).** `creditos_usados_periodo`, `creditos_extra` y `pagos_suscripcion.creditos` se multiplicaron por 100 (1 crédito valía un documento, que ahora cuesta 100), y los consumos ya cobrados quedaron con `creditos = 100`: nadie perdió lo que tenía. **Planes:** Trial 125, Esencial 350, Pro 800 (decisión del Product Owner). Topes: plan hasta 1 000 000 créditos al mes y paquete de 1 a 100 000.
