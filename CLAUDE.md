@@ -37,7 +37,7 @@ Reglas que se rompen con facilidad:
 2. **Veracidad del contenido generado.** La IA nunca inventa datos, cifras ni antecedentes que no vengan del proyecto del usuario o de la convocatoria. Lo que falte se marca como `[COMPLETAR: ...]` y se lista al usuario. (RNF-23, RF-57)
 3. **La IA se usa en dos lugares:** generar el documento base de postulación y, desde la sesión 030, proponer el borrador de un proyecto a partir de la explicación escrita o dictada de la empresa, que ella revisa antes de guardar (CU-43, RN-37). **No** estructura el catálogo ni hace matching semántico — el matching es un cruce determinístico de atributos. (RN-05)
 4. **Las convocatorias se cargan manualmente** por un administrador. Sin scraping en el MVP.
-5. **Un crédito por generación exitosa.** Una generación fallida **nunca** consume crédito. 3 ajustes con IA gratis por documento. Estructurar un proyecto con IA también cuesta un crédito si sale bien; dictar (transcribir) no cuesta. (RN-17)
+5. **Cada uso exitoso de la IA cuesta su tarifa en créditos**: 100 por documento, 50 por proyecto creado con IA, 10 por ajuste desde el cuarto (los 3 primeros de cada documento son gratis); dictar no cuesta. Las tarifas las cambia el administrador (RF-100). Un uso fallido **nunca** consume créditos. (RN-17)
 6. **Suscripción y cupo se validan en el servidor y en RLS**, nunca solo en la interfaz. (RNF-20)
 7. **La plataforma no intermedia el pago de los encargos** entre empresa y consultor. Los ingresos vienen de las suscripciones. (RN-14)
 8. **Ninguna tabla se despliega sin RLS con política explícita, y ninguna sesión administrativa opera sin MFA verificado.** Ambos son requisitos de diseño desde el Sprint 0, no revisiones posteriores. (RN-24, RNF-25, RNF-28)

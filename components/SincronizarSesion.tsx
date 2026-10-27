@@ -12,8 +12,11 @@ import type { DatosSesion } from "@/lib/types";
  * nada: la sesión y el rol ya se comprobaron en el servidor.
  */
 export function SincronizarSesion({ datos }: { datos: DatosSesion }) {
+  // Solo si el store aún no tiene sesión: si ya había una (p. ej. al pasar del
+  // MFA al panel), cambiarla durante el render actualizaría la barra mientras
+  // se pinta y React lo advierte; ese caso lo cubre el efecto.
   useState(() => {
-    useAppStore.getState().hidratarSesion(datos);
+    if (!useAppStore.getState().sesion) useAppStore.getState().hidratarSesion(datos);
     return true;
   });
 

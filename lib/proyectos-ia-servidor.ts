@@ -3,7 +3,7 @@ import type { PostgrestError } from "@supabase/supabase-js";
 import { crearClienteServicio } from "@/lib/supabase/servidor";
 import { costo } from "@/lib/documentos-servidor";
 import { ErrorIA, proveedorIA } from "@/lib/ia";
-import { ESQUEMA_PROPUESTA, INSTRUCCIONES_ESTRUCTURACION, contextoEstructuracion, leerPropuesta } from "@/lib/ia/estructurar";
+import { ESQUEMA_PROPUESTA, contextoEstructuracion, leerPropuesta } from "@/lib/ia/estructurar";
 import type { Categoria, PropuestaProyecto } from "@/lib/types";
 
 /**
@@ -58,6 +58,8 @@ function rechazo(error: PostgrestError, accion: string): { ok: false; status: nu
 
 type Inicio = {
   reserva_id: string;
+  /** La versión activa de la plantilla de creación de proyectos (RF-99). */
+  instrucciones: string;
   modelo: string;
   precio_entrada_usd_mtok: number;
   precio_salida_usd_mtok: number;
@@ -101,7 +103,7 @@ export async function estructurarProyecto(
     const { mensaje, claves } = contextoEstructuracion(explicacion, (cats ?? []) as Pick<Categoria, "id" | "tipo" | "nombre">[]);
     const r = await proveedorIA().estructurar({
       modelo: inicio.modelo,
-      instrucciones: INSTRUCCIONES_ESTRUCTURACION,
+      instrucciones: inicio.instrucciones,
       mensaje,
       esquema: ESQUEMA_PROPUESTA as unknown as Record<string, unknown>,
       maxTokensSalida: MAX_TOKENS_SALIDA,

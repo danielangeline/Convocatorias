@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertCircle, ArrowLeft, CheckCircle2, Compass, Search, Target, Users, X } from "lucide-react";
@@ -30,19 +30,21 @@ interface SolicitarConsultorModalProps {
  * Pedir ayuda al equipo (CU-23) crea la solicitud en el servidor; buscar en el
  * directorio guarda la tarea en el store hasta elegir consultor (CU-21 3a).
  */
-export function SolicitarConsultorModal({
-  proyecto,
-  open,
-  onClose,
-  convocatoriaFijaId,
-}: SolicitarConsultorModalProps) {
+export function SolicitarConsultorModal(props: SolicitarConsultorModalProps) {
+  // Se monta de nuevo cada vez que se abre: el estado arranca limpio sin
+  // reiniciarlo desde un efecto.
+  if (!props.open) return null;
+  return <ContenidoSolicitud {...props} />;
+}
+
+function ContenidoSolicitud({ proyecto, onClose, convocatoriaFijaId }: SolicitarConsultorModalProps) {
   const router = useRouter();
   const todasLasConvocatorias = useAppStore((s) => s.convocatorias);
   const iniciarSolicitudConsultor = useAppStore((s) => s.iniciarSolicitudConsultor);
 
-  const [paso, setPaso] = useState<1 | 2 | 3>(1);
+  const [paso, setPaso] = useState<1 | 2 | 3>(convocatoriaFijaId ? 2 : 1);
   const [tipoAyuda, setTipoAyuda] = useState<TipoAyudaEncargo>("convocatoria_especifica");
-  const [convocatoriaIdSel, setConvocatoriaIdSel] = useState("");
+  const [convocatoriaIdSel, setConvocatoriaIdSel] = useState(convocatoriaFijaId ?? "");
   const [titulo, setTitulo] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [confirmacion, setConfirmacion] = useState(false);
@@ -53,19 +55,6 @@ export function SolicitarConsultorModal({
     () => todasLasConvocatorias.filter((c) => c.estado === "publicada" && diasRestantes(c.fechaCierre) >= 0),
     [todasLasConvocatorias]
   );
-
-  useEffect(() => {
-    if (!open) return;
-    setTipoAyuda("convocatoria_especifica");
-    setConvocatoriaIdSel(convocatoriaFijaId ?? "");
-    setTitulo("");
-    setDescripcion("");
-    setConfirmacion(false);
-    setError(null);
-    setPaso(convocatoriaFijaId ? 2 : 1);
-  }, [open, convocatoriaFijaId]);
-
-  if (!open) return null;
 
   const irAlPaso2 = () => {
     if (tipoAyuda === "convocatoria_especifica" && !convocatoriaIdSel) return;

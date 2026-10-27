@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { conEmpresa, cuerpoDe } from "@/lib/api-empresa";
 import { estructurarProyecto } from "@/lib/proyectos-ia-servidor";
+import { limitarIA } from "@/lib/limite-tasa";
 
 // La IA tiene hasta 60 s; el resto es margen para reservar y cobrar.
 export const maxDuration = 90;
@@ -9,6 +10,9 @@ export const maxDuration = 90;
 // empresa. Un crédito solo si la entrega (RN-17). No guarda el proyecto.
 export async function POST(request: NextRequest) {
   return conEmpresa(request, async (usuarioId) => {
+    // RF-66, RNF-27: antes de reservar crédito o llamar a la IA.
+    const limitado = await limitarIA(usuarioId, "/api/proyectos/estructurar");
+    if (limitado) return limitado;
     const r = await estructurarProyecto(usuarioId, await cuerpoDe(request));
     if (!r.ok) return NextResponse.json({ error: r.error }, { status: r.status });
     return NextResponse.json({ ok: true, datos: r.datos });

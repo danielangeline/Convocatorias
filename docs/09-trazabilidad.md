@@ -18,7 +18,7 @@
 | CU-07 Catálogo y chips *(v6: cerradas fuera del listado por defecto; solo empresas; sesión 016: chips derivados del catálogo vigente; sesión 019: filtro por departamento; sesión 029: 20 filtros, orden y filtros a la vista)* | RF-11, 12, 43, 94, 95 | RNF-04, **RN-02, RN-33, RN-34** |
 | CU-08 Detalle y descargas *(v5: enlace al portal; v6: solo empresas; sesión 016: descarga por URL firmada heredando la visibilidad de la fila)* | RF-13, **73** | RNF-06, **RNF-16**, **RN-33** |
 | CU-09 Proyecto enriquecido *(v6: completitud accionable; sesión 019: departamento)* | RF-14, 45, 46, 47, **81** | RN-21, RNF-03, **RNF-07**, **RN-34** |
-| **CU-43 Crear el proyecto con IA a partir de una explicación** *(nuevo v6, sesión 030)* | **RF-96, 97, 98**, RF-14, 45, 52 | **RN-05, 17, 34, 37**, RNF-20, 22, 23, 24 |
+| **CU-43 Crear el proyecto con IA a partir de una explicación** *(nuevo v6, sesión 030)* | **RF-96, 97, 98, 99**, RF-14, 45, 52 | **RN-05, 17, 34, 37**, RNF-20, 22, 23, 24 |
 | CU-10 Sugerencias con % *(v6: solo vigentes; sesión 019: cálculo en servidor, ubicación por departamento, 2a y 2b)* | RF-15, 16, **81** | RN-05, RNF-05, **RN-02**, **RNF-20**, **RN-34** |
 | CU-11 Iniciar postulación *(v6: vigencia verificada en servidor; sesión 020: una en curso por par)* | RF-17, 21, **78** | RN-03, 04, 19, **RNF-20**, **RN-35** |
 | CU-12 Checklist *(sesión 020: solo lectura si está cerrada)* | RF-18, 20 | **RN-35** |
@@ -34,9 +34,9 @@
 | CU-32 Enforcement *(v6: revocación en cascada al vencer; sesión 023: fecha de Colombia, gracia también en el trial, aviso en el portal)* | RF-40, 39, **76** | RNF-20, RN-08, 10, **16**, **RN-27, 29** |
 | **CU-33 Generar documento** *(v6: actor solo empresa; vigencia verificada en servidor)* | RF-53..57, 62, 48, **78** | RN-17, 19, 20, 21, RNF-21, 23, 24, **RN-28, RNF-30** |
 | **CU-34 Revisar y exportar** *(v5: acceso del consultor; v6: autorización derivada, cupo y traza)* | RF-58..61, 71, 72, **76, 77, 79** | RN-20, 22, 27, 28, RNF-23, **RNF-11, 20** |
-| **CU-35 Cupo de créditos** | **RF-48, 49, 50, 52** | **RN-17, 18, RNF-20, 24** |
+| **CU-35 Cupo de créditos** *(sesión 030: tarifas por uso)* | **RF-48, 49, 50, 52, 100** | **RN-17, 18, RNF-20, 24** |
 | **CU-36 Indicadores landing** *(v6: cifra legible en reposo; solo agregados)* | **RF-44** | RNF-04, **RNF-07, RN-33** |
-| **CU-37 Plantilla de generación** *(v4 — ausente de la matriz hasta v6)* | **RF-63** | **RNF-14, 22, 23** |
+| **CU-37 Plantillas de la IA** *(v4 — ausente de la matriz hasta v6; sesión 030: también la de creación de proyectos)* | **RF-63, 99** | **RNF-14, 22, 23, RN-37** |
 | **CU-38 Activar MFA** *(v5; v6: la cuenta nace de CU-41/42)* | **RF-64** | **RNF-28**, RN-06 |
 | **CU-39 Eventos de seguridad** *(v5)* | **RF-65** | **RNF-11, 25, 26, 27** |
 | **CU-40 Bloqueos por límite de tasa** *(v5)* | **RF-66, 67** | **RNF-27, 33** |

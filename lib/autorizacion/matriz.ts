@@ -61,6 +61,8 @@ const PREFIJOS: [string, Regla][] = [
   // (/api/proyectos/[id]/sugerencias, CU-10), y la creación con IA
   // (/api/proyectos/estructurar y /api/proyectos/transcribir, CU-43).
   ["/api/proyectos", EMPRESA],
+  // RF-88: autorización de datos de las empresas anteriores a la sesión 021.
+  ["/api/cuenta", EMPRESA],
   ["/proyectos", EMPRESA],
   // Sprint 5: documentos con IA. Generar y exportar son solo de la empresa
   // (`conEmpresa` en la ruta, RF-72); leer, editar y ajustar los comparte con el

@@ -101,3 +101,75 @@ export async function activarPlantilla(id: string): Promise<Resultado> {
   if (error) return rechazo(error, "activar");
   return { ok: true, aviso: "Versión activada: las próximas generaciones la usan." };
 }
+
+// ---------------------------------------------------------------------------
+// RF-99 · Plantilla de creación de proyectos (docs/05 §9.30). Mismo régimen;
+// no tiene tope de TDR, y sus cifras son las propuestas entregadas y fallidas.
+// ---------------------------------------------------------------------------
+
+export async function listarPlantillasProyecto(): Promise<PlantillaAdmin[]> {
+  const supabase = await crearClienteServidor();
+  const [{ data: filas, error }, { data: estadisticas, error: eEst }] = await Promise.all([
+    supabase
+      .from("plantillas_proyecto")
+      .select("id, version, contenido, activa, modelo, precio_entrada_usd_mtok, precio_salida_usd_mtok, creado_at, activada_at")
+      .order("version", { ascending: false }),
+    supabase.rpc("estadisticas_plantillas_proyecto"),
+  ]);
+  if (error) throw new Error(`Plantillas de proyecto: listar falló (${error.code})`);
+  if (eEst) throw new Error(`Plantillas de proyecto: estadísticas fallaron (${eEst.code})`);
+  const porId = new Map<string, Record<string, unknown>>((estadisticas ?? []).map((e: Record<string, unknown>) => [e.plantilla_id as string, e]));
+  return (filas ?? []).map((f) => {
+    const e: Record<string, unknown> = porId.get(f.id) ?? {};
+    return {
+      id: f.id,
+      version: f.version,
+      contenido: f.contenido,
+      activa: f.activa,
+      modelo: f.modelo,
+      precioEntradaUsdMtok: Number(f.precio_entrada_usd_mtok),
+      precioSalidaUsdMtok: Number(f.precio_salida_usd_mtok),
+      topeCaracteresTdr: 0,
+      creadoAt: f.creado_at,
+      activadaAt: f.activada_at,
+      documentos: Number(e.exitosas ?? 0),
+      generacionesExitosas: Number(e.exitosas ?? 0),
+      generacionesFallidas: Number(e.fallidas ?? 0),
+      tokensEntradaPromedio: numero(e.tokens_entrada_promedio),
+      tokensSalidaPromedio: numero(e.tokens_salida_promedio),
+      costoPromedioUsd: numero(e.costo_promedio_usd),
+      pendientesPromedio: null,
+    };
+  });
+}
+
+/** Cuerpo: { contenido, modelo, precioEntradaUsdMtok, precioSalidaUsdMtok }. */
+export async function crearVersionPlantillaProyecto(cuerpo: Cuerpo): Promise<Resultado<{ id: string }>> {
+  const contenido = typeof cuerpo?.contenido === "string" ? cuerpo.contenido.trim() : "";
+  const modelo = typeof cuerpo?.modelo === "string" ? cuerpo.modelo.trim() : "";
+  const entrada = Number(cuerpo?.precioEntradaUsdMtok);
+  const salida = Number(cuerpo?.precioSalidaUsdMtok);
+  const L = LIMITES_PLANTILLA;
+  if (contenido.length < L.contenidoMin || contenido.length > L.contenidoMax) {
+    return invalido(`La instrucción debe tener entre ${L.contenidoMin.toLocaleString("es-CO")} y ${L.contenidoMax.toLocaleString("es-CO")} caracteres.`);
+  }
+  if (!MODELO.test(modelo)) return invalido("Escribe el identificador del modelo tal como lo publica OpenAI (p. ej. gpt-5.4-mini).");
+  const precioValido = (p: number) => Number.isFinite(p) && p >= 0 && p <= L.precioMax;
+  if (!precioValido(entrada) || !precioValido(salida)) return invalido(`Los precios van en USD por millón de tokens, entre 0 y ${L.precioMax}.`);
+  const supabase = await crearClienteServidor();
+  const { data, error } = await supabase.rpc("crear_version_plantilla_proyecto", {
+    p_contenido: contenido,
+    p_modelo: modelo,
+    p_precio_entrada: entrada,
+    p_precio_salida: salida,
+  });
+  if (error) return rechazo(error, "crear versión de proyecto");
+  return { ok: true, datos: { id: data as string }, aviso: "Versión guardada. Quedó inactiva: actívala cuando quieras usarla." };
+}
+
+export async function activarPlantillaProyecto(id: string): Promise<Resultado> {
+  const supabase = await crearClienteServidor();
+  const { error } = await supabase.rpc("activar_plantilla_proyecto", { p_id: id });
+  if (error) return rechazo(error, "activar versión de proyecto");
+  return { ok: true, aviso: "Versión activada: los próximos proyectos creados con IA la usan." };
+}

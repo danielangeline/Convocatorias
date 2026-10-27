@@ -55,7 +55,7 @@ const grupos: Grupo[] = [
   },
   {
     titulo: "Inteligencia artificial",
-    enlaces: [{ href: "/admin/plantillas", label: "Plantillas de generación", icon: Sparkles }],
+    enlaces: [{ href: "/admin/plantillas", label: "Plantillas de la IA", icon: Sparkles }],
   },
   {
     titulo: "Seguridad",

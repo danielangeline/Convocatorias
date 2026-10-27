@@ -35,6 +35,37 @@
       "env": {
         "IA_PROVEEDOR": "prueba"
       }
+    },
+    {
+      "name": "prod-ia-prueba",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "next",
+        "start",
+        "-p",
+        "3100"
+      ],
+      "port": 3100,
+      "autoPort": false,
+      "env": {
+        "IA_PROVEEDOR": "prueba"
+      }
+    },
+    {
+      "name": "prod-upstash-caido",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "next",
+        "start",
+        "-p",
+        "3101"
+      ],
+      "port": 3101,
+      "autoPort": false,
+      "env": {
+        "IA_PROVEEDOR": "prueba",
+        "UPSTASH_REDIS_REST_URL": "https://127.0.0.1:9"
+      }
     }
   ]
 }

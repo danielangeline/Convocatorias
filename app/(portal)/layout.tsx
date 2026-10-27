@@ -11,6 +11,8 @@ import { SincronizarPlanes } from "@/components/SincronizarPlanes";
 import { Suspense } from "react";
 import { AvisoPuerta } from "@/components/identidad/AvisoPuerta";
 import { AvisoSuscripcion } from "@/components/AvisoSuscripcion";
+import { AvisoConsentimiento } from "@/components/AvisoConsentimiento";
+import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { exigirRol } from "@/lib/auth";
 import { listarCatalogo, listarCategoriasActivas } from "@/lib/catalogo";
 import { listarProyectos } from "@/lib/proyectos-servidor";
@@ -28,7 +30,8 @@ export default async function PortalLayout({ children }: { children: React.React
   // convocatoria embebida, que las pantallas del store no usan.
   // Sprint 4 paso 3: y sus encargos. Sprint 5: y sus documentos generados y los
   // planes activos de empresa (RF-82, docs/05 §9.28).
-  const [convocatorias, categorias, proyectos, postulaciones, encargos, documentos, planes] = await Promise.all([
+  const supabase = await crearClienteServidor();
+  const [convocatorias, categorias, proyectos, postulaciones, encargos, documentos, planes, consentimiento] = await Promise.all([
     listarCatalogo(),
     listarCategoriasActivas(),
     listarProyectos(),
@@ -36,7 +39,10 @@ export default async function PortalLayout({ children }: { children: React.React
     listarEncargosEmpresa(),
     listarDocumentos(),
     listarPlanesDelRol("empresa"),
+    // RF-88: las cuentas anteriores a la casilla del registro aceptan en el portal.
+    supabase.from("perfiles").select("consentimiento_datos_at").eq("id", datos.sesion.usuarioId).maybeSingle(),
   ]);
+  const faltaConsentimiento = !consentimiento.error && !consentimiento.data?.consentimiento_datos_at;
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
@@ -55,6 +61,7 @@ export default async function PortalLayout({ children }: { children: React.React
             <AvisoPuerta rol="empresa" />
           </div>
         </Suspense>
+        {faltaConsentimiento && <AvisoConsentimiento />}
         {/* RN-16: aviso de vencimiento y gracia */}
         <AvisoSuscripcion suscripcion={datos.suscripcion} />
         {children}

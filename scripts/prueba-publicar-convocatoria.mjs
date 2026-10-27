@@ -50,7 +50,10 @@ async function api(s, metodo, ruta, cuerpo, { origen = APP } = {}) {
 
 const sufijo = crypto.randomBytes(3).toString("hex");
 const cuentas = [], invitaciones = [], fuentes = [], convocatorias = [], categorias = [];
-const enDias = (n) => new Date(Date.now() + n * 86400000).toISOString().slice(0, 10);
+// Días contados desde hoy en Colombia, como la base y el endpoint (en UTC, de 7 p. m. a
+// medianoche "ayer" era todavía hoy en Colombia y la prueba fallaba; sesión 030).
+const hoyCO = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Bogota" }).format(new Date());
+const enDias = (n) => new Date(Date.parse(hoyCO) + n * 86400000).toISOString().slice(0, 10);
 
 try {
   // --- Cuentas temporales ---------------------------------------------------------

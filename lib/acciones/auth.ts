@@ -6,6 +6,7 @@ import { crearClienteServidor, crearClienteServicio } from "@/lib/supabase/servi
 import { obtenerSesion } from "@/lib/auth";
 import { AVISO_PUERTA, puertaDeParametro, rutaInicioDeRol } from "@/lib/rutas";
 import type { RolUsuario } from "@/lib/types";
+import { comprobarLimite, mensajeLimite } from "@/lib/limite-tasa";
 
 export interface ResultadoFormulario {
   error?: string;
@@ -58,6 +59,10 @@ export async function registrarse(_previo: ResultadoFormulario, formulario: Form
   if (!nombre || !correo) return { error: "Escribe tu nombre y tu correo." };
   if (rol === "empresa" && !nombreEmpresa) return { error: "Escribe el nombre de la empresa o entidad." };
   if (contrasena.length < 8) return { error: "La contraseña debe tener al menos 8 caracteres." };
+
+  // RF-66, RNF-27: contra la creación de cuentas en masa desde una misma IP.
+  const limite = await comprobarLimite("registro", { ip: await ipDeLaPeticion() }, "/registro");
+  if (!limite.ok) return { error: mensajeLimite(limite) };
   // RF-88: la casilla es obligatoria; la base guarda la fecha al crear el perfil.
   if (formulario.get("consentimiento_datos") !== "si") {
     return { error: "Para crear la cuenta debes autorizar el tratamiento de tus datos personales." };
@@ -99,6 +104,11 @@ export async function iniciarSesion(_previo: ResultadoFormulario, formulario: Fo
   const correo = String(formulario.get("correo") ?? "").trim().toLowerCase();
   const contrasena = String(formulario.get("contrasena") ?? "");
   if (!correo || !contrasena) return { error: "Escribe tu correo y tu contraseña." };
+
+  // RF-66, RNF-27: por correo, contra adivinar la contraseña de una cuenta, y
+  // por IP, contra probar muchas cuentas. Antes de llamar a Auth.
+  const limite = await comprobarLimite("login", { correo, ip: await ipDeLaPeticion() }, "/login");
+  if (!limite.ok) return { error: mensajeLimite(limite) };
 
   const supabase = await crearClienteServidor();
   const { data, error } = await supabase.auth.signInWithPassword({ email: correo, password: contrasena });
@@ -142,6 +152,10 @@ export async function iniciarSesion(_previo: ResultadoFormulario, formulario: Fo
 export async function pedirRecuperacion(_previo: ResultadoFormulario, formulario: FormData): Promise<ResultadoFormulario> {
   const correo = String(formulario.get("correo") ?? "").trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) return { error: "Escribe un correo válido." };
+
+  // RF-66, RNF-27: no se usa el formulario para inundar de correos a nadie.
+  const limite = await comprobarLimite("recuperacion", { correo, ip: await ipDeLaPeticion() }, "/auth/recuperar");
+  if (!limite.ok) return { error: mensajeLimite(limite) };
 
   const servicio = crearClienteServicio();
   const { error } = await servicio.auth.resetPasswordForEmail(correo, {

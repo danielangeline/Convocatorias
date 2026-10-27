@@ -527,8 +527,9 @@ export async function cambiarPublicacion(id: string, publicar: boolean): Promise
       const lista = falta.length === 1 ? falta[0] : `${falta.slice(0, -1).join(", ")} y ${falta[falta.length - 1]}`;
       return { ok: false, status: 400, error: `Para publicar falta ${lista}.` };
     }
-    // La fecha se compara con el día de hoy, igual que hace el SQL.
-    if (ficha.fechaCierre < new Date().toISOString().slice(0, 10)) {
+    // La fecha se compara con el día de hoy en Colombia, igual que hace el SQL
+    // (privado.hoy_colombia): en UTC, de 7 p. m. a medianoche rechazaba una que cierra hoy.
+    if (ficha.fechaCierre < hoyColombia()) {
       return { ok: false, status: 400, error: RECHAZOS.vencida.error };
     }
   }

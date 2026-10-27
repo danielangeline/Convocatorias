@@ -36,8 +36,9 @@ async function pedir(s, ruta) {
 }
 
 const sufijo = crypto.randomBytes(3).toString("hex");
-const hoy = new Date();
-const enDias = (n) => new Date(hoy.getTime() + n * 86400000).toISOString().slice(0, 10);
+// Días contados desde hoy en Colombia, como la base (sesión 030).
+const hoyCO = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Bogota" }).format(new Date());
+const enDias = (n) => new Date(Date.parse(hoyCO) + n * 86400000).toISOString().slice(0, 10);
 const cuentas = [], convocatorias = [], categorias = [], fuentes = [];
 
 try {

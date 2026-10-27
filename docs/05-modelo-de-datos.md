@@ -925,3 +925,51 @@ Migración `20261026100000_estructuracion_proyecto_ia`. La empresa cuenta su pro
 **Revisión de seguridad de la sesión 030** *(migración `20261026110000`)*: la primera versión solo contaba las transcripciones del día y no escribía nada, así que N peticiones simultáneas pasaban todas el tope y gastaban saldo del proveedor. Ahora el conteo y la reserva van en la misma transacción, con la suscripción bloqueada, y solo hay una en curso por empresa.
 
 **En el servidor** (`lib/proyectos-ia-servidor.ts`): explicación de 80 a 8 000 caracteres; audio de hasta 4 MB (Vercel no acepta más de 4,5 MB por petición) y de tipo `audio/*`. Las categorías activas van al modelo con claves cortas (`c1`, `c2`, …) que el servidor traduce a sus ids: una clave desconocida se descarta, igual que un departamento fuera de la lista oficial (RN-34, RN-37). Ni la explicación ni el audio se guardan.
+
+### 9.30 Plantilla de creación de proyectos, administrable *(nuevo v6, sesión 030 · CU-37, CU-43, RF-99)*
+
+Migración `20261026120000_plantillas_proyecto`. Por decisión del Product Owner, la instrucción con que la IA estructura un proyecto deja el código (§9.29) y se administra desde el panel con el mismo régimen que la del documento base (§9.27).
+
+**PLANTILLAS_PROYECTO** *(tabla 34)*
+
+| Campo | Tipo | Restricción |
+|---|---|---|
+| id | uuid | PK |
+| version | int | not null, única, > 0 |
+| contenido | text | not null, 200 a 50 000 caracteres |
+| modelo | text | not null, `^[a-z0-9._-]{1,60}$` |
+| precio_entrada_usd_mtok / precio_salida_usd_mtok | numeric | not null, 0 a 1 000 |
+| activa | boolean | default false; índice único parcial: una sola activa |
+| creada_por, activada_por | uuid | FK → perfiles |
+| creado_at, activada_at | timestamptz | |
+
+**Inmutable:** un trigger rechaza cambiar versión, contenido, modelo, precios, autor o fecha, también con `service_role` (`plantilla_inmutable`); solo cambian `activa`, `activada_por` y `activada_at`. **RLS:** solo el administrador con aal2 lee; nadie escribe desde el cliente. La versión 1 se sembró con la instrucción que vivía en `lib/ia/estructurar.ts` —con la regla de la experiencia precisada tras la prueba real— y el modelo y los precios de la plantilla de documento activa.
+
+**Columnas nuevas:** `consumos_ia.plantilla_proyecto_id` y `reservas_estructuracion.plantilla_proyecto_id` (FK → plantillas_proyecto): cada estructuración registra su versión. `reservas_estructuracion.plantilla_id` queda en desuso.
+
+| Función | Quién | Qué hace |
+|---|---|---|
+| `iniciar_estructuracion(p_usuario)` | `service_role` | Como en §9.29, pero toma la versión activa de `plantillas_proyecto` (`sin_plantilla` si no hay) y devuelve además `instrucciones` |
+| `completar_estructuracion` / `fallar_estructuracion` | `service_role` | Registran el consumo con `plantilla_proyecto_id` |
+| `crear_version_plantilla_proyecto(p_contenido, p_modelo, p_precio_entrada, p_precio_salida)` | administrador con aal2 (`no_es_admin`) | Crea la versión siguiente, inactiva, con su autor; bloquea la tabla para que dos administradores no tomen el mismo número |
+| `activar_plantilla_proyecto(p_id)` | administrador con aal2 | Deja esa como la única activa (`plantilla_no_existe`) |
+| `estadisticas_plantillas_proyecto()` | administrador con aal2 | Por versión: propuestas exitosas y fallidas, tokens y costo medio |
+
+**Lo que la instrucción no puede cambiar** lo fija el servidor: el esquema estricto de la respuesta, las listas de departamentos y categorías que se entregan, el descarte de lo que no esté en ellas y que nada se guarde sin que la empresa lo confirme (RN-37). El modelo de transcripción sigue en `plantillas_generacion` (§9.29).
+
+### 9.31 Límite de tasa: bloqueos y liberación *(nuevo v6, sesión 030 · CU-40, RF-66, RF-67, RNF-27, RNF-33)*
+
+Migración `20261026130000_bloqueos_limite_tasa`. El conteo vive en **Upstash Redis** (§9.9, `lib/limite-tasa.ts`): ventana fija por sujeto con `INCR` + `EXPIRE` en una sola llamada `pipeline` (2 operaciones por sujeto), con plazo de 2 s. La clave es `lt:{límite}:{sujeto}:{valor}:{ventana}`.
+
+| Límite | Sujeto y máximo | Ventana | Dónde |
+|---|---|---|---|
+| `login` | correo 8 · IP 50 | 10 min | `iniciarSesion` |
+| `registro` | IP 10 | 1 h | `registrarse` |
+| `recuperacion` | correo 3 · IP 10 | 1 h | `pedirRecuperacion` |
+| `ia` | usuario 30 | 10 min | generar, ajustar, estructurar y transcribir, antes de reservar crédito |
+
+Al pasarse, el sujeto queda bloqueado hasta el fin de la ventana: 429 con `Retry-After` en los endpoints y un mensaje con los minutos en los formularios. **El primer exceso de cada ventana** inserta un evento `limite_tasa` con `bloqueado_hasta` (el fin de la ventana) y `clave_limite`. **Si Upstash no responde o falta su configuración, se rechaza** (503 en los endpoints, mensaje genérico en los formularios) y queda en el log del servidor (RNF-33).
+
+**Columnas nuevas en `eventos_seguridad`:** `clave_limite` (text, ≤ 300, solo en `limite_tasa`) y `liberado_por` (uuid, FK → perfiles).
+
+**`public.liberar_bloqueo(p_evento) returns text`** — administrador con aal2 (`no_es_admin`); solo un `limite_tasa` con `bloqueado_hasta` futuro (`bloqueo_no_existe`). Pone `bloqueado_hasta = now()` y `liberado_por`, y devuelve la clave. El servidor borra **primero** el contador en Upstash y solo si lo logra llama a la función: así nunca se marca liberado a alguien que sigue bloqueado.

@@ -158,7 +158,9 @@ try {
       for (const [, src] of cuerpo.matchAll(/src="(\/_next\/static\/[^"]+\.js)"/g)) {
         if (vistos.has(src)) continue;
         vistos.add(src);
-        const js = await (await fetch(APP + src)).text();
+        // Las rutas de la API de Supabase Auth (`${this.url}/admin/users`…) vienen en
+        // la librería del cliente desde Next.js 16.4 y no nombran nuestro panel (sesión 030).
+        const js = (await (await fetch(APP + src)).text()).replace(/\$\{this\.url\}\/admin\//g, "");
         if (/\/admin|\/mfa\b/.test(js)) menciones.push(`JS ${src}`);
       }
     }

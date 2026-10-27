@@ -57,6 +57,10 @@ export async function proxy(request: NextRequest) {
       await registrarAccesoDenegado({ usuarioId, ruta, ip: ipDeCabeceras(request.headers), detalle });
     }
     if (regla.oculta) return noEncontrada();
+    // Un endpoint responde 403 en JSON, como su segunda barrera. Reescribirlo a
+    // la página fallaba con un POST multipart (el dictado, sesión 030): Next lo
+    // tomaba por una Server Action y respondía 404 o 500.
+    if (ruta.startsWith("/api/")) return conSesion(NextResponse.json({ error: "Acceso denegado." }, { status: 403 }));
     return conSesion(NextResponse.rewrite(new URL("/acceso-denegado", request.url), { status: 403 }));
   };
 

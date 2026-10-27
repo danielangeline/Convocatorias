@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, Info, Sparkles } from "lucide-react";
 import type { PlantillaAdmin } from "@/lib/types";
@@ -21,8 +22,34 @@ const entero = (v: number | null) => (v === null ? "—" : Math.round(v).toLocal
  * guarda la siguiente, inactiva. Activar deja una sola activa. Las cifras de
  * cada versión salen de sus documentos y consumos (CU-37 paso 4). Quien decide
  * todo es el servidor; la pantalla solo muestra su respuesta (RNF-20).
+ *
+ * Sesión 030 (RF-99): la misma pantalla administra, en otra pestaña, la
+ * plantilla de creación de proyectos (CU-43), que no tiene tope de TDR y cuyas
+ * cifras son propuestas entregadas, no documentos.
  */
-export function GestionPlantillas({ plantillas }: { plantillas: PlantillaAdmin[] }) {
+export type TipoPlantilla = "documento" | "proyecto";
+
+const TEXTOS: Record<TipoPlantilla, { api: string; descripcion: string; aviso: string; usa: string; hechos: string }> = {
+  documento: {
+    api: "/api/admin/plantillas",
+    descripcion: "La instrucción, el modelo y los precios con que la IA redacta el documento base.",
+    aviso:
+      "Una versión guardada no se modifica: al editar se crea la siguiente, inactiva. Cada documento registra con qué versión se generó, así que activar otra no cambia los ya generados.",
+    usa: "Las próximas generaciones la usarán.",
+    hechos: "Documentos",
+  },
+  proyecto: {
+    api: "/api/admin/plantillas/proyecto",
+    descripcion: "La instrucción, el modelo y los precios con que la IA arma un proyecto a partir de lo que la empresa cuenta o dicta.",
+    aviso:
+      "Una versión guardada no se modifica: al editar se crea la siguiente, inactiva. La forma de la respuesta, las listas de departamentos y categorías y la regla de no guardar nada sin que la empresa confirme las fija el servidor: la instrucción no las cambia. Conserva las reglas de veracidad (RN-37).",
+    usa: "Los próximos proyectos creados con IA la usarán.",
+    hechos: "Propuestas",
+  },
+};
+
+export function GestionPlantillas({ plantillas, tipo = "documento" }: { plantillas: PlantillaAdmin[]; tipo?: TipoPlantilla }) {
+  const textos = TEXTOS[tipo];
   const router = useRouter();
   const inicial = plantillas.find((p) => p.activa) ?? plantillas[0];
   const [seleccionadaId, setSeleccionadaId] = useState(inicial?.id ?? "");
@@ -52,18 +79,18 @@ export function GestionPlantillas({ plantillas }: { plantillas: PlantillaAdmin[]
     borrador.modelo.trim() === seleccionada.modelo &&
     Number(borrador.entrada) === seleccionada.precioEntradaUsdMtok &&
     Number(borrador.salida) === seleccionada.precioSalidaUsdMtok &&
-    Number(borrador.tope) === seleccionada.topeCaracteresTdr;
+    (tipo === "proyecto" || Number(borrador.tope) === seleccionada.topeCaracteresTdr);
 
   const guardar = async () => {
     setOcupado(true);
     setError(null);
     setAviso(null);
-    const r = await peticionAdmin<{ id: string }>("/api/admin/plantillas", "POST", {
+    const r = await peticionAdmin<{ id: string }>(textos.api, "POST", {
       contenido: borrador.contenido,
       modelo: borrador.modelo,
       precioEntradaUsdMtok: Number(borrador.entrada),
       precioSalidaUsdMtok: Number(borrador.salida),
-      topeCaracteresTdr: Number(borrador.tope),
+      ...(tipo === "documento" ? { topeCaracteresTdr: Number(borrador.tope) } : {}),
     });
     setOcupado(false);
     if (!r.ok) return setError(r.error);
@@ -73,11 +100,11 @@ export function GestionPlantillas({ plantillas }: { plantillas: PlantillaAdmin[]
   };
 
   const activar = async (p: PlantillaAdmin) => {
-    if (!window.confirm(`¿Activar la versión ${p.version}? Las próximas generaciones la usarán.`)) return;
+    if (!window.confirm(`¿Activar la versión ${p.version}? ${textos.usa}`)) return;
     setOcupado(true);
     setError(null);
     setAviso(null);
-    const r = await peticionAdmin(`/api/admin/plantillas/${p.id}/activar`, "POST", {});
+    const r = await peticionAdmin(`${textos.api}/${p.id}/activar`, "POST", {});
     setOcupado(false);
     if (!r.ok) return setError(r.error);
     setAviso(r.aviso);
@@ -92,14 +119,34 @@ export function GestionPlantillas({ plantillas }: { plantillas: PlantillaAdmin[]
         <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-teal-700">
           <Sparkles className="h-3.5 w-3.5" /> Módulo de IA
         </p>
-        <h1 className="mt-1 font-display text-2xl font-bold text-ink">Plantillas de generación</h1>
-        <p className="text-sm text-ink-soft">La instrucción, el modelo y los precios con que la IA redacta el documento base.</p>
+        <h1 className="mt-1 font-display text-2xl font-bold text-ink">Plantillas de la IA</h1>
+        <p className="text-sm text-ink-soft">{textos.descripcion}</p>
       </div>
+
+      <nav aria-label="Plantillas" className="mb-5 flex gap-1 border-b border-line">
+        {(
+          [
+            ["documento", "Documento base", "/admin/plantillas"],
+            ["proyecto", "Creación de proyectos", "/admin/plantillas?tipo=proyecto"],
+          ] as const
+        ).map(([clave, nombre, href]) => (
+          <Link
+            key={clave}
+            href={href}
+            aria-current={tipo === clave ? "page" : undefined}
+            className={cn(
+              "-mb-px border-b-2 px-3 py-2 text-sm font-semibold transition-colors",
+              tipo === clave ? "border-teal-600 text-teal-700" : "border-transparent text-ink-soft hover:text-ink"
+            )}
+          >
+            {nombre}
+          </Link>
+        ))}
+      </nav>
 
       <div className="mb-6 flex items-start gap-2 rounded-xl border border-line-soft bg-slate-50 px-4 py-3 text-xs text-ink-faint">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-        Una versión guardada no se modifica: al editar se crea la siguiente, inactiva. Cada documento registra con qué
-        versión se generó, así que activar otra no cambia los ya generados.
+        {textos.aviso}
       </div>
 
       {(error || aviso) && (
@@ -128,7 +175,7 @@ export function GestionPlantillas({ plantillas }: { plantillas: PlantillaAdmin[]
                 {p.modelo} · creada el {fechaHoraColombia(p.creadoAt)}
               </p>
               <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-ink-soft">
-                <dt>Documentos</dt>
+                <dt>{textos.hechos}</dt>
                 <dd className="text-right font-medium text-ink">{p.documentos.toLocaleString("es-CO")}</dd>
                 <dt>Fallidas</dt>
                 <dd className="text-right font-medium text-ink">{p.generacionesFallidas.toLocaleString("es-CO")}</dd>
@@ -138,10 +185,14 @@ export function GestionPlantillas({ plantillas }: { plantillas: PlantillaAdmin[]
                 <dd className="text-right font-medium text-ink">
                   {entero(p.tokensEntradaPromedio)} / {entero(p.tokensSalidaPromedio)}
                 </dd>
-                <dt>Pendientes medios</dt>
-                <dd className="text-right font-medium text-ink">
-                  {p.pendientesPromedio === null ? "—" : p.pendientesPromedio.toLocaleString("es-CO")}
-                </dd>
+                {tipo === "documento" && (
+                  <>
+                    <dt>Pendientes medios</dt>
+                    <dd className="text-right font-medium text-ink">
+                      {p.pendientesPromedio === null ? "—" : p.pendientesPromedio.toLocaleString("es-CO")}
+                    </dd>
+                  </>
+                )}
               </dl>
             </button>
           ))}
@@ -165,10 +216,12 @@ export function GestionPlantillas({ plantillas }: { plantillas: PlantillaAdmin[]
               <span className="mb-1 block text-xs font-semibold text-ink-soft">Modelo de OpenAI</span>
               <input className={campo} value={borrador.modelo} onChange={(e) => setBorrador({ ...borrador, modelo: e.target.value })} />
             </label>
-            <label className="block text-sm">
-              <span className="mb-1 block text-xs font-semibold text-ink-soft">Tope del TDR (caracteres)</span>
-              <input className={campo} inputMode="numeric" value={borrador.tope} onChange={(e) => setBorrador({ ...borrador, tope: e.target.value })} />
-            </label>
+            {tipo === "documento" && (
+              <label className="block text-sm">
+                <span className="mb-1 block text-xs font-semibold text-ink-soft">Tope del TDR (caracteres)</span>
+                <input className={campo} inputMode="numeric" value={borrador.tope} onChange={(e) => setBorrador({ ...borrador, tope: e.target.value })} />
+              </label>
+            )}
             <label className="block text-sm">
               <span className="mb-1 block text-xs font-semibold text-ink-soft">Precio de entrada (USD por millón de tokens)</span>
               <input className={campo} inputMode="decimal" value={borrador.entrada} onChange={(e) => setBorrador({ ...borrador, entrada: e.target.value })} />
@@ -178,7 +231,7 @@ export function GestionPlantillas({ plantillas }: { plantillas: PlantillaAdmin[]
               <input className={campo} inputMode="decimal" value={borrador.salida} onChange={(e) => setBorrador({ ...borrador, salida: e.target.value })} />
             </label>
           </div>
-          <p className="mt-2 text-xs text-ink-faint">Los precios se copian de la tabla del proveedor y sirven para el costo estimado de cada generación.</p>
+          <p className="mt-2 text-xs text-ink-faint">Los precios se copian de la tabla del proveedor y sirven para el costo estimado de cada uso.</p>
 
           <div className="mt-5 flex flex-wrap justify-end gap-3">
             {seleccionada && !seleccionada.activa && (

@@ -22,15 +22,17 @@
 
 | Plan | Rol | Mensual | Anual | Créditos IA/mes | Incluye |
 |---|---|---|---|---|---|
-| **Trial** | Empresa | Gratis 7 días *(mod. v6)* | — | 3 | Todo el producto |
-| **Empresa Esencial** | Empresa | COP $89.000 | COP $890.000 (2 meses gratis) | 10 | Catálogo, sugerencias, postulaciones, encargos |
-| **Empresa Pro** | Empresa | COP $189.000 | COP $1.890.000 | 30 | Lo anterior + soporte prioritario y más usuarios |
+| **Trial** | Empresa | Gratis 7 días *(mod. v6)* | — | **300** | Todo el producto |
+| **Empresa Esencial** | Empresa | COP $89.000 | COP $890.000 (2 meses gratis) | **1.500** | Catálogo, sugerencias, postulaciones, encargos |
+| **Empresa Pro** | Empresa | COP $189.000 | COP $1.890.000 | **5.000** | Lo anterior + soporte prioritario y más usuarios |
 | **Consultor** | Consultor | COP $69.000 | COP $690.000 | — | Perfil en directorio, recepción de encargos, acceso a los documentos que la empresa le autorice (RF-71) |
-| **Paquete adicional** | Empresa | COP $39.000 | — | +10 (no expiran) | Compra puntual |
+| **Paquete adicional** | Empresa | COP $39.000 | — | **+1.500** (no expiran) | Compra puntual |
 
 En dólares, los planes de empresa quedan alrededor de USD $22 y $47 mensuales: por encima del buscador simple y por debajo de la suite británica, coherente con la capacidad de pago local.
 
 > **Por qué el plan de consultor no lleva créditos** *(decidido en v6)*. Ninguna operación puede consumir un cupo propio del consultor: generar exige un proyecto propio, y los proyectos son de la empresa (CU-09, CU-33); los ajustes con IA sobre un documento autorizado los paga siempre la empresa dueña (RN-28). A ello se suma un argumento comercial: mientras el acceso del consultor a la IA dependa de que la empresa lo autorice documento a documento (RF-71), un cupo **mensual y no acumulable** (RN-18) le haría pagar cada mes por una capacidad que no controla. Lo que el plan de consultor vende es generación de demanda —estar en el directorio y recibir encargos—, no volumen de IA. Si más adelante se quiere dar IA al consultor, el instrumento correcto es atarla al encargo (una bolsa de ajustes que viaje con la autorización) o a paquetes de compra puntual que no expiren, no un cupo periódico. **El precio de COP $69.000 queda sin cambio y pendiente de validación con los pilotos**, como el resto de la tabla.
+
+> **Créditos por tarifa** *(sesión 030, decisión del Product Owner)*. Cada uso cuesta su tarifa (RN-17): **documento 100, proyecto con IA 50, ajuste desde el cuarto 10, dictar 0**. Las cifras de arriba se multiplicaron por 100 respecto de las anteriores (1 crédito = 1 documento) y se subieron Esencial (10 → 15 documentos) y Pro (30 → 50): con el costo medido (USD 0,016 por documento, 0,0025 por proyecto), la IA del plan Pro gastado entero cuesta unos USD 1,5, el 3 % del precio. **Qué alcanza cada plan al mes**, por ejemplo: **Trial** 2 proyectos con IA y 2 documentos; **Esencial** 4 proyectos con IA, 12 documentos y 10 ajustes de pago; **Pro** 10 proyectos con IA, 44 documentos y 10 ajustes de pago. Los proyectos llenados a mano no cuestan y no tienen límite. Las tarifas y los créditos de cada plan se cambian desde el panel sin desplegar (RF-36, RF-100).
 
 ### 10.3 Sostenibilidad del costo de IA
 

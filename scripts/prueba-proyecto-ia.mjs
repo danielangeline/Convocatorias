@@ -77,10 +77,11 @@ try {
   const anon = await api(null, "POST", "/api/proyectos/estructurar", { explicacion: EXPLICACION });
   ok(anon.status === 307 && /\/login/.test(anon.destino ?? ""), `RNF-30: anónimo -> /login (${anon.status})`);
   ok((await api(c, "POST", "/api/proyectos/estructurar", { explicacion: EXPLICACION })).status === 403, "CU-43: el consultor no estructura -> 403");
-  { const tc = await api(c, "POST", "/api/proyectos/transcribir", undefined, { formulario: audio(2000) }); // proxy.ts reescribe la denegación a /acceso-denegado, y Next responde 404
-  // a un POST multipart sobre una página: igual nunca llega al endpoint
-  // (hallazgo de la sesión 030, anotado en ESTADO.md).
-  ok(tc.status === 403 || tc.status === 404, `RF-97: el consultor no transcribe -> 403/404 (${tc.status})`); }
+  // Antes proxy.ts reescribía la denegación a la página /acceso-denegado y Next
+  // respondía 404 o 500 a este POST multipart; desde la sesión 030 un /api
+  // denegado responde 403 en JSON.
+  const tc = await api(c, "POST", "/api/proyectos/transcribir", undefined, { formulario: audio(2000) });
+  ok(tc.status === 403 && tc.json?.error, `RF-97: el consultor no transcribe -> 403 en JSON (${tc.status})`);
   ok((await api(e1, "POST", "/api/proyectos/estructurar", { explicacion: EXPLICACION }, { origen: "https://otro.example" })).status === 403,
     "RNF-30: estructurar desde otro origen -> 403");
   ok((await api(e1, "POST", "/api/proyectos/transcribir", undefined, { formulario: audio(2000), origen: "https://otro.example" })).status === 403,

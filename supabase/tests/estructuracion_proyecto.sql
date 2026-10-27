@@ -1,5 +1,5 @@
 -- CU-43 · Crear el proyecto con IA a partir de una explicación (docs/05 §9.29).
--- Sesión 030. RF-96, RF-97, RF-52, RN-17, RN-24, RNF-20.
+-- Sesión 030. RF-96, RF-97, RF-99, RF-52, RN-17, RN-24, RNF-20, RNF-28.
 --
 --   npx supabase db query --linked -f supabase/tests/estructuracion_proyecto.sql
 --
@@ -14,6 +14,11 @@ declare
   v_c1 uuid := '00000000-0000-0000-0000-0000000030c1';
   v_sus uuid;
   v_r1 uuid; v_r2 uuid; v_r3 uuid;
+  v_ad uuid := '00000000-0000-0000-0000-0000000030ad';
+  v_p1 uuid; v_p2 uuid;
+  v_texto text := repeat('Instrucción de prueba para proyectos. ', 8);
+  v_quien text;
+  v_ok boolean;
   v_n int; v_m int;
   v_o text;
 begin
@@ -132,6 +137,57 @@ begin
   execute 'reset role';
   v_res := v_res || format(E'\n%s RN-30: cada empresa ve solo sus reservas -> ajena %s, propia %s',
     case when v_n = 0 and v_m = 1 then 'OK   ' else 'FALLA' end, v_n, v_m);
+
+  -- ================================================================ plantilla de proyectos (RF-99, §9.30)
+  insert into auth.users (id, email, raw_user_meta_data) values
+    (v_ad, 'ead@prueba.co', '{"rol": "empresa", "nombre": "Admin"}');
+  update public.perfiles set rol = 'administrador' where id = v_ad;
+  select id into v_p1 from public.plantillas_proyecto where activa;
+
+  foreach v_quien in array array['empresa', 'admin_aal1'] loop
+    perform set_config('request.jwt.claims', json_build_object(
+      'sub', case v_quien when 'empresa' then v_e1 else v_ad end, 'role', 'authenticated', 'aal', 'aal1')::text, true);
+    execute 'set local role authenticated';
+    v_n := 0;
+    begin perform public.crear_version_plantilla_proyecto(v_texto, 'gpt-5.4-mini', 0.75, 4.5); exception when others then
+      get stacked diagnostics v_o = pg_exception_hint; if v_o = 'no_es_admin' then v_n := v_n + 1; end if; end;
+    begin perform public.activar_plantilla_proyecto(v_p1); exception when others then
+      get stacked diagnostics v_o = pg_exception_hint; if v_o = 'no_es_admin' then v_n := v_n + 1; end if; end;
+    begin perform public.estadisticas_plantillas_proyecto(); exception when others then
+      get stacked diagnostics v_o = pg_exception_hint; if v_o = 'no_es_admin' then v_n := v_n + 1; end if; end;
+    select count(*) into v_m from public.plantillas_proyecto;
+    execute 'reset role';
+    v_res := v_res || format(E'\n%s RNF-28: %s no crea, no activa, no ve cifras ni lee el prompt -> %s de 3, lee %s',
+      case when v_n = 3 and v_m = 0 then 'OK   ' else 'FALLA' end, v_quien, v_n, v_m);
+  end loop;
+
+  perform set_config('request.jwt.claims', json_build_object('sub', v_ad, 'role', 'authenticated', 'aal', 'aal2')::text, true);
+  execute 'set local role authenticated';
+  v_p2 := public.crear_version_plantilla_proyecto(v_texto, 'gpt-5.4-mini', 0.75, 4.5);
+  select version, activa into v_n, v_ok from public.plantillas_proyecto where id = v_p2;
+  v_res := v_res || format(E'\n%s RF-99: el administrador crea la versión siguiente, inactiva -> v%s, activa %s',
+    case when v_n = 2 and not v_ok then 'OK   ' else 'FALLA' end, v_n, v_ok);
+  begin update public.plantillas_proyecto set contenido = v_texto || 'x' where id = v_p1; get diagnostics v_n = row_count; v_o := 'filas ' || v_n;
+  exception when others then v_o := sqlstate; end;
+  v_res := v_res || format(E'\n%s RF-99: nadie edita una versión desde el cliente -> %s',
+    case when v_o in ('filas 0', '42501') then 'OK   ' else 'FALLA' end, v_o);
+  perform public.activar_plantilla_proyecto(v_p2);
+  select count(*) into v_n from public.plantillas_proyecto where activa;
+  select activa into v_ok from public.plantillas_proyecto where id = v_p2;
+  execute 'reset role';
+  v_res := v_res || format(E'\n%s RF-99: activar deja una sola activa -> %s activas, la nueva %s',
+    case when v_n = 1 and v_ok then 'OK   ' else 'FALLA' end, v_n, v_ok);
+
+  begin update public.plantillas_proyecto set contenido = v_texto || 'x' where id = v_p2; v_o := 'ok';
+  exception when others then get stacked diagnostics v_o = pg_exception_hint; end;
+  v_res := v_res || format(E'\n%s RF-99: ni el servidor modifica una versión guardada -> %s',
+    case when v_o = 'plantilla_inmutable' then 'OK   ' else 'FALLA' end, v_o);
+
+  select reserva_id, instrucciones into v_r1, v_o from public.iniciar_estructuracion(v_e1);
+  perform public.completar_estructuracion(v_r1, 100, 50, 0.0003, 'gpt-prueba', 10);
+  select count(*) into v_n from public.consumos_ia where usuario_id = v_e1 and tipo = 'estructuracion' and exito and plantilla_proyecto_id = v_p2;
+  v_res := v_res || format(E'\n%s RF-99: la IA recibe la versión activa y el consumo la registra -> instrucción nueva %s, consumos %s',
+    case when v_o = v_texto and v_n = 1 then 'OK   ' else 'FALLA' end, v_o = v_texto, v_n);
 
   raise exception 'RESULTADO %', v_res;
 end $$;

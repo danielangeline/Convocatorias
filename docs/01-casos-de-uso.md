@@ -100,7 +100,7 @@
 |---|---|
 | **Actor** | Usuario Empresa, con apoyo del Servicio de IA |
 | **Descripción** | Atajo opcional de CU-09: la empresa cuenta su proyecto con sus palabras —escribiendo o dictando— y la IA lo convierte en un **borrador del formulario de CU-09**, con los datos de clasificación (los que usan los filtros y las sugerencias) y los de contenido. **Nada se guarda hasta que la empresa lo revisa y confirma** |
-| **Precondiciones** | Sesión de empresa; suscripción vigente o trial; al menos un crédito de IA disponible (RN-17) |
+| **Precondiciones** | Sesión de empresa; suscripción vigente o trial; saldo de créditos suficiente para la tarifa de crear un proyecto (RN-17) |
 | **Flujo principal** | 1. En "Nuevo proyecto", antes del formulario, ve la opción "Cuéntanos tu proyecto". 2. Escribe la explicación o pulsa el **micrófono**: graba en el navegador y, al detener, el audio se transcribe y el texto se añade al cuadro, donde se puede corregir (RF-97). 3. Pulsa "Crear con IA". 4. El sistema envía la explicación junto con la lista oficial de departamentos y las categorías activas, y recibe una propuesta: nombre, descripción, monto buscado, departamento, municipio, categorías y los nueve campos de contenido, más la lista de lo que la explicación no dice (RF-96). 5. Se descuenta un crédito. 6. Se abre el formulario de CU-09 lleno con la propuesta, con aviso de que la sugirió la IA y con los datos faltantes señalados. 7. La empresa edita lo que quiera y pulsa "Crear proyecto". 8. El sistema guarda (CU-09) y lleva a las **sugerencias del proyecto (CU-10)**, ordenadas por compatibilidad (RF-98) |
 | **Flujos alternos** | 1a. Prefiere llenarlo a mano → "Llenar el formulario" abre CU-09 vacío, sin costo. 2a. El navegador no graba o el permiso del micrófono se niega → se avisa y se puede escribir. 2b. La grabación llega a 5 minutos → se detiene sola y se transcribe lo grabado. 2c. Falla la transcripción → se avisa, el texto ya escrito se conserva y no se cobra. 3a. Explicación de menos de 80 caracteres → se pide más detalle, sin llamar a la IA. 3b. Sin crédito o sin suscripción vigente → se explica y se ofrecen el formulario manual y la compra de créditos. 4a. La IA falla o no responde a tiempo → se avisa, **no se cobra** (RN-17) y la explicación se conserva para reintentar. 7a. Cierra el formulario sin guardar → el crédito ya se consumió, porque la propuesta se entregó; se advierte antes de cerrar |
 | **Postcondiciones** | Proyecto creado como en CU-09, con categorías y departamento; consumo de IA registrado con su crédito (RF-52). **Ni la explicación ni el audio se guardan** |
@@ -317,7 +317,7 @@
 |---|---|
 | **Actor** | Sistema / Reloj |
 | **Descripción** | Contabilidad de créditos que hace viable el modelo de negocio y controla el costo de la API |
-| **Flujo principal** | 1. Antes de cada generación verifica cupo disponible (créditos del plan no consumidos + créditos adicionales). 2. Descuenta **un crédito por generación exitosa**. 3. Registra el consumo con tokens y costo estimado para auditoría. 4. Job mensual: reinicia el cupo del periodo según la fecha de la suscripción |
+| **Flujo principal** | 1. Antes de cada generación verifica cupo disponible (créditos del plan no consumidos + créditos adicionales). 2. Descuenta **la tarifa del uso** (RN-17: 100 por documento, 50 por proyecto, 10 por ajuste desde el cuarto) *(mod. v6, sesión 030)*. 3. Registra el consumo con tokens y costo estimado para auditoría. 4. Job mensual: reinicia el cupo del periodo según la fecha de la suscripción |
 | **Flujos alternos** | 1a. Sin cupo → bloquea con mensaje de mejora de plan o compra de paquete adicional. 2a. **Generación fallida (error o timeout) → no descuenta crédito** |
 | **Postcondiciones** | Cupo actualizado y consumo auditado |
 
@@ -344,13 +344,13 @@
 | **Flujos alternos** | 3a. Cuarto ajuste en adelante → cuenta como nueva generación (consume crédito **del cupo de la empresa**, sin importar si quien lo pidió fue la empresa o el consultor autorizado — RN-28). **3b. Si la empresa dueña no tiene cupo, el ajuste se rechaza sin consumir nada y sin tocar el documento; al consultor se le indica que debe avisarle (RF-77) — nunca se recurre al cupo de quien pidió el ajuste.** 5a. Regenerar desde cero → consume un crédito y crea una nueva versión, conservando la anterior (**solo la empresa** puede regenerar). 5b. Acceder después al documento desde el proyecto, la convocatoria o la postulación asociada. **5c. El consultor autorizado ve los pasos 1-4, pero no tiene el botón de descarga/exportar ni de regenerar. Pierde el acceso de inmediato tanto si la empresa revoca la autorización como si el encargo deja de estar `en_curso` — al completarse, cancelarse o rechazarse, al suspenderse su perfil o al vencer su suscripción: la revocación es automática y en cascada, no requiere que la empresa haga nada (RN-27, RF-76)** |
 | **Postcondiciones** | Documento editado y exportado; el usuario es responsable de verificar y completar antes de radicar (RN-19, RN-22). Cada edición registra si la hizo la empresa o el consultor, **y cada acceso de lectura del consultor queda registrado, de modo que tras revocar la autorización pueda reconstruirse qué consultó mientras estuvo activa (RF-79, RNF-11)** |
 
-#### CU-37 · Gestionar la plantilla de generación (Administrador) *(nuevo v4)*
+#### CU-37 · Gestionar las plantillas de la IA (Administrador) *(nuevo v4; mod. v6, sesión 030)*
 
 | Campo | Contenido |
 |---|---|
 | **Actor** | Administrador |
-| **Descripción** | Administrar la instrucción con la que la IA redacta el documento: es el activo de conocimiento del producto, no código |
-| **Flujo principal** | 1. Consulta la plantilla activa con su versión. 2. La edita o crea una nueva versión (la anterior se conserva). 3. Marca cuál queda activa. 4. Cada documento generado registra con qué versión de plantilla se produjo, para poder comparar calidad entre versiones |
+| **Descripción** | Administrar las instrucciones con que trabaja la IA: es el activo de conocimiento del producto, no código. **Desde la sesión 030 son dos plantillas independientes, cada una con sus versiones:** la del **documento base** (CU-33) y la de **creación de proyectos** (CU-43, RF-99). Se eligen con dos pestañas en la misma pantalla |
+| **Flujo principal** | 1. Consulta la plantilla activa con su versión. 2. La edita o crea una nueva versión (la anterior se conserva). 3. Marca cuál queda activa. 4. Cada documento generado registra con qué versión de plantilla se produjo, para poder comparar calidad entre versiones. **En la de creación de proyectos, cada propuesta registra su versión en el consumo, y cada versión muestra cuántas propuestas entregó, cuántas fallaron, los tokens y el costo medio** *(sesión 030)* |
 | **Flujos alternos** | 2a. Probar una versión en borrador antes de activarla |
 | **Postcondiciones** | Plantilla vigente aplicada a las próximas generaciones, sin necesidad de desplegar |
 
@@ -415,7 +415,7 @@
 ### Relaciones y dependencias
 
 - CU-03 **incluido en** CU-02 · CU-05 **exige** CU-02+03+04 · CU-11 **incluye** el checklist desde CU-04.
-- CU-33 usa la plantilla activa definida en CU-37.
+- CU-33 usa la plantilla activa del documento base y CU-43 la de creación de proyectos, ambas definidas en CU-37.
 - CU-33 **depende de** CU-09 (contenido del proyecto), CU-03 y CU-04 (contexto de la convocatoria) y CU-35 (cupo). CU-34 **extiende** CU-33.
 - CU-43 **extiende** CU-09 *(sesión 030)*: es otra forma de llenar el mismo formulario y termina en CU-09 y CU-10.
 - CU-19 **nace dentro de** CU-09; CU-22 y CU-23 son **caminos alternos**; CU-24 solo sobre encargos completados.
