@@ -58,7 +58,7 @@ export async function leerTarifas(): Promise<TarifasIA> {
   if (error) throw new Error(`Tarifas: leer falló (${error.code})`);
   const tarifas = { ...TARIFAS_POR_DEFECTO };
   for (const f of (data ?? []) as { accion: string; creditos: number }[]) {
-    if (f.accion === "generacion" || f.accion === "estructuracion" || f.accion === "ajuste") tarifas[f.accion] = f.creditos;
+    if (f.accion in tarifas) tarifas[f.accion as keyof TarifasIA] = f.creditos;
   }
   return tarifas;
 }

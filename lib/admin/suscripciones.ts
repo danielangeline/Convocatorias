@@ -218,7 +218,7 @@ export async function suspenderSuscripcion(suscripcionId: string): Promise<Resul
 // RF-100 · Tarifas de créditos de la IA (docs/05 §9.32)
 // ---------------------------------------------------------------------------
 
-const ACCIONES_TARIFA = ["generacion", "estructuracion", "ajuste"] as const;
+const ACCIONES_TARIFA = ["generacion", "estructuracion", "ajuste", "edicion_apartado"] as const;
 
 /** Cuerpo: { creditos }. Cambia cuántos créditos cuesta una acción; rige desde el siguiente uso. */
 export async function guardarTarifa(accion: string, cuerpo: Record<string, unknown> | null): Promise<Resultado> {

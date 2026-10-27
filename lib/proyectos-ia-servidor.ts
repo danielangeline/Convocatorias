@@ -4,6 +4,17 @@ import { crearClienteServicio } from "@/lib/supabase/servidor";
 import { costo } from "@/lib/documentos-servidor";
 import { ErrorIA, proveedorIA } from "@/lib/ia";
 import { ESQUEMA_PROPUESTA, contextoEstructuracion, leerPropuesta } from "@/lib/ia/estructurar";
+import {
+  APARTADOS_IA,
+  ESQUEMA_EDICION,
+  INSTRUCCIONES_EDICION,
+  MAX_INSTRUCCION,
+  MAX_TEXTO_APARTADO,
+  contextoEdicion,
+  leerEdicion,
+  type ApartadoIA,
+} from "@/lib/ia/editar-apartado";
+import { obtenerProyecto } from "@/lib/proyectos-servidor";
 import type { Categoria, PropuestaProyecto } from "@/lib/types";
 
 /**
@@ -207,5 +218,124 @@ export async function transcribirAudio(usuarioId: string, formulario: FormData |
       status: plazo ? 504 : 502,
       error: "No pudimos transcribir el audio. Lo que ya escribiste sigue ahí; puedes intentarlo de nuevo o escribir.",
     };
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Editar un apartado (RF-109, CU-47 · docs/05 §9.35)
+// ---------------------------------------------------------------------------
+
+type InicioEdicion = {
+  reserva_id: string;
+  modelo: string;
+  precio_entrada_usd_mtok: number;
+  precio_salida_usd_mtok: number;
+};
+
+const PLAZO_EDICION_MS = 45_000;
+const MAX_TOKENS_EDICION = 2_500;
+
+const RECHAZOS_EDICION: Record<string, { status: number; error: string }> = {
+  ...RECHAZOS,
+  no_existe: { status: 404, error: "El proyecto no existe." },
+  sin_suscripcion: { status: 402, error: "Necesitas una suscripción vigente para editar con IA. Puedes editarlo a mano." },
+  sin_creditos: { status: 402, error: "No te quedan créditos de IA. Puedes editar el apartado a mano o pedir un paquete adicional." },
+  edicion_no_encontrada: { status: 409, error: "La edición con IA se interrumpió. Intenta de nuevo." },
+};
+
+function rechazoEdicion(error: PostgrestError, accion: string): { ok: false; status: number; error: string } {
+  const conocido = error.hint ? RECHAZOS_EDICION[error.hint] : undefined;
+  if (conocido) return { ok: false, ...conocido };
+  console.error(`Editar apartado con IA: ${accion} falló`, error.code, error.message);
+  return { ok: false, status: 500, error: "No pudimos completar la acción. Intenta de nuevo." };
+}
+
+/**
+ * La IA propone el texto nuevo de un apartado; **no guarda nada**: la empresa
+ * lo acepta y guarda por `PATCH /api/proyectos/[id]` (RN-37). La tarifa se
+ * cobra solo si la propuesta llega válida (RN-17).
+ */
+export async function editarApartadoConIA(
+  usuarioId: string,
+  proyectoId: string,
+  cuerpo: Record<string, unknown> | null
+): Promise<Resultado<{ texto: string; faltantes: string[] }>> {
+  const apartado = cuerpo?.apartado as ApartadoIA;
+  if (typeof apartado !== "string" || !(apartado in APARTADOS_IA)) {
+    return { ok: false, status: 400, error: "Ese apartado no se puede editar con IA." };
+  }
+  const instruccion = typeof cuerpo?.instruccion === "string" ? cuerpo.instruccion.trim() : "";
+  if (instruccion.length < 5) return { ok: false, status: 400, error: "Cuéntale a la IA qué quieres cambiar." };
+  if (instruccion.length > MAX_INSTRUCCION) {
+    return { ok: false, status: 400, error: "La petición es demasiado larga (máximo 2.000 caracteres)." };
+  }
+  const textoActual = typeof cuerpo?.textoActual === "string" ? cuerpo.textoActual : "";
+  if (textoActual.length > MAX_TEXTO_APARTADO) return { ok: false, status: 400, error: "El texto del apartado es demasiado largo." };
+
+  // El proyecto se lee con la sesión de la empresa (RN-30); la base lo vuelve a comprobar al reservar.
+  const proyecto = await obtenerProyecto(proyectoId);
+  if (!proyecto) return { ok: false, status: 404, error: "El proyecto no existe." };
+
+  const servicio = crearClienteServicio();
+  const { data: inicio, error: eInicio } = await servicio
+    .rpc("iniciar_edicion_apartado", { p_usuario: usuarioId, p_proyecto: proyectoId })
+    .single<InicioEdicion>();
+  if (eInicio) return rechazoEdicion(eInicio, "iniciar");
+
+  const t0 = Date.now();
+  const precioEntrada = Number(inicio.precio_entrada_usd_mtok);
+  const precioSalida = Number(inicio.precio_salida_usd_mtok);
+  let entrada: number | null = null;
+  let salida: number | null = null;
+  const fallar = (mensaje: string, ent: number | null, sal: number | null) =>
+    servicio.rpc("fallar_edicion_apartado", {
+      p_reserva: inicio.reserva_id,
+      p_mensaje: mensaje,
+      p_tokens_entrada: ent,
+      p_tokens_salida: sal,
+      p_costo: costo(ent, sal, precioEntrada, precioSalida),
+      p_modelo: inicio.modelo,
+      p_duracion_ms: Date.now() - t0,
+    });
+  try {
+    const datos = Object.fromEntries(
+      (Object.keys(APARTADOS_IA) as ApartadoIA[]).map((k) => {
+        const v = proyecto[k];
+        return [k, Array.isArray(v) ? v.join("\n") : (v ?? "")];
+      })
+    ) as Record<ApartadoIA, string>;
+    const r = await proveedorIA().estructurar({
+      modelo: inicio.modelo,
+      instrucciones: INSTRUCCIONES_EDICION,
+      mensaje: contextoEdicion(apartado, textoActual, instruccion, datos),
+      esquema: ESQUEMA_EDICION as unknown as Record<string, unknown>,
+      maxTokensSalida: MAX_TOKENS_EDICION,
+      plazoMs: PLAZO_EDICION_MS,
+    });
+    entrada = r.tokensEntrada;
+    salida = r.tokensSalida;
+    const propuesta = leerEdicion(r.json, apartado);
+    if (!propuesta) throw new ErrorIA("La respuesta del modelo no tiene la forma esperada", "respuesta_invalida", entrada, salida);
+
+    const { error: eFin } = await servicio.rpc("completar_edicion_apartado", {
+      p_reserva: inicio.reserva_id,
+      p_tokens_entrada: entrada,
+      p_tokens_salida: salida,
+      p_costo: costo(entrada, salida, precioEntrada, precioSalida),
+      p_modelo: inicio.modelo,
+      p_duracion_ms: Date.now() - t0,
+    });
+    if (eFin) {
+      await fallar(`No se pudo cobrar: ${eFin.hint ?? eFin.message}`, entrada, salida);
+      return rechazoEdicion(eFin, "completar");
+    }
+    return { ok: true, datos: propuesta };
+  } catch (e) {
+    const ia = e instanceof ErrorIA ? e : null;
+    console.error("Editar apartado con IA: falló", e instanceof Error ? e.message : String(e));
+    await fallar(e instanceof Error ? e.message : String(e), ia?.tokensEntrada ?? entrada, ia?.tokensSalida ?? salida);
+    if (ia?.motivo === "plazo") return { ok: false, status: 504, error: `La IA tardó demasiado en responder.${SIN_COBRO}` };
+    if (ia?.motivo === "configuracion") return { ok: false, status: 503, error: `La IA no está disponible en este momento.${SIN_COBRO}` };
+    return { ok: false, status: 502, error: `No pudimos editar el apartado con IA.${SIN_COBRO}` };
   }
 }

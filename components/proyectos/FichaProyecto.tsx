@@ -101,8 +101,14 @@ export function FichaProyecto({
       <div className="rounded-2xl border border-line p-6 sm:p-8 bg-surface shadow-card">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">{proyecto.nombre}</h1>
-            <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-ink-2">{proyecto.descripcion}</p>
+            <h1 className="flex items-start gap-1 text-[26px] font-extrabold tracking-[-0.025em] text-ink">
+              {proyecto.nombre}
+              <BotonEditar etiqueta="Editar el nombre" onClick={() => abrirEdicion("nombre")} />
+            </h1>
+            <p className="mt-2 flex max-w-2xl items-start gap-1 text-[15px] leading-relaxed text-ink-2">
+              <span>{proyecto.descripcion || "Sin descripción."}</span>
+              <BotonEditar etiqueta="Editar la descripción" onClick={() => abrirEdicion("descripcion")} />
+            </p>
           </div>
           <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
             <Button variant="ai" size="lg" onClick={abrirSelectorGenerar}>
@@ -165,7 +171,7 @@ export function FichaProyecto({
             Contenido del proyecto
           </h2>
           <p className="mt-1 text-[13px] text-ink-3">
-            Es lo que usa la IA para el documento base de cada postulación. Edita cada parte con su lápiz.
+            Es lo que usa la IA para el documento base de cada postulación. Con el lápiz editas cada parte, a mano o con IA.
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {CAMPOS_CONTENIDO.map((c) => {
@@ -229,6 +235,7 @@ export function FichaProyecto({
         <ProyectoFormModal
           proyecto={proyecto}
           campoInicial={campoAEditar}
+          soloApartado={campoAEditar !== null}
           onClose={() => setModalEditarAbierto(false)}
         />
       )}
@@ -284,7 +291,7 @@ function BotonEditar({ etiqueta, onClick }: { etiqueta: string; onClick: () => v
       onClick={onClick}
       aria-label={etiqueta}
       title={etiqueta}
-      className="ml-auto grid h-8 w-8 flex-none cursor-pointer place-items-center rounded-lg text-ink-3 normal-case tracking-normal hover:bg-surface-2 hover:text-ink"
+      className="ml-auto grid h-9 w-9 flex-none cursor-pointer place-items-center rounded-lg text-ink-3 normal-case tracking-normal hover:bg-surface-2 hover:text-ink"
     >
       <Pencil className="h-3.5 w-3.5" />
     </button>

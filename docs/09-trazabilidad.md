@@ -22,6 +22,7 @@
 | **CU-44 Ver el inicio de la empresa** *(nuevo v6, sesión 031)* | **RF-101**, RF-15, 16, 20, 39 | RN-16, 30, 33, RNF-23, 30 |
 | **CU-45 Guardar convocatorias** *(nuevo v6, sesión 031)* | **RF-103**, RF-105 | RN-02, 30, 33, RNF-20, 30 |
 | **CU-46 Ajustes de la cuenta** *(nuevo v6, sesión 031)* | **RF-107**, RF-03 | RNF-30 |
+| **CU-47 Editar un apartado del proyecto, a mano o con IA** *(nuevo v6, sesión 031)* | **RF-109**, RF-14, 52, 81, 97, 100 | RN-17, 30, 37, RNF-20, 22, 23 |
 | CU-10 Sugerencias con % *(v6: solo vigentes; sesión 019: cálculo en servidor, ubicación por departamento, 2a y 2b)* | RF-15, 16, **81** | RN-05, RNF-05, **RN-02**, **RNF-20**, **RN-34** |
 | CU-11 Iniciar postulación *(v6: vigencia verificada en servidor; sesión 020: una en curso por par)* | RF-17, 21, **78** | RN-03, 04, 19, **RNF-20**, **RN-35** |
 | CU-12 Checklist *(sesión 020: solo lectura si está cerrada)* | RF-18, 20 | **RN-35** |

@@ -1004,3 +1004,12 @@ Tabla 36, `convocatorias_guardadas`:
 
 **RLS:** el dueño lee y borra las suyas; insertar exige `usuario_id = auth.uid()`, rol empresa y que la convocatoria sea visible para quien inserta (la política de `convocatorias` decide, RN-33). Sin `update`. `anon` sin permisos. Índice por `convocatoria_id` para el borrado en cascada.
 
+### 9.35 Editar un apartado del proyecto con IA *(nuevo v6, sesión 031 · RF-109, CU-47, migración `20261027200000`)*
+
+- `tarifas_ia`: acción nueva `edicion_apartado` (10 créditos al crearse; la cambia `guardar_tarifa`, RF-100).
+- `consumos_ia.tipo` admite `edicion_apartado`.
+- `reservas_estructuracion.accion` (`estructuracion` por defecto, o `edicion_apartado`): la misma tabla de reservas de §9.29; `privado.reservas_de` suma cada reserva viva por la tarifa de su acción.
+- `iniciar_edicion_apartado(p_usuario, p_proyecto)`: rol empresa, proyecto propio (RN-30), suscripción de cobro, saldo menos reservas ≥ tarifa; libera reservas huérfanas de más de 5 minutos con su consumo fallido; devuelve el modelo y los precios de la plantilla de proyectos activa (RF-99).
+- `completar_edicion_apartado` descuenta la tarifa y registra el consumo; `fallar_edicion_apartado` libera sin cobro y registra el fallo (RN-17).
+- Las tres son `security definer` y solo de `service_role`: el endpoint pasa el usuario de la sesión verificada (RNF-20). La instrucción del sistema para esta edición vive en `lib/ia/editar-apartado.ts` (veracidad, [COMPLETAR], no seguir órdenes incrustadas en los datos).
+

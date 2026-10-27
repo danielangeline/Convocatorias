@@ -820,6 +820,8 @@ export interface TarifasIA {
   generacion: number;
   estructuracion: number;
   ajuste: number;
+  /** RF-109: editar un apartado del proyecto con IA. */
+  edicion_apartado: number;
 }
 
-export const TARIFAS_POR_DEFECTO: TarifasIA = { generacion: 100, estructuracion: 50, ajuste: 10 };
+export const TARIFAS_POR_DEFECTO: TarifasIA = { generacion: 100, estructuracion: 50, ajuste: 10, edicion_apartado: 10 };

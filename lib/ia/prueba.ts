@@ -71,6 +71,11 @@ export const proveedorPrueba: ProveedorIA = {
     if (p.mensaje.includes("FALLA_IA_PRUEBA")) {
       throw new ErrorIA("Fallo simulado del proveedor de prueba", "proveedor", tokensEntrada, 0);
     }
+    // RF-109: la edición de un apartado pide otro esquema.
+    if ("texto" in ((p.esquema as { properties?: Record<string, unknown> }).properties ?? {})) {
+      const actual = p.mensaje.match(/<texto_actual>\n?([\s\S]*?)\n?<\/texto_actual>/)?.[1]?.trim() ?? "";
+      return { json: { texto: `${actual} (versión de prueba)`.trim(), faltantes: [] }, tokensEntrada, tokensSalida: 40 };
+    }
     const explicacion = p.mensaje.match(/<explicacion_de_la_empresa>\n?([\s\S]*?)\n?<\/explicacion_de_la_empresa>/)?.[1]?.trim() ?? "";
     return {
       json: {

@@ -16,6 +16,7 @@ const ACCIONES: { clave: keyof Tarifas; nombre: string; nota: string }[] = [
   { clave: "generacion", nombre: "Generar o regenerar un documento", nota: "" },
   { clave: "estructuracion", nombre: "Crear un proyecto con IA", nota: "" },
   { clave: "ajuste", nombre: "Ajuste con IA de un documento", nota: "Los 3 primeros de cada documento son gratis." },
+  { clave: "edicion_apartado", nombre: "Editar un apartado del proyecto con IA", nota: "" },
 ];
 
 export function TarifasIA({ tarifas }: { tarifas: Tarifas }) {
@@ -24,6 +25,7 @@ export function TarifasIA({ tarifas }: { tarifas: Tarifas }) {
     generacion: String(tarifas.generacion),
     estructuracion: String(tarifas.estructuracion),
     ajuste: String(tarifas.ajuste),
+    edicion_apartado: String(tarifas.edicion_apartado),
   });
   const [ocupado, setOcupado] = useState<keyof Tarifas | null>(null);
   const [mensaje, setMensaje] = useState<{ tipo: "error" | "exito"; texto: string } | null>(null);

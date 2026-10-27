@@ -81,8 +81,8 @@ begin
   begin update public.tarifas_ia set creditos = 1; get diagnostics v_m = row_count; v_o := 'filas ' || v_m;
   exception when others then v_o := sqlstate; end;
   execute 'reset role';
-  v_res := v_res || format(E'\n%s RF-100: la empresa lee las 3 tarifas y no las cambia -> lee %s, cambiar %s',
-    case when v_n = 3 and v_o in ('filas 0', '42501') then 'OK   ' else 'FALLA' end, v_n, v_o);
+  v_res := v_res || format(E'\n%s RF-100: la empresa lee las 4 tarifas (sesión 031: + editar apartado) y no las cambia -> lee %s, cambiar %s',
+    case when v_n = 4 and v_o in ('filas 0', '42501') then 'OK   ' else 'FALLA' end, v_n, v_o);
 
   perform set_config('request.jwt.claims', json_build_object('sub', v_e1, 'role', 'authenticated', 'aal', 'aal1')::text, true);
   execute 'set local role authenticated';

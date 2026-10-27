@@ -76,6 +76,7 @@ Cada ruta declara los roles que admite (RNF-30). El rol se verifica en el servid
 | `/ajustes` | Datos de la cuenta, contraseña, sesión y preferencias del navegador (RF-107) *(nuevo v6, sesión 031)* | empresa | CU-46 |
 | `/admin/consumo-ia` | Consumo de IA del mes y últimos consumos registrados (RF-108) *(nuevo v6, sesión 031)* | administrador (aal2) | CU-31 |
 | `GET/POST /api/guardadas`, `DELETE /api/guardadas/[id]` | Listar, guardar y quitar guardadas; mismo origen en escrituras; la RLS decide (RF-103) *(nuevo v6, sesión 031)* | empresa | CU-45 |
+| `POST /api/proyectos/[id]/editar-con-ia` | Propuesta de la IA para un apartado del proyecto (`apartado`, `instruccion`, `textoActual`); no guarda; cobra la tarifa solo si la entrega; límite de tasa de la IA (RF-109) *(nuevo v6, sesión 031)* | empresa | CU-47 |
 | `/convocatorias/[id]` | Ficha con botones **"Postular"**, **"Generar documento con IA"** e **"Ir al portal de la entidad"** *(v5)* | empresa | CU-08, 11, 33 |
 | `/convocatorias/[id]/generar` | Selección de proyecto, aviso de cupo y confirmación | empresa | CU-33 |
 | `/proyectos` · `/proyectos/[id]` | Lista y ficha del proyecto con **indicador de completitud accionable —los campos faltantes se editan aquí mismo (RF-81)**—, botón "Solicitar consultor" y "Generar documento para..." | empresa | CU-09, 19, 33 |

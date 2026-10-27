@@ -31,6 +31,18 @@ A pedido del Product Owner («que mientras hablo se vayan escribiendo las palabr
 - Documentado en RF-97 (docs/02) y CU-43 paso 2 (docs/01): el dictado en vivo no pasa por esta plataforma ni por OpenAI, no consume crédito ni cuenta en el tope diario.
 - **Verificación:** el navegador del panel bloquea el micrófono, así que se probó con un reconocedor simulado inyectado en la página: el texto parcial apareció a los 2 s («Escuchando · 0:02»), las frases fijas se fueron sumando y al detener quedó el texto completo, editable. **Falta la prueba con micrófono real en Chrome o Edge.**
 
+## Después: editor por apartados y «Editar con IA» (RF-109, CU-47, nuevos)
+
+Pedido del Product Owner sobre el editor del proyecto: «hazlo mucho más grande; que las casillas de texto se puedan agrandar; en cada apartado una opción de editar con IA, con audio o texto; un botón en cada apartado para editar esa parte; y las categorías en casillas independientes: tipo de entidad, sector y tipo de proyecto». Antes se le preguntó el costo y cómo se aplica: **10 créditos** y **la IA propone, la persona acepta**.
+
+- **Documentos primero:** CU-47 (docs/01), RF-109 (docs/02), endpoint (docs/04), §9.35 (docs/05), trazabilidad (docs/09), RN-17 y RN-37 (docs/03), docs/00 y las reglas 3 y 5 de `CLAUDE.md` (la IA tiene ahora **tres** usos).
+- **Base:** migración `20261027200000` (ensayada con `raise` y aplicada): tarifa `edicion_apartado` = 10, tipo de consumo nuevo, columna `accion` en `reservas_estructuracion`, `reservas_de` por tarifa de cada reserva y `iniciar/completar/fallar_edicion_apartado` (solo `service_role`, RN-30 en la base).
+- **Servidor:** `lib/ia/editar-apartado.ts` (instrucción fija con las reglas de veracidad y de no obedecer texto incrustado, esquema `{texto, faltantes}`, saneamiento y limpieza de la respuesta) y `editarApartadoConIA` en `lib/proyectos-ia-servidor.ts`; `POST /api/proyectos/[id]/editar-con-ia` con límite de tasa de la IA. No guarda: la persona acepta y guarda (RN-37). El panel muestra la tarifa nueva en `/admin/planes` y el consumo en `/admin/consumo-ia`.
+- **Pantalla:** `ProyectoFormModal` reescrito: hasta 5xl de ancho y 94 % de alto, cabecera y pie fijos, cada apartado en su tarjeta, cajas de texto grandes que se agrandan (`resize-y`), categorías en tres casillas (tipo de proyecto, sector, tipo de entidad) con botones grandes y el conteo de elegidas. El lápiz de la ficha abre **solo ese apartado** (con «Ver todo el proyecto»); nombre y descripción también tienen lápiz. `EditarConIA`: petición escrita o dictada (en vivo), «Proponer cambio · 10 créditos», propuesta con lo que falta, «Usar esta versión» o «Descartar».
+- **Solo apartados de texto** tienen IA; monto, duración, presupuesto, ubicación y categorías se editan a mano (la IA no propone cifras, RNF-23).
+
+**Verificación:** `scripts/prueba-editar-apartado.mjs` (nueva) **16/16** con el proveedor de prueba: barreras (visitante, consultor 403, otro origen 403, proyecto ajeno 404, apartado numérico 400, petición corta o larga 400), tarifa 10, fallo 502 sin cobro, éxito con exactamente 10 descontados, el proyecto no cambia hasta guardar y los dos consumos registrados. Regresión: `prueba-proyecto-ia.mjs` en verde; SQL `creditos_por_tarifa.sql` 13/13 (se actualizó a 4 tarifas), `estructuracion_proyecto.sql`, `generacion_ia.sql` y `rnf_esquema.sql` sin fallas. En pantalla: editor de un solo apartado, propuesta de la IA (proveedor de prueba) y formulario completo con las tres casillas de categorías.
+
 ## Decisiones tomadas
 
 - **El endpoint de estructurar sigue sin guardar** (RF-96): guarda la pantalla con el mismo endpoint de CU-09. Así no se duplican las validaciones y la base sigue siendo la única que decide la forma.

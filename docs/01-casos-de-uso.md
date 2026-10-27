@@ -140,6 +140,19 @@
 | **Flujo principal** | 1. Abre «Ajustes». 2. Ve la empresa, la persona de contacto y el correo con que se registró. 3. Puede pedir el cambio de contraseña (lleva a CU-15), cerrar la sesión, elegir el tema (claro, oscuro o el del sistema) y restablecer el menú lateral |
 | **Postcondiciones** | El tema y el menú se recuerdan en este navegador; los datos de la cuenta no cambian desde aquí |
 
+
+#### CU-47 · Editar un apartado del proyecto, a mano o con IA *(nuevo v6, sesión 031)*
+
+| Campo | Contenido |
+|---|---|
+| **Actor** | Usuario Empresa, con apoyo del Servicio de IA |
+| **Descripción** | Cambiar una sola parte del proyecto —nombre, descripción, monto, ubicación, cada grupo de categorías o cualquiera de los nueve campos de contenido— sin abrir el formulario completo, y pedirle a la IA que reescriba ese apartado |
+| **Precondiciones** | Sesión de empresa; proyecto propio (RN-30). Para la IA: suscripción vigente y saldo para la tarifa «editar apartado» (RN-17) |
+| **Flujo principal** | 1. En la ficha del proyecto pulsa el lápiz de un apartado. 2. Se abre el editor solo con ese apartado, en una caja grande que se puede agrandar. 3. Edita a mano, o pulsa «Editar con IA», escribe o dicta qué quiere cambiar (RF-97) y pulsa «Proponer cambio». 4. La IA devuelve el texto nuevo usando solo lo que ya dice el proyecto; lo que falte queda como [COMPLETAR: …] y se lista. 5. Se descuenta la tarifa. 6. La empresa pulsa «Usar esta versión» (pasa a la caja) o «Descartar». 7. Pulsa «Guardar cambios» (CU-09) |
+| **Flujos alternos** | 2a. Quiere ver todo → «Ver todo el proyecto» abre el formulario completo. 3a. Sin crédito o sin suscripción vigente → se explica y se puede seguir a mano. 4a. La IA falla o tarda → se avisa y no se cobra (RN-17). 6a. Cierra sin guardar → lo aceptado no se guarda; la tarifa ya se cobró porque la propuesta se entregó |
+| **Postcondiciones** | El apartado queda como la empresa lo guardó; consumo registrado (RF-52). La petición a la IA no se guarda |
+| **Nota** | Solo los apartados de texto tienen «Editar con IA»; monto, duración, presupuesto, ubicación y categorías se editan a mano (la IA no propone cifras, RNF-23) |
+
 #### CU-10 · Obtener convocatorias sugeridas *(mod. v4 — porcentaje)*
 
 | Campo | Contenido |
