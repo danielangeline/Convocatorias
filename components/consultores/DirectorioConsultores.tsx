@@ -75,21 +75,21 @@ export function DirectorioConsultores({ consultores }: { consultores: ConsultorD
   return (
     <div>
       <div className="mb-6">
-        <h1 className="font-display text-2xl font-bold text-ink">Directorio de consultores</h1>
-        <p className="text-sm text-ink-soft">
+        <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Directorio de consultores</h1>
+        <p className="text-sm text-ink-2">
           Encuentra consultores verificados para tareas específicas de tus proyectos.
         </p>
       </div>
 
       {solicitud && (
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brick-100 bg-brick-50 px-5 py-4">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sky/30 bg-sky/10 px-5 py-4">
           <div>
-            <p className="text-sm font-semibold text-brick-700">Buscando consultor para: {solicitud.tituloTarea}</p>
-            <p className="text-xs text-brick-600/80">
+            <p className="text-sm font-semibold text-sky-ink">Buscando consultor para: {solicitud.tituloTarea}</p>
+            <p className="text-xs text-sky-ink/80">
               Elige un perfil y usa &ldquo;Solicitar para mi tarea&rdquo; en su ficha completa.
             </p>
           </div>
-          <button onClick={cancelarSolicitud} className="text-xs font-semibold text-brick-700 hover:underline">
+          <button onClick={cancelarSolicitud} className="text-xs font-semibold text-sky-ink hover:underline">
             Cancelar solicitud
           </button>
         </div>
@@ -111,13 +111,13 @@ export function DirectorioConsultores({ consultores }: { consultores: ConsultorD
                   {enviandoAlEquipo ? "Enviando…" : "Pedir ayuda a nuestro equipo"}
                 </Button>
                 {errorEquipo && (
-                  <p role="alert" className="max-w-sm text-xs text-danger">
+                  <p role="alert" className="max-w-sm text-xs text-rose-ink">
                     {errorEquipo}
                   </p>
                 )}
               </div>
             ) : (
-              <Link href="/proyectos" className="text-sm font-semibold text-primary-700 hover:underline">
+              <Link href="/proyectos" className="text-sm font-semibold text-pri-text hover:underline">
                 Ir a mis proyectos
               </Link>
             )
@@ -127,19 +127,19 @@ export function DirectorioConsultores({ consultores }: { consultores: ConsultorD
         <>
           <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint" />
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" />
               <input
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
                 placeholder="Buscar por nombre..."
                 aria-label="Buscar por nombre"
-                className="w-full rounded-lg border border-line py-2.5 pl-9 pr-4 text-sm outline-none placeholder:text-ink-faint focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+                className="w-full rounded-lg border border-line py-2.5 pl-9 pr-4 text-sm outline-none placeholder:text-ink-3 focus:border-pri focus:ring-2 focus:ring-pri-soft bg-surface text-ink"
               />
             </div>
           </div>
 
           <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
-            <aside className="h-max rounded-2xl border border-line p-5">
+            <aside className="h-max rounded-2xl border border-line p-5 bg-surface shadow-card">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="font-display text-sm font-semibold text-ink">Filtros</h2>
                 {(especialidadSel.length > 0 || ratingMin > 0) && (
@@ -148,23 +148,23 @@ export function DirectorioConsultores({ consultores }: { consultores: ConsultorD
                       setEspecialidadSel([]);
                       setRatingMin(0);
                     }}
-                    className="flex items-center gap-1 text-xs font-semibold text-primary-700 hover:underline"
+                    className="flex items-center gap-1 text-xs font-semibold text-pri-text hover:underline"
                   >
                     <X className="h-3 w-3" /> Limpiar
                   </button>
                 )}
               </div>
 
-              <div className="mb-4 border-b border-line-soft pb-4">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">Especialidad</p>
+              <div className="mb-4 border-b border-line-2 pb-4">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-3">Especialidad</p>
                 <div className="max-h-64 space-y-2 overflow-y-auto">
                   {especialidades.map((cat) => (
-                    <label key={cat.id} className="flex cursor-pointer items-center gap-2 text-sm text-ink-soft">
+                    <label key={cat.id} className="flex cursor-pointer items-center gap-2 text-sm text-ink-2">
                       <input
                         type="checkbox"
                         checked={especialidadSel.includes(cat.id)}
                         onChange={() => toggleEspecialidad(cat.id)}
-                        className="h-4 w-4 rounded border-line text-primary-700 focus:ring-primary-500"
+                        className="h-4 w-4 rounded border-line text-pri-text focus:ring-pri bg-surface text-ink"
                       />
                       {cat.nombre}
                     </label>
@@ -173,7 +173,7 @@ export function DirectorioConsultores({ consultores }: { consultores: ConsultorD
               </div>
 
               <div>
-                <label htmlFor="rating-min" className="mb-2 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+                <label htmlFor="rating-min" className="mb-2 block text-xs font-semibold uppercase tracking-wide text-ink-3">
                   Rating mínimo: {ratingMin.toFixed(1)}
                 </label>
                 <input
@@ -202,14 +202,14 @@ export function DirectorioConsultores({ consultores }: { consultores: ConsultorD
                     <Link
                       key={c.id}
                       href={`/consultores/${c.id}`}
-                      className="flex flex-col rounded-2xl border border-line p-5 transition-colors hover:border-brick-100 hover:bg-brick-50/30"
+                      className="flex flex-col rounded-2xl border border-line p-5 transition-colors hover:border-sky/30 hover:bg-sky/10"
                     >
                       <div className="flex items-center gap-3">
                         {c.fotoUrl ? (
                           // eslint-disable-next-line @next/next/no-img-element -- URL firmada de Storage
                           <img src={c.fotoUrl} alt="" className="h-14 w-14 rounded-full object-cover ring-1 ring-line" />
                         ) : (
-                          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-ink-faint ring-1 ring-line">
+                          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-surface-2 text-ink-3 ring-1 ring-line">
                             <UserRound className="h-6 w-6" />
                           </span>
                         )}
@@ -227,11 +227,11 @@ export function DirectorioConsultores({ consultores }: { consultores: ConsultorD
                         ))}
                       </div>
 
-                      <div className="mt-4 flex items-center gap-1.5 border-t border-line-soft pt-4 text-xs text-ink-faint">
+                      <div className="mt-4 flex items-center gap-1.5 border-t border-line-2 pt-4 text-xs text-ink-3">
                         <Briefcase className="h-3.5 w-3.5" /> {c.totalEncargosCompletados} encargos completados
                       </div>
 
-                      <span className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-white px-3 py-1.5 text-sm font-semibold text-gold-700 ring-1 ring-inset ring-gold-500">
+                      <span className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-surface px-3 py-1.5 text-sm font-semibold text-amber-ink ring-1 ring-inset ring-amber/30">
                         Ver perfil y solicitar
                       </span>
                     </Link>

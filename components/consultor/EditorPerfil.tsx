@@ -201,17 +201,17 @@ export function EditorPerfil({
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-6">
-        <h1 className="font-display text-2xl font-bold text-ink">Mi perfil de consultor</h1>
-        <p className="text-sm text-ink-soft">Completa tu perfil para que las empresas puedan encontrarte en el directorio.</p>
+        <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Mi perfil de consultor</h1>
+        <p className="text-sm text-ink-2">Completa tu perfil para que las empresas puedan encontrarte en el directorio.</p>
       </div>
 
       {bloqueado ? (
-        <div className="rounded-xl border border-primary-200 bg-primary-50 px-5 py-4">
+        <div className="rounded-xl border border-line bg-pri-soft px-5 py-4">
           <div className="flex items-start gap-3">
-            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary-700" />
+            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-pri-text" />
             <div>
-              <p className="text-sm font-semibold text-primary-800">Autoriza el tratamiento de tus datos</p>
-              <p className="mt-0.5 text-sm text-primary-800/80">
+              <p className="text-sm font-semibold text-pri-text">Autoriza el tratamiento de tus datos</p>
+              <p className="mt-0.5 text-sm text-pri-text/80">
                 Tu cuenta se creó antes de que pidiéramos esta autorización. Para guardar tu perfil, autoriza el
                 tratamiento de tus datos personales para crear y operar tu cuenta en la plataforma, conforme a la Ley
                 1581 de 2012.
@@ -235,12 +235,12 @@ export function EditorPerfil({
       )}
 
       {error && (
-        <p role="alert" className="mt-4 rounded-lg border border-danger/30 bg-danger-bg px-4 py-3 text-sm text-danger">
+        <p role="alert" className="mt-4 rounded-lg border border-rose/30 bg-rose/10 px-4 py-3 text-sm text-rose-ink">
           {error}
         </p>
       )}
       {exito && (
-        <p role="status" className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-success">
+        <p role="status" className="mt-4 rounded-lg border border-pri/30 bg-pri-soft px-4 py-3 text-sm text-pri-text">
           {exito}
         </p>
       )}
@@ -252,7 +252,7 @@ export function EditorPerfil({
               // eslint-disable-next-line @next/next/no-img-element -- URL firmada de Storage, cambia cada 15 min
               <img src={perfil.fotoUrl} alt="Tu foto de perfil" className="h-20 w-20 rounded-full object-cover ring-1 ring-line" />
             ) : (
-              <span className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 text-ink-faint ring-1 ring-line">
+              <span className="flex h-20 w-20 items-center justify-center rounded-full bg-surface-2 text-ink-3 ring-1 ring-line">
                 <UserRound className="h-8 w-8" />
               </span>
             )}
@@ -271,7 +271,7 @@ export function EditorPerfil({
               <Button variant="secondary" size="sm" onClick={() => fotoRef.current?.click()} disabled={ocupado !== null}>
                 <Upload className="h-3.5 w-3.5" /> {ocupado === "foto" ? "Subiendo…" : perfil.fotoUrl ? "Cambiar foto" : "Subir foto"}
               </Button>
-              <p className="mt-1.5 text-xs text-ink-faint">JPG o PNG, hasta 5 MB. Recomendado 400 × 400 px.</p>
+              <p className="mt-1.5 text-xs text-ink-3">JPG o PNG, hasta 5 MB. Recomendado 400 × 400 px.</p>
             </div>
           </div>
 
@@ -312,7 +312,7 @@ export function EditorPerfil({
 
         <Seccion titulo="Especialidades">
           {categorias.length === 0 ? (
-            <p className="text-sm text-ink-faint">Todavía no hay categorías disponibles.</p>
+            <p className="text-sm text-ink-3">Todavía no hay categorías disponibles.</p>
           ) : (
             <div className="space-y-4">
               {TIPOS_CATEGORIA.map(([tipo, etiqueta]) => {
@@ -320,7 +320,7 @@ export function EditorPerfil({
                 if (delTipo.length === 0) return null;
                 return (
                   <div key={tipo}>
-                    <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-ink-faint">{etiqueta}</p>
+                    <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-ink-3">{etiqueta}</p>
                     <div className="flex flex-wrap gap-1.5">
                       {delTipo.map((c) => {
                         const activo = form.especialidades.includes(c.id);
@@ -332,7 +332,7 @@ export function EditorPerfil({
                             onClick={() => toggleEspecialidad(c.id)}
                             className={cn(
                               "rounded-md px-2.5 py-1 text-xs font-medium ring-1 ring-inset transition-colors",
-                              activo ? "bg-brick-500 text-white ring-brick-500" : "bg-white text-ink-soft ring-line hover:bg-slate-50"
+                              activo ? "bg-sky text-white ring-sky/30" : "bg-surface text-ink-2 ring-line hover:bg-surface-2"
                             )}
                           >
                             {c.nombre}
@@ -360,11 +360,11 @@ export function EditorPerfil({
             </Button>
           }
         >
-          <p className="-mt-2 mb-3 text-xs text-ink-faint">
+          <p className="-mt-2 mb-3 text-xs text-ink-3">
             Solo las verán los administradores y la empresa que te haya enviado una solicitud.
           </p>
           {form.redes.length === 0 ? (
-            <p className="text-sm text-ink-faint">Aún no agregas redes sociales.</p>
+            <p className="text-sm text-ink-3">Aún no agregas redes sociales.</p>
           ) : (
             <ul className="space-y-2">
               {form.redes.map((red, i) => {
@@ -373,12 +373,12 @@ export function EditorPerfil({
                   editar({ redes: form.redes.map((r, j) => (j === i ? { ...r, ...parche } : r)) });
                 return (
                   <li key={i} className="flex flex-wrap items-center gap-2 sm:flex-nowrap">
-                    <Icon className="h-4 w-4 shrink-0 text-ink-faint" />
+                    <Icon className="h-4 w-4 shrink-0 text-ink-3" />
                     <select
                       aria-label="Tipo de red"
                       value={red.tipo}
                       onChange={(e) => cambiar({ tipo: e.target.value as RedSocialTipo })}
-                      className="rounded-lg border border-line px-2 py-1.5 text-sm outline-none focus:border-primary-500"
+                      className="rounded-lg border border-line px-2 py-1.5 text-sm outline-none focus:border-pri bg-surface text-ink"
                     >
                       <option value="linkedin">LinkedIn</option>
                       <option value="instagram">Instagram</option>
@@ -391,13 +391,13 @@ export function EditorPerfil({
                       onChange={(e) => cambiar({ url: e.target.value })}
                       placeholder="https://…"
                       maxLength={300}
-                      className="min-w-0 flex-1 rounded-lg border border-line px-3 py-1.5 text-sm outline-none focus:border-primary-500"
+                      className="min-w-0 flex-1 rounded-lg border border-line px-3 py-1.5 text-sm outline-none focus:border-pri bg-surface text-ink"
                     />
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => editar({ redes: form.redes.filter((_, j) => j !== i) })}
-                      className="text-danger hover:bg-danger-bg"
+                      className="text-rose-ink hover:bg-rose/10"
                       aria-label="Quitar red"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -423,14 +423,14 @@ export function EditorPerfil({
           }
         >
           {form.portafolio.length === 0 ? (
-            <p className="text-sm text-ink-faint">Agrega proyectos en los que hayas trabajado: nombre, entidad, año y resultado.</p>
+            <p className="text-sm text-ink-3">Agrega proyectos en los que hayas trabajado: nombre, entidad, año y resultado.</p>
           ) : (
             <div className="space-y-3">
               {form.portafolio.map((item, i) => {
                 const cambiar = (parche: Partial<ItemPortafolioPropio>) =>
                   editar({ portafolio: form.portafolio.map((p, j) => (j === i ? { ...p, ...parche } : p)) });
                 return (
-                  <div key={i} className="rounded-lg border border-line-soft p-3">
+                  <div key={i} className="rounded-lg border border-line-2 p-3">
                     <div className="grid gap-2 sm:grid-cols-2">
                       <input
                         aria-label={`Nombre del proyecto ${i + 1}`}
@@ -482,7 +482,7 @@ export function EditorPerfil({
                         variant="ghost"
                         size="sm"
                         onClick={() => editar({ portafolio: form.portafolio.filter((_, j) => j !== i) })}
-                        className="text-danger hover:bg-danger-bg"
+                        className="text-rose-ink hover:bg-rose/10"
                       >
                         <Trash2 className="h-3.5 w-3.5" /> Quitar
                       </Button>
@@ -496,14 +496,14 @@ export function EditorPerfil({
 
         <Seccion titulo="Hoja de vida">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-50 text-primary-700">
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-pri-soft text-pri-text">
               <FileText className="h-5 w-5" />
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-ink">
                 {perfil.tieneHojaDeVida ? "Hoja de vida cargada" : "Sin hoja de vida cargada"}
               </p>
-              <p className="text-xs text-ink-faint">
+              <p className="text-xs text-ink-3">
                 PDF hasta 10 MB. Solo la verán los administradores y la empresa que te haya enviado una solicitud.
               </p>
             </div>
@@ -532,8 +532,8 @@ export function EditorPerfil({
       </fieldset>
 
       {!bloqueado && (
-        <div className="sticky bottom-0 mt-6 flex flex-wrap items-center justify-end gap-3 border-t border-line-soft bg-white/95 py-4 backdrop-blur">
-          {cambios && <span className="text-xs text-ink-faint">Tienes cambios sin guardar.</span>}
+        <div className="sticky bottom-0 mt-6 flex flex-wrap items-center justify-end gap-3 border-t border-line-2 bg-surface/95 py-4 backdrop-blur">
+          {cambios && <span className="text-xs text-ink-3">Tienes cambios sin guardar.</span>}
           <Button onClick={guardar} disabled={!cambios || ocupado !== null}>
             {ocupado === "guardar" ? "Guardando…" : "Guardar cambios"}
           </Button>
@@ -554,8 +554,8 @@ function formularioDe(p: PerfilConsultorPropio) {
   };
 }
 
-const claseEntrada = "w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500";
-const claseEntradaChica = "rounded-lg border border-line px-3 py-1.5 text-sm outline-none focus:border-primary-500";
+const claseEntrada = "w-full rounded-lg border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri";
+const claseEntradaChica = "rounded-lg border border-line bg-surface text-ink px-3 py-1.5 text-sm outline-none focus:border-pri";
 
 function Campo({
   etiqueta,
@@ -570,11 +570,11 @@ function Campo({
 }) {
   return (
     <div className="mt-4">
-      <label htmlFor={id} className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+      <label htmlFor={id} className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3">
         {etiqueta}
       </label>
       {children}
-      {ayuda && <p className="mt-1 text-xs text-ink-faint">{ayuda}</p>}
+      {ayuda && <p className="mt-1 text-xs text-ink-3">{ayuda}</p>}
     </div>
   );
 }
@@ -598,11 +598,11 @@ function BannerEstado({
 }) {
   if (estado === "aprobado") {
     return (
-      <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4">
-        <CheckCircle2 className="h-5 w-5 shrink-0 text-success" />
+      <div className="flex items-center gap-3 rounded-xl border border-pri/30 bg-pri-soft px-5 py-4">
+        <CheckCircle2 className="h-5 w-5 shrink-0 text-pri-text" />
         <div>
-          <p className="text-sm font-semibold text-success">Tu perfil está aprobado</p>
-          <p className="text-xs text-success/80">Ya apareces en el directorio de consultores.</p>
+          <p className="text-sm font-semibold text-pri-text">Tu perfil está aprobado</p>
+          <p className="text-xs text-pri-text/80">Ya apareces en el directorio de consultores.</p>
         </div>
       </div>
     );
@@ -610,11 +610,11 @@ function BannerEstado({
 
   if (estado === "en_revision") {
     return (
-      <div className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50 px-5 py-4">
-        <Clock className="h-5 w-5 shrink-0 text-amber-600" />
+      <div className="flex items-center gap-3 rounded-xl border border-amber/30 bg-amber/10 px-5 py-4">
+        <Clock className="h-5 w-5 shrink-0 text-amber-ink" />
         <div>
-          <p className="text-sm font-semibold text-amber-700">Tu perfil está en revisión</p>
-          <p className="text-xs text-amber-700/80">
+          <p className="text-sm font-semibold text-amber-ink">Tu perfil está en revisión</p>
+          <p className="text-xs text-amber-ink/80">
             Un administrador lo validará pronto. Puedes seguir editándolo, pero la foto, la descripción, las
             especialidades y la hoja de vida no pueden quedar vacías.
           </p>
@@ -625,13 +625,13 @@ function BannerEstado({
 
   if (estado === "suspendido") {
     return (
-      <div className="flex items-center gap-3 rounded-xl border border-line bg-slate-50 px-5 py-4">
-        <Lock className="h-5 w-5 shrink-0 text-ink-soft" />
+      <div className="flex items-center gap-3 rounded-xl border border-line bg-surface-2 px-5 py-4">
+        <Lock className="h-5 w-5 shrink-0 text-ink-2" />
         <div>
           <p className="text-sm font-semibold text-ink">Tu perfil está suspendido</p>
           {/* CU-27: el consultor ve por qué (sesión 022). */}
-          {motivoSuspension && <p className="text-sm text-ink-soft">Motivo: {motivoSuspension}</p>}
-          <p className="text-xs text-ink-soft">No apareces en el directorio. Contacta al equipo de la plataforma.</p>
+          {motivoSuspension && <p className="text-sm text-ink-2">Motivo: {motivoSuspension}</p>}
+          <p className="text-xs text-ink-2">No apareces en el directorio. Contacta al equipo de la plataforma.</p>
         </div>
       </div>
     );
@@ -644,13 +644,13 @@ function BannerEstado({
 
   if (estado === "rechazado") {
     return (
-      <div className="rounded-xl border border-danger/30 bg-danger-bg px-5 py-4">
+      <div className="rounded-xl border border-rose/30 bg-rose/10 px-5 py-4">
         <div className="flex items-start gap-3">
-          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-danger" />
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose-ink" />
           <div>
-            <p className="text-sm font-semibold text-danger">Tu perfil fue rechazado</p>
-            {motivoRechazo && <p className="text-sm text-danger/90">Motivo: {motivoRechazo}</p>}
-            <p className="mt-1 text-xs text-danger/80">Corrige lo indicado y vuelve a enviarlo. {faltan.length > 0 && aviso}</p>
+            <p className="text-sm font-semibold text-rose-ink">Tu perfil fue rechazado</p>
+            {motivoRechazo && <p className="text-sm text-rose-ink">Motivo: {motivoRechazo}</p>}
+            <p className="mt-1 text-xs text-rose-ink">Corrige lo indicado y vuelve a enviarlo. {faltan.length > 0 && aviso}</p>
           </div>
         </div>
         <Button variant="danger" size="sm" className="mt-3" onClick={onEnviar} disabled={deshabilitado || faltan.length > 0}>
@@ -661,10 +661,10 @@ function BannerEstado({
   }
 
   return (
-    <div className="rounded-xl border border-line bg-slate-50 px-5 py-4">
+    <div className="rounded-xl border border-line bg-surface-2 px-5 py-4">
       <div className="flex flex-wrap items-center gap-3">
         <Badge className={ESTADO_PERFIL_ESTILO["incompleto"]}>{ESTADO_PERFIL_LABEL["incompleto"]}</Badge>
-        <p className="text-sm text-ink-soft">{aviso}</p>
+        <p className="text-sm text-ink-2">{aviso}</p>
       </div>
       <Button variant="brick" size="sm" className="mt-3" onClick={onEnviar} disabled={deshabilitado || faltan.length > 0}>
         {enviando ? "Enviando…" : "Enviar a revisión"}
@@ -675,7 +675,7 @@ function BannerEstado({
 
 function Seccion({ titulo, children, accion }: { titulo: string; children: React.ReactNode; accion?: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border border-line bg-white p-6">
+    <section className="rounded-2xl border border-line bg-surface p-6">
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="font-display text-base font-semibold text-ink">{titulo}</h2>
         {accion}

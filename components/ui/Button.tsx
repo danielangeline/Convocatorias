@@ -9,6 +9,7 @@ type Variante =
   | "ghost"
   | "danger"
   | "outline-gold"
+  | "outline-amber"
   | "ai"
   | "teal"
   | "consultor"
@@ -24,6 +25,8 @@ const variantes: Record<Variante, string> = {
   secondary: "bg-surface text-ink border border-line hover:bg-surface-2",
   ghost: "bg-transparent text-ink-2 hover:bg-surface-2 hover:text-ink",
   danger: "bg-rose text-white hover:brightness-95",
+  "outline-amber":
+    "bg-surface text-amber-ink border border-amber hover:bg-surface-2",
   "outline-gold":
     "bg-surface text-[color-mix(in_oklch,var(--amber)_62%,var(--ink))] border border-amber hover:bg-surface-2",
   ai,

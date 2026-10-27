@@ -4,6 +4,7 @@ import {
   CreditCard,
   FileStack,
   FolderKanban,
+  House,
   Handshake,
   LayoutDashboard,
   Layers,
@@ -45,6 +46,11 @@ export const PORTAL: Record<RolShell, string> = {
 // (Guardadas, Reseñas, Consumo de IA, Beneficios tributarios) quedan en el
 // backlog de la bitácora 031.
 const EMPRESA: GrupoMenu[] = [
+  {
+    id: "general",
+    titulo: "General",
+    items: [{ href: "/inicio", label: "Inicio", icono: House }],
+  },
   {
     id: "descubrir",
     titulo: "Descubrir",

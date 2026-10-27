@@ -81,28 +81,28 @@ export function AsistenteProyecto({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary-950/40 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/ p-4">
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Nuevo proyecto"
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-xl"
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-surface p-6 shadow-xl"
       >
         <div className="mb-1 flex items-center justify-between">
           <h3 className="font-display text-lg font-semibold text-ink">Nuevo proyecto</h3>
-          <button onClick={onClose} disabled={creando} className="text-ink-faint hover:text-ink disabled:opacity-40" aria-label="Cerrar">
+          <button onClick={onClose} disabled={creando} className="text-ink-3 hover:text-ink disabled:opacity-40" aria-label="Cerrar">
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <p className="mb-4 flex items-center gap-1.5 text-sm font-semibold text-teal-700">
+        <p className="mb-4 flex items-center gap-1.5 text-sm font-semibold text-violet-ink">
           <Sparkles className="h-4 w-4" /> Cuéntanos tu proyecto y la IA llena el formulario
         </p>
 
-        <label htmlFor="explicacion-proyecto" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+        <label htmlFor="explicacion-proyecto" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3">
           ¿De qué trata tu proyecto?
         </label>
-        <div className="rounded-xl border border-line focus-within:border-teal-500">
+        <div className="rounded-xl border border-line focus-within:border-violet">
           <textarea
             id="explicacion-proyecto"
             value={explicacion}
@@ -110,22 +110,22 @@ export function AsistenteProyecto({
             disabled={creando}
             rows={8}
             placeholder="Escribe o dicta con el micrófono: qué problema resuelve, a quién beneficia, dónde se ejecuta, qué actividades harás, cuánto dinero buscas, en cuánto tiempo y qué experiencia tiene tu empresa."
-            className="block w-full resize-none rounded-t-xl px-3 py-2.5 text-sm outline-none disabled:bg-slate-50"
+            className="block w-full resize-none rounded-t-xl px-3 py-2.5 text-sm outline-none disabled:bg-surface-2"
           />
-          <div className="flex items-center justify-between gap-3 border-t border-line-soft px-2 py-1.5">
+          <div className="flex items-center justify-between gap-3 border-t border-line-2 px-2 py-1.5">
             <BotonDictado onTexto={agregarDictado} onError={setError} deshabilitado={creando || sinCredito} />
-            <span className={`text-xs ${largo > 0 && largo < MIN ? "text-gold-700" : "text-ink-faint"}`}>
+            <span className={`text-xs ${largo > 0 && largo < MIN ? "text-amber-ink" : "text-ink-3"}`}>
               {largo < MIN ? `${largo}/${MIN} caracteres mínimos` : `${largo.toLocaleString("es-CO")} caracteres`}
             </span>
           </div>
         </div>
 
-        <p className="mt-2 text-xs text-ink-faint">
+        <p className="mt-2 text-xs text-ink-3">
           La IA usa solo lo que tú cuentes: lo que no digas queda vacío para que lo completes. Ni el audio ni el texto se guardan.
         </p>
 
         {sinCredito && (
-          <p className="mt-3 rounded-lg bg-gold-50 px-3 py-2.5 text-sm text-gold-700">
+          <p className="mt-3 rounded-lg bg-amber/10 px-3 py-2.5 text-sm text-amber-ink">
             {vigente
               ? `Crear con IA cuesta ${textoCreditos(costo)} y te quedan ${textoCreditos(disponibles)}. Puedes llenar el formulario a mano sin costo.`
               : "Necesitas una suscripción vigente para crear el proyecto con IA. Puedes llenar el formulario a mano."}
@@ -133,7 +133,7 @@ export function AsistenteProyecto({
         )}
 
         {error && (
-          <p role="alert" className="mt-3 rounded-lg bg-red-50 px-3 py-2.5 text-sm text-danger">
+          <p role="alert" className="mt-3 rounded-lg bg-rose/10 px-3 py-2.5 text-sm text-rose-ink">
             {error}
           </p>
         )}

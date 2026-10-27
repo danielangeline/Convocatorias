@@ -129,19 +129,19 @@ export function GestionSuscripciones({
     router.refresh();
   };
 
-  const campo = "w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500";
-  const etiqueta = "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint";
+  const campo = "w-full rounded-lg border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri";
+  const etiqueta = "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3";
 
   return (
     <div>
       <div className="mb-6">
-        <h1 className="font-display text-2xl font-bold text-ink">Suscripciones</h1>
-        <p className="text-sm text-ink-soft">Empresas y consultores aprobados, su plan y el consumo de IA del mes.</p>
+        <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Suscripciones</h1>
+        <p className="text-sm text-ink-2">Empresas y consultores aprobados, su plan y el consumo de IA del mes.</p>
       </div>
 
       <div className="mb-6 grid gap-4 lg:grid-cols-2">
-        <div className="rounded-2xl border border-line bg-white p-5">
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink-faint">Suscripciones por estado</p>
+        <div className="rounded-2xl border border-line bg-surface p-5">
+          <p className="text-xs font-semibold uppercase tracking-wide text-ink-3">Suscripciones por estado</p>
           <dl className="mt-3 grid grid-cols-5 gap-2 text-center">
             {(
               [
@@ -154,13 +154,13 @@ export function GestionSuscripciones({
             ).map(([t, v]) => (
               <div key={t}>
                 <dd className="font-tabular text-xl font-bold text-ink">{v}</dd>
-                <dt className="text-xs text-ink-faint">{t}</dt>
+                <dt className="text-xs text-ink-3">{t}</dt>
               </div>
             ))}
           </dl>
         </div>
-        <div className="rounded-2xl border border-teal-100 bg-teal-50/40 p-5">
-          <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-teal-700">
+        <div className="rounded-2xl border border-violet/30 bg-violet/10 p-5">
+          <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-violet-ink">
             <Sparkles className="h-3.5 w-3.5" /> Consumo de IA de este mes
           </p>
           <dl className="mt-3 grid grid-cols-4 gap-2 text-center">
@@ -173,12 +173,12 @@ export function GestionSuscripciones({
               ] as const
             ).map(([t, v]) => (
               <div key={t}>
-                <dd className="font-tabular text-lg font-bold text-teal-800">{v}</dd>
-                <dt className="text-xs text-ink-faint">{t}</dt>
+                <dd className="font-tabular text-lg font-bold text-violet-ink">{v}</dd>
+                <dt className="text-xs text-ink-3">{t}</dt>
               </div>
             ))}
           </dl>
-          <p className="mt-2 text-xs text-ink-faint">
+          <p className="mt-2 text-xs text-ink-3">
             Más {tablero.ajustes.toLocaleString("es-CO")} {tablero.ajustes === 1 ? "ajuste" : "ajustes"}. Las fallidas no consumen crédito (RN-17).
           </p>
         </div>
@@ -195,7 +195,7 @@ export function GestionSuscripciones({
             aria-pressed={filtro === f.valor}
             className={cn(
               "rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors",
-              filtro === f.valor ? "bg-primary-800 text-white" : "bg-white text-ink-soft ring-1 ring-inset ring-line hover:bg-slate-50"
+              filtro === f.valor ? "bg-pri text-on-pri" : "bg-surface text-ink-2 ring-1 ring-inset ring-line hover:bg-surface-2"
             )}
           >
             {f.etiqueta}
@@ -207,10 +207,10 @@ export function GestionSuscripciones({
       {filtradas.length === 0 ? (
         <EmptyState icon={CreditCard} titulo="No hay cuentas en este estado" descripcion="Cambia el filtro para ver otras." />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-line bg-white">
+        <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-line bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-ink-faint">
+              <tr className="border-b border-line bg-surface-2 text-left text-xs font-semibold uppercase tracking-wide text-ink-3">
                 <th className="px-5 py-3">Cuenta</th>
                 <th className="px-5 py-3">Plan</th>
                 <th className="px-5 py-3">Estado</th>
@@ -219,34 +219,34 @@ export function GestionSuscripciones({
                 <th className="px-5 py-3" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-line-soft">
+            <tbody className="divide-y divide-line-2">
               {filtradas.map((c) => (
-                <tr key={c.usuarioId} className="hover:bg-slate-50/60">
+                <tr key={c.usuarioId} className="hover:bg-surface-2/60">
                   <td className="px-5 py-3">
                     <p className="font-medium text-ink">{c.nombre}</p>
-                    <p className="text-xs text-ink-faint">
+                    <p className="text-xs text-ink-3">
                       {c.rol === "empresa" ? "Empresa" : "Consultor"} · {c.correo}
                     </p>
                   </td>
-                  <td className="px-5 py-3 text-ink-soft">
+                  <td className="px-5 py-3 text-ink-2">
                     {c.planNombre ?? "—"}
-                    {c.modalidad && c.modalidad !== "trial" && <span className="text-xs text-ink-faint"> · {c.modalidad}</span>}
+                    {c.modalidad && c.modalidad !== "trial" && <span className="text-xs text-ink-3"> · {c.modalidad}</span>}
                   </td>
                   <td className="px-5 py-3">
                     {c.estado ? (
                       <Badge className={ESTADO_SUSCRIPCION_ESTILO[c.estado]}>{ESTADO_SUSCRIPCION_LABEL[c.estado]}</Badge>
                     ) : (
-                      <span className="text-xs text-ink-faint">Sin suscripción</span>
+                      <span className="text-xs text-ink-3">Sin suscripción</span>
                     )}
                   </td>
-                  <td className="px-5 py-3 text-ink-soft">{c.fechaVencimiento ? formatFecha(c.fechaVencimiento) : "—"}</td>
-                  <td className="px-5 py-3 font-tabular text-ink-soft">
+                  <td className="px-5 py-3 text-ink-2">{c.fechaVencimiento ? formatFecha(c.fechaVencimiento) : "—"}</td>
+                  <td className="px-5 py-3 font-tabular text-ink-2">
                     {c.rol === "consultor" || !c.estado ? (
                       "—"
                     ) : (
                       <span title="Usados del plan / incluidos · más los de paquetes">
                         {c.creditosUsados}/{c.creditosIncluidos}
-                        {c.creditosExtra > 0 && <span className="text-teal-700"> +{c.creditosExtra}</span>}
+                        {c.creditosExtra > 0 && <span className="text-violet-ink"> +{c.creditosExtra}</span>}
                       </span>
                     )}
                   </td>
@@ -262,11 +262,11 @@ export function GestionSuscripciones({
                             setCreditosDe(c);
                           }}
                         >
-                          <Sparkles className="h-3.5 w-3.5 text-teal-600" /> Créditos
+                          <Sparkles className="h-3.5 w-3.5 text-violet-ink" /> Créditos
                         </Button>
                       )}
                       {c.estado && CON_ACCESO.has(c.estado) && (
-                        <Button variant="ghost" size="sm" className="text-danger hover:bg-danger-bg" onClick={() => suspender(c)} disabled={ocupado}>
+                        <Button variant="ghost" size="sm" className="text-rose-ink hover:bg-rose/10" onClick={() => suspender(c)} disabled={ocupado}>
                           Suspender
                         </Button>
                       )}
@@ -283,15 +283,15 @@ export function GestionSuscripciones({
       )}
 
       {pagoDe && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary-950/40 p-4">
-          <form onSubmit={confirmarPago} role="dialog" aria-modal="true" aria-labelledby="titulo-pago" className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/ p-4">
+          <form onSubmit={confirmarPago} role="dialog" aria-modal="true" aria-labelledby="titulo-pago" className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h3 id="titulo-pago" className="font-display text-lg font-semibold text-ink">Registrar pago y activar</h3>
-              <button type="button" onClick={() => setPagoDe(null)} className="text-ink-faint hover:text-ink" aria-label="Cerrar">
+              <button type="button" onClick={() => setPagoDe(null)} className="text-ink-3 hover:text-ink" aria-label="Cerrar">
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <p className="mb-4 text-sm text-ink-soft">
+            <p className="mb-4 text-sm text-ink-2">
               {pagoDe.rol === "empresa" ? "Empresa" : "Consultor"}: <strong>{pagoDe.nombre}</strong>
             </p>
             {planesPara(pagoDe).length === 0 ? (
@@ -336,7 +336,7 @@ export function GestionSuscripciones({
                   <label htmlFor="pago-fecha" className={etiqueta}>Fecha del pago</label>
                   <input id="pago-fecha" type="date" max={hoyColombia()} value={pago.fecha} onChange={(e) => setPago({ ...pago, fecha: e.target.value })} className={campo} />
                 </div>
-                <p className="text-xs text-ink-faint">
+                <p className="text-xs text-ink-3">
                   {pagoDe.estado === "activa" && pagoDe.planId === pago.planId && pagoDe.modalidad === pago.modalidad
                     ? "Renovación: el vencimiento se corre un periodo y el cupo del mes sigue su ciclo."
                     : "Empieza hoy y el cupo de créditos del periodo arranca de cero. Los créditos de paquetes se conservan."}
@@ -353,15 +353,15 @@ export function GestionSuscripciones({
       )}
 
       {creditosDe && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary-950/40 p-4">
-          <form onSubmit={confirmarCreditos} role="dialog" aria-modal="true" aria-labelledby="titulo-creditos" className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/ p-4">
+          <form onSubmit={confirmarCreditos} role="dialog" aria-modal="true" aria-labelledby="titulo-creditos" className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h3 id="titulo-creditos" className="font-display text-lg font-semibold text-ink">Otorgar créditos adicionales</h3>
-              <button type="button" onClick={() => setCreditosDe(null)} className="text-ink-faint hover:text-ink" aria-label="Cerrar">
+              <button type="button" onClick={() => setCreditosDe(null)} className="text-ink-3 hover:text-ink" aria-label="Cerrar">
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <p className="mb-4 text-sm text-ink-soft">
+            <p className="mb-4 text-sm text-ink-2">
               Empresa: <strong>{creditosDe.nombre}</strong>
             </p>
             <div className="space-y-4">
@@ -373,7 +373,7 @@ export function GestionSuscripciones({
                 <label htmlFor="paquete-monto" className={etiqueta}>Monto pagado (COP)</label>
                 <input id="paquete-monto" inputMode="numeric" placeholder="0 = cortesía" value={paquete.monto} onChange={(e) => setPaquete({ ...paquete, monto: e.target.value })} className={campo} />
               </div>
-              <p className="text-xs text-ink-faint">Los créditos de paquetes no expiran y se gastan después de los del plan.</p>
+              <p className="text-xs text-ink-3">Los créditos de paquetes no expiran y se gastan después de los del plan.</p>
             </div>
             {errorModal && <div className="mt-4"><Aviso tipo="error">{errorModal}</Aviso></div>}
             <div className="mt-6 flex justify-end gap-3">

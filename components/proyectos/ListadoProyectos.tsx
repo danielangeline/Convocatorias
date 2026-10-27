@@ -103,8 +103,8 @@ export function ListadoProyectos({ proyectos, categorias }: { proyectos: Proyect
     <div>
       <div className="mb-6 flex items-center justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl font-bold text-ink">Mis proyectos</h1>
-          <p className="text-sm text-ink-soft">
+          <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Mis proyectos</h1>
+          <p className="text-sm text-ink-2">
             Registra los proyectos de tu empresa para cruzarlos con convocatorias.
           </p>
         </div>
@@ -114,7 +114,7 @@ export function ListadoProyectos({ proyectos, categorias }: { proyectos: Proyect
       </div>
 
       {error && (
-        <p role="alert" className="mb-4 rounded-lg bg-red-50 px-3 py-2.5 text-sm text-danger">
+        <p role="alert" className="mb-4 rounded-lg bg-rose/10 px-3 py-2.5 text-sm text-rose-ink">
           {error}
         </p>
       )}
@@ -133,14 +133,14 @@ export function ListadoProyectos({ proyectos, categorias }: { proyectos: Proyect
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {proyectos.map((p) => (
-            <div key={p.id} className="flex flex-col rounded-2xl border border-line p-5">
+            <div key={p.id} className="flex flex-col rounded-2xl border border-line p-5 bg-surface shadow-card">
               <div className="flex items-start justify-between gap-2">
-                <Link href={`/proyectos/${p.id}`} className="font-display text-base font-semibold text-ink hover:text-primary-800">
+                <Link href={`/proyectos/${p.id}`} className="font-display text-base font-semibold text-ink hover:text-pri-text">
                   {p.nombre}
                 </Link>
                 <CompletitudBadge proyecto={p} className="shrink-0" />
               </div>
-              <p className="mt-1.5 line-clamp-2 text-sm text-ink-soft">{p.descripcion}</p>
+              <p className="mt-1.5 line-clamp-2 text-sm text-ink-2">{p.descripcion}</p>
 
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {p.categorias.map((cid) => {
@@ -153,12 +153,12 @@ export function ListadoProyectos({ proyectos, categorias }: { proyectos: Proyect
                 })}
               </div>
 
-              <div className="mt-4 space-y-1.5 border-t border-line-soft pt-4 text-sm">
-                <p className="flex items-center gap-1.5 text-ink-soft">
+              <div className="mt-4 space-y-1.5 border-t border-line-2 pt-4 text-sm">
+                <p className="flex items-center gap-1.5 text-ink-2">
                   <Wallet className="h-3.5 w-3.5" />
                   <span className="font-tabular font-medium text-ink">{p.montoBuscado != null ? formatCOP(p.montoBuscado) : "Monto sin definir"}</span>
                 </p>
-                <p className="flex items-center gap-1.5 text-ink-soft">
+                <p className="flex items-center gap-1.5 text-ink-2">
                   <MapPin className="h-3.5 w-3.5" /> {textoUbicacionProyecto(p) || "Sin ubicación"}
                 </p>
               </div>
@@ -172,7 +172,7 @@ export function ListadoProyectos({ proyectos, categorias }: { proyectos: Proyect
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="flex-1 text-brick-600 hover:bg-brick-50"
+                  className="flex-1 text-sky-ink hover:bg-sky/10"
                   onClick={() => solicitarConsultor(p.id)}
                 >
                   <UserPlus className="h-3.5 w-3.5" /> Solicitar consultor
@@ -186,7 +186,7 @@ export function ListadoProyectos({ proyectos, categorias }: { proyectos: Proyect
                   onClick={() => eliminarProyecto(p)}
                   disabled={eliminando === p.id}
                   aria-label={`Eliminar ${p.nombre}`}
-                  className="text-danger hover:bg-danger-bg"
+                  className="text-rose-ink hover:bg-rose/10"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>

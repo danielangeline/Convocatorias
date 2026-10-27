@@ -20,10 +20,10 @@ const fechaHora = (iso: string) =>
   }).format(new Date(iso));
 
 const ESTADO_INVITACION: Record<EstadoInvitacionAdmin, { etiqueta: string; estilo: string }> = {
-  pendiente: { etiqueta: "Pendiente", estilo: "bg-amber-50 text-amber-700 ring-amber-200" },
-  aceptada: { etiqueta: "Aceptada", estilo: "bg-emerald-50 text-emerald-700 ring-emerald-200" },
-  cancelada: { etiqueta: "Cancelada", estilo: "bg-slate-100 text-slate-600 ring-slate-200" },
-  vencida: { etiqueta: "Vencida", estilo: "bg-danger-bg text-danger ring-red-200" },
+  pendiente: { etiqueta: "Pendiente", estilo: "bg-amber/10 text-amber-ink ring-amber/30" },
+  aceptada: { etiqueta: "Aceptada", estilo: "bg-pri-soft text-pri-text ring-pri/30" },
+  cancelada: { etiqueta: "Cancelada", estilo: "bg-surface-2 text-ink-2 ring-line" },
+  vencida: { etiqueta: "Vencida", estilo: "bg-rose/10 text-rose-ink ring-rose/30" },
 };
 
 type Mensaje = { tipo: "error" | "exito"; texto: string } | null;
@@ -104,14 +104,14 @@ export function GestionAdministradores({
   }) {
     if (confirmando !== clave) {
       return (
-        <Button variant="ghost" size="sm" className="text-danger hover:bg-red-50" disabled={ocupado !== null} onClick={() => setConfirmando(clave)}>
+        <Button variant="ghost" size="sm" className="text-rose-ink hover:bg-rose/10" disabled={ocupado !== null} onClick={() => setConfirmando(clave)}>
           <Icono className="h-3.5 w-3.5" /> {etiqueta}
         </Button>
       );
     }
     return (
       <span className="flex flex-wrap items-center justify-end gap-2">
-        <span className="text-xs text-ink-soft">{pregunta}</span>
+        <span className="text-xs text-ink-2">{pregunta}</span>
         <Button variant="danger" size="sm" disabled={ocupado !== null} onClick={alConfirmar}>
           {ocupado === clave ? "Procesando…" : "Confirmar"}
         </Button>
@@ -161,11 +161,11 @@ export function GestionAdministradores({
   return (
     <div>
       <div className="mb-6">
-        <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-primary-700">
+        <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-pri-text">
           <UserCog className="h-3.5 w-3.5" /> Propietario
         </p>
-        <h1 className="mt-1 font-display text-2xl font-bold text-ink">Administradores</h1>
-        <p className="text-sm text-ink-soft">
+        <h1 className="mt-1 text-[26px] font-extrabold tracking-[-0.025em] text-ink">Administradores</h1>
+        <p className="text-sm text-ink-2">
           Solo tú puedes dar o retirar acceso al panel. Cada invitación, cancelación y revocación queda registrada en los eventos de seguridad.
         </p>
       </div>
@@ -177,11 +177,11 @@ export function GestionAdministradores({
       )}
 
       {/* Invitar (CU-41 pasos 2-3) */}
-      <form onSubmit={invitar} className="mb-8 rounded-2xl border border-line bg-white p-6">
+      <form onSubmit={invitar} className="mb-8 rounded-2xl border border-line bg-surface p-6">
         <h2 className="flex items-center gap-2 font-display text-base font-semibold text-ink">
-          <MailPlus className="h-4 w-4 text-primary-700" /> Invitar administrador
+          <MailPlus className="h-4 w-4 text-pri-text" /> Invitar administrador
         </h2>
-        <p className="mt-1 text-sm text-ink-soft">
+        <p className="mt-1 text-sm text-ink-2">
           Usa un correo que no tenga cuenta en la plataforma: el acceso administrativo va en una cuenta dedicada. La invitación vence en 72 horas y la persona debe activar la verificación en dos pasos.
         </p>
         <div className="mt-4 grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
@@ -210,10 +210,10 @@ export function GestionAdministradores({
       </form>
 
       {/* Invitaciones abiertas */}
-      <section className="mb-8 rounded-2xl border border-line bg-white p-6">
+      <section className="mb-8 rounded-2xl border border-line bg-surface p-6">
         <h2 className="font-display text-base font-semibold text-ink">Invitaciones por resolver</h2>
         {abiertas.length === 0 ? (
-          <p className="mt-3 text-sm text-ink-faint">No hay invitaciones pendientes.</p>
+          <p className="mt-3 text-sm text-ink-3">No hay invitaciones pendientes.</p>
         ) : (
           <ul className="mt-4 divide-y divide-line">
             {abiertas.map((i) => (
@@ -223,7 +223,7 @@ export function GestionAdministradores({
                     {i.nombre ?? i.correo}
                     <Badge className={ESTADO_INVITACION[i.estado].estilo}>{ESTADO_INVITACION[i.estado].etiqueta}</Badge>
                   </p>
-                  <p className="text-xs text-ink-faint">
+                  <p className="text-xs text-ink-3">
                     {i.correo} · invitada {fechaHora(i.creadaAt)}
                     {i.invitadoPorNombre ? ` por ${i.invitadoPorNombre}` : ""} ·{" "}
                     {i.estado === "vencida" ? "venció" : "vence"} {fechaHora(i.expiraAt)}
@@ -237,9 +237,9 @@ export function GestionAdministradores({
       </section>
 
       {/* Administradores con acceso (CU-41 pasos 4-5) */}
-      <section className="mb-8 rounded-2xl border border-line bg-white p-6">
+      <section className="mb-8 rounded-2xl border border-line bg-surface p-6">
         <h2 className="flex items-center gap-2 font-display text-base font-semibold text-ink">
-          <ShieldCheck className="h-4 w-4 text-emerald-600" /> Con acceso
+          <ShieldCheck className="h-4 w-4 text-pri-text" /> Con acceso
         </h2>
         <ul className="mt-4 divide-y divide-line">
           {activos.map((a) => (
@@ -247,10 +247,10 @@ export function GestionAdministradores({
               <div>
                 <p className="flex items-center gap-2 text-sm font-medium text-ink">
                   {a.nombre ?? a.correo}
-                  {a.esPropietario && <Badge className="bg-primary-50 text-primary-700 ring-primary-100">Propietario</Badge>}
-                  {!a.mfaHabilitado && <Badge className="bg-amber-50 text-amber-700 ring-amber-200">Sin MFA registrado</Badge>}
+                  {a.esPropietario && <Badge className="bg-pri-soft text-pri-text ring-pri-soft">Propietario</Badge>}
+                  {!a.mfaHabilitado && <Badge className="bg-amber/10 text-amber-ink ring-amber/30">Sin MFA registrado</Badge>}
                 </p>
-                <p className="text-xs text-ink-faint">
+                <p className="text-xs text-ink-3">
                   {a.correo} · desde {fechaHora(a.creadoAt)}
                   {a.invitadoPorNombre ? ` · invitado por ${a.invitadoPorNombre}` : ""}
                 </p>
@@ -271,16 +271,16 @@ export function GestionAdministradores({
       </section>
 
       {(revocados.length > 0 || historial.length > 0) && (
-        <section className="rounded-2xl border border-line bg-white p-6">
+        <section className="rounded-2xl border border-line bg-surface p-6">
           <h2 className="font-display text-base font-semibold text-ink">Historial</h2>
           <ul className="mt-4 divide-y divide-line">
             {revocados.map((a) => (
               <li key={a.id} className="py-3">
                 <p className="flex items-center gap-2 text-sm font-medium text-ink">
                   {a.nombre ?? a.correo}
-                  <Badge className="bg-danger-bg text-danger ring-red-200">Revocado</Badge>
+                  <Badge className="bg-rose/10 text-rose-ink ring-rose/30">Revocado</Badge>
                 </p>
-                <p className="text-xs text-ink-faint">
+                <p className="text-xs text-ink-3">
                   {a.correo} · revocado {a.revocadoAt ? fechaHora(a.revocadoAt) : ""}
                   {a.revocadoPorNombre ? ` por ${a.revocadoPorNombre}` : ""}
                 </p>
@@ -293,7 +293,7 @@ export function GestionAdministradores({
                     {i.nombre ?? i.correo}
                     <Badge className={ESTADO_INVITACION[i.estado].estilo}>Invitación {ESTADO_INVITACION[i.estado].etiqueta.toLowerCase()}</Badge>
                   </p>
-                  <p className="text-xs text-ink-faint">
+                  <p className="text-xs text-ink-3">
                     {i.correo} · invitada {fechaHora(i.creadaAt)}
                     {i.invitadoPorNombre ? ` por ${i.invitadoPorNombre}` : ""}
                     {i.resueltaAt ? ` · resuelta ${fechaHora(i.resueltaAt)}` : ""}

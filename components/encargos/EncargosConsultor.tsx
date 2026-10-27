@@ -87,17 +87,17 @@ export function EncargosConsultor({ encargos }: { encargos: EncargoConsultor[] }
   return (
     <div>
       <div className="mb-6">
-        <h1 className="font-display text-2xl font-bold text-ink">Mis encargos</h1>
-        <p className="text-sm text-ink-soft">Gestiona las tareas que las empresas te solicitan.</p>
+        <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Mis encargos</h1>
+        <p className="text-sm text-ink-2">Gestiona las tareas que las empresas te solicitan.</p>
       </div>
 
       {error && (
-        <p role="alert" className="mb-5 flex items-start gap-2 rounded-lg bg-danger-bg px-4 py-3 text-sm text-danger">
+        <p role="alert" className="mb-5 flex items-start gap-2 rounded-lg bg-rose/10 px-4 py-3 text-sm text-rose-ink">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {error}
         </p>
       )}
 
-      <div className="mb-6 flex gap-2 border-b border-line-soft" role="tablist">
+      <div className="mb-6 flex gap-2 border-b border-line-2" role="tablist">
         {pestanas.map((p) => (
           <button
             key={p.valor}
@@ -106,7 +106,7 @@ export function EncargosConsultor({ encargos }: { encargos: EncargoConsultor[] }
             onClick={() => setPestana(p.valor)}
             className={cn(
               "border-b-2 px-3 py-2.5 text-sm font-semibold transition-colors",
-              pestana === p.valor ? "border-brick-500 text-brick-600" : "border-transparent text-ink-soft hover:text-ink"
+              pestana === p.valor ? "border-sky text-sky-ink" : "border-transparent text-ink-2 hover:text-ink"
             )}
           >
             {p.etiqueta} ({p.total})
@@ -120,10 +120,10 @@ export function EncargosConsultor({ encargos }: { encargos: EncargoConsultor[] }
         ) : (
           <div className="space-y-4">
             {solicitudes.map((e) => (
-              <div key={e.id} className="rounded-2xl border border-line p-5">
+              <div key={e.id} className="rounded-2xl border border-line p-5 bg-surface shadow-card">
                 <Encabezado e={e} />
-                {e.descripcionTarea && <p className="mt-1.5 whitespace-pre-line text-sm text-ink-soft">{e.descripcionTarea}</p>}
-                <p className="mt-2 text-xs text-ink-faint">
+                {e.descripcionTarea && <p className="mt-1.5 whitespace-pre-line text-sm text-ink-2">{e.descripcionTarea}</p>}
+                <p className="mt-2 text-xs text-ink-3">
                   El correo de la empresa se muestra cuando aceptes. Recibida el {formatFecha(e.fechas.creada)}.
                 </p>
                 {e.contexto && <Contexto contexto={e.contexto} abierto />}
@@ -136,7 +136,7 @@ export function EncargosConsultor({ encargos }: { encargos: EncargoConsultor[] }
                     size="sm"
                     onClick={() => responder(e, false)}
                     disabled={ocupado === e.id}
-                    className="text-danger hover:bg-danger-bg"
+                    className="text-rose-ink hover:bg-rose/10"
                   >
                     <XIcon className="h-3.5 w-3.5" /> Rechazar
                   </Button>
@@ -152,25 +152,25 @@ export function EncargosConsultor({ encargos }: { encargos: EncargoConsultor[] }
         ) : (
           <div className="space-y-4">
             {enCurso.map((e) => (
-              <div key={e.id} className="rounded-2xl border border-line p-5">
+              <div key={e.id} className="rounded-2xl border border-line p-5 bg-surface shadow-card">
                 <Encabezado e={e} />
                 {e.correoContraparte && (
-                  <p className="mt-1.5 flex items-center gap-1.5 text-xs text-ink-soft">
-                    <Mail className="h-3.5 w-3.5 text-primary-700" />
-                    <a href={`mailto:${e.correoContraparte}`} className="font-medium text-primary-700 hover:underline">
+                  <p className="mt-1.5 flex items-center gap-1.5 text-xs text-ink-2">
+                    <Mail className="h-3.5 w-3.5 text-pri-text" />
+                    <a href={`mailto:${e.correoContraparte}`} className="font-medium text-pri-text hover:underline">
                       {e.correoContraparte}
                     </a>
                   </p>
                 )}
-                {e.descripcionTarea && <p className="mt-1.5 whitespace-pre-line text-sm text-ink-soft">{e.descripcionTarea}</p>}
+                {e.descripcionTarea && <p className="mt-1.5 whitespace-pre-line text-sm text-ink-2">{e.descripcionTarea}</p>}
                 {e.tipoAyuda === "buscar_convocatoria" && <BusquedaResumen e={e} />}
                 {e.contexto && <Contexto contexto={e.contexto} />}
 
                 {e.avances.length > 0 && (
-                  <ul className="mt-3 space-y-1.5 border-t border-line-soft pt-3">
+                  <ul className="mt-3 space-y-1.5 border-t border-line-2 pt-3">
                     {e.avances.map((a) => (
-                      <li key={a.id} className="whitespace-pre-line text-xs text-ink-soft">
-                        <span className="font-medium text-ink-faint">{formatFecha(a.fecha)}:</span> {a.nota}
+                      <li key={a.id} className="whitespace-pre-line text-xs text-ink-2">
+                        <span className="font-medium text-ink-3">{formatFecha(a.fecha)}:</span> {a.nota}
                       </li>
                     ))}
                   </ul>
@@ -186,7 +186,7 @@ export function EncargosConsultor({ encargos }: { encargos: EncargoConsultor[] }
                     onChange={(ev) => setNotas((n) => ({ ...n, [e.id]: ev.target.value }))}
                     maxLength={2000}
                     placeholder="Escribe una nota de avance..."
-                    className="flex-1 rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500"
+                    className="flex-1 rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
                   />
                   <Button
                     variant="secondary"
@@ -212,33 +212,33 @@ export function EncargosConsultor({ encargos }: { encargos: EncargoConsultor[] }
         ) : (
           <div className="space-y-4">
             {historial.map((e) => (
-              <div key={e.id} className="rounded-2xl border border-line p-5">
+              <div key={e.id} className="rounded-2xl border border-line p-5 bg-surface shadow-card">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs text-ink-faint">
-                      {e.empresaNombre} · Proyecto: <span className="font-medium text-ink-soft">{e.proyectoNombre}</span>
+                    <p className="text-xs text-ink-3">
+                      {e.empresaNombre} · Proyecto: <span className="font-medium text-ink-2">{e.proyectoNombre}</span>
                     </p>
                     <h3 className="mt-1 font-display text-base font-semibold text-ink">{e.tituloTarea}</h3>
                   </div>
                   <Badge className={ESTADO_ENCARGO_ESTILO[e.estado]}>{ESTADO_ENCARGO_LABEL[e.estado]}</Badge>
                 </div>
                 {e.correoContraparte && (
-                  <p className="mt-1.5 flex items-center gap-1.5 text-xs text-ink-soft">
-                    <Mail className="h-3.5 w-3.5 text-primary-700" />
-                    <a href={`mailto:${e.correoContraparte}`} className="font-medium text-primary-700 hover:underline">
+                  <p className="mt-1.5 flex items-center gap-1.5 text-xs text-ink-2">
+                    <Mail className="h-3.5 w-3.5 text-pri-text" />
+                    <a href={`mailto:${e.correoContraparte}`} className="font-medium text-pri-text hover:underline">
                       {e.correoContraparte}
                     </a>
                   </p>
                 )}
-                {e.fechas.completado && <p className="mt-1.5 text-xs text-ink-faint">Completado el {formatFecha(e.fechas.completado)}</p>}
+                {e.fechas.completado && <p className="mt-1.5 text-xs text-ink-3">Completado el {formatFecha(e.fechas.completado)}</p>}
                 {e.calificacion && (
-                  <div className="mt-3 rounded-lg bg-slate-50 p-3">
+                  <div className="mt-3 rounded-lg bg-surface-2 p-3">
                     <RatingStars valor={e.calificacion.estrellas} />
-                    {e.calificacion.comentario && <p className="mt-1.5 text-xs text-ink-soft">{e.calificacion.comentario}</p>}
+                    {e.calificacion.comentario && <p className="mt-1.5 text-xs text-ink-2">{e.calificacion.comentario}</p>}
                   </div>
                 )}
                 {e.estado === "cancelado" && e.motivoCancelacion && (
-                  <p className="mt-3 flex items-start gap-1.5 rounded-lg bg-slate-50 px-3 py-2 text-xs text-ink-faint">
+                  <p className="mt-3 flex items-start gap-1.5 rounded-lg bg-surface-2 px-3 py-2 text-xs text-ink-3">
                     <Ban className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {e.motivoCancelacion}
                   </p>
                 )}
@@ -255,8 +255,8 @@ function BusquedaResumen({ e }: { e: EncargoConsultor }) {
   const elegida = e.propuestas.find((p) => p.estado === "elegida");
   const abiertas = e.propuestas.filter((p) => p.estado === "propuesta").length;
   return (
-    <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-brick-50/60 px-3 py-2.5">
-      <p className="flex items-start gap-1.5 text-xs text-brick-700">
+    <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-sky/10 px-3 py-2.5">
+      <p className="flex items-start gap-1.5 text-xs text-sky-ink">
         <Compass className="mt-0.5 h-3.5 w-3.5 shrink-0" />
         {elegida
           ? `La empresa eligió "${elegida.convocatoriaNombre}". Sigue ayudándola con esa convocatoria.`
@@ -266,7 +266,7 @@ function BusquedaResumen({ e }: { e: EncargoConsultor }) {
       </p>
       <Link
         href={`/consultor/encargos/${e.id}/convocatorias`}
-        className="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-brick-700 ring-1 ring-brick-100 hover:bg-brick-50"
+        className="inline-flex items-center gap-1.5 rounded-lg bg-surface px-3 py-1.5 text-xs font-semibold text-sky-ink ring-1 ring-sky/30 hover:bg-sky/10"
       >
         <Search className="h-3.5 w-3.5" /> {elegida ? "Ver la búsqueda" : "Buscar y proponer"}
       </Link>
@@ -282,14 +282,14 @@ function Encabezado({ e }: { e: EncargoConsultor }) {
           {e.tipoAyuda === "convocatoria_especifica" ? <Target className="h-3 w-3" /> : <Compass className="h-3 w-3" />}
           {TIPO_AYUDA_LABEL[e.tipoAyuda]}
         </Badge>
-        <span className="text-xs text-ink-faint">{e.empresaNombre}</span>
+        <span className="text-xs text-ink-3">{e.empresaNombre}</span>
       </div>
-      <p className="mt-2 text-xs text-ink-faint">
-        Proyecto: <span className="font-medium text-ink-soft">{e.proyectoNombre}</span>
+      <p className="mt-2 text-xs text-ink-3">
+        Proyecto: <span className="font-medium text-ink-2">{e.proyectoNombre}</span>
         {e.convocatoriaNombre && (
           <>
             {" · Convocatoria: "}
-            <span className="font-medium text-ink-soft">{e.convocatoriaNombre}</span>
+            <span className="font-medium text-ink-2">{e.convocatoriaNombre}</span>
           </>
         )}
       </p>
@@ -311,22 +311,22 @@ const CAMPOS: Array<{ clave: "problema" | "objetivoGeneral" | "poblacionBenefici
 function Contexto({ contexto, abierto = false }: { contexto: ContextoEncargo; abierto?: boolean }) {
   const { proyecto: p, convocatoria: c, checklist } = contexto;
   return (
-    <details open={abierto} className="mt-3 rounded-xl border border-line-soft bg-slate-50/60 px-4 py-3 text-sm">
-      <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wide text-ink-faint">Contexto de la solicitud</summary>
+    <details open={abierto} className="mt-3 rounded-xl border border-line-2 bg-surface-2/60 px-4 py-3 text-sm">
+      <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wide text-ink-3">Contexto de la solicitud</summary>
 
       {/* RF-69: datos de clasificación, sobre todo para "buscar convocatoria" */}
       <dl className="mt-3 grid gap-x-6 gap-y-1.5 text-xs sm:grid-cols-3">
         <div>
-          <dt className="text-ink-faint">Categorías</dt>
-          <dd className="font-medium text-ink-soft">{p.categoriasNombres.length ? p.categoriasNombres.join(", ") : "Sin indicar"}</dd>
+          <dt className="text-ink-3">Categorías</dt>
+          <dd className="font-medium text-ink-2">{p.categoriasNombres.length ? p.categoriasNombres.join(", ") : "Sin indicar"}</dd>
         </div>
         <div>
-          <dt className="text-ink-faint">Monto buscado</dt>
-          <dd className="font-medium text-ink-soft">{p.montoBuscado !== null ? formatCOP(p.montoBuscado) : "Sin indicar"}</dd>
+          <dt className="text-ink-3">Monto buscado</dt>
+          <dd className="font-medium text-ink-2">{p.montoBuscado !== null ? formatCOP(p.montoBuscado) : "Sin indicar"}</dd>
         </div>
         <div>
-          <dt className="text-ink-faint">Ubicación</dt>
-          <dd className="font-medium text-ink-soft">
+          <dt className="text-ink-3">Ubicación</dt>
+          <dd className="font-medium text-ink-2">
             {p.departamento ? nombreDepartamento(p.departamento) : "Sin indicar"}
             {p.ubicacion ? ` · ${p.ubicacion}` : ""}
           </dd>
@@ -335,17 +335,17 @@ function Contexto({ contexto, abierto = false }: { contexto: ContextoEncargo; ab
 
       {/* RF-68: contenido del proyecto */}
       <div className="mt-3 space-y-2">
-        {p.descripcion && <p className="whitespace-pre-line text-xs text-ink-soft">{p.descripcion}</p>}
+        {p.descripcion && <p className="whitespace-pre-line text-xs text-ink-2">{p.descripcion}</p>}
         {CAMPOS.filter(({ clave }) => p[clave]).map(({ clave, etiqueta }) => (
           <div key={clave}>
-            <p className="text-xs font-semibold text-ink-faint">{etiqueta}</p>
-            <p className="whitespace-pre-line text-xs text-ink-soft">{p[clave]}</p>
+            <p className="text-xs font-semibold text-ink-3">{etiqueta}</p>
+            <p className="whitespace-pre-line text-xs text-ink-2">{p[clave]}</p>
           </div>
         ))}
         {p.objetivosEspecificos && p.objetivosEspecificos.length > 0 && (
           <div>
-            <p className="text-xs font-semibold text-ink-faint">Objetivos específicos</p>
-            <ul className="list-disc pl-4 text-xs text-ink-soft">
+            <p className="text-xs font-semibold text-ink-3">Objetivos específicos</p>
+            <ul className="list-disc pl-4 text-xs text-ink-2">
               {p.objetivosEspecificos.map((o, i) => (
                 <li key={i}>{o}</li>
               ))}
@@ -353,7 +353,7 @@ function Contexto({ contexto, abierto = false }: { contexto: ContextoEncargo; ab
           </div>
         )}
         {(p.duracionMeses || p.presupuestoEstimado) && (
-          <p className="text-xs text-ink-soft">
+          <p className="text-xs text-ink-2">
             {p.duracionMeses ? `Duración: ${p.duracionMeses} meses` : ""}
             {p.duracionMeses && p.presupuestoEstimado ? " · " : ""}
             {p.presupuestoEstimado ? `Presupuesto estimado: ${formatCOP(p.presupuestoEstimado)}` : ""}
@@ -363,23 +363,23 @@ function Contexto({ contexto, abierto = false }: { contexto: ContextoEncargo; ab
 
       {/* RN-25: la de un encargo específico o, en uno de búsqueda, la que eligió la empresa (RF-93) */}
       {c && (
-        <div className="mt-4 border-t border-line-soft pt-3">
+        <div className="mt-4 border-t border-line-2 pt-3">
           <p className="text-xs font-semibold text-ink">
-            {c.nombre} <span className="font-normal text-ink-faint">· {c.entidad} · cierra el {formatFecha(c.fechaCierre)}</span>
+            {c.nombre} <span className="font-normal text-ink-3">· {c.entidad} · cierra el {formatFecha(c.fechaCierre)}</span>
           </p>
           {c.urlPostulacion && (
-            <a href={c.urlPostulacion} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-teal-700 hover:underline">
+            <a href={c.urlPostulacion} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-violet-ink hover:underline">
               Portal de la entidad <ExternalLink className="h-3 w-3" />
             </a>
           )}
           {c.requisitos.length > 0 && (
             <>
-              <p className="mt-2 text-xs font-semibold text-ink-faint">Requisitos</p>
-              <ul className="list-disc pl-4 text-xs text-ink-soft">
+              <p className="mt-2 text-xs font-semibold text-ink-3">Requisitos</p>
+              <ul className="list-disc pl-4 text-xs text-ink-2">
                 {c.requisitos.map((r, i) => (
                   <li key={i}>
                     {r.descripcion}
-                    {!r.obligatorio && <span className="text-ink-faint"> (opcional)</span>}
+                    {!r.obligatorio && <span className="text-ink-3"> (opcional)</span>}
                   </li>
                 ))}
               </ul>
@@ -389,17 +389,17 @@ function Contexto({ contexto, abierto = false }: { contexto: ContextoEncargo; ab
       )}
 
       {checklist && checklist.length > 0 && (
-        <div className="mt-4 border-t border-line-soft pt-3">
-          <p className="text-xs font-semibold text-ink-faint">
+        <div className="mt-4 border-t border-line-2 pt-3">
+          <p className="text-xs font-semibold text-ink-3">
             Checklist de la postulación ({checklist.filter((i) => i.completado).length}/{checklist.length}) · solo lectura
           </p>
           <ul className="mt-1 space-y-1">
             {checklist.map((i, n) => (
-              <li key={n} className="flex items-start gap-1.5 text-xs text-ink-soft">
+              <li key={n} className="flex items-start gap-1.5 text-xs text-ink-2">
                 {i.completado ? (
-                  <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" aria-label="Completado" />
+                  <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-pri-text" aria-label="Completado" />
                 ) : (
-                  <Circle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink-faint" aria-label="Pendiente" />
+                  <Circle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink-3" aria-label="Pendiente" />
                 )}
                 {i.descripcion}
               </li>

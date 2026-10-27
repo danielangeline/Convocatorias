@@ -21,8 +21,8 @@ const filtros: Array<{ valor: EstadoConvocatoria | "todas"; etiqueta: string }> 
 ];
 
 const claseCampo =
-  "w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500";
-const claseEtiqueta = "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint";
+  "w-full rounded-lg border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri";
+const claseEtiqueta = "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3";
 
 const rango = (min: number | null, max: number | null) =>
   min === null && max === null
@@ -77,8 +77,8 @@ export function ListadoConvocatorias({
     <div>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold text-ink">Convocatorias</h1>
-          <p className="text-sm text-ink-soft">Administra el ciclo de vida de cada convocatoria.</p>
+          <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Convocatorias</h1>
+          <p className="text-sm text-ink-2">Administra el ciclo de vida de cada convocatoria.</p>
         </div>
         <Button variant="primary" onClick={abrirCrear}>
           <Plus className="h-4 w-4" /> Nueva convocatoria
@@ -93,7 +93,7 @@ export function ListadoConvocatorias({
             aria-pressed={filtro === f.valor}
             className={cn(
               "rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors",
-              filtro === f.valor ? "bg-primary-800 text-white" : "bg-white text-ink-soft ring-1 ring-inset ring-line hover:bg-slate-50"
+              filtro === f.valor ? "bg-pri text-on-pri" : "bg-surface text-ink-2 ring-1 ring-inset ring-line hover:bg-surface-2"
             )}
           >
             {f.etiqueta}
@@ -117,10 +117,10 @@ export function ListadoConvocatorias({
           }
         />
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-line bg-white">
+        <div className="overflow-hidden rounded-2xl border border-line bg-surface">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-line bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-ink-faint">
+              <tr className="border-b border-line bg-surface-2 text-left text-xs font-semibold uppercase tracking-wide text-ink-3">
                 <th className="px-5 py-3">Convocatoria</th>
                 <th className="px-5 py-3">Entidad</th>
                 <th className="px-5 py-3">Monto</th>
@@ -129,18 +129,18 @@ export function ListadoConvocatorias({
                 <th className="px-5 py-3" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-line-soft">
+            <tbody className="divide-y divide-line-2">
               {filtradas.map((c) => (
-                <tr key={c.id} className="hover:bg-slate-50/60">
+                <tr key={c.id} className="hover:bg-surface-2/60">
                   <td className="max-w-xs px-5 py-3">
-                    <Link href={`/admin/convocatorias/${c.id}`} className="font-medium text-ink hover:text-primary-800">
+                    <Link href={`/admin/convocatorias/${c.id}`} className="font-medium text-ink hover:text-pri-text">
                       {c.nombre}
                     </Link>
-                    {c.fuenteNombre && <p className="mt-0.5 text-xs text-ink-faint">{c.fuenteNombre}</p>}
+                    {c.fuenteNombre && <p className="mt-0.5 text-xs text-ink-3">{c.fuenteNombre}</p>}
                   </td>
-                  <td className="px-5 py-3 text-ink-soft">{c.entidadConvocante || "—"}</td>
-                  <td className="px-5 py-3 font-tabular text-ink-soft">{rango(c.montoMin, c.montoMax)}</td>
-                  <td className="px-5 py-3 text-ink-soft">{formatFecha(c.fechaCierre)}</td>
+                  <td className="px-5 py-3 text-ink-2">{c.entidadConvocante || "—"}</td>
+                  <td className="px-5 py-3 font-tabular text-ink-2">{rango(c.montoMin, c.montoMax)}</td>
+                  <td className="px-5 py-3 text-ink-2">{formatFecha(c.fechaCierre)}</td>
                   <td className="px-5 py-3">
                     <Badge className={ESTADO_CONVOCATORIA_ESTILO[c.estado]}>{ESTADO_CONVOCATORIA_LABEL[c.estado]}</Badge>
                   </td>
@@ -164,13 +164,13 @@ export function ListadoConvocatorias({
       )}
 
       {modalAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary-950/40 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/ p-4">
           <form
             onSubmit={crear}
             role="dialog"
             aria-modal="true"
             aria-labelledby="titulo-nueva"
-            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+            className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl"
           >
             <div className="mb-4 flex items-center justify-between">
               <h3 id="titulo-nueva" className="font-display text-lg font-semibold text-ink">
@@ -179,7 +179,7 @@ export function ListadoConvocatorias({
               <button
                 type="button"
                 onClick={() => setModalAbierto(false)}
-                className="text-ink-faint hover:text-ink"
+                className="text-ink-3 hover:text-ink"
                 aria-label="Cerrar"
               >
                 <X className="h-5 w-5" />
@@ -187,9 +187,9 @@ export function ListadoConvocatorias({
             </div>
 
             {fuentesActivas.length === 0 ? (
-              <p className="text-sm text-ink-soft">
+              <p className="text-sm text-ink-2">
                 Necesitas al menos una fuente activa para cargar convocatorias.{" "}
-                <Link href="/admin/fuentes" className="font-semibold text-primary-700 hover:underline">
+                <Link href="/admin/fuentes" className="font-semibold text-pri-text hover:underline">
                   Registrar una fuente
                 </Link>
               </p>
@@ -240,7 +240,7 @@ export function ListadoConvocatorias({
                     required
                   />
                 </label>
-                <p className="text-xs text-ink-faint">Queda en borrador. El resto de la ficha se completa en el editor.</p>
+                <p className="text-xs text-ink-3">Queda en borrador. El resto de la ficha se completa en el editor.</p>
                 {error && <Aviso tipo="error">{error}</Aviso>}
               </div>
             )}

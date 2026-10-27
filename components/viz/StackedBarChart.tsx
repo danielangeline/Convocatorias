@@ -13,9 +13,12 @@ export interface BarraApilada {
 export function StackedBarChart({
   datos,
   etiquetaAccesible,
+  unaSerie = false,
 }: {
   datos: BarraApilada[];
   etiquetaAccesible: string;
+  /** Sin distinción público/privado (si el dato no existe): solo la serie pri y sin leyenda. */
+  unaSerie?: boolean;
 }) {
   const max = Math.max(0, ...datos.map((d) => d.publico + d.privado));
   if (datos.length === 0 || max === 0) {
@@ -24,7 +27,7 @@ export function StackedBarChart({
   const alto = 200 - 28; // 200 px de la gráfica menos la cifra superior
   return (
     <figure className="m-0">
-      <div className="mb-3 flex justify-end gap-3 text-xs text-ink-2">
+      <div className={`mb-3 flex justify-end gap-3 text-xs text-ink-2 ${unaSerie ? "hidden" : ""}`}>
         <span className="flex items-center gap-1.5">
           <span className="h-2 w-2 rounded-sm bg-pri" />
           Públicos

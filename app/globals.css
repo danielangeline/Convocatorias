@@ -72,6 +72,12 @@
   --color-sky: var(--sky);
   --color-rose: var(--rose);
 
+  /* Texto tonal legible en claro y oscuro (mezcla del tono con la tinta). */
+  --color-amber-ink: color-mix(in oklch, var(--amber) 62%, var(--ink));
+  --color-violet-ink: color-mix(in oklch, var(--violet) 65%, var(--ink));
+  --color-sky-ink: color-mix(in oklch, var(--sky) 65%, var(--ink));
+  --color-rose-ink: color-mix(in oklch, var(--rose) 65%, var(--ink));
+
   --shadow-card: var(--shadow);
 
   /* ── Puente temporal: los nombres viejos apuntan a los tokens nuevos para

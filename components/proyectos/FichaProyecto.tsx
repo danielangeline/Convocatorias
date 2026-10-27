@@ -59,8 +59,8 @@ export function FichaProyecto({
   if (!proyecto) {
     return (
       <div className="py-20 text-center">
-        <p className="text-ink-soft">No encontramos este proyecto.</p>
-        <Link href="/proyectos" className="mt-3 inline-block text-sm font-semibold text-primary-700 hover:underline">
+        <p className="text-ink-2">No encontramos este proyecto.</p>
+        <Link href="/proyectos" className="mt-3 inline-block text-sm font-semibold text-pri-text hover:underline">
           Volver a mis proyectos
         </Link>
       </div>
@@ -87,16 +87,16 @@ export function FichaProyecto({
     <div className="mx-auto max-w-4xl">
       <Link
         href="/proyectos"
-        className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-soft hover:text-primary-800"
+        className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-2 hover:text-pri-text"
       >
         <ArrowLeft className="h-4 w-4" /> Volver a mis proyectos
       </Link>
 
-      <div className="rounded-2xl border border-line p-6 sm:p-8">
+      <div className="rounded-2xl border border-line p-6 sm:p-8 bg-surface shadow-card">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="font-display text-2xl font-bold text-ink">{proyecto.nombre}</h1>
-            <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-ink-soft">{proyecto.descripcion}</p>
+            <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">{proyecto.nombre}</h1>
+            <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-ink-2">{proyecto.descripcion}</p>
           </div>
           <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
             <Button variant="teal" size="lg" onClick={abrirSelectorGenerar}>
@@ -115,9 +115,9 @@ export function FichaProyecto({
           <CompletitudDetalle proyecto={proyecto} onCompletar={(clave) => abrirEdicion(clave)} />
         </div>
 
-        <div className="mt-6 grid gap-4 rounded-xl bg-primary-50/60 p-5 sm:grid-cols-2">
+        <div className="mt-6 grid gap-4 rounded-xl bg-pri-soft/60 p-5 sm:grid-cols-2">
           <div>
-            <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-faint">
+            <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-3">
               <Wallet className="h-3.5 w-3.5" /> Monto buscado
             </p>
             <p className="mt-1 font-tabular text-sm font-medium text-ink">
@@ -125,7 +125,7 @@ export function FichaProyecto({
             </p>
           </div>
           <div>
-            <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-faint">
+            <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-3">
               <MapPin className="h-3.5 w-3.5" /> Ubicación
             </p>
             <p className="mt-1 text-sm font-medium text-ink">{textoUbicacionProyecto(proyecto) || "Sin ubicación"}</p>
@@ -133,7 +133,7 @@ export function FichaProyecto({
         </div>
 
         <div className="mt-6">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">Categorías</p>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-3">Categorías</p>
           <div className="flex flex-wrap gap-2">
             {proyecto.categorias.map((cid) => {
               const cat = categoriaPorId(cid);
@@ -146,8 +146,8 @@ export function FichaProyecto({
           </div>
         </div>
 
-        <div className="mt-8 flex items-center justify-between border-t border-line-soft pt-6">
-          <p className="text-sm text-ink-soft">Cruza este proyecto contra el catálogo de convocatorias.</p>
+        <div className="mt-8 flex items-center justify-between border-t border-line-2 pt-6">
+          <p className="text-sm text-ink-2">Cruza este proyecto contra el catálogo de convocatorias.</p>
           <LinkButton href={`/proyectos/${proyecto.id}/sugerencias`} variant="secondary">
             <Sparkles className="h-4 w-4" /> Ver sugerencias
           </LinkButton>
@@ -155,14 +155,14 @@ export function FichaProyecto({
       </div>
 
       {encargos.length > 0 && (
-        <div className="mt-6 rounded-2xl border border-line p-6">
+        <div className="mt-6 rounded-2xl border border-line p-6 bg-surface shadow-card">
           <h2 className="flex items-center gap-2 font-display text-base font-semibold text-ink">
-            <Users className="h-4 w-4 text-brick-600" /> Consultores en este proyecto
+            <Users className="h-4 w-4 text-sky-ink" /> Consultores en este proyecto
           </h2>
-          <ul className="mt-3 divide-y divide-line-soft">
+          <ul className="mt-3 divide-y divide-line-2">
             {encargos.map((e) => (
-              <li key={e.id} className="py-3 text-sm text-ink-soft">
-                <Link href="/encargos" className="font-medium text-ink hover:text-primary-800">
+              <li key={e.id} className="py-3 text-sm text-ink-2">
+                <Link href="/encargos" className="font-medium text-ink hover:text-pri-text">
                   {e.tituloTarea}
                 </Link>
               </li>
@@ -186,30 +186,30 @@ export function FichaProyecto({
       />
 
       {modalGenerarAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary-950/40 p-4">
-          <div role="dialog" aria-modal="true" aria-labelledby="titulo-generar" className="max-h-[80vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/ p-4">
+          <div role="dialog" aria-modal="true" aria-labelledby="titulo-generar" className="max-h-[80vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-surface p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h3 id="titulo-generar" className="font-display text-lg font-semibold text-ink">Elige una convocatoria vigente</h3>
-              <button onClick={() => setModalGenerarAbierto(false)} className="text-ink-faint hover:text-ink">
+              <button onClick={() => setModalGenerarAbierto(false)} className="text-ink-3 hover:text-ink">
                 <X className="h-5 w-5" />
               </button>
             </div>
             {convocatoriasVigentes.length === 0 ? (
-              <p className="text-sm text-ink-faint">No hay convocatorias vigentes en este momento.</p>
+              <p className="text-sm text-ink-3">No hay convocatorias vigentes en este momento.</p>
             ) : (
               <ul className="space-y-2">
                 {convocatoriasVigentes.map((c) => (
                   <li key={c.id}>
                     <button
                       onClick={() => elegirConvocatoriaParaGenerar(c.id)}
-                      className="flex w-full items-center gap-3 rounded-lg border border-line p-3 text-left transition-colors hover:border-teal-300 hover:bg-teal-50/40"
+                      className="flex w-full items-center gap-3 rounded-lg border border-line p-3 text-left transition-colors hover:border-violet/30 hover:bg-violet/10"
                     >
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet/10 text-violet-ink">
                         <FileStack className="h-4 w-4" />
                       </span>
                       <span>
                         <span className="block text-sm font-semibold text-ink">{c.nombre}</span>
-                        <span className="block text-xs text-ink-faint">{c.entidadConvocante}</span>
+                        <span className="block text-xs text-ink-3">{c.entidadConvocante}</span>
                       </span>
                     </button>
                   </li>

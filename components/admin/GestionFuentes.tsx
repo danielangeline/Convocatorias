@@ -15,8 +15,8 @@ type Formulario = Omit<FuenteAdmin, "id">;
 const vacio: Formulario = { nombre: "", tipoEntidad: "", url: "", notas: "", activa: true };
 
 const claseCampo =
-  "w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500";
-const claseEtiqueta = "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint";
+  "w-full rounded-lg border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri";
+const claseEtiqueta = "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3";
 
 /**
  * CU-01 · Fuentes de convocatorias (RF-04). Cada cambio lo valida el servidor;
@@ -74,8 +74,8 @@ export function GestionFuentes({ fuentes }: { fuentes: FuenteAdmin[] }) {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold text-ink">Fuentes</h1>
-          <p className="text-sm text-ink-soft">
+          <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Fuentes</h1>
+          <p className="text-sm text-ink-2">
             Entidades desde donde el equipo administrador carga convocatorias manualmente.
           </p>
         </div>
@@ -102,10 +102,10 @@ export function GestionFuentes({ fuentes }: { fuentes: FuenteAdmin[] }) {
           }
         />
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-line bg-white">
+        <div className="overflow-hidden rounded-2xl border border-line bg-surface">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-line bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-ink-faint">
+              <tr className="border-b border-line bg-surface-2 text-left text-xs font-semibold uppercase tracking-wide text-ink-3">
                 <th className="px-5 py-3">Nombre</th>
                 <th className="px-5 py-3">Tipo de entidad</th>
                 <th className="px-5 py-3">URL</th>
@@ -113,34 +113,34 @@ export function GestionFuentes({ fuentes }: { fuentes: FuenteAdmin[] }) {
                 <th className="px-5 py-3" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-line-soft">
+            <tbody className="divide-y divide-line-2">
               {fuentes.map((f) => (
-                <tr key={f.id} className={f.activa ? undefined : "bg-slate-50/60"}>
+                <tr key={f.id} className={f.activa ? undefined : "bg-surface-2/60"}>
                   <td className="px-5 py-3">
                     <p className="font-medium text-ink">{f.nombre}</p>
-                    {f.notas && <p className="mt-0.5 line-clamp-1 text-xs text-ink-faint">{f.notas}</p>}
+                    {f.notas && <p className="mt-0.5 line-clamp-1 text-xs text-ink-3">{f.notas}</p>}
                   </td>
-                  <td className="px-5 py-3 text-ink-soft">{f.tipoEntidad || "—"}</td>
+                  <td className="px-5 py-3 text-ink-2">{f.tipoEntidad || "—"}</td>
                   <td className="px-5 py-3">
                     {f.url ? (
                       <a
                         href={f.url}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex items-center gap-1 text-primary-700 hover:underline"
+                        className="flex items-center gap-1 text-pri-text hover:underline"
                       >
                         {f.url.replace(/^https?:\/\//, "")} <ExternalLink className="h-3 w-3" />
                       </a>
                     ) : (
-                      <span className="text-ink-faint">—</span>
+                      <span className="text-ink-3">—</span>
                     )}
                   </td>
                   <td className="px-5 py-3">
                     <Badge
                       className={
                         f.activa
-                          ? "bg-emerald-50 text-emerald-700 ring-emerald-200"
-                          : "bg-slate-100 text-slate-500 ring-slate-200"
+                          ? "bg-pri-soft text-pri-text ring-pri/30"
+                          : "bg-surface-2 text-ink-3 ring-line"
                       }
                     >
                       {f.activa ? "Activa" : "Inactiva"}
@@ -171,13 +171,13 @@ export function GestionFuentes({ fuentes }: { fuentes: FuenteAdmin[] }) {
       )}
 
       {modalAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary-950/40 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/ p-4">
           <form
             onSubmit={guardar}
             role="dialog"
             aria-modal="true"
             aria-labelledby="titulo-fuente"
-            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+            className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl"
           >
             <div className="mb-4 flex items-center justify-between">
               <h3 id="titulo-fuente" className="font-display text-lg font-semibold text-ink">
@@ -186,7 +186,7 @@ export function GestionFuentes({ fuentes }: { fuentes: FuenteAdmin[] }) {
               <button
                 type="button"
                 onClick={() => setModalAbierto(false)}
-                className="text-ink-faint hover:text-ink"
+                className="text-ink-3 hover:text-ink"
                 aria-label="Cerrar"
               >
                 <X className="h-5 w-5" />
@@ -236,12 +236,12 @@ export function GestionFuentes({ fuentes }: { fuentes: FuenteAdmin[] }) {
                   maxLength={4000}
                 />
               </label>
-              <label className="flex items-center gap-2 text-sm text-ink-soft">
+              <label className="flex items-center gap-2 text-sm text-ink-2">
                 <input
                   type="checkbox"
                   checked={form.activa}
                   onChange={(e) => setForm({ ...form, activa: e.target.checked })}
-                  className="h-4 w-4 rounded border-line text-primary-700 focus:ring-primary-500"
+                  className="h-4 w-4 rounded border-line text-pri-text focus:ring-pri bg-surface text-ink"
                 />
                 Fuente activa
               </label>

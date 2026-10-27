@@ -116,7 +116,7 @@ export function BotonDictado({
 
   if (estado === "transcribiendo") {
     return (
-      <span className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1.5 text-xs font-semibold text-teal-700" role="status">
+      <span className="inline-flex items-center gap-2 rounded-full bg-violet/10 px-3 py-1.5 text-xs font-semibold text-violet-ink" role="status">
         <Loader2 className="h-3.5 w-3.5 animate-spin" /> Transcribiendo…
       </span>
     );
@@ -127,7 +127,7 @@ export function BotonDictado({
       <button
         type="button"
         onClick={detener}
-        className="inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1.5 text-xs font-semibold text-danger ring-1 ring-inset ring-red-200 hover:bg-red-100"
+        className="inline-flex items-center gap-2 rounded-full bg-rose/10 px-3 py-1.5 text-xs font-semibold text-rose-ink ring-1 ring-inset ring-rose/30 hover:bg-red-100"
         aria-label="Detener la grabación y transcribir"
       >
         <span className="relative flex h-2.5 w-2.5">
@@ -148,8 +148,8 @@ export function BotonDictado({
       title="Dictar con tu voz"
       aria-label="Dictar con tu voz"
       className={cn(
-        "inline-flex h-9 w-9 items-center justify-center rounded-full text-ink-soft ring-1 ring-inset ring-line transition-colors",
-        "hover:bg-teal-50 hover:text-teal-700 hover:ring-teal-200 disabled:cursor-not-allowed disabled:opacity-40"
+        "inline-flex h-9 w-9 items-center justify-center rounded-full text-ink-2 ring-1 ring-inset ring-line transition-colors",
+        "hover:bg-violet/10 hover:text-violet-ink hover:ring-violet/30 disabled:cursor-not-allowed disabled:opacity-40"
       )}
     >
       <Mic className="h-4 w-4" />

@@ -79,8 +79,8 @@ export function DetallePostulacion({
   if (!postulacion) {
     return (
       <div className="py-20 text-center">
-        <p className="text-ink-soft">No encontramos esta postulación.</p>
-        <Link href="/postulaciones" className="mt-3 inline-block text-sm font-semibold text-primary-700 hover:underline">
+        <p className="text-ink-2">No encontramos esta postulación.</p>
+        <Link href="/postulaciones" className="mt-3 inline-block text-sm font-semibold text-pri-text hover:underline">
           Volver a mis postulaciones
         </Link>
       </div>
@@ -193,12 +193,12 @@ export function DetallePostulacion({
     <div className="mx-auto max-w-4xl">
       <Link
         href="/postulaciones"
-        className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-soft hover:text-primary-800"
+        className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-2 hover:text-pri-text"
       >
         <ArrowLeft className="h-4 w-4" /> Volver a mis postulaciones
       </Link>
 
-      <div className="rounded-2xl border border-line p-6 sm:p-8">
+      <div className="rounded-2xl border border-line p-6 sm:p-8 bg-surface shadow-card">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <Badge className={ESTADO_POSTULACION_ESTILO[postulacion.estado]}>
@@ -207,7 +207,7 @@ export function DetallePostulacion({
             <h1 className="mt-3 font-display text-2xl font-bold leading-tight text-ink">
               {convocatoria?.nombre ?? "Convocatoria no disponible"}
             </h1>
-            <p className="mt-1 text-sm text-ink-soft">
+            <p className="mt-1 text-sm text-ink-2">
               {proyecto ? `Proyecto: ${proyecto.nombre}` : "Sin proyecto asociado"}
             </p>
           </div>
@@ -223,12 +223,12 @@ export function DetallePostulacion({
               </a>
             )}
             {proyecto && (
-              <Button variant="ghost" className="w-full text-brick-600 hover:bg-brick-50" onClick={abrirSolicitudConsultor}>
+              <Button variant="ghost" className="w-full text-sky-ink hover:bg-sky/10" onClick={abrirSolicitudConsultor}>
                 <UserPlus className="h-4 w-4" /> Solicitar consultor
               </Button>
             )}
             <div>
-              <label htmlFor="cambiar-estado" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+              <label htmlFor="cambiar-estado" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3">
                 Cambiar estado
               </label>
               <select
@@ -236,7 +236,7 @@ export function DetallePostulacion({
                 value={postulacion.estado}
                 onChange={(e) => pedirCambioEstado(e.target.value as EstadoPostulacion)}
                 disabled={alcanzables.length === 0 || ocupado}
-                className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500 disabled:bg-slate-50 disabled:text-ink-faint"
+                className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri disabled:bg-surface-2 disabled:text-ink-3"
               >
                 {/* RF-83: solo los estados alcanzables desde el actual. */}
                 <option value={postulacion.estado}>{ESTADO_POSTULACION_LABEL[postulacion.estado]}</option>
@@ -247,7 +247,7 @@ export function DetallePostulacion({
                 ))}
               </select>
               {alcanzables.length === 0 && (
-                <p className="mt-1.5 text-xs text-ink-faint">
+                <p className="mt-1.5 text-xs text-ink-3">
                   Esta postulación ya está cerrada: no admite más cambios de estado.
                 </p>
               )}
@@ -256,24 +256,24 @@ export function DetallePostulacion({
         </div>
 
         {avisoExistente && (
-          <p className="mt-4 flex items-start gap-2 rounded-lg bg-primary-50 px-4 py-2.5 text-sm text-primary-800">
+          <p className="mt-4 flex items-start gap-2 rounded-lg bg-pri-soft px-4 py-2.5 text-sm text-pri-text">
             <Info className="mt-0.5 h-4 w-4 shrink-0" />
             Ya tenías esta postulación en curso con el mismo proyecto, así que la abrimos en lugar de crear otra.
           </p>
         )}
 
         {error && (
-          <p role="alert" className="mt-4 rounded-lg bg-brick-50 px-4 py-2.5 text-sm text-brick-700">
+          <p role="alert" className="mt-4 rounded-lg bg-sky/10 px-4 py-2.5 text-sm text-sky-ink">
             {error}
           </p>
         )}
 
-        <p className="mt-3 flex items-start gap-2 rounded-lg border border-dashed border-line px-4 py-2.5 text-xs text-ink-faint">
+        <p className="mt-3 flex items-start gap-2 rounded-lg border border-dashed border-line px-4 py-2.5 text-xs text-ink-3">
           La postulación se radica en el portal de la entidad convocante. Esta plataforma te ayuda a prepararla, pero no la presenta por ti.
         </p>
 
         {convocatoria && (
-          <div className="mt-6 flex flex-wrap gap-6 border-y border-line-soft py-4 text-sm text-ink-soft">
+          <div className="mt-6 flex flex-wrap gap-6 border-y border-line-2 py-4 text-sm text-ink-2">
             <span className="flex items-center gap-1.5">
               <Wallet className="h-4 w-4" />
               <span className="font-tabular">
@@ -290,13 +290,13 @@ export function DetallePostulacion({
         <div className="mt-6">
           <div className="mb-2 flex items-center justify-between">
             <h2 className="font-display text-base font-semibold text-ink">Checklist de la postulación</h2>
-            <span className="font-tabular text-sm font-semibold text-primary-800">
+            <span className="font-tabular text-sm font-semibold text-pri-text">
               {completados}/{total} · {porcentaje}%
             </span>
           </div>
           <ProgressBar porcentaje={porcentaje} className="mb-4" />
           {cerrada && (
-            <p className="mb-3 text-xs text-ink-faint">La postulación está cerrada: el checklist queda como constancia y ya no se modifica.</p>
+            <p className="mb-3 text-xs text-ink-3">La postulación está cerrada: el checklist queda como constancia y ya no se modifica.</p>
           )}
           <ul className="space-y-2">
             {checklist.map((item) => (
@@ -305,19 +305,19 @@ export function DetallePostulacion({
                   onClick={() => marcar(item.id, !item.completado)}
                   disabled={cerrada}
                   aria-pressed={item.completado}
-                  className="flex w-full items-start gap-3 rounded-lg border border-line-soft px-4 py-3 text-left transition-colors enabled:hover:border-primary-200 enabled:hover:bg-primary-50/30 disabled:cursor-default"
+                  className="flex w-full items-start gap-3 rounded-lg border border-line-2 px-4 py-3 text-left transition-colors enabled:hover:border-line enabled:hover:bg-pri-soft/30 disabled:cursor-default"
                 >
                   {item.completado ? (
-                    <CheckSquare className="mt-0.5 h-4 w-4 shrink-0 text-primary-700" />
+                    <CheckSquare className="mt-0.5 h-4 w-4 shrink-0 text-pri-text" />
                   ) : (
-                    <Square className="mt-0.5 h-4 w-4 shrink-0 text-ink-faint" />
+                    <Square className="mt-0.5 h-4 w-4 shrink-0 text-ink-3" />
                   )}
                   <span>
-                    <span className={item.completado ? "text-sm text-ink-faint line-through" : "text-sm text-ink"}>
+                    <span className={item.completado ? "text-sm text-ink-3 line-through" : "text-sm text-ink"}>
                       {item.descripcion}
                     </span>
                     {item.obligatorio && (
-                      <span className="ml-2 text-xs font-medium text-gold-700">obligatorio</span>
+                      <span className="ml-2 text-xs font-medium text-amber-ink">obligatorio</span>
                     )}
                   </span>
                 </button>
@@ -332,31 +332,31 @@ export function DetallePostulacion({
           {documento ? (
             <button
               onClick={irAGenerarOEditar}
-              className="mt-3 flex w-full items-center gap-3 rounded-lg border border-teal-100 bg-teal-50/40 px-4 py-3 text-left transition-colors hover:bg-teal-50"
+              className="mt-3 flex w-full items-center gap-3 rounded-lg border border-violet/30 bg-violet/10 px-4 py-3 text-left transition-colors hover:bg-violet/10"
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-100 text-teal-700">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet/15 text-violet-ink">
                 <FileText className="h-4 w-4" />
               </span>
               <span className="flex-1">
                 <span className="block text-sm font-medium text-ink">{documento.titulo}</span>
-                <span className="block text-xs text-ink-faint">Versión {documento.version}</span>
+                <span className="block text-xs text-ink-3">Versión {documento.version}</span>
               </span>
               <Badge className={ESTADO_DOCUMENTO_ESTILO[documento.estado]}>{ESTADO_DOCUMENTO_LABEL[documento.estado]}</Badge>
-              <Pencil className="h-4 w-4 shrink-0 text-teal-700" />
+              <Pencil className="h-4 w-4 shrink-0 text-violet-ink" />
             </button>
           ) : postulacion.proyectoId ? (
             <button
               onClick={irAGenerarOEditar}
-              className="mt-3 flex w-full items-center gap-3 rounded-lg border border-dashed border-teal-200 bg-teal-50/20 px-4 py-3 text-left transition-colors hover:bg-teal-50/40"
+              className="mt-3 flex w-full items-center gap-3 rounded-lg border border-dashed border-violet/30 bg-violet/10 px-4 py-3 text-left transition-colors hover:bg-violet/10"
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-100 text-teal-700">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet/15 text-violet-ink">
                 <Sparkles className="h-4 w-4" />
               </span>
-              <span className="flex-1 text-sm font-medium text-teal-800">Generar documento con IA para esta postulación</span>
+              <span className="flex-1 text-sm font-medium text-violet-ink">Generar documento con IA para esta postulación</span>
             </button>
           ) : (
             <div className="mt-3 rounded-lg border border-dashed border-line px-4 py-3">
-              <p className="text-sm text-ink-soft">
+              <p className="text-sm text-ink-2">
                 Vincula un proyecto para poder generar el documento con IA o solicitar un consultor. El proyecto se
                 vincula una sola vez: después no se puede cambiar.
               </p>
@@ -364,7 +364,7 @@ export function DetallePostulacion({
                 <select
                   value={proyectoParaVincular}
                   onChange={(e) => setProyectoParaVincular(e.target.value)}
-                  className="flex-1 rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500"
+                  className="flex-1 rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
                 >
                   <option value="">Selecciona un proyecto...</option>
                   {proyectos.map((p) => (
@@ -392,7 +392,7 @@ export function DetallePostulacion({
                 {idx !== postulacion.historial.length - 1 && (
                   <span className="absolute left-[7px] top-4 h-full w-px bg-line" />
                 )}
-                <span className="relative z-10 mt-1.5 h-3.5 w-3.5 shrink-0 rounded-full border-2 border-primary-700 bg-white" />
+                <span className="relative z-10 mt-1.5 h-3.5 w-3.5 shrink-0 rounded-full border-2 border-pri bg-surface" />
                 <div>
                   <p className="text-sm font-medium text-ink">
                     {h.estadoAnterior ? (
@@ -403,7 +403,7 @@ export function DetallePostulacion({
                       <>Postulación creada · {ESTADO_POSTULACION_LABEL[h.estadoNuevo]}</>
                     )}
                   </p>
-                  <p className="text-xs text-ink-faint">{formatFecha(h.fecha)}</p>
+                  <p className="text-xs text-ink-3">{formatFecha(h.fecha)}</p>
                 </div>
               </li>
             ))}
@@ -422,12 +422,12 @@ export function DetallePostulacion({
 
       {/* RF-83: confirmación antes de una transición terminal. */}
       {estadoAConfirmar && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary-950/40 p-4">
-          <div role="dialog" aria-modal="true" className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/ p-4">
+          <div role="dialog" aria-modal="true" className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl">
             <h3 className="font-display text-lg font-semibold text-ink">
               ¿Cerrar esta postulación?
             </h3>
-            <p className="mt-2 text-sm text-ink-soft">
+            <p className="mt-2 text-sm text-ink-2">
               Una postulación cerrada deja de admitir cambios de estado. El checklist, el historial y el
               documento generado se conservan, pero no podrás reabrirla desde aquí.
             </p>

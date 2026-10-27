@@ -53,8 +53,8 @@ export function ListadoConsultores({ consultores }: { consultores: ConsultorAdmi
   return (
     <div>
       <div className="mb-6">
-        <h1 className="font-display text-2xl font-bold text-ink">Consultores</h1>
-        <p className="text-sm text-ink-soft">Todos los perfiles de consultor registrados en la plataforma.</p>
+        <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Consultores</h1>
+        <p className="text-sm text-ink-2">Todos los perfiles de consultor registrados en la plataforma.</p>
       </div>
 
       {aviso && (
@@ -66,10 +66,10 @@ export function ListadoConsultores({ consultores }: { consultores: ConsultorAdmi
       {consultores.length === 0 ? (
         <EmptyState icon={Users} titulo="No hay consultores" descripcion="Aún no hay perfiles de consultor registrados." />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-line bg-white">
+        <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-line bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-ink-faint">
+              <tr className="border-b border-line bg-surface-2 text-left text-xs font-semibold uppercase tracking-wide text-ink-3">
                 <th className="px-5 py-3">Consultor</th>
                 <th className="px-5 py-3">Estado</th>
                 <th className="px-5 py-3">Rating</th>
@@ -78,21 +78,21 @@ export function ListadoConsultores({ consultores }: { consultores: ConsultorAdmi
                 <th className="px-5 py-3" />
               </tr>
             </thead>
-            <tbody className="divide-y divide-line-soft">
+            <tbody className="divide-y divide-line-2">
               {consultores.map((c) => (
-                <tr key={c.id} className="align-top hover:bg-slate-50/60">
+                <tr key={c.id} className="align-top hover:bg-surface-2/60">
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-3">
                       {c.fotoUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element -- URL firmada de Storage
                         <img src={c.fotoUrl} alt="" className="h-8 w-8 rounded-full object-cover ring-1 ring-line" />
                       ) : (
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-ink-faint ring-1 ring-line">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-2 text-ink-3 ring-1 ring-line">
                           <UserRound className="h-4 w-4" />
                         </span>
                       )}
                       {c.estadoPerfil === "en_revision" ? (
-                        <Link href="/admin/consultores/revision" className="font-medium text-ink hover:text-primary-800">
+                        <Link href="/admin/consultores/revision" className="font-medium text-ink hover:text-pri-text">
                           {c.nombreProfesional || "Sin nombre"}
                         </Link>
                       ) : (
@@ -103,23 +103,23 @@ export function ListadoConsultores({ consultores }: { consultores: ConsultorAdmi
                   <td className="px-5 py-3">
                     <Badge className={ESTADO_PERFIL_ESTILO[c.estadoPerfil]}>{ESTADO_PERFIL_LABEL[c.estadoPerfil]}</Badge>
                     {c.estadoPerfil === "suspendido" && c.motivoSuspension && (
-                      <p className="mt-1 max-w-xs text-xs text-ink-faint">
+                      <p className="mt-1 max-w-xs text-xs text-ink-3">
                         {c.suspendidoAt && `Desde el ${fechaColombia(c.suspendidoAt)}. `}
                         {c.motivoSuspension}
                       </p>
                     )}
                     {c.estadoPerfil === "rechazado" && c.motivoRechazo && (
-                      <p className="mt-1 max-w-xs text-xs text-ink-faint">{c.motivoRechazo}</p>
+                      <p className="mt-1 max-w-xs text-xs text-ink-3">{c.motivoRechazo}</p>
                     )}
                   </td>
                   <td className="px-5 py-3">
                     <RatingStars valor={c.ratingPromedio} />
                   </td>
-                  <td className="px-5 py-3 font-tabular text-ink-soft">
+                  <td className="px-5 py-3 font-tabular text-ink-2">
                     {c.totalEncargosCompletados} completados
                     {c.encargosActivos > 0 && <span className="block text-xs">{c.encargosActivos} activos</span>}
                   </td>
-                  <td className="px-5 py-3 text-ink-soft">{c.esEquipoInterno ? "Equipo interno" : "Externo"}</td>
+                  <td className="px-5 py-3 text-ink-2">{c.esEquipoInterno ? "Equipo interno" : "Externo"}</td>
                   <td className="px-5 py-3">
                     <div className="flex justify-end gap-1">
                       {c.estadoPerfil === "aprobado" && (
@@ -131,7 +131,7 @@ export function ListadoConsultores({ consultores }: { consultores: ConsultorAdmi
                             setErrorModal(null);
                             setSuspendiendo(c);
                           }}
-                          className="text-danger hover:bg-danger-bg"
+                          className="text-rose-ink hover:bg-rose/10"
                         >
                           <Ban className="h-3.5 w-3.5" /> Suspender
                         </Button>
@@ -159,7 +159,7 @@ export function ListadoConsultores({ consultores }: { consultores: ConsultorAdmi
               {suspendiendo.encargosActivos > 0 ? (
                 <>
                   {" "}y se cancelarán de inmediato sus{" "}
-                  <span className="font-semibold text-danger">
+                  <span className="font-semibold text-rose-ink">
                     {suspendiendo.encargosActivos} {suspendiendo.encargosActivos === 1 ? "encargo activo" : "encargos activos"}
                   </span>{" "}
                   (en curso y pendientes). Reactivarlo después no los reabre.

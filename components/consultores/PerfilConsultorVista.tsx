@@ -204,27 +204,27 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
     <div className="mx-auto max-w-4xl">
       <Link
         href="/consultores"
-        className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-soft hover:text-primary-800"
+        className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-2 hover:text-pri-text"
       >
         <ArrowLeft className="h-4 w-4" /> Volver al directorio
       </Link>
 
-      <div className="rounded-2xl border border-line p-6 sm:p-8">
+      <div className="rounded-2xl border border-line p-6 sm:p-8 bg-surface shadow-card">
         <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center">
           {consultor.fotoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- URL firmada de Storage
-            <img src={consultor.fotoUrl} alt="" className="h-24 w-24 rounded-full object-cover ring-2 ring-brick-100" />
+            <img src={consultor.fotoUrl} alt="" className="h-24 w-24 rounded-full object-cover ring-2 ring-sky/30" />
           ) : (
-            <span className="flex h-24 w-24 items-center justify-center rounded-full bg-slate-100 text-ink-faint ring-2 ring-brick-100">
+            <span className="flex h-24 w-24 items-center justify-center rounded-full bg-surface-2 text-ink-3 ring-2 ring-sky/30">
               <UserRound className="h-10 w-10" />
             </span>
           )}
           <div className="flex-1">
-            <h1 className="font-display text-2xl font-bold text-ink">{consultor.nombreProfesional}</h1>
+            <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">{consultor.nombreProfesional}</h1>
             <div className="mt-1.5">
               <RatingStars valor={consultor.ratingPromedio} totalResenas={calificaciones.length} size="md" />
             </div>
-            <p className="mt-1.5 flex items-center gap-1.5 text-xs text-ink-faint">
+            <p className="mt-1.5 flex items-center gap-1.5 text-xs text-ink-3">
               <Briefcase className="h-3.5 w-3.5" /> {consultor.totalEncargosCompletados} encargos completados
             </p>
           </div>
@@ -245,7 +245,7 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
           </div>
         )}
 
-        <p className="mt-6 whitespace-pre-line text-[15px] leading-relaxed text-ink-soft">{consultor.descripcion}</p>
+        <p className="mt-6 whitespace-pre-line text-[15px] leading-relaxed text-ink-2">{consultor.descripcion}</p>
 
         <div className="mt-5 flex flex-wrap gap-2">
           {consultor.especialidades.map((e) => (
@@ -255,7 +255,7 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
           ))}
         </div>
 
-        <div className="mt-6 flex flex-wrap items-center gap-4 border-t border-line-soft pt-5">
+        <div className="mt-6 flex flex-wrap items-center gap-4 border-t border-line-2 pt-5">
           {consultor.contacto ? (
             <>
               {consultor.contacto.sitioWeb && (
@@ -263,7 +263,7 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                   href={consultor.contacto.sitioWeb}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-center gap-1.5 text-sm font-medium text-primary-700 hover:underline"
+                  className="flex items-center gap-1.5 text-sm font-medium text-pri-text hover:underline"
                 >
                   <Globe className="h-4 w-4" /> Sitio web
                 </a>
@@ -276,7 +276,7 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                     href={red.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center gap-1.5 text-sm font-medium text-primary-700 hover:underline"
+                    className="flex items-center gap-1.5 text-sm font-medium text-pri-text hover:underline"
                   >
                     <Icon className="h-4 w-4" /> {NOMBRE_RED[red.tipo]}
                   </a>
@@ -286,14 +286,14 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                 <button
                   type="button"
                   onClick={verHojaDeVida}
-                  className="flex items-center gap-1.5 rounded-lg bg-slate-50 px-3 py-1.5 text-xs font-medium text-primary-700 ring-1 ring-inset ring-line hover:bg-primary-50"
+                  className="flex items-center gap-1.5 rounded-lg bg-surface-2 px-3 py-1.5 text-xs font-medium text-pri-text ring-1 ring-inset ring-line hover:bg-pri-soft"
                 >
                   <FileText className="h-3.5 w-3.5" /> Ver hoja de vida
                 </button>
               )}
             </>
           ) : (
-            <span className="flex items-center gap-1.5 rounded-lg bg-slate-50 px-3 py-1.5 text-xs text-ink-faint ring-1 ring-inset ring-line">
+            <span className="flex items-center gap-1.5 rounded-lg bg-surface-2 px-3 py-1.5 text-xs text-ink-3 ring-1 ring-inset ring-line">
               <Lock className="h-3.5 w-3.5" />
               Sitio web, redes y hoja de vida se muestran cuando el consultor acepte tu solicitud
             </span>
@@ -308,19 +308,19 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
         <div className="mt-8">
           <h2 className="font-display text-base font-semibold text-ink">Portafolio</h2>
           {consultor.portafolio.length === 0 ? (
-            <p className="mt-2 text-sm text-ink-faint">Este consultor aún no registró proyectos en su portafolio.</p>
+            <p className="mt-2 text-sm text-ink-3">Este consultor aún no registró proyectos en su portafolio.</p>
           ) : (
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               {consultor.portafolio.map((item, i) => (
-                <div key={i} className="rounded-xl border border-line-soft p-4">
+                <div key={i} className="rounded-xl border border-line-2 p-4">
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-semibold text-ink">{item.nombreProyecto}</p>
-                    {item.anio && <span className="font-tabular text-xs text-ink-faint">{item.anio}</span>}
+                    {item.anio && <span className="font-tabular text-xs text-ink-3">{item.anio}</span>}
                   </div>
-                  {item.entidad && <p className="text-xs text-ink-faint">{item.entidad}</p>}
-                  {item.descripcion && <p className="mt-2 text-sm text-ink-soft">{item.descripcion}</p>}
+                  {item.entidad && <p className="text-xs text-ink-3">{item.entidad}</p>}
+                  {item.descripcion && <p className="mt-2 text-sm text-ink-2">{item.descripcion}</p>}
                   {item.resultado && (
-                    <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-success">
+                    <p className="mt-2 flex items-center gap-1.5 text-xs font-medium text-pri-text">
                       <FileText className="h-3.5 w-3.5" /> {item.resultado}
                     </p>
                   )}
@@ -335,16 +335,16 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
             Reseñas ({calificaciones.length})
           </h2>
           {calificaciones.length === 0 ? (
-            <p className="mt-2 text-sm text-ink-faint">Este consultor aún no tiene reseñas.</p>
+            <p className="mt-2 text-sm text-ink-3">Este consultor aún no tiene reseñas.</p>
           ) : (
             <ul className="mt-3 space-y-3">
               {calificaciones.map((c, i) => (
-                <li key={i} className="rounded-xl border border-line-soft p-4">
+                <li key={i} className="rounded-xl border border-line-2 p-4">
                   <div className="flex items-center justify-between">
                     <RatingStars valor={c.estrellas} />
-                    <span className="text-xs text-ink-faint">{fechaColombia(c.fecha)}</span>
+                    <span className="text-xs text-ink-3">{fechaColombia(c.fecha)}</span>
                   </div>
-                  {c.comentario && <p className="mt-2 text-sm text-ink-soft">{c.comentario}</p>}
+                  {c.comentario && <p className="mt-2 text-sm text-ink-2">{c.comentario}</p>}
                 </li>
               ))}
             </ul>
@@ -353,26 +353,26 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
       </div>
 
       {modalAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary-950/40 p-4">
-          <div role="dialog" aria-modal="true" aria-labelledby="titulo-solicitar" className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/ p-4">
+          <div role="dialog" aria-modal="true" aria-labelledby="titulo-solicitar" className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-surface p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h3 id="titulo-solicitar" className="font-display text-lg font-semibold text-ink">
                 {confirmacion
                   ? "Solicitud enviada"
                   : `Solicitar a ${consultor.nombreProfesional} · Paso ${paso} de 2`}
               </h3>
-              <button onClick={() => setModalAbierto(false)} className="text-ink-faint hover:text-ink">
+              <button onClick={() => setModalAbierto(false)} className="text-ink-3 hover:text-ink">
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             {confirmacion ? (
               <div className="py-4 text-center">
-                <CheckCircle2 className="mx-auto h-10 w-10 text-success" />
-                <p className="mt-3 text-sm text-ink-soft">
+                <CheckCircle2 className="mx-auto h-10 w-10 text-pri-text" />
+                <p className="mt-3 text-sm text-ink-2">
                   Enviamos tu solicitud a <strong>{consultor.nombreProfesional}</strong> para{" "}
                   <strong>{titulo}</strong>. Cuando la acepte verás su correo y podrás seguir el avance en{" "}
-                  <Link href="/encargos" className="font-semibold text-primary-700 hover:underline">
+                  <Link href="/encargos" className="font-semibold text-pri-text hover:underline">
                     Encargos
                   </Link>
                   .
@@ -383,14 +383,14 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
               </div>
             ) : paso === 1 ? (
               <div className="space-y-4">
-                <p className="text-sm text-ink-soft">¿Para qué proyecto o postulación necesitas ayuda?</p>
+                <p className="text-sm text-ink-2">¿Para qué proyecto o postulación necesitas ayuda?</p>
 
-                <div className="flex gap-2 rounded-lg bg-slate-50 p-1">
+                <div className="flex gap-2 rounded-lg bg-surface-2 p-1">
                   <button
                     onClick={() => setOrigen("proyecto")}
                     className={cn(
                       "flex-1 rounded-md px-3 py-1.5 text-sm font-semibold transition-colors",
-                      origen === "proyecto" ? "bg-white text-ink shadow-sm ring-1 ring-line" : "text-ink-faint"
+                      origen === "proyecto" ? "bg-surface text-ink shadow-sm ring-1 ring-line" : "text-ink-3"
                     )}
                   >
                     Desde un proyecto
@@ -399,7 +399,7 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                     onClick={() => setOrigen("postulacion")}
                     className={cn(
                       "flex-1 rounded-md px-3 py-1.5 text-sm font-semibold transition-colors",
-                      origen === "postulacion" ? "bg-white text-ink shadow-sm ring-1 ring-line" : "text-ink-faint"
+                      origen === "postulacion" ? "bg-surface text-ink shadow-sm ring-1 ring-line" : "text-ink-3"
                     )}
                   >
                     Desde una postulación
@@ -408,9 +408,9 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
 
                 {origen === "proyecto" ? (
                   proyectos.length === 0 ? (
-                    <p className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-ink-faint">
+                    <p className="rounded-lg bg-surface-2 px-3 py-2 text-xs text-ink-3">
                       Aún no tienes proyectos registrados.{" "}
-                      <Link href="/proyectos" className="font-semibold text-primary-700 hover:underline">
+                      <Link href="/proyectos" className="font-semibold text-pri-text hover:underline">
                         Crea uno
                       </Link>{" "}
                       para poder solicitar un consultor.
@@ -418,13 +418,13 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                   ) : (
                     <>
                       <div>
-                        <label htmlFor="campo-solicitar-1" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+                        <label htmlFor="campo-solicitar-1" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3">
                           Proyecto
                         </label>
                         <select id="campo-solicitar-1"
                           value={proyectoIdSel}
                           onChange={(e) => setProyectoIdSel(e.target.value)}
-                          className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500"
+                          className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
                         >
                           <option value="">Selecciona un proyecto...</option>
                           {proyectos.map((p) => (
@@ -441,18 +441,18 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                           className={cn(
                             "flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-colors",
                             tipoAyuda === "convocatoria_especifica"
-                              ? "border-teal-500 bg-teal-50/40"
-                              : "border-line hover:border-teal-300"
+                              ? "border-violet bg-violet/10"
+                              : "border-line hover:border-violet/30"
                           )}
                         >
-                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet/10 text-violet-ink">
                             <Target className="h-5 w-5" />
                           </span>
                           <span>
                             <span className="block text-sm font-semibold text-ink">
                               Ayuda con una convocatoria específica
                             </span>
-                            <span className="block text-xs text-ink-faint">
+                            <span className="block text-xs text-ink-3">
                               Ya sabes a cuál quieres aplicar.
                             </span>
                           </span>
@@ -462,25 +462,25 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                           className={cn(
                             "flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-colors",
                             tipoAyuda === "buscar_convocatoria"
-                              ? "border-brick-500 bg-brick-50/40"
-                              : "border-line hover:border-brick-300"
+                              ? "border-sky bg-sky/10"
+                              : "border-line hover:border-sky/30"
                           )}
                         >
-                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brick-50 text-brick-600">
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky/10 text-sky-ink">
                             <Compass className="h-5 w-5" />
                           </span>
                           <span>
                             <span className="block text-sm font-semibold text-ink">
                               Ayuda para encontrar una convocatoria
                             </span>
-                            <span className="block text-xs text-ink-faint">Aún no sabes a cuál aplicar.</span>
+                            <span className="block text-xs text-ink-3">Aún no sabes a cuál aplicar.</span>
                           </span>
                         </button>
                       </div>
 
                       {tipoAyuda === "convocatoria_especifica" && (
                         <div>
-                          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+                          <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3">
                             Convocatoria
                           </label>
                           <SearchableSelect
@@ -499,19 +499,19 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                     </>
                   )
                 ) : postulacionesVinculadas.length === 0 ? (
-                  <p className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-ink-faint">
+                  <p className="rounded-lg bg-surface-2 px-3 py-2 text-xs text-ink-3">
                     No tienes postulaciones con un proyecto vinculado. Usa la pestaña &ldquo;Desde un
                     proyecto&rdquo; o vincula un proyecto a una postulación primero.
                   </p>
                 ) : (
                   <div>
-                    <label htmlFor="campo-solicitar-2" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+                    <label htmlFor="campo-solicitar-2" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3">
                       Postulación
                     </label>
                     <select id="campo-solicitar-2"
                       value={postulacionIdSel}
                       onChange={(e) => setPostulacionIdSel(e.target.value)}
-                      className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500"
+                      className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
                     >
                       <option value="">Selecciona una postulación...</option>
                       {postulacionesVinculadas.map((p) => {
@@ -525,7 +525,7 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                         );
                       })}
                     </select>
-                    <p className="mt-2 flex items-start gap-1.5 rounded-lg bg-slate-50 px-3 py-2 text-xs text-ink-faint">
+                    <p className="mt-2 flex items-start gap-1.5 rounded-lg bg-surface-2 px-3 py-2 text-xs text-ink-3">
                       <FileStack className="mt-0.5 h-3.5 w-3.5 shrink-0" /> El consultor verá el proyecto y la
                       convocatoria de esta postulación, con su checklist.
                     </p>
@@ -544,18 +544,18 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
             ) : (
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="campo-solicitar-3" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+                  <label htmlFor="campo-solicitar-3" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3">
                     Título de la tarea
                   </label>
                   <input id="campo-solicitar-3"
                     value={titulo}
                     onChange={(e) => setTitulo(e.target.value)}
                     placeholder="Ej. Estructuración financiera de la postulación"
-                    className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500"
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
                   />
                 </div>
                 <div>
-                  <label htmlFor="campo-solicitar-4" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+                  <label htmlFor="campo-solicitar-4" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3">
                     Descripción de la tarea
                   </label>
                   <textarea id="campo-solicitar-4"
@@ -563,10 +563,10 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                     onChange={(e) => setDescripcion(e.target.value)}
                     rows={4}
                     placeholder="Cuéntanos qué necesitas resolver"
-                    className="w-full resize-none rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500"
+                    className="w-full resize-none rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
                   />
                 </div>
-                <p className="flex items-start gap-1.5 rounded-lg bg-slate-50 px-3 py-2 text-xs text-ink-faint">
+                <p className="flex items-start gap-1.5 rounded-lg bg-surface-2 px-3 py-2 text-xs text-ink-3">
                   <FolderKanban className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                   {origen === "postulacion" || tipoAyuda === "convocatoria_especifica"
                     ? "El contenido del proyecto y los datos de la convocatoria elegida se adjuntan automáticamente — no necesitas repetirlos aquí."

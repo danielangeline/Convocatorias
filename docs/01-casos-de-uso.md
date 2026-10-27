@@ -106,6 +106,18 @@
 | **Postcondiciones** | Proyecto creado como en CU-09, con categorías y departamento; consumo de IA registrado con su crédito (RF-52). **Ni la explicación ni el audio se guardan** |
 | **Nota** | La IA **propone, no decide**: los atributos los confirma la empresa y la compatibilidad sigue siendo el cruce determinístico de CU-10 (RN-05). La IA no inventa: un monto, una cifra, un plazo o un antecedente que la explicación no dice queda vacío y se señala (RNF-23, RN-37) |
 
+
+#### CU-44 · Ver el inicio de la empresa *(nuevo v6, sesión 031)*
+
+| Campo | Contenido |
+|---|---|
+| **Actor** | Usuario Empresa |
+| **Descripción** | Pantalla de entrada del portal: resume en una sola vista lo que la empresa tiene y lo que le conviene hacer. **Solo presenta datos que ya existen** (catálogo, proyectos, sugerencias de CU-10, postulaciones y créditos); no crea reglas ni cálculos nuevos |
+| **Precondiciones** | Sesión de empresa. Con la suscripción vencida las sugerencias no se calculan (CU-10, RN-16) y esa parte se omite |
+| **Flujo principal** | 1. Entra al portal y ve el saludo con la fecha y una línea de resumen. 2. Ve cuatro indicadores: convocatorias compatibles, postulaciones activas, monto máximo en juego y créditos de IA. 3. Ve los fondos disponibles por mes de cierre, los próximos cierres, las sugeridas con su porcentaje y el avance de sus postulaciones. 4. Cada bloque lleva a su pantalla (catálogo, ficha, postulaciones) |
+| **Flujos alternos** | 2a. Sin proyectos → en vez de sugeridas se invita a crear el primero (CU-09 o CU-43). 2b. Sin postulaciones → se invita a explorar el catálogo. Un bloque sin datos no se dibuja con valores inventados (RNF-23) |
+| **Postcondiciones** | Ninguna: es de solo lectura |
+
 #### CU-10 · Obtener convocatorias sugeridas *(mod. v4 — porcentaje)*
 
 | Campo | Contenido |

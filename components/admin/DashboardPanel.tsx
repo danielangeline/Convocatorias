@@ -47,33 +47,33 @@ export function DashboardPanel({
 
   return (
     <div>
-      <h1 className="font-display text-2xl font-bold text-ink">Panel general</h1>
-      <p className="text-sm text-ink-soft">Resumen del estado de las convocatorias en la plataforma.</p>
+      <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Panel general</h1>
+      <p className="text-sm text-ink-2">Resumen del estado de las convocatorias en la plataforma.</p>
 
       <div className="mt-6 grid gap-4 sm:grid-cols-4">
         <TarjetaTotal
           icon={FileStack}
           etiqueta="Borrador"
           valor={totales.borrador}
-          tono="text-slate-600 bg-slate-100"
+          tono="text-ink-2 bg-surface-2"
         />
         <TarjetaTotal
           icon={CheckCircle2}
           etiqueta="Publicadas"
           valor={totales.publicada}
-          tono="text-emerald-700 bg-emerald-50"
+          tono="text-pri-text bg-pri-soft"
         />
         <TarjetaTotal
           icon={EyeOff}
           etiqueta="Despublicadas"
           valor={totales.despublicada}
-          tono="text-amber-700 bg-amber-50"
+          tono="text-amber-ink bg-amber/10"
         />
         <TarjetaTotal
           icon={Archive}
           etiqueta="Cerradas"
           valor={totales.cerrada}
-          tono="text-slate-500 bg-slate-100"
+          tono="text-ink-3 bg-surface-2"
         />
       </div>
 
@@ -83,7 +83,7 @@ export function DashboardPanel({
             icon={UserCheck}
             etiqueta="Perfiles de consultor en revisión"
             valor={perfilesEnRevision}
-            tono="text-brick-600 bg-brick-50"
+            tono="text-sky-ink bg-sky/10"
           />
         </Link>
         <Link href="/admin/encargos" className="block">
@@ -91,14 +91,14 @@ export function DashboardPanel({
             icon={ClipboardList}
             etiqueta="Solicitudes al equipo"
             valor={solicitudesEquipo}
-            tono="text-brick-600 bg-brick-50"
+            tono="text-sky-ink bg-sky/10"
           />
         </Link>
       </div>
 
-      <div className="mt-8 rounded-2xl border border-line bg-white p-6">
+      <div className="mt-8 rounded-2xl border border-line bg-surface p-6">
         <div className="mb-4 flex items-center gap-2">
-          <CreditCard className="h-4 w-4 text-primary-700" />
+          <CreditCard className="h-4 w-4 text-pri-text" />
           <h2 className="font-display text-base font-semibold text-ink">Suscripciones por estado</h2>
         </div>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
@@ -106,7 +106,7 @@ export function DashboardPanel({
             <Link
               key={estado}
               href="/admin/suscripciones"
-              className="rounded-xl border border-line-soft p-3 text-center hover:bg-slate-50"
+              className="rounded-xl border border-line-2 p-3 text-center hover:bg-surface-2"
             >
               <p className="font-tabular text-2xl font-bold text-ink">
                 {suscripciones.filter((s) => s.estado === estado).length}
@@ -117,50 +117,50 @@ export function DashboardPanel({
         </div>
       </div>
 
-      <div className="mt-8 rounded-2xl border border-teal-100 bg-white p-6">
+      <div className="mt-8 rounded-2xl border border-violet/30 bg-surface p-6">
         <div className="mb-4 flex items-center gap-2">
-          <Sparkles className="h-4 w-4 text-teal-600" />
+          <Sparkles className="h-4 w-4 text-violet-ink" />
           <h2 className="font-display text-base font-semibold text-ink">Consumo de IA del periodo</h2>
         </div>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <TarjetaTotal icon={Sparkles} etiqueta="Generaciones" valor={estadisticasIA.generaciones} tono="text-teal-700 bg-teal-50" />
-          <TarjetaTotal icon={ClipboardList} etiqueta="Ajustes" valor={estadisticasIA.ajustes} tono="text-teal-700 bg-teal-50" />
-          <TarjetaTotal icon={XCircle} etiqueta="Fallidas (sin costo)" valor={estadisticasIA.fallidas} tono="text-slate-500 bg-slate-100" />
-          <div className="rounded-2xl border border-line bg-white p-5">
-            <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-gold-50 text-gold-700">
+          <TarjetaTotal icon={Sparkles} etiqueta="Generaciones" valor={estadisticasIA.generaciones} tono="text-violet-ink bg-violet/10" />
+          <TarjetaTotal icon={ClipboardList} etiqueta="Ajustes" valor={estadisticasIA.ajustes} tono="text-violet-ink bg-violet/10" />
+          <TarjetaTotal icon={XCircle} etiqueta="Fallidas (sin costo)" valor={estadisticasIA.fallidas} tono="text-ink-3 bg-surface-2" />
+          <div className="rounded-2xl border border-line bg-surface p-5">
+            <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-amber/10 text-amber-ink">
               <Wallet className="h-5 w-5" />
             </div>
             <p className="font-display font-tabular text-2xl font-bold text-ink">{formatCOP(estadisticasIA.costoEstimadoCOP)}</p>
-            <p className="text-xs text-ink-faint">Costo estimado acumulado</p>
+            <p className="text-xs text-ink-3">Costo estimado acumulado</p>
           </div>
         </div>
       </div>
 
-      <div className="mt-8 rounded-2xl border border-line bg-white p-6">
+      <div className="mt-8 rounded-2xl border border-line bg-surface p-6">
         <div className="mb-4 flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 text-gold-600" />
+          <AlertTriangle className="h-4 w-4 text-amber-ink" />
           <h2 className="font-display text-base font-semibold text-ink">
             Próximas a vencer (menos de 15 días)
           </h2>
         </div>
 
         {proximasAVencer.length === 0 ? (
-          <p className="text-sm text-ink-soft">No hay convocatorias por vencer en el corto plazo.</p>
+          <p className="text-sm text-ink-2">No hay convocatorias por vencer en el corto plazo.</p>
         ) : (
-          <div className="divide-y divide-line-soft">
+          <div className="divide-y divide-line-2">
             {proximasAVencer.map(({ c, dias }) => (
               <Link
                 key={c.id}
                 href={`/admin/convocatorias/${c.id}`}
-                className="flex items-center justify-between gap-4 py-3 hover:bg-slate-50"
+                className="flex items-center justify-between gap-4 py-3 hover:bg-surface-2"
               >
                 <div>
                   <p className="text-sm font-medium text-ink">{c.nombre}</p>
-                  <p className="text-xs text-ink-faint">{c.entidadConvocante}</p>
+                  <p className="text-xs text-ink-3">{c.entidadConvocante}</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-xs text-ink-faint">Cierra {formatFecha(c.fechaCierre)}</span>
-                  <Badge className="bg-gold-50 text-gold-700 ring-gold-200">
+                  <span className="text-xs text-ink-3">Cierra {formatFecha(c.fechaCierre)}</span>
+                  <Badge className="bg-amber/10 text-amber-ink ring-amber/30">
                     {dias} {dias === 1 ? "día" : "días"}
                   </Badge>
                 </div>
@@ -170,14 +170,14 @@ export function DashboardPanel({
         )}
       </div>
 
-      <div className="mt-8 rounded-2xl border border-line bg-white p-6">
+      <div className="mt-8 rounded-2xl border border-line bg-surface p-6">
         <h2 className="mb-4 font-display text-base font-semibold text-ink">Todas las convocatorias</h2>
-        <div className="divide-y divide-line-soft">
+        <div className="divide-y divide-line-2">
           {convocatorias.map((c) => (
             <Link
               key={c.id}
               href={`/admin/convocatorias/${c.id}`}
-              className="flex items-center justify-between gap-4 py-3 hover:bg-slate-50"
+              className="flex items-center justify-between gap-4 py-3 hover:bg-surface-2"
             >
               <p className="text-sm font-medium text-ink">{c.nombre}</p>
               <Badge className={ESTADO_CONVOCATORIA_ESTILO[c.estado]}>
@@ -203,12 +203,12 @@ function TarjetaTotal({
   tono: string;
 }) {
   return (
-    <div className="rounded-2xl border border-line bg-white p-5">
+    <div className="rounded-2xl border border-line bg-surface p-5">
       <div className={`mb-3 flex h-9 w-9 items-center justify-center rounded-lg ${tono}`}>
         <Icon className="h-5 w-5" />
       </div>
       <p className="font-display font-tabular text-3xl font-bold text-ink">{valor}</p>
-      <p className="text-xs text-ink-faint">{etiqueta}</p>
+      <p className="text-xs text-ink-3">{etiqueta}</p>
     </div>
   );
 }

@@ -4,7 +4,7 @@ import type { RolUsuario } from "./types";
 export function rutaInicioDeRol(rol: RolUsuario): string {
   switch (rol) {
     case "empresa":
-      return "/convocatorias";
+      return "/inicio";
     case "consultor":
       return "/consultor/perfil";
     case "administrador":

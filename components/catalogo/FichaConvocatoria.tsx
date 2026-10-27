@@ -68,8 +68,8 @@ export function FichaConvocatoria({
   if (!convocatoria) {
     return (
       <div className="py-20 text-center">
-        <p className="text-ink-soft">No encontramos esta convocatoria.</p>
-        <Link href={volver.href} className="mt-3 inline-block text-sm font-semibold text-primary-700 hover:underline">
+        <p className="text-ink-2">No encontramos esta convocatoria.</p>
+        <Link href={volver.href} className="mt-3 inline-block text-sm font-semibold text-pri-text hover:underline">
           {volver.etiqueta}
         </Link>
       </div>
@@ -122,18 +122,18 @@ export function FichaConvocatoria({
     <div className="mx-auto max-w-4xl">
       <Link
         href={volver.href}
-        className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-soft hover:text-primary-800"
+        className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-2 hover:text-pri-text"
       >
         <ArrowLeft className="h-4 w-4" /> {volver.etiqueta}
       </Link>
 
-      <div className="rounded-2xl border border-line p-6 sm:p-8">
+      <div className="rounded-2xl border border-line p-6 sm:p-8 bg-surface shadow-card">
         <div className="flex flex-wrap items-center gap-2">
           <Badge className={ESTADO_CONVOCATORIA_ESTILO[convocatoria.estado]}>
             {ESTADO_CONVOCATORIA_LABEL[convocatoria.estado]}
           </Badge>
           {!cerrada && dias < 15 && (
-            <Badge className="bg-gold-50 text-gold-700 ring-gold-200">
+            <Badge className="bg-amber/10 text-amber-ink ring-amber/30">
               Cierra en {dias} {dias === 1 ? "día" : "días"}
             </Badge>
           )}
@@ -142,13 +142,13 @@ export function FichaConvocatoria({
         <h1 className="mt-4 font-display text-2xl font-bold leading-tight text-ink sm:text-3xl">
           {convocatoria.nombre}
         </h1>
-        <p className="mt-2 flex items-center gap-1.5 text-sm font-medium text-ink-soft">
+        <p className="mt-2 flex items-center gap-1.5 text-sm font-medium text-ink-2">
           <Landmark className="h-4 w-4" /> {convocatoria.entidadConvocante}
         </p>
 
-        <p className="mt-5 text-[15px] leading-relaxed text-ink-soft">{convocatoria.descripcion}</p>
+        <p className="mt-5 text-[15px] leading-relaxed text-ink-2">{convocatoria.descripcion}</p>
 
-        <div className="mt-6 grid gap-4 rounded-xl bg-primary-50/60 p-5 sm:grid-cols-3">
+        <div className="mt-6 grid gap-4 rounded-xl bg-pri-soft/60 p-5 sm:grid-cols-3">
           <Dato icon={Wallet} etiqueta="Monto de financiación">
             <span className="font-tabular">
               {formatRangoCOP(convocatoria.montoMin, convocatoria.montoMax)}
@@ -157,7 +157,7 @@ export function FichaConvocatoria({
           <Dato icon={MapPin} etiqueta="Cobertura">
             {textoCobertura(convocatoria)}
             {convocatoria.ubicacion && (
-              <span className="mt-0.5 block text-xs font-normal text-ink-faint">{convocatoria.ubicacion}</span>
+              <span className="mt-0.5 block text-xs font-normal text-ink-3">{convocatoria.ubicacion}</span>
             )}
           </Dato>
           <Dato icon={Calendar} etiqueta="Fechas">
@@ -168,7 +168,7 @@ export function FichaConvocatoria({
         </div>
 
         <div className="mt-6">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">Categorías</p>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-3">Categorías</p>
           <div className="flex flex-wrap gap-2">
             {categoriasCompletas.map((cat) => (
               <Chip key={cat!.id} tono={cat!.tipo}>
@@ -185,15 +185,15 @@ export function FichaConvocatoria({
               .slice()
               .sort((a, b) => a.orden - b.orden)
               .map((req) => (
-                <li key={req.id} className="flex items-start gap-2.5 rounded-lg border border-line-soft px-4 py-3">
+                <li key={req.id} className="flex items-start gap-2.5 rounded-lg border border-line-2 px-4 py-3">
                   {req.obligatorio ? (
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary-700" />
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-pri-text" />
                   ) : (
-                    <Circle className="mt-0.5 h-4 w-4 shrink-0 text-ink-faint" />
+                    <Circle className="mt-0.5 h-4 w-4 shrink-0 text-ink-3" />
                   )}
                   <div>
                     <p className="text-sm text-ink">{req.descripcion}</p>
-                    <p className="mt-0.5 text-xs text-ink-faint">
+                    <p className="mt-0.5 text-xs text-ink-3">
                       {req.tipo === "documento" ? "Documento" : "Condición"} · {req.obligatorio ? "Obligatorio" : "Opcional"}
                     </p>
                   </div>
@@ -205,7 +205,7 @@ export function FichaConvocatoria({
         <div className="mt-8">
           <h2 className="font-display text-base font-semibold text-ink">Documentos de la convocatoria</h2>
           {errorDescarga && (
-            <p role="alert" className="mt-3 rounded-lg bg-brick-50 px-4 py-2.5 text-sm text-brick-700">
+            <p role="alert" className="mt-3 rounded-lg bg-sky/10 px-4 py-2.5 text-sm text-sky-ink">
               {errorDescarga}
             </p>
           )}
@@ -213,18 +213,18 @@ export function FichaConvocatoria({
             {convocatoria.documentos.map((doc) => (
               <li
                 key={doc.id}
-                className="flex items-center justify-between gap-3 rounded-lg border border-line-soft px-4 py-3"
+                className="flex items-center justify-between gap-3 rounded-lg border border-line-2 px-4 py-3"
               >
                 {/* Los nombres de los anexos suelen ser una sola palabra larga
                     (anexo_5_caracteristicas_y_…): sin min-w-0 y overflow-wrap
                     no se parten y empujan el botón fuera de la pantalla. */}
                 <div className="flex min-w-0 items-center gap-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-700">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-pri-soft text-pri-text">
                     <FileText className="h-4 w-4" />
                   </span>
                   <div className="min-w-0 [overflow-wrap:anywhere]">
                     <p className="text-sm font-medium text-ink">{doc.nombre}</p>
-                    <p className="text-xs text-ink-faint">
+                    <p className="text-xs text-ink-3">
                       {TIPO_DOCUMENTO_LABEL[doc.tipo]} · {doc.archivo} · {doc.pesoKb} KB
                     </p>
                   </div>
@@ -247,10 +247,10 @@ export function FichaConvocatoria({
         </div>
 
         {acciones ? (
-          <div className="mt-8 border-t border-line-soft pt-6">{acciones}</div>
+          <div className="mt-8 border-t border-line-2 pt-6">{acciones}</div>
         ) : (
-          <div className="mt-8 flex items-center justify-between gap-4 border-t border-line-soft pt-6">
-            <div className="flex items-center gap-2 text-xs text-ink-faint">
+          <div className="mt-8 flex items-center justify-between gap-4 border-t border-line-2 pt-6">
+            <div className="flex items-center gap-2 text-xs text-ink-3">
               <Info className="h-3.5 w-3.5" />
               {cerrada
                 ? "Esta convocatoria ya cerró y no admite nuevas postulaciones."
@@ -294,26 +294,26 @@ export function FichaConvocatoria({
       </div>
 
       {modalAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary-950/40 p-4">
-          <div role="dialog" aria-modal="true" aria-labelledby="titulo-postular" className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/ p-4">
+          <div role="dialog" aria-modal="true" aria-labelledby="titulo-postular" className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h3 id="titulo-postular" className="font-display text-lg font-semibold text-ink">Confirmar postulación</h3>
-              <button onClick={() => setModalAbierto(false)} className="text-ink-faint hover:text-ink" aria-label="Cerrar">
+              <button onClick={() => setModalAbierto(false)} className="text-ink-3 hover:text-ink" aria-label="Cerrar">
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <p className="text-sm text-ink-soft">
+            <p className="text-sm text-ink-2">
               Vas a crear una postulación a <strong>{convocatoria.nombre}</strong>. Puedes asociarla a
               uno de tus proyectos existentes o dejarla sin proyecto por ahora. Si ya tienes una en curso
               con ese mismo proyecto, te llevaremos a ella.
             </p>
-            <label htmlFor="campo-postular-1" className="mt-4 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+            <label htmlFor="campo-postular-1" className="mt-4 block text-xs font-semibold uppercase tracking-wide text-ink-3">
               Proyecto (opcional)
             </label>
             <select id="campo-postular-1"
               value={proyectoSel}
               onChange={(e) => setProyectoSel(e.target.value)}
-              className="mt-1.5 w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500"
+              className="mt-1.5 w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
             >
               <option value="">Sin proyecto asociado</option>
               {proyectos.map((p) => (
@@ -323,7 +323,7 @@ export function FichaConvocatoria({
               ))}
             </select>
             {errorPostular && (
-              <p role="alert" className="mt-4 rounded-lg bg-brick-50 px-3 py-2 text-sm text-brick-700">
+              <p role="alert" className="mt-4 rounded-lg bg-sky/10 px-3 py-2 text-sm text-sky-ink">
                 {errorPostular}
               </p>
             )}
@@ -353,7 +353,7 @@ function Dato({
 }) {
   return (
     <div>
-      <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-faint">
+      <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-3">
         <Icon className="h-3.5 w-3.5" /> {etiqueta}
       </p>
       <p className="mt-1 text-sm font-medium text-ink">{children}</p>

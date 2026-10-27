@@ -46,8 +46,8 @@ export function AvisoSuscripcion({ suscripcion }: { suscripcion: Suscripcion | n
       role="status"
       className={
         urgente
-          ? "mb-6 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-red-200 bg-danger-bg px-4 py-3 text-sm text-danger"
-          : "mb-6 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
+          ? "mb-6 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-rose/30 bg-rose/10 px-4 py-3 text-sm text-rose-ink"
+          : "mb-6 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-amber/30 bg-amber/10 px-4 py-3 text-sm text-amber-ink"
       }
     >
       <Icono className="h-4 w-4 shrink-0" aria-hidden />

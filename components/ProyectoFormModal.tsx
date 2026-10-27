@@ -213,33 +213,33 @@ export function ProyectoFormModal({
       onChange={(e) => setForm({ ...form, [clave]: e.target.value })}
       rows={filas}
       placeholder={placeholder}
-      className="w-full resize-none rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-teal-500"
+      className="w-full resize-none rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-violet bg-surface text-ink"
     />
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary-950/40 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/ p-4">
       <div
         role="dialog"
         aria-modal="true"
         aria-label={proyecto ? "Editar proyecto" : "Nuevo proyecto"}
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-xl"
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-surface p-6 shadow-xl"
       >
         <div className="mb-4 flex items-center justify-between">
           <h3 className="font-display text-lg font-semibold text-ink">
             {proyecto ? "Editar proyecto" : "Nuevo proyecto"}
           </h3>
-          <button onClick={cerrar} className="text-ink-faint hover:text-ink" aria-label="Cerrar">
+          <button onClick={cerrar} className="text-ink-3 hover:text-ink" aria-label="Cerrar">
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {propuesta && (
-          <div className="mb-4 rounded-xl bg-teal-50 p-3 text-sm text-teal-800 ring-1 ring-inset ring-teal-100">
+          <div className="mb-4 rounded-xl bg-violet/10 p-3 text-sm text-violet-ink ring-1 ring-inset ring-violet/30">
             <p className="flex items-center gap-1.5 font-semibold">
               <Sparkles className="h-4 w-4" /> La IA llenó el formulario con lo que contaste
             </p>
-            <p className="mt-1 text-xs text-teal-700">
+            <p className="mt-1 text-xs text-violet-ink">
               Revisa y corrige todo antes de crear el proyecto: las categorías y el departamento deciden qué convocatorias te sugerimos.
             </p>
             {propuesta.faltantes.length > 0 && (
@@ -261,7 +261,7 @@ export function ProyectoFormModal({
               id="campo-nombre"
               value={form.nombre}
               onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-              className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500"
+              className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
               placeholder="Ej. EcoEmpaques Andinos"
             />
           </Campo>
@@ -272,7 +272,7 @@ export function ProyectoFormModal({
               value={form.descripcion}
               onChange={(e) => setForm({ ...form, descripcion: e.target.value })}
               rows={3}
-              className="w-full resize-none rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500"
+              className="w-full resize-none rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
               placeholder="Describe brevemente el proyecto"
             />
           </Campo>
@@ -285,7 +285,7 @@ export function ProyectoFormModal({
                 inputMode="numeric"
                 value={form.montoBuscado}
                 onChange={(e) => setForm({ ...form, montoBuscado: e.target.value })}
-                className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500"
+                className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
                 placeholder="Ej. 100.000.000"
               />
             </Campo>
@@ -295,7 +295,7 @@ export function ProyectoFormModal({
                 id="campo-departamento"
                 value={form.departamento}
                 onChange={(e) => setForm({ ...form, departamento: e.target.value })}
-                className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500"
+                className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
               >
                 <option value="">Sin indicar</option>
                 {DEPARTAMENTOS.map((d) => (
@@ -311,17 +311,17 @@ export function ProyectoFormModal({
               id="campo-ubicacion"
               value={form.ubicacion}
               onChange={(e) => setForm({ ...form, ubicacion: e.target.value })}
-              className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500"
+              className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
               placeholder="Ej. Barranquilla, zona rural de Sabanalarga"
               maxLength={300}
             />
           </Campo>
 
           <Campo etiqueta="Categorías">
-            <div id="campo-categorias" tabIndex={-1} className="max-h-48 space-y-3 overflow-y-auto rounded-lg border border-line-soft p-3 outline-none">
+            <div id="campo-categorias" tabIndex={-1} className="max-h-48 space-y-3 overflow-y-auto rounded-lg border border-line-2 p-3 outline-none">
               {(["tipo_proyecto", "sector", "tipo_entidad"] as const).map((tipo) => (
                 <div key={tipo}>
-                  <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-ink-faint">
+                  <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-ink-3">
                     {tipo === "tipo_proyecto" ? "Tipo de proyecto" : tipo === "sector" ? "Sector" : "Tipo de entidad"}
                   </p>
                   <div className="flex flex-wrap gap-1.5">
@@ -337,8 +337,8 @@ export function ProyectoFormModal({
                             onClick={() => toggleCategoria(c.id)}
                             className={`rounded-md px-2.5 py-1 text-xs font-medium ring-1 ring-inset transition-colors ${
                               activo
-                                ? "bg-primary-800 text-white ring-primary-800"
-                                : "bg-white text-ink-soft ring-line hover:bg-slate-50"
+                                ? "bg-pri text-on-pri ring-pri"
+                                : "bg-surface text-ink-2 ring-line hover:bg-surface-2"
                             }`}
                           >
                             {c.nombre}
@@ -352,10 +352,10 @@ export function ProyectoFormModal({
           </Campo>
 
           <div className="border-t border-dashed border-line pt-4">
-            <p className="mb-1 flex items-center gap-1.5 text-sm font-semibold text-teal-700">
+            <p className="mb-1 flex items-center gap-1.5 text-sm font-semibold text-violet-ink">
               <Sparkles className="h-3.5 w-3.5" /> Contenido para generación de documentos
             </p>
-            <p className="mb-3 text-xs text-ink-faint">
+            <p className="mb-3 text-xs text-ink-3">
               Estos campos alimentan la generación de documentos con IA y determinan la completitud del proyecto.
             </p>
 
@@ -392,7 +392,7 @@ export function ProyectoFormModal({
                     step={1}
                     value={form.duracionMeses}
                     onChange={(e) => setForm({ ...form, duracionMeses: e.target.value })}
-                    className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-teal-500"
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-violet bg-surface text-ink"
                   />
                 </Campo>
                 <Campo etiqueta="Presupuesto estimado (COP)" htmlFor="campo-presupuestoEstimado">
@@ -403,7 +403,7 @@ export function ProyectoFormModal({
                     placeholder="Ej. 250.000.000"
                     value={form.presupuestoEstimado}
                     onChange={(e) => setForm({ ...form, presupuestoEstimado: e.target.value })}
-                    className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-teal-500"
+                    className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-violet bg-surface text-ink"
                   />
                 </Campo>
               </div>
@@ -415,7 +415,7 @@ export function ProyectoFormModal({
         </div>
 
         {error && (
-          <p role="alert" className="mt-4 rounded-lg bg-red-50 px-3 py-2.5 text-sm text-danger">
+          <p role="alert" className="mt-4 rounded-lg bg-rose/10 px-3 py-2.5 text-sm text-rose-ink">
             {error}
           </p>
         )}
@@ -446,7 +446,7 @@ function Campo({
     <div>
       <label
         htmlFor={htmlFor}
-        className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint"
+        className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3"
       >
         {etiqueta}
       </label>

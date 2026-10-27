@@ -102,23 +102,23 @@ function ContenidoSolicitud({ proyecto, onClose, convocatoriaFijaId }: Solicitar
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary-950/40 p-4">
-      <div role="dialog" aria-modal="true" aria-labelledby="titulo-solicitud" className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/ p-4">
+      <div role="dialog" aria-modal="true" aria-labelledby="titulo-solicitud" className="w-full max-w-lg rounded-2xl bg-surface p-6 shadow-xl">
         <div className="mb-4 flex items-center justify-between">
           <h3 id="titulo-solicitud" className="font-display text-lg font-semibold text-ink">
             {confirmacion ? "Solicitud enviada" : `Solicitar consultor · Paso ${paso} de 3`}
           </h3>
-          <button onClick={onClose} className="text-ink-faint hover:text-ink">
+          <button onClick={onClose} className="text-ink-3 hover:text-ink">
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {confirmacion ? (
           <div className="py-4 text-center">
-            <CheckCircle2 className="mx-auto h-10 w-10 text-success" />
-            <p className="mt-3 text-sm text-ink-soft">
+            <CheckCircle2 className="mx-auto h-10 w-10 text-pri-text" />
+            <p className="mt-3 text-sm text-ink-2">
               Nuestro equipo revisará tu solicitud para <strong>{titulo}</strong> y te escribirá por correo. Puedes verla en{" "}
-              <Link href="/encargos" className="font-semibold text-primary-700 hover:underline">
+              <Link href="/encargos" className="font-semibold text-pri-text hover:underline">
                 Encargos
               </Link>
               .
@@ -129,23 +129,23 @@ function ContenidoSolicitud({ proyecto, onClose, convocatoriaFijaId }: Solicitar
           </div>
         ) : paso === 1 ? (
           <div className="space-y-4">
-            <p className="text-sm text-ink-soft">¿Qué tipo de ayuda necesitas para este proyecto?</p>
+            <p className="text-sm text-ink-2">¿Qué tipo de ayuda necesitas para este proyecto?</p>
             <div className="space-y-2">
               <button
                 onClick={() => setTipoAyuda("convocatoria_especifica")}
                 className={cn(
                   "flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-colors",
                   tipoAyuda === "convocatoria_especifica"
-                    ? "border-teal-500 bg-teal-50/40"
-                    : "border-line hover:border-teal-300"
+                    ? "border-violet bg-violet/10"
+                    : "border-line hover:border-violet/30"
                 )}
               >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-700">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet/10 text-violet-ink">
                   <Target className="h-5 w-5" />
                 </span>
                 <span>
                   <span className="block text-sm font-semibold text-ink">Ayuda con una convocatoria específica</span>
-                  <span className="block text-xs text-ink-faint">
+                  <span className="block text-xs text-ink-3">
                     Ya sabes a cuál quieres aplicar. El consultor verá su información completa.
                   </span>
                 </span>
@@ -155,16 +155,16 @@ function ContenidoSolicitud({ proyecto, onClose, convocatoriaFijaId }: Solicitar
                 className={cn(
                   "flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-colors",
                   tipoAyuda === "buscar_convocatoria"
-                    ? "border-brick-500 bg-brick-50/40"
-                    : "border-line hover:border-brick-300"
+                    ? "border-sky bg-sky/10"
+                    : "border-line hover:border-sky/30"
                 )}
               >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brick-50 text-brick-600">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky/10 text-sky-ink">
                   <Compass className="h-5 w-5" />
                 </span>
                 <span>
                   <span className="block text-sm font-semibold text-ink">Ayuda para encontrar una convocatoria</span>
-                  <span className="block text-xs text-ink-faint">
+                  <span className="block text-xs text-ink-3">
                     Aún no sabes a cuál aplicar. El consultor verá el perfil de tu proyecto para orientar la búsqueda.
                   </span>
                 </span>
@@ -173,7 +173,7 @@ function ContenidoSolicitud({ proyecto, onClose, convocatoriaFijaId }: Solicitar
 
             {tipoAyuda === "convocatoria_especifica" && (
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3">
                   Convocatoria
                 </label>
                 <SearchableSelect
@@ -206,18 +206,18 @@ function ContenidoSolicitud({ proyecto, onClose, convocatoriaFijaId }: Solicitar
         ) : paso === 2 ? (
           <div className="space-y-4">
             <div>
-              <label htmlFor="campo-solicitud-1" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+              <label htmlFor="campo-solicitud-1" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3">
                 Título de la tarea
               </label>
               <input id="campo-solicitud-1"
                 value={titulo}
                 onChange={(e) => setTitulo(e.target.value)}
                 placeholder="Ej. Estructuración financiera de la postulación"
-                className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500"
+                className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
               />
             </div>
             <div>
-              <label htmlFor="campo-solicitud-2" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+              <label htmlFor="campo-solicitud-2" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3">
                 Descripción de la tarea
               </label>
               <textarea id="campo-solicitud-2"
@@ -225,10 +225,10 @@ function ContenidoSolicitud({ proyecto, onClose, convocatoriaFijaId }: Solicitar
                 onChange={(e) => setDescripcion(e.target.value)}
                 rows={4}
                 placeholder="Cuéntanos qué necesitas resolver para este proyecto"
-                className="w-full resize-none rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500"
+                className="w-full resize-none rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
               />
             </div>
-            <p className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-ink-faint">
+            <p className="rounded-lg bg-surface-2 px-3 py-2 text-xs text-ink-3">
               {tipoAyuda === "convocatoria_especifica"
                 ? "El contenido completo del proyecto y los datos de la convocatoria elegida se adjuntan automáticamente — no necesitas repetirlos aquí."
                 : "El contenido completo del proyecto se adjunta automáticamente — no necesitas repetirlo aquí."}
@@ -244,22 +244,22 @@ function ContenidoSolicitud({ proyecto, onClose, convocatoriaFijaId }: Solicitar
           </div>
         ) : (
           <div className="space-y-3">
-            <p className="text-sm text-ink-soft">Elige cómo quieres encontrar un consultor para esta tarea.</p>
+            <p className="text-sm text-ink-2">Elige cómo quieres encontrar un consultor para esta tarea.</p>
             {error && (
-              <p role="alert" className="flex items-start gap-2 rounded-lg bg-danger-bg px-3 py-2 text-sm text-danger">
+              <p role="alert" className="flex items-start gap-2 rounded-lg bg-rose/10 px-3 py-2 text-sm text-rose-ink">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {error}
               </p>
             )}
             <button
                 onClick={buscarEnDirectorio}
-                className="flex w-full items-center gap-4 rounded-xl border border-line p-4 text-left transition-colors hover:border-brick-500 hover:bg-brick-50/40"
+                className="flex w-full items-center gap-4 rounded-xl border border-line p-4 text-left transition-colors hover:border-sky hover:bg-sky/10"
               >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brick-50 text-brick-600">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky/10 text-sky-ink">
                   <Search className="h-5 w-5" />
                 </span>
                 <span>
                   <span className="block text-sm font-semibold text-ink">Buscar en el directorio</span>
-                  <span className="block text-xs text-ink-faint">
+                  <span className="block text-xs text-ink-3">
                     Elige tú mismo un consultor aprobado por su experiencia y calificación.
                   </span>
                 </span>
@@ -267,14 +267,14 @@ function ContenidoSolicitud({ proyecto, onClose, convocatoriaFijaId }: Solicitar
             <button
               onClick={pedirAyudaAlEquipo}
               disabled={enviando}
-              className="flex w-full items-center gap-4 rounded-xl border border-line p-4 text-left transition-colors hover:border-primary-500 hover:bg-primary-50/40"
+              className="flex w-full items-center gap-4 rounded-xl border border-line p-4 text-left transition-colors hover:border-pri hover:bg-pri-soft/40"
             >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-700">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-pri-soft text-pri-text">
                 <Users className="h-5 w-5" />
               </span>
               <span>
                 <span className="block text-sm font-semibold text-ink">Pedir ayuda a nuestro equipo</span>
-                <span className="block text-xs text-ink-faint">
+                <span className="block text-xs text-ink-3">
                   Revisamos tu solicitud y te escribimos por correo para ayudarte.
                 </span>
               </span>

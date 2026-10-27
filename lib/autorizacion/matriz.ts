@@ -53,6 +53,7 @@ const PREFIJOS: [string, Regla][] = [
   ["/admin", PANEL],
   ["/api/admin", PANEL],
   // Portal Empresa (docs/04 §8.2)
+  ["/inicio", EMPRESA],
   ["/convocatorias", EMPRESA],
   // Sprint 2 paso 4: catálogo de la empresa (RN-33) e indicadores públicos (RF-44).
   ["/api/convocatorias", EMPRESA],

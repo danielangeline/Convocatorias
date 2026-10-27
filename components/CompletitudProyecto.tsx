@@ -38,7 +38,7 @@ export function CompletitudDetalle({
   const tono = toneCompletitud(porcentaje);
 
   return (
-    <div className="rounded-xl border border-line-soft p-4">
+    <div className="rounded-xl border border-line-2 p-4">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-ink">Completitud del contenido</p>
         <span className="font-tabular text-sm font-bold text-ink">
@@ -48,10 +48,10 @@ export function CompletitudDetalle({
       <ProgressBar porcentaje={porcentaje} tono={TONO_BARRA[tono]} className="mt-2" />
 
       {faltantes.length === 0 ? (
-        <p className="mt-2 text-xs text-success">Todo el contenido está diligenciado.</p>
+        <p className="mt-2 text-xs text-pri-text">Todo el contenido está diligenciado.</p>
       ) : onCompletar ? (
         <div className="mt-3">
-          <p className="text-xs text-ink-faint">
+          <p className="text-xs text-ink-3">
             {faltantes.length === 1
               ? "Falta un campo. Tócalo para completarlo:"
               : `Faltan ${faltantes.length} campos. Toca el que quieras completar:`}
@@ -62,7 +62,7 @@ export function CompletitudDetalle({
                 key={f.clave}
                 type="button"
                 onClick={() => onCompletar(f.clave)}
-                className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-800 ring-1 ring-inset ring-amber-200 transition-colors hover:bg-amber-100"
+                className="inline-flex items-center gap-1 rounded-md bg-amber/10 px-2.5 py-1 text-xs font-medium text-amber-ink ring-1 ring-inset ring-amber/30 transition-colors hover:bg-amber/20"
               >
                 <Plus className="h-3 w-3" /> {f.etiqueta}
               </button>
@@ -70,12 +70,12 @@ export function CompletitudDetalle({
           </div>
         </div>
       ) : (
-        <p className="mt-2 text-xs text-ink-faint">
+        <p className="mt-2 text-xs text-ink-3">
           Falta: {faltantes.map((f) => f.etiqueta).join(", ")}.
         </p>
       )}
 
-      <p className="mt-2 text-xs text-ink-faint">
+      <p className="mt-2 text-xs text-ink-3">
         A mayor completitud, mejor será el documento que genere la IA.
       </p>
     </div>

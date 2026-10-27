@@ -64,28 +64,28 @@ export function ProponerConvocatoria({
   return (
     <div className="space-y-4">
       {error && (
-        <p role="alert" className="flex items-start gap-2 rounded-lg bg-danger-bg px-3 py-2 text-sm text-danger">
+        <p role="alert" className="flex items-start gap-2 rounded-lg bg-rose/10 px-3 py-2 text-sm text-rose-ink">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {error}
         </p>
       )}
 
       {propuesta ? (
-        <div className="rounded-xl border border-line-soft bg-slate-50/60 p-4">
+        <div className="rounded-xl border border-line-2 bg-surface-2/60 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <Badge className={ESTADO_PROPUESTA_ESTILO[propuesta.estado]}>
               {propuesta.estado === "elegida" && <CheckCircle2 className="h-3 w-3" />}
               {ESTADO_PROPUESTA_LABEL[propuesta.estado]}
             </Badge>
             {propuesta.estado === "propuesta" && (
-              <Button variant="ghost" size="sm" className="text-ink-soft" disabled={enviando} onClick={retirar}>
+              <Button variant="ghost" size="sm" className="text-ink-2" disabled={enviando} onClick={retirar}>
                 <Undo2 className="h-3.5 w-3.5" /> Retirar propuesta
               </Button>
             )}
           </div>
-          <p className="mt-2 text-xs font-semibold text-ink-faint">Tu nota para {empresaNombre}</p>
-          <p className="whitespace-pre-line text-sm text-ink-soft">{propuesta.nota}</p>
+          <p className="mt-2 text-xs font-semibold text-ink-3">Tu nota para {empresaNombre}</p>
+          <p className="whitespace-pre-line text-sm text-ink-2">{propuesta.nota}</p>
           {propuesta.estado === "retirada" && (
-            <p className="mt-2 text-xs text-ink-faint">Una convocatoria se propone una sola vez por encargo.</p>
+            <p className="mt-2 text-xs text-ink-3">Una convocatoria se propone una sola vez por encargo.</p>
           )}
         </div>
       ) : admitePropuestas ? (
@@ -93,7 +93,7 @@ export function ProponerConvocatoria({
           <label htmlFor="nota-propuesta" className="block text-sm font-semibold text-ink">
             Proponer esta convocatoria a {empresaNombre}
           </label>
-          <p className="mt-0.5 text-xs text-ink-faint">
+          <p className="mt-0.5 text-xs text-ink-3">
             Explica por qué le sirve al proyecto. La empresa verá tu nota y el porcentaje de compatibilidad, y puede elegirla.
           </p>
           <textarea
@@ -103,10 +103,10 @@ export function ProponerConvocatoria({
             rows={4}
             maxLength={NOTA_MAXIMA}
             placeholder="Por ejemplo: financia proyectos del sector y el monto que busca la empresa está dentro del rango."
-            className="mt-2 w-full resize-none rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500"
+            className="mt-2 w-full resize-none rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
           />
           <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
-            <span className="text-xs text-ink-faint">
+            <span className="text-xs text-ink-3">
               {nota.trim().length.toLocaleString("es-CO")}/{NOTA_MAXIMA.toLocaleString("es-CO")}
             </span>
             <Button variant="primary" onClick={proponer} disabled={enviando || !nota.trim()}>
@@ -115,7 +115,7 @@ export function ProponerConvocatoria({
           </div>
         </div>
       ) : (
-        <p className="rounded-lg bg-slate-50 px-4 py-3 text-sm text-ink-soft">
+        <p className="rounded-lg bg-surface-2 px-4 py-3 text-sm text-ink-2">
           La empresa ya eligió una convocatoria para este encargo: ya no se admiten más propuestas.
         </p>
       )}
@@ -125,7 +125,7 @@ export function ProponerConvocatoria({
           href={urlPostulacion}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-700 hover:underline"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-violet-ink hover:underline"
         >
           <ExternalLink className="h-4 w-4" /> Ver en el portal de la entidad
         </a>

@@ -70,10 +70,10 @@ export function GestionCategorias({ categorias }: { categorias: CategoriaAdmin[]
   return (
     <div>
       <div className="mb-6 flex items-center gap-2">
-        <Tags className="h-5 w-5 text-primary-700" />
+        <Tags className="h-5 w-5 text-pri-text" />
         <div>
-          <h1 className="font-display text-2xl font-bold text-ink">Categorías</h1>
-          <p className="text-sm text-ink-soft">
+          <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Categorías</h1>
+          <p className="text-sm text-ink-2">
             Catálogo usado para clasificar convocatorias y proyectos, agrupado por tipo.
           </p>
         </div>
@@ -90,9 +90,9 @@ export function GestionCategorias({ categorias }: { categorias: CategoriaAdmin[]
           const items = categorias.filter((c) => c.tipo === tipo);
           const activas = items.filter((c) => c.activa).length;
           return (
-            <div key={tipo} className="rounded-2xl border border-line bg-white p-5">
+            <div key={tipo} className="rounded-2xl border border-line bg-surface p-5">
               <h2 className="font-display text-sm font-semibold text-ink">{TIPO_CATEGORIA_LABEL[tipo]}</h2>
-              <p className="mb-4 text-xs text-ink-faint">
+              <p className="mb-4 text-xs text-ink-3">
                 {activas} activas{items.length > activas ? ` · ${items.length - activas} inactivas` : ""}
               </p>
 
@@ -101,20 +101,20 @@ export function GestionCategorias({ categorias }: { categorias: CategoriaAdmin[]
                   <li
                     key={c.id}
                     className={cn(
-                      "flex items-center justify-between gap-2 rounded-lg border border-line-soft px-3 py-2",
-                      !c.activa && "bg-slate-50 opacity-70"
+                      "flex items-center justify-between gap-2 rounded-lg border border-line-2 px-3 py-2",
+                      !c.activa && "bg-surface-2 opacity-70"
                     )}
                   >
                     {c.activa ? (
                       <Chip tono={c.tipo}>{c.nombre}</Chip>
                     ) : (
-                      <span className="text-xs text-ink-faint line-through">{c.nombre}</span>
+                      <span className="text-xs text-ink-3 line-through">{c.nombre}</span>
                     )}
                     <div className="flex shrink-0 items-center gap-2">
                       <button
                         onClick={() => alternarActiva(c)}
                         disabled={ocupado === c.id}
-                        className="text-ink-faint hover:text-primary-800 disabled:opacity-50"
+                        className="text-ink-3 hover:text-pri-text disabled:opacity-50"
                         aria-label={c.activa ? `Desactivar ${c.nombre}` : `Activar ${c.nombre}`}
                         title={c.activa ? "Desactivar" : "Activar"}
                       >
@@ -124,7 +124,7 @@ export function GestionCategorias({ categorias }: { categorias: CategoriaAdmin[]
                         <button
                           onClick={() => borrar(c)}
                           disabled={ocupado === c.id}
-                          className="text-ink-faint hover:text-danger disabled:opacity-50"
+                          className="text-ink-3 hover:text-rose-ink disabled:opacity-50"
                           aria-label={`Borrar ${c.nombre}`}
                           title="Borrar"
                         >
@@ -132,7 +132,7 @@ export function GestionCategorias({ categorias }: { categorias: CategoriaAdmin[]
                         </button>
                       ) : (
                         <span
-                          className="font-tabular text-xs text-ink-faint"
+                          className="font-tabular text-xs text-ink-3"
                           title={`La usan ${c.usos} convocatoria(s), así que ya no se puede borrar: desactívala`}
                         >
                           {c.usos}
@@ -148,7 +148,7 @@ export function GestionCategorias({ categorias }: { categorias: CategoriaAdmin[]
                   e.preventDefault();
                   agregar(tipo);
                 }}
-                className="mt-4 flex gap-2 border-t border-line-soft pt-4"
+                className="mt-4 flex gap-2 border-t border-line-2 pt-4"
               >
                 <input
                   value={nuevoNombre[tipo]}
@@ -156,7 +156,7 @@ export function GestionCategorias({ categorias }: { categorias: CategoriaAdmin[]
                   placeholder="Nueva categoría..."
                   aria-label={`Nueva categoría de ${TIPO_CATEGORIA_LABEL[tipo]}`}
                   maxLength={100}
-                  className="flex-1 rounded-lg border border-line px-3 py-1.5 text-sm outline-none focus:border-primary-500"
+                  className="flex-1 rounded-lg border border-line px-3 py-1.5 text-sm outline-none focus:border-pri bg-surface text-ink"
                 />
                 <Button type="submit" variant="secondary" size="sm" disabled={ocupado === tipo} aria-label="Agregar">
                   <Plus className="h-3.5 w-3.5" />

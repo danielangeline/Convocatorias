@@ -65,8 +65,8 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
   if (!convocatoria) {
     return (
       <div className="py-20 text-center">
-        <p className="text-ink-soft">No encontramos esta convocatoria.</p>
-        <Link href="/convocatorias" className="mt-3 inline-block text-sm font-semibold text-primary-700 hover:underline">
+        <p className="text-ink-2">No encontramos esta convocatoria.</p>
+        <Link href="/convocatorias" className="mt-3 inline-block text-sm font-semibold text-pri-text hover:underline">
           Volver al catálogo
         </Link>
       </div>
@@ -113,36 +113,36 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
     <div className="mx-auto max-w-4xl">
       <Link
         href={`/convocatorias/${convocatoria.id}`}
-        className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-soft hover:text-primary-800"
+        className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-2 hover:text-pri-text"
       >
         <ArrowLeft className="h-4 w-4" /> Volver a la convocatoria
       </Link>
 
       <div className="mb-6">
-        <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-teal-700">
+        <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-violet-ink">
           <Sparkles className="h-3.5 w-3.5" /> Generar documento con IA
         </p>
-        <h1 className="mt-1 font-display text-2xl font-bold text-ink">{convocatoria.nombre}</h1>
-        <p className="mt-1 text-sm text-ink-soft">{convocatoria.entidadConvocante}</p>
+        <h1 className="mt-1 text-[26px] font-extrabold tracking-[-0.025em] text-ink">{convocatoria.nombre}</h1>
+        <p className="mt-1 text-sm text-ink-2">{convocatoria.entidadConvocante}</p>
       </div>
 
-      <div className="mb-6 flex items-center justify-between gap-3 rounded-xl border border-teal-100 bg-teal-50/60 px-5 py-3">
-        <p className="text-sm text-teal-800">
+      <div className="mb-6 flex items-center justify-between gap-3 rounded-xl border border-violet/30 bg-violet/10 px-5 py-3">
+        <p className="text-sm text-violet-ink">
           Te quedan <strong>{textoCreditos(disponibles)}</strong>. Generar consumirá {textoCreditos(costo)}.
         </p>
       </div>
 
       {generando ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-teal-100 bg-teal-50/30 px-6 py-20 text-center">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-teal-200 border-t-teal-600" />
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-violet/30 bg-violet/10 px-6 py-20 text-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-violet/30 border-t-teal-600" />
           <p className="mt-5 font-display text-base font-semibold text-ink">Generando tu documento…</p>
-          <p className="mt-1.5 text-sm text-ink-soft">{MENSAJES_CARGA[mensajeIndex]}</p>
+          <p className="mt-1.5 text-sm text-ink-2">{MENSAJES_CARGA[mensajeIndex]}</p>
         </div>
       ) : error ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-danger/30 bg-danger-bg px-6 py-16 text-center">
-          <XCircle className="h-10 w-10 text-danger" />
-          <p className="mt-4 font-display text-base font-semibold text-danger">No pudimos generar el documento</p>
-          <p className="mt-1.5 max-w-sm text-sm text-danger/90">
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-rose/30 bg-rose/10 px-6 py-16 text-center">
+          <XCircle className="h-10 w-10 text-rose-ink" />
+          <p className="mt-4 font-display text-base font-semibold text-rose-ink">No pudimos generar el documento</p>
+          <p className="mt-1.5 max-w-sm text-sm text-rose-ink">
             {error}
           </p>
           <Button variant="danger" className="mt-5" onClick={iniciarGeneracion}>
@@ -172,7 +172,7 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
                   onClick={() => setSeleccionId(p.id)}
                   className={cn(
                     "flex flex-col rounded-2xl border p-5 text-left transition-colors",
-                    activo ? "border-teal-500 bg-teal-50/40 ring-1 ring-teal-200" : "border-line hover:border-teal-200"
+                    activo ? "border-violet bg-violet/10 ring-1 ring-violet/30" : "border-line hover:border-violet/30"
                   )}
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -195,9 +195,9 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
           </div>
 
           {documentoExistente && (
-            <div className="mt-5 flex items-start gap-3 rounded-xl border border-teal-200 bg-teal-50 px-4 py-3">
-              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-teal-700" />
-              <p className="text-sm text-teal-900">
+            <div className="mt-5 flex items-start gap-3 rounded-xl border border-violet/30 bg-violet/10 px-4 py-3">
+              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-violet-ink" />
+              <p className="text-sm text-violet-ink">
                 Ya tienes un documento de este proyecto para esta convocatoria (versión {documentoExistente.version}).{" "}
                 <Link href={`/documentos/${documentoExistente.id}`} className="font-semibold underline">
                   Editar documento
@@ -208,9 +208,9 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
           )}
 
           {proyectoSeleccionado && completitudSeleccionado && completitudSeleccionado.porcentaje < 50 && (
-            <div className="mt-5 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-              <p className="text-sm text-amber-800">
+            <div className="mt-5 flex items-start gap-3 rounded-xl border border-amber/30 bg-amber/10 px-4 py-3">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-ink" />
+              <p className="text-sm text-amber-ink">
                 Este proyecto tiene poco contenido diligenciado ({completitudSeleccionado.porcentaje}%). El documento
                 tendrá varios datos marcados como pendientes.{" "}
                 <Link href={`/proyectos/${proyectoSeleccionado.id}`} className="font-semibold underline">
@@ -220,7 +220,7 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
             </div>
           )}
 
-          <p className="mt-6 text-xs text-ink-faint">
+          <p className="mt-6 text-xs text-ink-3">
             El contenido del proyecto y de la convocatoria se procesa con un proveedor externo de IA. El documento es
             una base: los datos que falten quedan marcados como pendientes, nunca se inventan.
           </p>

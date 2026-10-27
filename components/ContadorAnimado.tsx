@@ -21,7 +21,7 @@ export function ContadorAnimado({
   variante?: "entero" | "cop-corto";
 }) {
   return (
-    <span className="animar-entrada font-tabular font-display text-2xl font-bold text-primary-800">
+    <span className="animar-entrada font-tabular font-display text-2xl font-bold text-pri-text">
       {prefijo}
       {variante === "cop-corto" ? formatCOPCorto(valor) : valor.toLocaleString("es-CO")}
       {sufijo}

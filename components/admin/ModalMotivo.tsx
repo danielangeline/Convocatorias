@@ -30,9 +30,9 @@ export function ModalMotivo({
   const [motivo, setMotivo] = useState("");
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary-950/40 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/ p-4">
       <form role="dialog" aria-modal="true" aria-labelledby="titulo-motivo"
-        className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+        className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl"
         onSubmit={(evento) => {
           evento.preventDefault();
           if (motivo.trim()) onConfirmar(motivo.trim());
@@ -40,12 +40,12 @@ export function ModalMotivo({
       >
         <div className="mb-4 flex items-center justify-between">
           <h3 id="titulo-motivo" className="font-display text-lg font-semibold text-ink">{titulo}</h3>
-          <button type="button" onClick={onCerrar} className="text-ink-faint hover:text-ink" aria-label="Cerrar">
+          <button type="button" onClick={onCerrar} className="text-ink-3 hover:text-ink" aria-label="Cerrar">
             <X className="h-5 w-5" />
           </button>
         </div>
-        <div className="mb-4 text-sm text-ink-soft">{explicacion}</div>
-        <label htmlFor="motivo" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+        <div className="mb-4 text-sm text-ink-2">{explicacion}</div>
+        <label htmlFor="motivo" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3">
           Motivo
         </label>
         <textarea
@@ -56,7 +56,7 @@ export function ModalMotivo({
           maxLength={1000}
           autoFocus
           placeholder="El consultor verá este texto."
-          className="w-full resize-none rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500"
+          className="w-full resize-none rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
         />
         {error && (
           <div className="mt-3">

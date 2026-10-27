@@ -33,21 +33,21 @@ export function VistaSuscripcion({ rol, pagos }: { rol: RolPlan; pagos: Pago[] }
   return (
     <div className="mx-auto max-w-4xl">
       <div className="mb-6">
-        <h1 className="font-display text-2xl font-bold text-ink">Mi suscripción</h1>
-        <p className="text-sm text-ink-soft">
+        <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Mi suscripción</h1>
+        <p className="text-sm text-ink-2">
           {rol === "empresa" ? "El plan de tu empresa en la plataforma." : "Tu plan como consultor en la plataforma."}
         </p>
       </div>
 
-      <div className="rounded-2xl border border-line p-6">
+      <div className="rounded-2xl border border-line p-6 bg-surface shadow-card">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-faint">
+            <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-3">
               <CreditCard className="h-3.5 w-3.5" /> Plan actual
             </p>
             <p className="mt-1 font-display text-xl font-bold text-ink">{planActual?.nombre ?? "Sin plan activo"}</p>
             {suscripcion && suscripcion.modalidad !== "trial" && (
-              <p className="text-sm text-ink-soft">
+              <p className="text-sm text-ink-2">
                 {suscripcion.modalidad === "anual" ? "Anual" : "Mensual"} · desde el {formatFecha(suscripcion.fechaInicio)}
               </p>
             )}
@@ -56,14 +56,14 @@ export function VistaSuscripcion({ rol, pagos }: { rol: RolPlan; pagos: Pago[] }
             <div className="flex items-center gap-3">
               <Badge className={ESTADO_SUSCRIPCION_ESTILO[suscripcion.estado]}>{ESTADO_SUSCRIPCION_LABEL[suscripcion.estado]}</Badge>
               <div className="text-right text-sm">
-                <p className="text-ink-faint">{suscripcion.estado === "vencida" ? "Venció el" : "Vence el"}</p>
+                <p className="text-ink-3">{suscripcion.estado === "vencida" ? "Venció el" : "Vence el"}</p>
                 <p className="font-medium text-ink">{formatFecha(suscripcion.fechaVencimiento)}</p>
               </div>
             </div>
           )}
         </div>
 
-        <p className="mt-3 text-sm text-ink-soft">
+        <p className="mt-3 text-sm text-ink-2">
           {!suscripcion
             ? rol === "consultor"
               ? "Aún no tienes un plan. Mientras dure el piloto, puedes aparecer en el directorio y recibir encargos sin él."
@@ -85,14 +85,14 @@ export function VistaSuscripcion({ rol, pagos }: { rol: RolPlan; pagos: Pago[] }
       <div className="mt-8">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-display text-base font-semibold text-ink">Planes disponibles</h2>
-          <div className="flex items-center gap-1 rounded-lg bg-slate-100 p-1 text-sm font-semibold" role="group" aria-label="Modalidad">
+          <div className="flex items-center gap-1 rounded-lg bg-surface-2 p-1 text-sm font-semibold" role="group" aria-label="Modalidad">
             {(["mensual", "anual"] as const).map((m) => (
               <button
                 key={m}
                 type="button"
                 aria-pressed={modalidad === m}
                 onClick={() => setModalidad(m)}
-                className={cn("rounded-md px-3 py-1 transition-colors", modalidad === m ? "bg-white text-primary-800 shadow-sm" : "text-ink-soft")}
+                className={cn("rounded-md px-3 py-1 transition-colors", modalidad === m ? "bg-surface text-pri-text shadow-sm" : "text-ink-2")}
               >
                 {m === "mensual" ? "Mensual" : "Anual"}
               </button>
@@ -101,7 +101,7 @@ export function VistaSuscripcion({ rol, pagos }: { rol: RolPlan; pagos: Pago[] }
         </div>
 
         {disponibles.length === 0 ? (
-          <p className="text-sm text-ink-faint">No hay planes disponibles en este momento.</p>
+          <p className="text-sm text-ink-3">No hay planes disponibles en este momento.</p>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {disponibles.map((plan) => {
@@ -109,22 +109,22 @@ export function VistaSuscripcion({ rol, pagos }: { rol: RolPlan; pagos: Pago[] }
               const ahorro = plan.precioMensual * 12 - plan.precioAnual;
               const esActual = planActual?.id === plan.id && !vencida;
               return (
-                <div key={plan.id} className={cn("flex flex-col rounded-2xl border p-5", esActual ? "border-primary-500 ring-1 ring-primary-100" : "border-line")}>
+                <div key={plan.id} className={cn("flex flex-col rounded-2xl border p-5", esActual ? "border-pri ring-1 ring-pri-soft" : "border-line")}>
                   <div className="flex items-center justify-between">
                     <h3 className="font-display text-base font-semibold text-ink">{plan.nombre}</h3>
-                    {esActual && <Badge className="bg-primary-50 text-primary-800 ring-primary-100">Tu plan</Badge>}
+                    {esActual && <Badge className="bg-pri-soft text-pri-text ring-pri-soft">Tu plan</Badge>}
                   </div>
                   <p className="mt-2">
-                    <span className="font-tabular text-2xl font-bold text-primary-800">{formatCOP(precio)}</span>
-                    <span className="text-sm text-ink-faint"> / {modalidad === "anual" ? "año" : "mes"}</span>
+                    <span className="font-tabular text-2xl font-bold text-pri-text">{formatCOP(precio)}</span>
+                    <span className="text-sm text-ink-3"> / {modalidad === "anual" ? "año" : "mes"}</span>
                   </p>
                   {modalidad === "anual" && ahorro > 0 && (
-                    <p className="text-xs font-semibold text-gold-600">Ahorras {formatCOP(ahorro)} frente a pagar mes a mes</p>
+                    <p className="text-xs font-semibold text-amber-ink">Ahorras {formatCOP(ahorro)} frente a pagar mes a mes</p>
                   )}
-                  <ul className="mt-4 flex-1 space-y-2 text-sm text-ink-soft">
+                  <ul className="mt-4 flex-1 space-y-2 text-sm text-ink-2">
                     {beneficiosDePlan(plan, tarifaDocumento).map((b) => (
-                      <li key={b.texto} className={cn("flex items-start gap-2", b.destacado && "font-semibold text-teal-700")}>
-                        {b.destacado ? <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0" /> : <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" />}
+                      <li key={b.texto} className={cn("flex items-start gap-2", b.destacado && "font-semibold text-violet-ink")}>
+                        {b.destacado ? <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0" /> : <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-pri-text" />}
                         {b.texto}
                       </li>
                     ))}
@@ -138,7 +138,7 @@ export function VistaSuscripcion({ rol, pagos }: { rol: RolPlan; pagos: Pago[] }
                     {esActual ? "Plan actual" : "Quiero este plan"}
                   </Button>
                   {elegido === plan.id && (
-                    <p role="status" className="mt-3 flex items-start gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs text-ink-soft">
+                    <p role="status" className="mt-3 flex items-start gap-2 rounded-lg bg-surface-2 px-3 py-2 text-xs text-ink-2">
                       <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                       {CONTRATAR_EN_PILOTO}
                     </p>
@@ -155,22 +155,22 @@ export function VistaSuscripcion({ rol, pagos }: { rol: RolPlan; pagos: Pago[] }
           <Receipt className="h-4 w-4" /> Historial de pagos
         </h2>
         {pagos.length === 0 ? (
-          <p className="mt-2 text-sm text-ink-faint">Aún no hay pagos registrados.</p>
+          <p className="mt-2 text-sm text-ink-3">Aún no hay pagos registrados.</p>
         ) : (
-          <div className="mt-3 overflow-x-auto rounded-2xl border border-line bg-white">
+          <div className="mt-3 overflow-x-auto rounded-2xl border border-line bg-surface">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-line bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-ink-faint">
+                <tr className="border-b border-line bg-surface-2 text-left text-xs font-semibold uppercase tracking-wide text-ink-3">
                   <th className="px-5 py-3">Fecha</th>
                   <th className="px-5 py-3">Concepto</th>
                   <th className="px-5 py-3 text-right">Monto</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-line-soft">
+              <tbody className="divide-y divide-line-2">
                 {pagos.map((p) => (
                   <tr key={p.id}>
-                    <td className="px-5 py-3 text-ink-soft">{formatFecha(p.fecha)}</td>
-                    <td className="px-5 py-3 text-ink-soft">
+                    <td className="px-5 py-3 text-ink-2">{formatFecha(p.fecha)}</td>
+                    <td className="px-5 py-3 text-ink-2">
                       {p.concepto === "paquete"
                         ? `Paquete de ${p.creditos} créditos de IA`
                         : `${p.planNombre ?? "Plan"}${p.modalidad ? ` · ${p.modalidad}` : ""}`}

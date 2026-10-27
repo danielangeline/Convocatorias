@@ -111,16 +111,16 @@ export function GestionPlantillas({ plantillas, tipo = "documento" }: { plantill
     router.refresh();
   };
 
-  const campo = "w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-teal-500";
+  const campo = "w-full rounded-lg border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-violet";
 
   return (
     <div>
       <div className="mb-6">
-        <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-teal-700">
+        <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-violet-ink">
           <Sparkles className="h-3.5 w-3.5" /> Módulo de IA
         </p>
-        <h1 className="mt-1 font-display text-2xl font-bold text-ink">Plantillas de la IA</h1>
-        <p className="text-sm text-ink-soft">{textos.descripcion}</p>
+        <h1 className="mt-1 text-[26px] font-extrabold tracking-[-0.025em] text-ink">Plantillas de la IA</h1>
+        <p className="text-sm text-ink-2">{textos.descripcion}</p>
       </div>
 
       <nav aria-label="Plantillas" className="mb-5 flex gap-1 border-b border-line">
@@ -136,7 +136,7 @@ export function GestionPlantillas({ plantillas, tipo = "documento" }: { plantill
             aria-current={tipo === clave ? "page" : undefined}
             className={cn(
               "-mb-px border-b-2 px-3 py-2 text-sm font-semibold transition-colors",
-              tipo === clave ? "border-teal-600 text-teal-700" : "border-transparent text-ink-soft hover:text-ink"
+              tipo === clave ? "border-violet text-violet-ink" : "border-transparent text-ink-2 hover:text-ink"
             )}
           >
             {nombre}
@@ -144,7 +144,7 @@ export function GestionPlantillas({ plantillas, tipo = "documento" }: { plantill
         ))}
       </nav>
 
-      <div className="mb-6 flex items-start gap-2 rounded-xl border border-line-soft bg-slate-50 px-4 py-3 text-xs text-ink-faint">
+      <div className="mb-6 flex items-start gap-2 rounded-xl border border-line-2 bg-surface-2 px-4 py-3 text-xs text-ink-3">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
         {textos.aviso}
       </div>
@@ -164,17 +164,17 @@ export function GestionPlantillas({ plantillas, tipo = "documento" }: { plantill
               onClick={() => elegir(p)}
               className={cn(
                 "block w-full rounded-xl border p-4 text-left transition-colors",
-                seleccionada?.id === p.id ? "border-teal-400 bg-teal-50/40" : "border-line hover:border-teal-200"
+                seleccionada?.id === p.id ? "border-violet/30 bg-violet/10" : "border-line hover:border-violet/30"
               )}
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="font-display text-sm font-semibold text-ink">Versión {p.version}</span>
-                {p.activa && <Badge className="bg-teal-50 text-teal-700 ring-teal-200">Activa</Badge>}
+                {p.activa && <Badge className="bg-violet/10 text-violet-ink ring-violet/30">Activa</Badge>}
               </div>
-              <p className="mt-1 break-words text-xs text-ink-faint">
+              <p className="mt-1 break-words text-xs text-ink-3">
                 {p.modelo} · creada el {fechaHoraColombia(p.creadoAt)}
               </p>
-              <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-ink-soft">
+              <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs text-ink-2">
                 <dt>{textos.hechos}</dt>
                 <dd className="text-right font-medium text-ink">{p.documentos.toLocaleString("es-CO")}</dd>
                 <dt>Fallidas</dt>
@@ -198,8 +198,8 @@ export function GestionPlantillas({ plantillas, tipo = "documento" }: { plantill
           ))}
         </div>
 
-        <div className="min-w-0 rounded-2xl border border-line bg-white p-4 sm:p-6">
-          <label htmlFor="plantilla-contenido" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+        <div className="min-w-0 rounded-2xl border border-line bg-surface p-4 sm:p-6">
+          <label htmlFor="plantilla-contenido" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3">
             Instrucción {seleccionada && `(a partir de la versión ${seleccionada.version})`}
           </label>
           <textarea
@@ -207,31 +207,31 @@ export function GestionPlantillas({ plantillas, tipo = "documento" }: { plantill
             value={borrador.contenido}
             onChange={(e) => setBorrador({ ...borrador, contenido: e.target.value })}
             rows={18}
-            className="w-full resize-y rounded-lg border border-line px-4 py-3 font-mono text-sm leading-relaxed outline-none focus:border-teal-500"
+            className="w-full resize-y rounded-lg border border-line px-4 py-3 font-mono text-sm leading-relaxed outline-none focus:border-violet bg-surface text-ink"
           />
-          <p className="mt-1 text-right text-xs text-ink-faint">{borrador.contenido.trim().length.toLocaleString("es-CO")} caracteres</p>
+          <p className="mt-1 text-right text-xs text-ink-3">{borrador.contenido.trim().length.toLocaleString("es-CO")} caracteres</p>
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <label className="block text-sm">
-              <span className="mb-1 block text-xs font-semibold text-ink-soft">Modelo de OpenAI</span>
+              <span className="mb-1 block text-xs font-semibold text-ink-2">Modelo de OpenAI</span>
               <input className={campo} value={borrador.modelo} onChange={(e) => setBorrador({ ...borrador, modelo: e.target.value })} />
             </label>
             {tipo === "documento" && (
               <label className="block text-sm">
-                <span className="mb-1 block text-xs font-semibold text-ink-soft">Tope del TDR (caracteres)</span>
+                <span className="mb-1 block text-xs font-semibold text-ink-2">Tope del TDR (caracteres)</span>
                 <input className={campo} inputMode="numeric" value={borrador.tope} onChange={(e) => setBorrador({ ...borrador, tope: e.target.value })} />
               </label>
             )}
             <label className="block text-sm">
-              <span className="mb-1 block text-xs font-semibold text-ink-soft">Precio de entrada (USD por millón de tokens)</span>
+              <span className="mb-1 block text-xs font-semibold text-ink-2">Precio de entrada (USD por millón de tokens)</span>
               <input className={campo} inputMode="decimal" value={borrador.entrada} onChange={(e) => setBorrador({ ...borrador, entrada: e.target.value })} />
             </label>
             <label className="block text-sm">
-              <span className="mb-1 block text-xs font-semibold text-ink-soft">Precio de salida (USD por millón de tokens)</span>
+              <span className="mb-1 block text-xs font-semibold text-ink-2">Precio de salida (USD por millón de tokens)</span>
               <input className={campo} inputMode="decimal" value={borrador.salida} onChange={(e) => setBorrador({ ...borrador, salida: e.target.value })} />
             </label>
           </div>
-          <p className="mt-2 text-xs text-ink-faint">Los precios se copian de la tabla del proveedor y sirven para el costo estimado de cada uso.</p>
+          <p className="mt-2 text-xs text-ink-3">Los precios se copian de la tabla del proveedor y sirven para el costo estimado de cada uso.</p>
 
           <div className="mt-5 flex flex-wrap justify-end gap-3">
             {seleccionada && !seleccionada.activa && (

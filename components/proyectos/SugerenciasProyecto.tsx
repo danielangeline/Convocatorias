@@ -17,9 +17,9 @@ import { Button, LinkButton } from "@/components/ui/Button";
  */
 
 function colorCompatibilidad(porcentaje: number): string {
-  if (porcentaje >= 80) return "text-success";
-  if (porcentaje >= 40) return "text-gold-600";
-  return "text-ink-faint";
+  if (porcentaje >= 80) return "text-pri-text";
+  if (porcentaje >= 40) return "text-amber-ink";
+  return "text-ink-3";
 }
 
 function AnilloCompatibilidad({ porcentaje }: { porcentaje: number }) {
@@ -53,13 +53,13 @@ function Criterio({ c }: { c: CriterioEvaluado }) {
   return (
     <div className="flex items-center gap-1.5 text-xs">
       {c.estado === "cumple" ? (
-        <Check className="h-3.5 w-3.5 shrink-0 text-success" aria-hidden="true" />
+        <Check className="h-3.5 w-3.5 shrink-0 text-pri-text" aria-hidden="true" />
       ) : c.estado === "sin_dato" ? (
-        <CircleDashed className="h-3.5 w-3.5 shrink-0 text-ink-faint" aria-hidden="true" />
+        <CircleDashed className="h-3.5 w-3.5 shrink-0 text-ink-3" aria-hidden="true" />
       ) : (
-        <XIcon className="h-3.5 w-3.5 shrink-0 text-ink-faint" aria-hidden="true" />
+        <XIcon className="h-3.5 w-3.5 shrink-0 text-ink-3" aria-hidden="true" />
       )}
-      <span className={c.estado === "cumple" ? "text-ink" : "text-ink-faint"}>
+      <span className={c.estado === "cumple" ? "text-ink" : "text-ink-3"}>
         {c.etiqueta}
         {c.estado === "sin_dato" && " · falta el dato"}
         <span className="sr-only">{c.estado === "cumple" ? ": coincide" : c.estado === "sin_dato" ? "" : ": no coincide"}</span>
@@ -129,7 +129,7 @@ export function TarjetaSugerencia({ s, href }: { s: Sugerencia; href?: string })
   return (
     <Link
       href={href ?? `/convocatorias/${convocatoria.id}`}
-      className="block rounded-2xl border border-line p-5 transition-colors hover:border-primary-200 hover:bg-primary-50/30"
+      className="block rounded-2xl border border-line p-5 transition-colors hover:border-line hover:bg-pri-soft/30"
     >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-start gap-4">
@@ -140,13 +140,13 @@ export function TarjetaSugerencia({ s, href }: { s: Sugerencia; href?: string })
                 {ESTADO_CONVOCATORIA_LABEL[convocatoria.estado]}
               </Badge>
               {dias >= 0 && dias < 15 && (
-                <Badge className="bg-gold-50 text-gold-700 ring-gold-200">
+                <Badge className="bg-amber/10 text-amber-ink ring-amber/30">
                   Cierra en {dias} {dias === 1 ? "día" : "días"}
                 </Badge>
               )}
             </div>
             <h3 className="mt-2 font-display text-base font-semibold text-ink">{convocatoria.nombre}</h3>
-            <p className="text-sm text-ink-soft">{convocatoria.entidadConvocante}</p>
+            <p className="text-sm text-ink-2">{convocatoria.entidadConvocante}</p>
           </div>
         </div>
         <div className="text-right">
@@ -154,13 +154,13 @@ export function TarjetaSugerencia({ s, href }: { s: Sugerencia; href?: string })
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-2 border-t border-line-soft pt-4 sm:grid-cols-5">
+      <div className="mt-4 grid grid-cols-2 gap-2 border-t border-line-2 pt-4 sm:grid-cols-5">
         {criterios.map((c) => (
           <Criterio key={c.clave} c={c} />
         ))}
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-ink-faint">
+      <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-ink-3">
         <span className="flex items-center gap-1">
           <Wallet className="h-3.5 w-3.5" />
           <span className="font-tabular">{formatRangoCOP(convocatoria.montoMin, convocatoria.montoMax)}</span>
@@ -177,7 +177,7 @@ function Volver() {
   return (
     <Link
       href="/proyectos"
-      className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-soft hover:text-primary-800"
+      className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-2 hover:text-pri-text"
     >
       <ArrowLeft className="h-4 w-4" /> Volver a mis proyectos
     </Link>
@@ -208,8 +208,8 @@ export function SugerenciasProyecto({ resultado, error }: { resultado: Resultado
   if (!resultado) {
     return (
       <div className="py-20 text-center">
-        <p className="text-ink-soft">{error?.status === 404 || !error ? "No encontramos este proyecto." : error.texto}</p>
-        <Link href="/proyectos" className="mt-3 inline-block text-sm font-semibold text-primary-700 hover:underline">
+        <p className="text-ink-2">{error?.status === 404 || !error ? "No encontramos este proyecto." : error.texto}</p>
+        <Link href="/proyectos" className="mt-3 inline-block text-sm font-semibold text-pri-text hover:underline">
           Volver a mis proyectos
         </Link>
       </div>
@@ -223,14 +223,14 @@ export function SugerenciasProyecto({ resultado, error }: { resultado: Resultado
       <Volver />
 
       <div className="mb-6">
-        <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-gold-700">
+        <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-amber-ink">
           <Sparkles className="h-3.5 w-3.5" /> Sugerencias para
         </p>
-        <h1 className="mt-1 font-display text-2xl font-bold text-ink">{proyecto.nombre}</h1>
-        <p className="mt-1 text-sm text-ink-soft">
+        <h1 className="mt-1 text-[26px] font-extrabold tracking-[-0.025em] text-ink">{proyecto.nombre}</h1>
+        <p className="mt-1 text-sm text-ink-2">
           Comparamos las categorías, el monto y el departamento de tu proyecto contra cada convocatoria vigente.
         </p>
-        <p className="mt-2 flex items-center gap-1.5 text-xs text-ink-faint">
+        <p className="mt-2 flex items-center gap-1.5 text-xs text-ink-3">
           <Info className="h-3.5 w-3.5" /> Cálculo por coincidencia de criterios, no es una predicción de éxito.
         </p>
       </div>
@@ -241,7 +241,7 @@ export function SugerenciasProyecto({ resultado, error }: { resultado: Resultado
           {cercanas.length > 0 && (
             <section className="mt-8">
               <h2 className="font-display text-base font-semibold text-ink">Las vigentes más cercanas</h2>
-              <p className="mb-4 mt-1 text-sm text-ink-soft">
+              <p className="mb-4 mt-1 text-sm text-ink-2">
                 Ninguna coincide todavía; el desglose muestra en qué criterio falla cada una.
               </p>
               <div className="space-y-4">

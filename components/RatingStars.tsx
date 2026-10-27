@@ -24,7 +24,7 @@ export function RatingStars({
             key={i}
             className={cn(
               tamanoIcono,
-              i < redondeado ? "fill-gold-500 text-gold-500" : "fill-transparent text-line"
+              i < redondeado ? "fill-amber text-amber-ink" : "fill-transparent text-line"
             )}
             strokeWidth={1.5}
           />
@@ -34,7 +34,7 @@ export function RatingStars({
         {formatRating(valor)}
       </span>
       {typeof totalResenas === "number" && (
-        <span className={cn("text-ink-faint", tamanoTexto)}>
+        <span className={cn("text-ink-3", tamanoTexto)}>
           ({totalResenas} {totalResenas === 1 ? "reseña" : "reseñas"})
         </span>
       )}

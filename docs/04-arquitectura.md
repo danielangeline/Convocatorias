@@ -58,7 +58,7 @@ Cada ruta declara los roles que admite (RNF-30). El rol se verifica en el servid
 | Ruta | Pantalla | Rol | CU |
 |---|---|---|---|
 | `/registro` | Registro por una de las **dos puertas** —"Soy empresa o entidad" o "Soy consultor"—, que fija el rol; exige confirmar el correo antes de entrar. `?puerta=consultor` preselecciona esa puerta; sin parámetro, la de empresa *(mod. v6)* | pública | CU-14 |
-| `/login` | Inicio de sesión con las mismas dos puertas (`?puerta=` como en el registro), que solo orientan: la cuenta va al inicio de su rol (`/convocatorias`, `/consultor/perfil`) con aviso si la puerta no coincidía —el inicio recibe `?aviso=puerta`, el portal lo muestra y lo quita de la dirección—; el administrador va a `/mfa` sin aviso (RF-84) | pública | CU-14 |
+| `/login` | Inicio de sesión con las mismas dos puertas (`?puerta=` como en el registro), que solo orientan: la cuenta va al inicio de su rol (`/inicio`, `/consultor/perfil`) con aviso si la puerta no coincidía —el inicio recibe `?aviso=puerta`, el portal lo muestra y lo quita de la dirección—; el administrador va a `/mfa` sin aviso (RF-84) | pública | CU-14 |
 | `/auth/confirmar` | Destino del enlace de confirmación de correo (intercambia el código por la sesión) | pública | CU-14 |
 | `/auth/recuperar` | Pedir el enlace de recuperación de contraseña con el correo. Responde lo mismo exista o no la cuenta; el enlace lleva a `/auth/definir-contrasena` (RF-03) *(nuevo v6, sesión 010)* | pública | CU-14 |
 | `/auth/definir-contrasena` | Definir contraseña al aceptar una invitación de administrador (y al recuperar la contraseña, RF-03) | con enlace válido | CU-42 |
@@ -70,6 +70,7 @@ Cada ruta declara los roles que admite (RNF-30). El rol se verifica en el servid
 |---|---|---|---|
 | `/` | Landing con **indicadores agregados del catálogo** —ninguna convocatoria visible sin cuenta de empresa, RN-33— y las dos puertas de entrada | pública | CU-14, CU-36 |
 | `/convocatorias` | Catálogo con búsqueda, filtros y **chips sugeridos**; las cerradas quedan fuera por defecto y solo aparecen bajo filtro explícito (RF-11, RN-02) | empresa | CU-07 |
+| `/inicio` | Inicio de la empresa: indicadores, fondos por mes de cierre, próximos cierres, sugeridas y avance de postulaciones, solo con datos reales (RF-101) *(nuevo v6, sesión 031)* | empresa | CU-44 |
 | `/convocatorias/[id]` | Ficha con botones **"Postular"**, **"Generar documento con IA"** e **"Ir al portal de la entidad"** *(v5)* | empresa | CU-08, 11, 33 |
 | `/convocatorias/[id]/generar` | Selección de proyecto, aviso de cupo y confirmación | empresa | CU-33 |
 | `/proyectos` · `/proyectos/[id]` | Lista y ficha del proyecto con **indicador de completitud accionable —los campos faltantes se editan aquí mismo (RF-81)**—, botón "Solicitar consultor" y "Generar documento para..." | empresa | CU-09, 19, 33 |

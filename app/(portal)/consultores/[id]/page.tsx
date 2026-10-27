@@ -14,8 +14,8 @@ export default async function PerfilConsultorPage({ params }: { params: Promise<
   if (!consultor) {
     return (
       <div className="py-20 text-center">
-        <p className="text-ink-soft">No encontramos este consultor.</p>
-        <Link href="/consultores" className="mt-3 inline-block text-sm font-semibold text-primary-700 hover:underline">
+        <p className="text-ink-2">No encontramos este consultor.</p>
+        <Link href="/consultores" className="mt-3 inline-block text-sm font-semibold text-pri-text hover:underline">
           Volver al directorio
         </Link>
       </div>

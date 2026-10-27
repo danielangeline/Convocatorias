@@ -38,11 +38,11 @@ export function TarifasIA({ tarifas }: { tarifas: Tarifas }) {
   };
 
   return (
-    <div className="mt-10 rounded-2xl border border-teal-100 bg-teal-50/20 p-4 sm:p-6">
+    <div className="mt-10 rounded-2xl border border-violet/30 bg-violet/10 p-4 sm:p-6">
       <h2 className="flex items-center gap-2 font-display text-base font-semibold text-ink">
-        <Sparkles className="h-4 w-4 text-teal-600" /> Cuánto cuesta cada uso de la IA
+        <Sparkles className="h-4 w-4 text-violet-ink" /> Cuánto cuesta cada uso de la IA
       </h2>
-      <p className="mt-1 text-sm text-ink-soft">
+      <p className="mt-1 text-sm text-ink-2">
         En créditos. Rige desde el siguiente uso, para todas las empresas. Dictar y editar a mano no cuestan; un uso fallido no cobra.
       </p>
       {mensaje && (
@@ -55,12 +55,12 @@ export function TarifasIA({ tarifas }: { tarifas: Tarifas }) {
           <div key={a.clave} className="flex flex-wrap items-end gap-3">
             <label className="min-w-0 flex-1 text-sm">
               <span className="mb-1 block font-medium text-ink">{a.nombre}</span>
-              {a.nota && <span className="mb-1 block text-xs text-ink-faint">{a.nota}</span>}
+              {a.nota && <span className="mb-1 block text-xs text-ink-3">{a.nota}</span>}
               <input
                 inputMode="numeric"
                 value={valores[a.clave]}
                 onChange={(e) => setValores({ ...valores, [a.clave]: e.target.value })}
-                className="w-40 rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-teal-500"
+                className="w-40 rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-violet bg-surface text-ink"
               />
             </label>
             <Button

@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ChevronDown, Search, SlidersHorizontal, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { ChevronDown, LayoutGrid, List, Search, SlidersHorizontal, X } from "lucide-react";
+import { cn, diasRestantes, formatFecha, formatRangoCOP } from "@/lib/utils";
 import {
   DIAS_CIERRE,
   ORDENES,
@@ -22,6 +23,10 @@ import type { Categoria, Convocatoria, TipoDocumento } from "@/lib/types";
 import { ConvocatoriaCard } from "@/components/ConvocatoriaCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { Segmented } from "@/components/ui/Segmented";
+import { DataTable } from "@/components/ui/DataTable";
+import { DeadlineChip } from "@/components/viz/Deadline";
 
 // Sprint 2 paso 4: convocatorias y categorías son las reales, leídas en el
 // servidor con la sesión de la empresa (RN-33) y recibidas como props: el store
@@ -79,7 +84,7 @@ const SIN_FILTROS: Filtros = {
 };
 
 const CAMPO =
-  "w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100";
+  "w-full rounded-lg border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri ";
 
 // RF-91: el consultor de un encargo "buscar convocatoria" usa la misma pantalla
 // desde su encargo: `rutaFicha` lleva a la ficha de ese encargo y `soloVigentes`
@@ -90,17 +95,22 @@ export function CatalogoEmpresa({
   rutaFicha,
   soloVigentes = false,
   titulo = "Convocatorias disponibles",
+  busquedaInicial = "",
 }: {
   convocatorias: Convocatoria[];
   categorias: Categoria[];
   rutaFicha?: (id: string) => string;
   soloVigentes?: boolean;
   titulo?: string;
+  /** Búsqueda que llega de la barra superior (`/convocatorias?q=`). */
+  busquedaInicial?: string;
 }) {
   const tiposProyecto = useMemo(() => categorias.filter((c) => c.tipo === "tipo_proyecto"), [categorias]);
   const sectores = useMemo(() => categorias.filter((c) => c.tipo === "sector"), [categorias]);
   const tiposEntidad = useMemo(() => categorias.filter((c) => c.tipo === "tipo_entidad"), [categorias]);
-  const [busqueda, setBusqueda] = useState("");
+  const [busqueda, setBusqueda] = useState(busquedaInicial);
+  const [vista, setVista] = useState<"tarjetas" | "lista">("tarjetas");
+  const router = useRouter();
   const [f, setF] = useState<Filtros>(SIN_FILTROS);
   const [orden, setOrden] = useState<ClaveOrden | "">("");
   const [filtrosAbiertos, setFiltrosAbiertos] = useState(true);
@@ -225,29 +235,43 @@ export function CatalogoEmpresa({
 
   return (
     <div>
-      <div className="mb-6 flex flex-col gap-1">
-        <h1 className="font-display text-2xl font-bold text-ink">{titulo}</h1>
-        <p className="text-sm text-ink-soft" aria-live="polite">
-          {resultados.length} {resultados.length === 1 ? "convocatoria encontrada" : "convocatorias encontradas"}
-        </p>
-      </div>
+      <PageHeader
+        className="mb-6"
+        titulo={titulo}
+        descripcion={
+          <span aria-live="polite">
+            {resultados.length} {resultados.length === 1 ? "convocatoria encontrada" : "convocatorias encontradas"}
+          </span>
+        }
+        accion={
+          <Segmented
+            etiqueta="Vista"
+            valor={vista}
+            onChange={setVista}
+            opciones={[
+              { valor: "tarjetas", titulo: "Tarjetas", etiqueta: <LayoutGrid className="h-4 w-4" aria-label="Tarjetas" /> },
+              { valor: "lista", titulo: "Lista", etiqueta: <List className="h-4 w-4" aria-label="Lista" /> },
+            ]}
+          />
+        }
+      />
 
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
         <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-faint" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" />
           <input
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
             placeholder="Buscar por nombre, entidad o palabra clave..."
             aria-label="Buscar convocatorias"
-            className="w-full rounded-lg border border-line py-2.5 pl-9 pr-4 text-sm outline-none placeholder:text-ink-faint focus:border-primary-500 focus:ring-2 focus:ring-primary-100"
+            className="h-[42px] w-full rounded-xl border border-line bg-surface py-2.5 pl-9 pr-4 text-[13.5px] text-ink outline-none placeholder:text-ink-3 focus:border-pri"
           />
         </div>
         <select
           value={orden}
           onChange={(e) => setOrden(e.target.value as ClaveOrden | "")}
           aria-label="Ordenar por"
-          className="rounded-lg border border-line px-3 py-2.5 text-sm outline-none focus:border-primary-500 sm:w-56"
+          className="h-[42px] rounded-xl border border-line bg-surface px-3 text-[13.5px] text-ink outline-none focus:border-pri sm:w-56"
         >
           <option value="">Orden: el del catálogo</option>
           {ORDENES.map((o) => (
@@ -256,7 +280,7 @@ export function CatalogoEmpresa({
             </option>
           ))}
         </select>
-        <Button variant={filtrosAbiertos ? "secondary" : "outline-gold"} size="md" onClick={() => setFiltrosAbiertos((v) => !v)} className="sm:w-auto">
+        <Button variant={filtrosAbiertos ? "secondary" : "outline-amber"} size="md" onClick={() => setFiltrosAbiertos((v) => !v)} className="sm:w-auto">
           <SlidersHorizontal className="h-4 w-4" />
           Filtros {activos.length > 0 && `(${activos.length})`}
         </Button>
@@ -268,14 +292,14 @@ export function CatalogoEmpresa({
             <button
               key={a.clave}
               onClick={a.quitar}
-              className="flex items-center gap-1 rounded-full bg-primary-50 py-1 pl-3 pr-2 text-xs font-medium text-primary-800 ring-1 ring-inset ring-primary-100 hover:bg-primary-100"
+              className="flex items-center gap-1 rounded-full bg-pri-soft py-1 pl-3 pr-2 text-xs font-medium text-pri-text ring-1 ring-inset ring-pri-soft hover:bg-pri-soft"
               title="Quitar este filtro"
             >
               {a.texto}
               <X className="h-3 w-3" aria-label="Quitar" />
             </button>
           ))}
-          <button onClick={limpiarFiltros} className="text-xs font-semibold text-primary-700 hover:underline">
+          <button onClick={limpiarFiltros} className="text-xs font-semibold text-pri-text hover:underline">
             Limpiar todo
           </button>
         </div>
@@ -283,12 +307,12 @@ export function CatalogoEmpresa({
 
       {sugeridas.length > 0 && (
         <div className="mb-6 flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold text-ink-faint">Prueba con:</span>
+          <span className="text-xs font-semibold text-ink-3">Prueba con:</span>
           {sugeridas.map((s) => (
             <button
               key={s.etiqueta}
               onClick={() => aplicarBusquedaSugerida(s)}
-              className="rounded-full bg-primary-50 px-3 py-1.5 text-xs font-medium text-primary-800 ring-1 ring-inset ring-primary-100 hover:bg-primary-100"
+              className="rounded-full bg-pri-soft px-3 py-1.5 text-xs font-medium text-pri-text ring-1 ring-inset ring-pri-soft hover:bg-pri-soft"
             >
               {s.etiqueta}
             </button>
@@ -298,11 +322,11 @@ export function CatalogoEmpresa({
 
       <div className={cn("grid gap-8", filtrosAbiertos ? "lg:grid-cols-[300px_1fr]" : "grid-cols-1")}>
         {filtrosAbiertos && (
-          <aside className="h-max rounded-2xl border border-line p-5 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto">
+          <aside className="h-max rounded-2xl border border-line p-5 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto bg-surface shadow-card">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="font-display text-sm font-semibold text-ink">Filtros</h2>
               {activos.length > 0 && (
-                <button onClick={limpiarFiltros} className="flex items-center gap-1 text-xs font-semibold text-primary-700 hover:underline">
+                <button onClick={limpiarFiltros} className="flex items-center gap-1 text-xs font-semibold text-pri-text hover:underline">
                   <X className="h-3 w-3" /> Limpiar
                 </button>
               )}
@@ -347,7 +371,7 @@ export function CatalogoEmpresa({
                 <option value="territorial">Solo territoriales</option>
               </select>
               {(f.departamento || f.region) && f.alcance !== "territorial" && (
-                <p className="text-xs text-ink-faint">Incluye las convocatorias de cobertura nacional.</p>
+                <p className="text-xs text-ink-3">Incluye las convocatorias de cobertura nacional.</p>
               )}
             </FiltroGrupo>
 
@@ -370,14 +394,14 @@ export function CatalogoEmpresa({
                     aria-pressed={f.cierraEnDias === d}
                     className={cn(
                       "rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset",
-                      f.cierraEnDias === d ? "bg-primary-700 text-white ring-primary-700" : "bg-white text-ink-soft ring-line hover:bg-primary-50"
+                      f.cierraEnDias === d ? "bg-pri text-on-pri ring-pri" : "bg-surface text-ink-2 ring-line hover:bg-pri-soft"
                     )}
                   >
                     {d} días
                   </button>
                 ))}
               </div>
-              <p className="text-xs text-ink-faint">Cierra en los próximos…</p>
+              <p className="text-xs text-ink-3">Cierra en los próximos…</p>
               <select value={f.anioCierre} onChange={(e) => set("anioCierre", e.target.value)} aria-label="Año de cierre" className={CAMPO}>
                 <option value="">Cualquier año</option>
                 {anios.map((a) => (
@@ -392,7 +416,7 @@ export function CatalogoEmpresa({
 
             <FiltroGrupo titulo="Fecha de apertura">
               <Fecha etiqueta="Abre desde" valor={f.abreDesde} onChange={(v) => set("abreDesde", v)} />
-              <p className="text-xs text-ink-faint">Las que no informan su apertura no aparecen con este filtro.</p>
+              <p className="text-xs text-ink-3">Las que no informan su apertura no aparecen con este filtro.</p>
             </FiltroGrupo>
 
             <FiltroGrupo titulo="Documentos y requisitos" ultimo={soloVigentes}>
@@ -400,7 +424,7 @@ export function CatalogoEmpresa({
                 <Checkbox key={t.clave} label={t.nombre} checked={f.tipoDoc.includes(t.clave)} onChange={() => alternar("tipoDoc", t.clave)} />
               ))}
               <Checkbox label="Exige documentos entre sus requisitos" checked={f.exigeDocumentos} onChange={() => set("exigeDocumentos", !f.exigeDocumentos)} />
-              <label className="block text-xs text-ink-faint">
+              <label className="block text-xs text-ink-3">
                 Hasta cuántos requisitos
                 <input
                   type="text"
@@ -420,7 +444,7 @@ export function CatalogoEmpresa({
                   <input type="checkbox" checked={f.incluirCerradas} onChange={(e) => set("incluirCerradas", e.target.checked)} className="mt-0.5" />
                   <span>
                     <span className="block text-sm text-ink">Incluirlas en los resultados</span>
-                    <span className="block text-xs text-ink-faint">
+                    <span className="block text-xs text-ink-3">
                       Sirven de referencia sobre lo que suele abrirse, pero ya no admiten postulación.
                     </span>
                   </span>
@@ -453,7 +477,7 @@ export function CatalogoEmpresa({
                       <button
                         key={s.etiqueta}
                         onClick={() => aplicarBusquedaSugerida(s)}
-                        className="rounded-full bg-primary-50 px-3 py-1.5 text-xs font-medium text-primary-800 ring-1 ring-inset ring-primary-100 hover:bg-primary-100"
+                        className="rounded-full bg-pri-soft px-3 py-1.5 text-xs font-medium text-pri-text ring-1 ring-inset ring-pri-soft hover:bg-pri-soft"
                       >
                         {s.etiqueta}
                       </button>
@@ -463,11 +487,52 @@ export function CatalogoEmpresa({
               }
             />
           ) : (
-            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-              {resultados.map((c) => (
-                <ConvocatoriaCard key={c.id} convocatoria={c} categorias={categorias} href={rutaFicha?.(c.id)} />
-              ))}
-            </div>
+            vista === "lista" ? (
+              <DataTable
+                etiqueta="Convocatorias"
+                filas={resultados}
+                clave={(c) => c.id}
+                alHacerClic={(c) => router.push(rutaFicha?.(c.id) ?? `/convocatorias/${c.id}`)}
+                columnas={[
+                  {
+                    clave: "nombre",
+                    titulo: "Convocatoria",
+                    ancho: "minmax(0,3fr)",
+                    celda: (c) => (
+                      <>
+                        <span className="block truncate font-bold">{c.nombre}</span>
+                        <span className="mt-0.5 block truncate text-xs text-ink-3">{c.entidadConvocante}</span>
+                      </>
+                    ),
+                  },
+                  {
+                    clave: "monto",
+                    titulo: "Monto",
+                    ancho: "minmax(0,1.6fr)",
+                    celda: (c) => <span className="font-tabular font-semibold">{formatRangoCOP(c.montoMin, c.montoMax)}</span>,
+                  },
+                  {
+                    clave: "cierre",
+                    titulo: "Cierre",
+                    ancho: "150px",
+                    celda: (c) => {
+                      const d = diasRestantes(c.fechaCierre);
+                      return d >= 0 && d < 15 && c.estado === "publicada" ? (
+                        <DeadlineChip dias={d} />
+                      ) : (
+                        <span className="text-ink-2">{formatFecha(c.fechaCierre)}</span>
+                      );
+                    },
+                  },
+                ]}
+              />
+            ) : (
+              <div className="grid gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
+                {resultados.map((c) => (
+                  <ConvocatoriaCard key={c.id} convocatoria={c} categorias={categorias} href={rutaFicha?.(c.id)} />
+                ))}
+              </div>
+            )
           )}
         </div>
       </div>
@@ -487,8 +552,8 @@ function FiltroGrupo({
   abierto?: boolean;
 }) {
   return (
-    <details open={abierto} className={cn("group mb-3 border-b border-line-soft pb-3", ultimo && "mb-0 border-b-0 pb-0")}>
-      <summary className="flex cursor-pointer list-none items-center justify-between text-xs font-semibold uppercase tracking-wide text-ink-faint">
+    <details open={abierto} className={cn("group mb-3 border-b border-line-2 pb-3", ultimo && "mb-0 border-b-0 pb-0")}>
+      <summary className="flex cursor-pointer list-none items-center justify-between text-xs font-semibold uppercase tracking-wide text-ink-3">
         {titulo}
         <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
       </summary>
@@ -499,17 +564,17 @@ function FiltroGrupo({
 
 function Checkbox({ label, checked, onChange, cuenta }: { label: string; checked: boolean; onChange: () => void; cuenta?: number }) {
   return (
-    <label className="flex cursor-pointer items-center gap-2 text-sm text-ink-soft">
-      <input type="checkbox" checked={checked} onChange={onChange} className="h-4 w-4 rounded border-line text-primary-700 focus:ring-primary-500" />
+    <label className="flex cursor-pointer items-center gap-2 text-sm text-ink-2">
+      <input type="checkbox" checked={checked} onChange={onChange} className="h-4 w-4 rounded border-line text-pri-text focus:ring-pri bg-surface text-ink" />
       <span className="flex-1">{label}</span>
-      {cuenta !== undefined && <span className="text-xs text-ink-faint">{cuenta}</span>}
+      {cuenta !== undefined && <span className="text-xs text-ink-3">{cuenta}</span>}
     </label>
   );
 }
 
 function Fecha({ etiqueta, valor, onChange }: { etiqueta: string; valor: string; onChange: (v: string) => void }) {
   return (
-    <label className="block text-xs text-ink-faint">
+    <label className="block text-xs text-ink-3">
       {etiqueta}
       <input type="date" value={valor} onChange={(e) => onChange(e.target.value)} className={cn(CAMPO, "mt-1")} />
     </label>
@@ -528,7 +593,7 @@ function CampoMonto({
   lectura: ReturnType<typeof leerMontoCOP>;
 }) {
   return (
-    <label className="block text-xs text-ink-faint">
+    <label className="block text-xs text-ink-3">
       {etiqueta}
       <div className="relative mt-1">
         <input
@@ -541,9 +606,9 @@ function CampoMonto({
           aria-invalid={!lectura.ok}
           className={cn(CAMPO, "pr-12")}
         />
-        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-faint">COP</span>
+        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-3">COP</span>
       </div>
-      {!lectura.ok && <p className="mt-1 text-xs text-brick-700">El monto {lectura.error}</p>}
+      {!lectura.ok && <p className="mt-1 text-xs text-sky-ink">El monto {lectura.error}</p>}
     </label>
   );
 }

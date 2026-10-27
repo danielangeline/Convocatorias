@@ -12,8 +12,8 @@ export default async function DocumentoPage({ params }: { params: Promise<{ id: 
   if (!documento) {
     return (
       <div className="py-20 text-center">
-        <p className="text-ink-soft">No encontramos este documento.</p>
-        <Link href="/documentos" className="mt-3 inline-block text-sm font-semibold text-primary-700 hover:underline">
+        <p className="text-ink-2">No encontramos este documento.</p>
+        <Link href="/documentos" className="mt-3 inline-block text-sm font-semibold text-pri-text hover:underline">
           Volver a mis documentos
         </Link>
       </div>

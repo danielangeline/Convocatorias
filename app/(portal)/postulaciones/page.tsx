@@ -1,27 +1,43 @@
-import Link from "next/link";
-import { ClipboardList, MapPin } from "lucide-react";
+import { ClipboardList, Plus } from "lucide-react";
 import { listarPostulaciones } from "@/lib/postulaciones-servidor";
 import { listarProyectos } from "@/lib/proyectos-servidor";
-import { formatFecha, ESTADO_POSTULACION_LABEL, ESTADO_POSTULACION_ESTILO } from "@/lib/utils";
-import { Badge } from "@/components/ui/Badge";
-import { ProgressBar } from "@/components/ui/ProgressBar";
+import { diasRestantes } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LinkButton } from "@/components/ui/Button";
-import { textoCobertura } from "@/lib/departamentos";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { TableroPostulaciones, type ItemTablero } from "@/components/postulaciones/TableroPostulaciones";
 
-// CU-13 1a · Panel de postulaciones, leído con la sesión de la empresa: la RLS
+// CU-13 1a · Tablero de postulaciones, leído con la sesión de la empresa: la RLS
 // solo deja ver las suyas (RN-30), con su convocatoria aunque ya esté cerrada.
+// La plataforma no radica (RN-19): se prepara aquí y se presenta en el portal
+// de cada entidad.
 export default async function PostulacionesPage() {
   const [postulaciones, proyectos] = await Promise.all([listarPostulaciones(), listarProyectos()]);
 
-  return (
-    <div>
-      <div className="mb-6">
-        <h1 className="font-display text-2xl font-bold text-ink">Mis postulaciones</h1>
-        <p className="text-sm text-ink-soft">Haz seguimiento al estado de cada postulación activa.</p>
-      </div>
+  const items: ItemTablero[] = postulaciones.map((p) => ({
+    id: p.id,
+    estado: p.estado,
+    nombre: p.convocatoria?.nombre ?? "Convocatoria no disponible",
+    entidad: p.convocatoria?.entidadConvocante ?? "—",
+    proyecto: proyectos.find((x) => x.id === p.proyectoId)?.nombre ?? "Sin proyecto asociado",
+    hechos: p.checklist.filter((i) => i.completado).length,
+    total: p.checklist.length,
+    dias: p.convocatoria ? diasRestantes(p.convocatoria.fechaCierre) : null,
+    cierre: p.convocatoria?.fechaCierre ?? null,
+  }));
 
-      {postulaciones.length === 0 ? (
+  return (
+    <div className="flex flex-col gap-5">
+      <PageHeader
+        titulo="Postulaciones"
+        descripcion="Prepara aquí; radica en el portal de cada entidad."
+        accion={
+          <LinkButton href="/convocatorias">
+            <Plus className="h-4 w-4" /> Nueva postulación
+          </LinkButton>
+        }
+      />
+      {items.length === 0 ? (
         <EmptyState
           icon={ClipboardList}
           titulo="Aún no tienes postulaciones"
@@ -33,53 +49,7 @@ export default async function PostulacionesPage() {
           }
         />
       ) : (
-        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-          {postulaciones.map((post) => {
-            const convocatoria = post.convocatoria;
-            const proyecto = proyectos.find((p) => p.id === post.proyectoId);
-            const total = post.checklist.length;
-            const completados = post.checklist.filter((i) => i.completado).length;
-            const porcentaje = total ? Math.round((completados / total) * 100) : 0;
-
-            return (
-              <Link
-                key={post.id}
-                href={`/postulaciones/${post.id}`}
-                className="flex flex-col rounded-2xl border border-line p-5 transition-colors hover:border-primary-200 hover:bg-primary-50/30"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <Badge className={ESTADO_POSTULACION_ESTILO[post.estado]}>
-                    {ESTADO_POSTULACION_LABEL[post.estado]}
-                  </Badge>
-                </div>
-
-                <h3 className="mt-3 font-display text-base font-semibold leading-snug text-ink">
-                  {convocatoria?.nombre ?? "Convocatoria no disponible"}
-                </h3>
-                <p className="mt-1 text-sm text-ink-soft">
-                  {proyecto ? proyecto.nombre : "Sin proyecto asociado"}
-                </p>
-
-                <div className="mt-4">
-                  <div className="mb-1.5 flex items-center justify-between text-xs text-ink-faint">
-                    <span>Progreso del checklist</span>
-                    <span className="font-tabular font-semibold text-ink">{porcentaje}%</span>
-                  </div>
-                  <ProgressBar porcentaje={porcentaje} />
-                </div>
-
-                {convocatoria && (
-                  <div className="mt-4 flex items-center justify-between border-t border-line-soft pt-4 text-xs text-ink-faint">
-                    <span className="flex items-center gap-1">
-                      <MapPin className="h-3.5 w-3.5" /> {textoCobertura(convocatoria)}
-                    </span>
-                    <span>Cierra: {formatFecha(convocatoria.fechaCierre)}</span>
-                  </div>
-                )}
-              </Link>
-            );
-          })}
-        </div>
+        <TableroPostulaciones items={items} />
       )}
     </div>
   );

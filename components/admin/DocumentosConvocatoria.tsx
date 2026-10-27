@@ -195,7 +195,7 @@ export function DocumentosConvocatoria({
       )}
 
       {documentos.length === 0 ? (
-        <p className="mb-4 text-sm text-ink-faint">
+        <p className="mb-4 text-sm text-ink-3">
           Aún no hay documentos adjuntos. Sube los términos de referencia, los anexos y los formatos que publique la
           entidad.
         </p>
@@ -204,21 +204,21 @@ export function DocumentosConvocatoria({
           {documentos.map((doc) => (
             <li
               key={doc.id}
-              className="flex flex-wrap items-center gap-2 rounded-lg border border-line-soft px-3 py-2.5"
+              className="flex flex-wrap items-center gap-2 rounded-lg border border-line-2 px-3 py-2.5"
             >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-700">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-pri-soft text-pri-text">
                 <FileText className="h-4 w-4" />
               </span>
               <div className="min-w-40 flex-1">
                 <p className="truncate text-sm font-medium text-ink">{doc.nombre}</p>
-                <p className="font-tabular text-xs text-ink-faint">{tamanoLegible(doc.tamanoBytes)}</p>
+                <p className="font-tabular text-xs text-ink-3">{tamanoLegible(doc.tamanoBytes)}</p>
               </div>
               <select
                 value={doc.tipo}
                 onChange={(e) => cambiarTipo(doc, e.target.value as TipoDocumento)}
                 disabled={ocupado === doc.id}
                 aria-label={`Tipo de ${doc.nombre}`}
-                className="rounded-lg border border-line px-2 py-1.5 text-sm outline-none focus:border-primary-500"
+                className="rounded-lg border border-line px-2 py-1.5 text-sm outline-none focus:border-pri bg-surface text-ink"
               >
                 {TIPOS.map((t) => (
                   <option key={t} value={t}>
@@ -250,7 +250,7 @@ export function DocumentosConvocatoria({
                   size="sm"
                   onClick={() => quitar(doc)}
                   disabled={ocupado === doc.id}
-                  className="text-danger hover:bg-danger-bg"
+                  className="text-rose-ink hover:bg-rose/10"
                   aria-label={`Quitar ${doc.nombre}`}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -263,13 +263,13 @@ export function DocumentosConvocatoria({
 
       <div className="flex flex-wrap items-end gap-3 rounded-lg border border-dashed border-line px-3 py-3">
         <label className="block">
-          <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+          <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3">
             Tipo de documento
           </span>
           <select
             value={tipo}
             onChange={(e) => setTipo(e.target.value as TipoDocumento)}
-            className="rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500"
+            className="rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
           >
             {TIPOS.map((t) => (
               <option key={t} value={t}>
@@ -294,7 +294,7 @@ export function DocumentosConvocatoria({
           {subiendo ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
           {subiendo ? "Subiendo…" : "Adjuntar documento"}
         </Button>
-        <p className="text-xs text-ink-faint">PDF, Word, Excel o ZIP · hasta 20 MB</p>
+        <p className="text-xs text-ink-3">PDF, Word, Excel o ZIP · hasta 20 MB</p>
       </div>
     </div>
   );

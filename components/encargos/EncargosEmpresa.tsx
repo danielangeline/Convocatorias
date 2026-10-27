@@ -69,12 +69,12 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="font-display text-2xl font-bold text-ink">Mis encargos</h1>
-        <p className="text-sm text-ink-soft">Consultores contratados o solicitados para tus proyectos.</p>
+        <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Mis encargos</h1>
+        <p className="text-sm text-ink-2">Consultores contratados o solicitados para tus proyectos.</p>
       </div>
 
       {error && (
-        <p role="alert" className="mb-5 flex items-start gap-2 rounded-lg bg-danger-bg px-4 py-3 text-sm text-danger">
+        <p role="alert" className="mb-5 flex items-start gap-2 rounded-lg bg-rose/10 px-4 py-3 text-sm text-rose-ink">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {error}
         </p>
       )}
@@ -88,7 +88,7 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
           {encargos.map((e) => (
-            <div key={e.id} className="flex flex-col rounded-2xl border border-line p-5">
+            <div key={e.id} className="flex flex-col rounded-2xl border border-line p-5 bg-surface shadow-card">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <Badge className={ESTADO_ENCARGO_ESTILO[e.estado]}>{ESTADO_ENCARGO_LABEL[e.estado]}</Badge>
                 <Badge className={TIPO_AYUDA_ESTILO[e.tipoAyuda]}>
@@ -98,30 +98,30 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
               </div>
 
               <h3 className="mt-3 font-display text-base font-semibold leading-snug text-ink">{e.tituloTarea}</h3>
-              <p className="mt-1 text-xs text-ink-faint">
+              <p className="mt-1 text-xs text-ink-3">
                 Proyecto:{" "}
-                <Link href={`/proyectos/${e.proyectoId}`} className="font-medium text-primary-700 hover:underline">
+                <Link href={`/proyectos/${e.proyectoId}`} className="font-medium text-pri-text hover:underline">
                   {e.proyectoNombre}
                 </Link>
                 {e.convocatoriaId && e.convocatoriaNombre && (
                   <>
                     {" · "}
-                    <Link href={`/convocatorias/${e.convocatoriaId}`} className="font-medium text-teal-700 hover:underline">
+                    <Link href={`/convocatorias/${e.convocatoriaId}`} className="font-medium text-violet-ink hover:underline">
                       {e.convocatoriaNombre}
                     </Link>
                   </>
                 )}
               </p>
-              {e.descripcionTarea && <p className="mt-2 line-clamp-2 text-sm text-ink-soft">{e.descripcionTarea}</p>}
+              {e.descripcionTarea && <p className="mt-2 line-clamp-2 text-sm text-ink-2">{e.descripcionTarea}</p>}
 
-              <div className="mt-4 flex items-center gap-2 border-t border-line-soft pt-4">
+              <div className="mt-4 flex items-center gap-2 border-t border-line-2 pt-4">
                 {e.consultor ? (
                   <>
                     {e.consultor.fotoUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element -- URL firmada de Storage (RNF-16)
                       <img src={e.consultor.fotoUrl} alt="" className="h-8 w-8 rounded-full object-cover ring-1 ring-line" />
                     ) : (
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brick-50 text-xs font-bold text-brick-600">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-sky/10 text-xs font-bold text-sky-ink">
                         {e.consultor.nombre.slice(0, 1).toUpperCase()}
                       </span>
                     )}
@@ -130,7 +130,7 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
                     </Link>
                   </>
                 ) : (
-                  <span className="flex items-center gap-1.5 text-sm text-ink-faint">
+                  <span className="flex items-center gap-1.5 text-sm text-ink-3">
                     <Users className="h-4 w-4" />
                     {e.estado === "atendido"
                       ? `Nuestro equipo te contactó por correo${e.atendidoAt ? ` el ${formatFecha(e.atendidoAt)}` : ""}`
@@ -142,36 +142,36 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
               </div>
 
               {e.estado === "pendiente" && (
-                <p className="mt-2 text-xs text-ink-faint">
+                <p className="mt-2 text-xs text-ink-3">
                   Su correo, sitio web y redes se muestran cuando acepte tu solicitud.
                 </p>
               )}
 
               {e.correoContraparte && (
-                <p className="mt-2 flex items-center gap-1.5 text-xs text-ink-soft">
-                  <Mail className="h-3.5 w-3.5 text-primary-700" />
-                  <a href={`mailto:${e.correoContraparte}`} className="font-medium text-primary-700 hover:underline">
+                <p className="mt-2 flex items-center gap-1.5 text-xs text-ink-2">
+                  <Mail className="h-3.5 w-3.5 text-pri-text" />
+                  <a href={`mailto:${e.correoContraparte}`} className="font-medium text-pri-text hover:underline">
                     {e.correoContraparte}
                   </a>
                 </p>
               )}
 
               {(e.fechas.aceptado || e.fechas.completado) && (
-                <ul className="mt-3 space-y-0.5 text-xs text-ink-faint">
+                <ul className="mt-3 space-y-0.5 text-xs text-ink-3">
                   {e.fechas.aceptado && <li>Aceptado: {formatFecha(e.fechas.aceptado)}</li>}
                   {e.fechas.completado && <li>Completado: {formatFecha(e.fechas.completado)}</li>}
                 </ul>
               )}
 
               {e.avances.length > 0 && (
-                <details className="mt-3 rounded-lg bg-slate-50 px-3 py-2 text-xs">
-                  <summary className="cursor-pointer font-medium text-ink-soft">
+                <details className="mt-3 rounded-lg bg-surface-2 px-3 py-2 text-xs">
+                  <summary className="cursor-pointer font-medium text-ink-2">
                     {e.avances.length} nota(s) de avance
                   </summary>
                   <ul className="mt-2 space-y-1.5">
                     {e.avances.map((a) => (
-                      <li key={a.id} className="whitespace-pre-line text-ink-soft">
-                        <span className="font-medium text-ink-faint">{formatFecha(a.fecha)}:</span> {a.nota}
+                      <li key={a.id} className="whitespace-pre-line text-ink-2">
+                        <span className="font-medium text-ink-3">{formatFecha(a.fecha)}:</span> {a.nota}
                       </li>
                     ))}
                   </ul>
@@ -183,7 +183,7 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
               )}
 
               {e.estado === "cancelado" && e.motivoCancelacion && (
-                <p className="mt-3 flex items-start gap-1.5 rounded-lg bg-slate-50 px-3 py-2 text-xs text-ink-faint">
+                <p className="mt-3 flex items-start gap-1.5 rounded-lg bg-surface-2 px-3 py-2 text-xs text-ink-3">
                   <Ban className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {e.motivoCancelacion}
                 </p>
               )}
@@ -193,7 +193,7 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="w-full text-ink-soft"
+                    className="w-full text-ink-2"
                     disabled={ocupado === e.id}
                     onClick={() => retirar(e)}
                   >
@@ -202,15 +202,15 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
                 )}
 
                 {e.estado === "completado" && (
-                  <Button variant="outline-gold" size="sm" className="w-full" onClick={() => abrirCalificar(e)}>
+                  <Button variant="outline-amber" size="sm" className="w-full" onClick={() => abrirCalificar(e)}>
                     <Star className="h-3.5 w-3.5" /> Calificar
                   </Button>
                 )}
 
                 {e.estado === "calificado" && e.calificacion && (
-                  <div className="rounded-lg bg-slate-50 p-3">
+                  <div className="rounded-lg bg-surface-2 p-3">
                     <RatingStars valor={e.calificacion.estrellas} />
-                    {e.calificacion.comentario && <p className="mt-1.5 text-xs text-ink-soft">{e.calificacion.comentario}</p>}
+                    {e.calificacion.comentario && <p className="mt-1.5 text-xs text-ink-2">{e.calificacion.comentario}</p>}
                   </div>
                 )}
               </div>
@@ -220,30 +220,30 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
       )}
 
       {aCalificar && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary-950/40 p-4">
-          <div role="dialog" aria-modal="true" aria-labelledby="titulo-calificar" className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/ p-4">
+          <div role="dialog" aria-modal="true" aria-labelledby="titulo-calificar" className="w-full max-w-md rounded-2xl bg-surface p-6 shadow-xl">
             <div className="mb-4 flex items-center justify-between">
               <h3 id="titulo-calificar" className="font-display text-lg font-semibold text-ink">
                 Calificar a {aCalificar.consultor?.nombre ?? "el consultor"}
               </h3>
-              <button onClick={() => setACalificar(null)} className="text-ink-faint hover:text-ink" aria-label="Cerrar">
+              <button onClick={() => setACalificar(null)} className="text-ink-3 hover:text-ink" aria-label="Cerrar">
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-faint">Estrellas</p>
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-3">Estrellas</p>
             <div className="flex items-center gap-1.5">
               {[1, 2, 3, 4, 5].map((n) => (
                 <button key={n} onClick={() => setEstrellas(n)} aria-label={`${n} estrellas`} aria-pressed={n === estrellas}>
                   <Star
-                    className={cn("h-7 w-7", n <= estrellas ? "fill-gold-500 text-gold-500" : "fill-transparent text-line")}
+                    className={cn("h-7 w-7", n <= estrellas ? "fill-amber text-amber-ink" : "fill-transparent text-line")}
                     strokeWidth={1.5}
                   />
                 </button>
               ))}
             </div>
 
-            <label htmlFor="comentario-calificacion" className="mb-1.5 mt-4 block text-xs font-semibold uppercase tracking-wide text-ink-faint">
+            <label htmlFor="comentario-calificacion" className="mb-1.5 mt-4 block text-xs font-semibold uppercase tracking-wide text-ink-3">
               Comentario (opcional)
             </label>
             <textarea
@@ -253,9 +253,9 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
               rows={3}
               maxLength={1000}
               placeholder="Cuéntanos cómo fue tu experiencia con este consultor"
-              className="w-full resize-none rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-primary-500"
+              className="w-full resize-none rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
             />
-            <p className="mt-1 text-xs text-ink-faint">La calificación no se puede cambiar después de enviarla.</p>
+            <p className="mt-1 text-xs text-ink-3">La calificación no se puede cambiar después de enviarla.</p>
 
             <div className="mt-6 flex justify-end gap-3">
               <Button variant="ghost" onClick={() => setACalificar(null)}>
@@ -310,12 +310,12 @@ function Propuestas({ e, onError }: { e: EncargoDetalle; onError: (error: string
   };
 
   return (
-    <div className="mt-3 rounded-lg border border-brick-100 bg-brick-50/40 p-3">
-      <p className="text-xs font-semibold uppercase tracking-wide text-brick-700">
+    <div className="mt-3 rounded-lg border border-sky/30 bg-sky/10 p-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-sky-ink">
         {elegida ? "Convocatoria elegida" : `Propuestas del consultor (${abiertas.length})`}
       </p>
       {visibles.length === 0 ? (
-        <p className="mt-1 text-xs text-ink-soft">
+        <p className="mt-1 text-xs text-ink-2">
           {e.estado === "en_curso" ? "El consultor aún no te ha propuesto convocatorias." : "No eligiste ninguna propuesta."}
         </p>
       ) : (
@@ -327,16 +327,16 @@ function Propuestas({ e, onError }: { e: EncargoDetalle; onError: (error: string
                   {p.estado === "elegida" && <CheckCircle2 className="h-3 w-3" />}
                   {ESTADO_PROPUESTA_LABEL[p.estado]}
                 </Badge>
-                {p.porcentaje !== null && <span className="font-semibold text-ink-soft">{p.porcentaje}% compatible</span>}
-                {!p.vigente && <span className="text-ink-faint">· ya no está vigente</span>}
+                {p.porcentaje !== null && <span className="font-semibold text-ink-2">{p.porcentaje}% compatible</span>}
+                {!p.vigente && <span className="text-ink-3">· ya no está vigente</span>}
               </div>
-              <Link href={`/convocatorias/${p.convocatoriaId}`} className="mt-1 block text-sm font-semibold text-teal-700 hover:underline">
+              <Link href={`/convocatorias/${p.convocatoriaId}`} className="mt-1 block text-sm font-semibold text-violet-ink hover:underline">
                 {p.convocatoriaNombre}
               </Link>
-              <p className="text-ink-faint">
+              <p className="text-ink-3">
                 {p.entidad} · cierra el {formatFecha(p.fechaCierre)}
               </p>
-              <p className="mt-1 whitespace-pre-line text-ink-soft">{p.nota}</p>
+              <p className="mt-1 whitespace-pre-line text-ink-2">{p.nota}</p>
 
               {p.estado === "propuesta" && e.estado === "en_curso" && (
                 <Button variant="secondary" size="sm" className="mt-2" disabled={ocupado || !p.vigente} onClick={() => elegir(p)}>
@@ -347,7 +347,7 @@ function Propuestas({ e, onError }: { e: EncargoDetalle; onError: (error: string
                 e.postulacionId ? (
                   <Link
                     href={`/postulaciones/${e.postulacionId}`}
-                    className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-primary-700 hover:underline"
+                    className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-pri-text hover:underline"
                   >
                     <FileCheck2 className="h-3.5 w-3.5" /> Ver la postulación
                   </Link>

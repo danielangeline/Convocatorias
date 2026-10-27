@@ -85,8 +85,8 @@ export function BandejaRevision({ consultores }: { consultores: ConsultorAdmin[]
   return (
     <div>
       <div className="mb-6">
-        <h1 className="font-display text-2xl font-bold text-ink">Perfiles en revisión</h1>
-        <p className="text-sm text-ink-soft">
+        <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Perfiles en revisión</h1>
+        <p className="text-sm text-ink-2">
           Aprueba o rechaza los perfiles que los consultores enviaron. El que más lleva esperando va primero.
         </p>
       </div>
@@ -106,14 +106,14 @@ export function BandejaRevision({ consultores }: { consultores: ConsultorAdmin[]
       ) : (
         <div className="space-y-6">
           {consultores.map((c) => (
-            <article key={c.id} className="rounded-2xl border border-line bg-white p-6">
+            <article key={c.id} className="rounded-2xl border border-line bg-surface p-6">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="flex items-center gap-4">
                   {c.fotoUrl ? (
                     // eslint-disable-next-line @next/next/no-img-element -- URL firmada de Storage, cambia en cada carga
                     <img src={c.fotoUrl} alt="" className="h-16 w-16 rounded-full object-cover ring-1 ring-line" />
                   ) : (
-                    <span className="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-ink-faint ring-1 ring-line">
+                    <span className="flex h-16 w-16 items-center justify-center rounded-full bg-surface-2 text-ink-3 ring-1 ring-line">
                       <UserRound className="h-7 w-7" />
                     </span>
                   )}
@@ -124,7 +124,7 @@ export function BandejaRevision({ consultores }: { consultores: ConsultorAdmin[]
                         href={c.sitioWeb}
                         target="_blank"
                         rel="noreferrer"
-                        className="flex items-center gap-1 text-xs text-primary-700 hover:underline"
+                        className="flex items-center gap-1 text-xs text-pri-text hover:underline"
                       >
                         <Globe className="h-3 w-3" /> {c.sitioWeb}
                       </a>
@@ -150,7 +150,7 @@ export function BandejaRevision({ consultores }: { consultores: ConsultorAdmin[]
               </div>
 
               {c.motivoRechazo && (
-                <div className="mt-4 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                <div className="mt-4 flex items-start gap-2 rounded-lg border border-amber/30 bg-amber/10 px-4 py-3 text-sm text-amber-ink">
                   <History className="mt-0.5 h-4 w-4 shrink-0" />
                   <p>
                     <span className="font-semibold">Reenvío.</span> Motivo del rechazo anterior: {c.motivoRechazo}
@@ -158,7 +158,7 @@ export function BandejaRevision({ consultores }: { consultores: ConsultorAdmin[]
                 </div>
               )}
 
-              <p className="mt-4 whitespace-pre-line text-sm text-ink-soft">{c.descripcion}</p>
+              <p className="mt-4 whitespace-pre-line text-sm text-ink-2">{c.descripcion}</p>
 
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {c.especialidades.map((e) => (
@@ -176,7 +176,7 @@ export function BandejaRevision({ consultores }: { consultores: ConsultorAdmin[]
                       href={r.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="flex items-center gap-1 text-xs text-primary-700 hover:underline"
+                      className="flex items-center gap-1 text-xs text-pri-text hover:underline"
                     >
                       <Link2 className="h-3 w-3" /> {NOMBRE_RED[r.tipo]}
                     </a>
@@ -185,19 +185,19 @@ export function BandejaRevision({ consultores }: { consultores: ConsultorAdmin[]
               )}
 
               <div className="mt-4">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-faint">Portafolio</p>
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-3">Portafolio</p>
                 {c.portafolio.length === 0 ? (
-                  <p className="text-sm text-ink-faint">Sin proyectos en el portafolio.</p>
+                  <p className="text-sm text-ink-3">Sin proyectos en el portafolio.</p>
                 ) : (
                   <div className="grid gap-3 sm:grid-cols-2">
                     {c.portafolio.map((item, i) => (
-                      <div key={i} className="rounded-xl border border-line-soft p-3">
+                      <div key={i} className="rounded-xl border border-line-2 p-3">
                         <p className="text-sm font-semibold text-ink">
                           {item.nombreProyecto}
-                          {item.anio && <span className="font-normal text-ink-faint"> · {item.anio}</span>}
+                          {item.anio && <span className="font-normal text-ink-3"> · {item.anio}</span>}
                         </p>
-                        {item.entidad && <p className="text-xs text-ink-faint">{item.entidad}</p>}
-                        {item.descripcion && <p className="mt-1 text-sm text-ink-soft">{item.descripcion}</p>}
+                        {item.entidad && <p className="text-xs text-ink-3">{item.entidad}</p>}
+                        {item.descripcion && <p className="mt-1 text-sm text-ink-2">{item.descripcion}</p>}
                         {item.resultado && <p className="mt-1 text-xs font-medium text-ink">Resultado: {item.resultado}</p>}
                       </div>
                     ))}
@@ -205,9 +205,9 @@ export function BandejaRevision({ consultores }: { consultores: ConsultorAdmin[]
                 )}
               </div>
 
-              <div className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-line-soft px-4 py-3">
+              <div className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-line-2 px-4 py-3">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-50 text-primary-700">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-pri-soft text-pri-text">
                     <FileText className="h-4 w-4" />
                   </span>
                   <p className="text-sm font-medium text-ink">
