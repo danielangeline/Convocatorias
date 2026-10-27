@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
-import { AdminSidebar } from "@/components/AdminSidebar";
-import { MenuUsuario } from "@/components/MenuUsuario";
+import { AppShell } from "@/components/shell/AppShell";
 import { SincronizarSesion } from "@/components/SincronizarSesion";
 import { exigirRol } from "@/lib/auth";
 import { contarSolicitudesEquipo } from "@/lib/encargos-servidor";
+import { contarPerfilesEnRevision } from "@/lib/shell-contadores";
 
 // Ninguna sesión administrativa opera sin segundo factor verificado (RNF-28,
 // RF-64): un administrador en aal1 va a /mfa. Se comprueba en el servidor en
@@ -14,20 +14,26 @@ export const metadata = { robots: { index: false, follow: false } };
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const datos = await exigirRol(["administrador"], { ruta: "panel", oculta: true });
   if (datos.sesion.rol === "administrador" && datos.sesion.aal !== "aal2") redirect("/mfa");
-  const solicitudesEquipo = await contarSolicitudesEquipo();
+  // RF-90: las solicitudes que esperan al equipo y (RF-34) los perfiles en revisión llevan su número en el menú.
+  const [solicitudesEquipo, perfilesEnRevision] = await Promise.all([
+    contarSolicitudesEquipo(),
+    contarPerfilesEnRevision(),
+  ]);
 
   return (
-    <div className="flex min-h-screen min-w-[1024px] bg-primary-50/40">
+    <>
       <SincronizarSesion datos={datos} />
-      <AdminSidebar esPropietario={datos.sesion.esPropietario} solicitudesEquipo={solicitudesEquipo} />
-      <div className="flex-1 overflow-x-auto">
-        <header className="flex justify-end border-b border-line bg-white px-8 py-3">
-          <MenuUsuario tono="primary" />
-        </header>
-        <main className="px-8 py-8">
-          <div className="mx-auto max-w-6xl">{children}</div>
-        </main>
-      </div>
-    </div>
+      <AppShell
+        rol="administrador"
+        esPropietario={datos.sesion.esPropietario}
+        ancho="max-w-6xl"
+        contadores={{
+          "/admin/encargos": solicitudesEquipo,
+          "/admin/consultores/revision": perfilesEnRevision,
+        }}
+      >
+        <main className="flex-1">{children}</main>
+      </AppShell>
+    </>
   );
 }

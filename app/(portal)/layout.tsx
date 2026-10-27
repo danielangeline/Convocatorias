@@ -1,4 +1,4 @@
-import { Navbar } from "@/components/Navbar";
+import { AppShell } from "@/components/shell/AppShell";
 import { ModalSuscripcion } from "@/components/ModalSuscripcion";
 import { ModalCreditos } from "@/components/ModalCreditos";
 import { SincronizarSesion } from "@/components/SincronizarSesion";
@@ -45,8 +45,13 @@ export default async function PortalLayout({ children }: { children: React.React
   ]);
   const faltaConsentimiento = !consentimiento.error && !consentimiento.data?.consentimiento_datos_at;
 
+  // Contador del menú: encargos que siguen abiertos (presentación).
+  const encargosAbiertos = encargos.filter((e) =>
+    ["esperando_asignacion", "pendiente", "en_curso"].includes(e.estado),
+  ).length;
+
   return (
-    <div className="flex min-h-screen flex-col bg-white">
+    <>
       <SincronizarSesion datos={datos} />
       <SincronizarPlanes planes={planes} tarifas={tarifas} />
       <SincronizarCatalogo convocatorias={convocatorias} categorias={categorias} />
@@ -54,8 +59,7 @@ export default async function PortalLayout({ children }: { children: React.React
       <SincronizarPostulaciones postulaciones={postulaciones.map(sinConvocatoria)} />
       <SincronizarEncargos encargos={encargos.map(aEncargoBase)} />
       <SincronizarDocumentos documentos={documentos.map(aDocumentoStore)} />
-      <Navbar />
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
+      <AppShell rol="empresa" contadores={{ "/encargos": encargosAbiertos }}>
         {/* RF-84: aviso si entró por la puerta del otro rol */}
         <Suspense>
           <div className="mb-6 empty:hidden">
@@ -65,13 +69,13 @@ export default async function PortalLayout({ children }: { children: React.React
         {faltaConsentimiento && <AvisoConsentimiento />}
         {/* RN-16: aviso de vencimiento y gracia */}
         <AvisoSuscripcion suscripcion={datos.suscripcion} />
-        {children}
-      </main>
-      <footer className="border-t border-line-soft py-6 text-center text-xs text-ink-faint">
-        Plataforma de Gestión de Convocatorias — la cuenta, la suscripción, los planes, el catálogo, los proyectos, las postulaciones, los consultores, los encargos y los documentos son reales; el resto, datos de ejemplo.
-      </footer>
+        <main className="flex-1">{children}</main>
+        <footer className="mt-10 border-t border-line-2 pt-5 text-center text-xs text-ink-3">
+          Plataforma de Gestión de Convocatorias — la cuenta, la suscripción, los planes, el catálogo, los proyectos, las postulaciones, los consultores, los encargos y los documentos son reales; el resto, datos de ejemplo.
+        </footer>
+      </AppShell>
       <ModalSuscripcion />
       <ModalCreditos />
-    </div>
+    </>
   );
 }
