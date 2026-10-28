@@ -3,6 +3,7 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { hoyColombia } from "@/lib/fechas";
 import { listarCuentasYTablero } from "./suscripciones";
 import { listarConsultores } from "./consultores";
+import { inicioDelPeriodo, postulacionesPorSemana } from "./semanas";
 import type { ConsultorAdmin, TableroSuscripciones } from "@/lib/types";
 
 /**
@@ -34,9 +35,8 @@ const diasEntre = (desde: string, hasta: string) => Math.round((Date.parse(hasta
 export async function datosTablero(): Promise<DatosTablero> {
   const supabase = await crearClienteServidor();
   const hoy = hoyColombia();
-  // Semana que termina hoy (inclusive) y las 23 anteriores.
-  const finActual = Date.parse(hoy) + DIA;
-  const desde = new Date(finActual - SEMANAS * 2 * 7 * DIA).toISOString();
+  // Semana que termina hoy (inclusive) y las 23 anteriores, en hora de Colombia.
+  const desde = inicioDelPeriodo(hoy, SEMANAS);
 
   const [{ data: convocatorias, error: eC }, { data: postulaciones, error: eP }, suscripciones, revision] = await Promise.all([
     supabase.from("convocatorias").select("id, nombre, entidad_convocante, estado, fecha_cierre, publicada_at, documentos_convocatoria (count)"),
@@ -60,16 +60,11 @@ export async function datosTablero(): Promise<DatosTablero> {
   const vigentes = filas.filter((c) => c.estado === "publicada" && c.fecha_cierre >= hoy);
   const borradores = filas.filter((c) => c.estado === "borrador");
 
-  const semanas = Array.from({ length: SEMANAS }, (_, i) => ({
-    inicio: new Date(finActual - (SEMANAS - i) * 7 * DIA).toISOString().slice(0, 10),
-    total: 0,
-  }));
-  let totalTrimestreAnterior = 0;
-  for (const p of postulaciones ?? []) {
-    const atras = Math.floor((finActual - Date.parse(p.creada_at as string)) / (7 * DIA));
-    if (atras < SEMANAS) semanas[SEMANAS - 1 - atras].total += 1;
-    else if (atras < SEMANAS * 2) totalTrimestreAnterior += 1;
-  }
+  const { semanas, totalTrimestreAnterior } = postulacionesPorSemana(
+    (postulaciones ?? []).map((p) => p.creada_at as string),
+    hoy,
+    SEMANAS
+  );
 
   const conSuscripcion = suscripciones.cuentas.filter((c) => c.suscripcionId);
   const pagadas = conSuscripcion.filter((c) => c.modalidad && c.modalidad !== "trial");

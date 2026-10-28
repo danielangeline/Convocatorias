@@ -66,9 +66,17 @@ Pedido del Product Owner: «construye la migración de países y moneda (docs/05
 - **Fijar en `/admin/tasas` las tasas de USD, EUR y GBP** cuando haya convocatorias con montos en esas monedas. Hoy ninguna tiene monto estructurado en otra moneda.
 - **Siguiente paso del importador (§9.37):** migración de conectores, corridas, cambios en la fuente y externos vetados, y `registrar_importada`.
 
+## Arreglo al cierre: el 500 del tablero (RF-42)
+
+A pedido del Product Owner, después del commit de países y moneda.
+
+- **Causa:** `finActual = Date.parse(hoy) + DIA` es la medianoche UTC del día siguiente, que llega 5 horas antes que la medianoche de Colombia. De 7 p. m. a medianoche, una postulación recién creada daba `atras = -1`, el índice salía de la lista de 12 semanas y la página lanzaba `Cannot read properties of undefined (reading 'total')`.
+- **Arreglo:** `lib/admin/semanas.ts` (puro): cada postulación cuenta por su día en Colombia (`fechaColombia`, como RN-02), una fecha posterior a hoy cuenta en la semana actual, y el periodo pedido empieza a medianoche de Colombia. `tablero.ts` solo la llama.
+- **Verificado:** `scripts/prueba-tablero-semanas.mjs` **10/10**: el caso de las 9 p. m., las fronteras de semana al segundo, las 24 horas de un día, el desfase de reloj, el trimestre anterior y el inicio del periodo. El cálculo anterior, con el mismo caso, lanza el error. Con la app compilada, a las 10:28 p. m. de Colombia y una postulación temporal de esa hora (ya borrada), `prueba-rnf-criticos.mjs` **TODO PASA**.
+
 ## Hallazgos no planificados
 
-- **El tablero del panel responde 500** si hay una postulación creada entre las 7 p. m. y la medianoche de Colombia (`lib/admin/tablero.ts`: la semana termina a medianoche UTC del día de Colombia). Gravedad alta. No se tocó. Anotado en `ESTADO.md`.
+- ~~El tablero del panel responde 500 de 7 p. m. a medianoche~~: arreglado al cierre (sección anterior).
 - **La ficha de la convocatoria desborda 31 a 39 px a 375 de ancho**: la fila de botones no se parte. Pasa también en fichas sin cambios. Anotado en `ESTADO.md`.
 
 ## Estado al cerrar
@@ -76,4 +84,4 @@ Pedido del Product Owner: «construye la migración de países y moneda (docs/05
 - `ESTADO.md` actualizado: sí
 - `docs/11-avance-por-requerimiento.md` actualizado: sí (RN-39, RN-40, RF-116 y RF-117 en `verificado`)
 - `tsc --noEmit` y `lint` limpios: sí (0 errores)
-- Siguiente paso: arreglar el 500 del tablero (alta); después, la migración del importador (§9.37).
+- Siguiente paso: la migración del importador (§9.37).
