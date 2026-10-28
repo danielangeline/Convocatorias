@@ -9,11 +9,16 @@ import { peticionAdmin } from "@/lib/admin/peticion";
 import { hoyColombia } from "@/lib/fechas";
 import { formatearMontoCOP, leerMontoCOP } from "@/lib/montos";
 import { DocumentosConvocatoria } from "./DocumentosConvocatoria";
-import { cn, formatCOP, ESTADO_CONVOCATORIA_LABEL, ESTADO_CONVOCATORIA_ESTILO, TIPO_CATEGORIA_LABEL } from "@/lib/utils";
+import { cn, ESTADO_CONVOCATORIA_LABEL, ESTADO_CONVOCATORIA_ESTILO, TIPO_CATEGORIA_LABEL } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Aviso } from "@/components/identidad/Campo";
 import { DEPARTAMENTOS } from "@/lib/departamentos";
+import { formatMonto } from "@/lib/monedas";
+
+type Opcion = { codigo: string; nombre: string };
+/** Las monedas más usadas por las fuentes van primero en la lista (RN-40). */
+const MONEDAS_FRECUENTES = ["COP", "USD", "EUR", "GBP", "CHF", "CAD"];
 
 const claseCampo =
   "w-full rounded-lg border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri";
@@ -34,10 +39,16 @@ export function EditorConvocatoria({
   convocatoria,
   categorias,
   fuentes,
+  paises,
+  monedas,
 }: {
   convocatoria: ConvocatoriaAdmin;
   categorias: CategoriaAdmin[];
   fuentes: FuenteAdmin[];
+  /** RN-39: países ISO 3166-1 con su nombre. */
+  paises: Opcion[];
+  /** RN-40: monedas ISO 4217 con su nombre. */
+  monedas: Opcion[];
 }) {
   const router = useRouter();
   const [form, setForm] = useState({
@@ -51,10 +62,28 @@ export function EditorConvocatoria({
     origen: convocatoria.origen,
     montoMin: formatearMontoCOP(convocatoria.montoMin),
     montoMax: formatearMontoCOP(convocatoria.montoMax),
+    moneda: convocatoria.moneda,
     fechaApertura: convocatoria.fechaApertura ?? "",
     fechaCierre: convocatoria.fechaCierre,
   });
   const [categoriasSel, setCategoriasSel] = useState<string[]>(convocatoria.categorias);
+  // RN-39 · Países que pueden postularse: todos, o una lista. La cobertura en
+  // departamentos solo aplica si Colombia es uno de ellos (RN-34).
+  const [todosLosPaises, setTodosLosPaises] = useState(convocatoria.todosLosPaises);
+  const [paisesSel, setPaisesSel] = useState<string[]>(convocatoria.paises);
+  const [busquedaPais, setBusquedaPais] = useState("");
+  const alternarPais = (codigo: string) =>
+    setPaisesSel((prev) => (prev.includes(codigo) ? prev.filter((p) => p !== codigo) : [...prev, codigo]));
+  const colombiaElegible = todosLosPaises || paisesSel.includes("CO");
+  const nombrePais = new Map(paises.map((p) => [p.codigo, p.nombre]));
+  const sinTildes = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const paisesBuscados = busquedaPais.trim()
+    ? paises.filter((p) => !paisesSel.includes(p.codigo) && (sinTildes(p.nombre).includes(sinTildes(busquedaPais.trim())) || p.codigo === busquedaPais.trim().toUpperCase())).slice(0, 12)
+    : [];
+  const monedasOrdenadas = [
+    ...MONEDAS_FRECUENTES.map((c) => monedas.find((m) => m.codigo === c)).filter((m): m is Opcion => !!m),
+    ...monedas.filter((m) => !MONEDAS_FRECUENTES.includes(m.codigo)),
+  ];
   // RN-34 · Cobertura: nacional, o uno o más departamentos de la lista oficial.
   const [coberturaNacional, setCoberturaNacional] = useState(convocatoria.coberturaNacional);
   const [departamentosSel, setDepartamentosSel] = useState<string[]>(convocatoria.departamentos);
@@ -89,6 +118,8 @@ export function EditorConvocatoria({
     const r = await peticionAdmin<ConvocatoriaAdmin>(`/api/admin/convocatorias/${convocatoria.id}`, "PATCH", {
       ...form,
       categorias: categoriasSel,
+      todosLosPaises,
+      paises: todosLosPaises ? [] : paisesSel,
       coberturaNacional,
       departamentos: coberturaNacional ? [] : departamentosSel,
       requisitos: requisitos.map(({ id, descripcion, tipo, obligatorio }) => ({ id, descripcion, tipo, obligatorio })),
@@ -238,7 +269,67 @@ export function EditorConvocatoria({
             <Campo etiqueta="Entidad convocante">
               <input {...campo("entidadConvocante")} className={claseCampo} required maxLength={200} />
             </Campo>
-            <Campo etiqueta="Cobertura" span2>
+            <Campo etiqueta="Países que pueden postularse" span2>
+              <label className="flex items-center gap-2 text-sm text-ink">
+                <input
+                  type="checkbox"
+                  checked={todosLosPaises}
+                  onChange={(e) => setTodosLosPaises(e.target.checked)}
+                  className="h-4 w-4 rounded border-line text-pri-text bg-surface text-ink"
+                />
+                Todos los países
+              </label>
+              {!todosLosPaises && (
+                <div className="mt-2">
+                  <p className="mb-1.5 text-xs text-ink-3">
+                    Solo los que la fuente nombra. Obligatorio para publicar. Las empresas solo ven por defecto las convocatorias a las que su país puede postularse.
+                  </p>
+                  {paisesSel.length > 0 && (
+                    <div className="mb-2 flex flex-wrap gap-1.5">
+                      {paisesSel.map((codigo) => (
+                        <button
+                          key={codigo}
+                          type="button"
+                          onClick={() => alternarPais(codigo)}
+                          aria-label={`Quitar ${nombrePais.get(codigo) ?? codigo}`}
+                          className="rounded-md bg-pri px-2.5 py-1 text-xs font-medium text-on-pri ring-1 ring-inset ring-pri"
+                        >
+                          {nombrePais.get(codigo) ?? codigo} ✕
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  <input
+                    type="search"
+                    value={busquedaPais}
+                    onChange={(e) => setBusquedaPais(e.target.value)}
+                    placeholder="Buscar un país para agregarlo (p. ej. Colombia, Ecuador, MX)"
+                    aria-label="Buscar país"
+                    className={claseCampo}
+                  />
+                  {paisesBuscados.length > 0 && (
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      {paisesBuscados.map((p) => (
+                        <button
+                          key={p.codigo}
+                          type="button"
+                          onClick={() => {
+                            alternarPais(p.codigo);
+                            setBusquedaPais("");
+                          }}
+                          className="rounded-md bg-surface px-2.5 py-1 text-xs font-medium text-ink-2 ring-1 ring-inset ring-line hover:bg-surface-2"
+                        >
+                          + {p.nombre}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </Campo>
+            {colombiaElegible ? (
+            <>
+            <Campo etiqueta="Cobertura en Colombia" span2>
               <label className="flex items-center gap-2 text-sm text-ink">
                 <input
                   type="checkbox"
@@ -286,6 +377,12 @@ export function EditorConvocatoria({
               />
               <p className="mt-1 text-xs text-ink-3">Se muestra en la ficha; no se usa para filtrar ni para las sugerencias.</p>
             </Campo>
+            </>
+            ) : (
+              <p className="text-xs text-ink-3 sm:col-span-2">
+                Colombia no está entre los países elegibles: la cobertura por departamentos no aplica.
+              </p>
+            )}
             <Campo etiqueta="Tipo de convocatoria">
               <select {...campo("tipo")} className={claseCampo}>
                 <option value="fondo">Fondos y financiación</option>
@@ -313,10 +410,22 @@ export function EditorConvocatoria({
             <Campo etiqueta="Descripción u objeto" span2>
               <textarea {...campo("descripcion")} rows={4} className={`${claseCampo} resize-y`} maxLength={10000} />
             </Campo>
-            <Campo etiqueta="Monto mínimo (COP)">
+            <Campo etiqueta="Moneda del monto" span2>
+              <select {...campo("moneda")} className={claseCampo}>
+                {monedasOrdenadas.map((m) => (
+                  <option key={m.codigo} value={m.codigo}>
+                    {m.codigo} · {m.nombre}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-ink-3">
+                La de la fuente: el monto se guarda tal cual, sin convertir. Para comparar en pesos se usa la tasa de referencia del panel.
+              </p>
+            </Campo>
+            <Campo etiqueta={`Monto mínimo (${form.moneda})`}>
               <input type="text" inputMode="numeric" placeholder="Ej. 50.000.000" {...campo("montoMin")} className={claseCampo} />
             </Campo>
-            <Campo etiqueta="Monto máximo (COP)">
+            <Campo etiqueta={`Monto máximo (${form.moneda})`}>
               <input type="text" inputMode="numeric" placeholder="Ej. 500.000.000" {...campo("montoMax")} className={claseCampo} />
             </Campo>
             <Campo etiqueta="Fecha de apertura">
@@ -328,7 +437,7 @@ export function EditorConvocatoria({
           </div>
           {montoMin > 0 && montoMax > 0 && (
             <p className="mt-2 font-tabular text-xs text-ink-3">
-              Rango: {formatCOP(montoMin)} – {formatCOP(montoMax)}
+              Rango: {formatMonto(montoMin, form.moneda)} – {formatMonto(montoMax, form.moneda)}
             </p>
           )}
         </Seccion>

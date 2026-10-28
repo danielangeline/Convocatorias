@@ -48,7 +48,7 @@ const api = async (s, metodo, r, cuerpo) => {
 const norma = (t) => t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 
 try {
-  const { data: conv, error: eC } = await svc.from("convocatorias").insert({
+  const { data: conv, error: eC } = await svc.from("convocatorias").insert({ todos_los_paises: true, // RN-39: datos de prueba abiertos a todos los países
     nombre: `Innovación social en salud rural [estructura ${sufijo}]`, entidad_convocante: "Entidad de prueba", cobertura_nacional: true,
     fecha_cierre: new Date(Date.now() + 20 * 86400000).toISOString().slice(0, 10), estado: "publicada", url_postulacion: "https://prueba.gov.co/estructura",
   }).select("id").single();

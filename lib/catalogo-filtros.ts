@@ -1,6 +1,7 @@
 import type { Categoria, Convocatoria, TipoDocumento } from "@/lib/types";
 import { REGIONES, nombreDepartamento, textoCobertura, type ClaveRegion } from "@/lib/departamentos";
 import { hoyColombia } from "@/lib/fechas";
+import { montoMaxCop, montoMinCop } from "@/lib/monedas";
 
 /**
  * Filtros combinables del catálogo (RF-12, CU-07), orden (RF-94) y chips
@@ -72,6 +73,11 @@ export interface FiltrosCatalogo {
   exigeDocumentos?: boolean;
   /** A lo sumo N requisitos. */
   maxRequisitos?: number | null;
+  /**
+   * RN-39 · Criterio 21: sin él, solo las convocatorias a las que el país de la
+   * empresa puede postularse; con él, todas (las no elegibles se marcan en la tarjeta).
+   */
+  incluirOtrosPaises?: boolean;
 }
 
 /** Minúsculas y sin tildes: "Innovación" encuentra "innovacion". */
@@ -94,6 +100,7 @@ export function filtrarCatalogo(lista: Convocatoria[], f: FiltrosCatalogo, hoy: 
   const deRegion = f.region ? departamentosDe(f.region) : null;
   const limiteCierre = f.cierraEnDias != null ? sumarDias(hoy, f.cierraEnDias) : null;
   return lista.filter((c) => {
+    if (!f.incluirOtrosPaises && c.elegible === false) return false;
     if (palabras.length) {
       const texto = normalizar(`${c.nombre} ${c.entidadConvocante} ${c.descripcion} ${c.ubicacion} ${textoCobertura(c)}`);
       if (!palabras.every((p) => texto.includes(p))) return false;
@@ -106,10 +113,13 @@ export function filtrarCatalogo(lista: Convocatoria[], f: FiltrosCatalogo, hoy: 
     if (deRegion && !c.coberturaNacional && !c.departamentos.some((d) => deRegion.includes(d))) return false;
     if (f.alcance === "nacional" && !c.coberturaNacional) return false;
     if (f.alcance === "territorial" && c.coberturaNacional) return false;
-    // Sin monto mínimo informado no hay umbral que la excluya.
-    if (f.montoHasta != null && c.montoMin != null && c.montoMin > f.montoHasta) return false;
-    // "Apoya con al menos X": sin monto máximo informado no puede afirmarlo.
-    if (f.montoDesde != null && (c.montoMax == null || c.montoMax < f.montoDesde)) return false;
+    // Montos comparados en pesos (RN-40): en otra moneda, con la tasa de referencia.
+    // Sin monto mínimo en pesos (no informado o sin tasa) no hay umbral que la excluya.
+    const minCop = montoMinCop(c);
+    const maxCop = montoMaxCop(c);
+    if (f.montoHasta != null && minCop != null && minCop > f.montoHasta) return false;
+    // "Apoya con al menos X": sin monto máximo en pesos no puede afirmarlo.
+    if (f.montoDesde != null && (maxCop == null || maxCop < f.montoDesde)) return false;
     const conMonto = c.montoMin != null || c.montoMax != null;
     if (f.monto === "con" && !conMonto) return false;
     if (f.monto === "sin" && conMonto) return false;
@@ -138,8 +148,9 @@ export function ordenarCatalogo(lista: Convocatoria[], orden: ClaveOrden = "cier
     switch (orden) {
       case "cierre_asc": return a.fechaCierre.localeCompare(b.fechaCierre);
       case "cierre_desc": return b.fechaCierre.localeCompare(a.fechaCierre);
-      case "monto_desc": return numero(a.montoMax ?? a.montoMin, b.montoMax ?? b.montoMin, true);
-      case "monto_asc": return numero(a.montoMin ?? a.montoMax, b.montoMin ?? b.montoMax, false);
+      // En pesos (RN-40): una moneda sin tasa va al final, como un monto no informado.
+      case "monto_desc": return numero(montoMaxCop(a) ?? montoMinCop(a), montoMaxCop(b) ?? montoMinCop(b), true);
+      case "monto_asc": return numero(montoMinCop(a) ?? montoMaxCop(a), montoMinCop(b) ?? montoMaxCop(b), false);
       case "apertura_desc":
         return a.fechaApertura == null && b.fechaApertura == null ? 0 : a.fechaApertura == null ? 1 : b.fechaApertura == null ? -1 : b.fechaApertura.localeCompare(a.fechaApertura);
       case "nombre": return texto(a.nombre, b.nombre);

@@ -7,6 +7,9 @@
 -- =============================================================================
 
 begin;
+-- RN-39 (sesión 033): las convocatorias de prueba admiten a todos los países;
+-- se revierte con el resto al final.
+alter table public.convocatorias alter column todos_los_paises set default true;
 
 create function pg_temp.ok(condicion boolean, descripcion text) returns text
 language plpgsql as $$
@@ -146,7 +149,7 @@ grant select on proyectos_previos to authenticated;
 -- 0 · Cobertura (RNF-25): toda tabla de public con RLS y al menos una política
 -- ---------------------------------------------------------------------------
 
-select pg_temp.ok(count(*) = 36, 'hay 36 tablas en public (27 + departamentos y convocatoria_departamento, sesión 019, + encargo_historial, sesión 023, + encargo_propuestas, sesión 025, + documento_lecturas, sesión 026, + reservas_estructuracion, plantillas_proyecto y tarifas_ia, sesión 030, + convocatorias_guardadas, sesión 031)') from pg_tables where schemaname = 'public';
+select pg_temp.ok(count(*) = 40, 'hay 40 tablas en public (27 + departamentos y convocatoria_departamento, sesión 019, + encargo_historial, sesión 023, + encargo_propuestas, sesión 025, + documento_lecturas, sesión 026, + reservas_estructuracion, plantillas_proyecto y tarifas_ia, sesión 030, + convocatorias_guardadas, sesión 031, + paises, monedas, convocatoria_pais y tasas_referencia, sesión 033)') from pg_tables where schemaname = 'public';
 select pg_temp.ok(bool_and(c.relrowsecurity), 'todas las tablas tienen RLS habilitado')
 from pg_class c join pg_namespace n on n.oid = c.relnamespace
 where n.nspname = 'public' and c.relkind = 'r';

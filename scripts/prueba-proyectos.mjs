@@ -149,7 +149,7 @@ try {
   ok(cons0.status === 200 && cons0.json?.datos?.documentos === 0 && cons0.json?.datos?.encargos === 0, "consecuencias de un proyecto sin nada -> 0 y 0");
 
   // Documento generado sobre el proyecto parcial: al borrarlo, se va en cascada.
-  const { data: conv } = await svc.from("convocatorias").insert({
+  const { data: conv } = await svc.from("convocatorias").insert({ todos_los_paises: true, // RN-39: datos de prueba abiertos a todos los países
     nombre: `Conv proyectos ${sufijo}`, entidad_convocante: "Prueba", fecha_cierre: enDias(10), estado: "publicada", url_postulacion: "https://prueba.gov.co/p",
   }).select("id").single();
   convocatorias.push(conv.id);

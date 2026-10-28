@@ -11,6 +11,9 @@ declare
   v_estado text;
   f record;
 begin
+  -- RN-39 (sesión 033): las convocatorias de prueba admiten a todos los países;
+  -- se revierte con el resto al final.
+  alter table public.convocatorias alter column todos_los_paises set default true;
   insert into public.convocatorias (id, nombre, entidad_convocante, fecha_cierre, estado, url_postulacion) values
     ('00000000-0000-0000-0000-0000000cc001', 'Vencida ayer', 'Prueba', privado.hoy_colombia() - 1, 'publicada', 'https://prueba.gov.co/1'),
     ('00000000-0000-0000-0000-0000000cc002', 'Cierra hoy', 'Prueba', privado.hoy_colombia(), 'publicada', 'https://prueba.gov.co/2'),

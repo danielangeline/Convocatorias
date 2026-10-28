@@ -27,6 +27,9 @@ declare
   v_obtenido text;
   v_n int;
 begin
+  -- RN-39 (sesión 033): las convocatorias de prueba admiten a todos los países;
+  -- se revierte con el resto al final.
+  alter table public.convocatorias alter column todos_los_paises set default true;
   insert into auth.users (id, email, raw_user_meta_data) values
     (v_e1, 'pos1@prueba.co', '{"rol": "empresa", "nombre": "Postulaciones uno"}'),
     (v_e2, 'pos2@prueba.co', '{"rol": "empresa", "nombre": "Postulaciones dos"}'),

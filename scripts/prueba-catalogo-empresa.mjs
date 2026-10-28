@@ -78,7 +78,7 @@ try {
   categorias.push(sector.id, tipoP.id);
 
   const crearConvocatoria = async (nombre, estado, cierre, extra = {}) => {
-    const { data, error } = await svc.from("convocatorias").insert({
+    const { data, error } = await svc.from("convocatorias").insert({ todos_los_paises: true, // RN-39: datos de prueba abiertos a todos los países
       fuente_id: fuente.id, nombre, entidad_convocante: `Entidad ${sufijo}`, descripcion: "Apoyo a la innovación agroindustrial",
       ubicacion_cobertura: "Antioquia", fecha_cierre: cierre, url_postulacion: "https://entidad.gov.co/x", estado, ...extra,
     }).select("id").single();

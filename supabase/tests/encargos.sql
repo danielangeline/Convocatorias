@@ -27,6 +27,9 @@ declare
   v_o text;
   v_row record;
 begin
+  -- RN-39 (sesión 033): las convocatorias de prueba admiten a todos los países;
+  -- se revierte con el resto al final.
+  alter table public.convocatorias alter column todos_los_paises set default true;
   insert into auth.users (id, email, raw_user_meta_data) values
     (v_c1, 'ec1@prueba.co', '{"rol": "consultor", "nombre": "Uno", "consentimiento_datos": "true"}'),
     (v_c2, 'ec2@prueba.co', '{"rol": "consultor", "nombre": "Dos", "consentimiento_datos": "true"}'),

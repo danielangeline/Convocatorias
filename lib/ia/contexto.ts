@@ -1,6 +1,7 @@
 import "server-only";
 import { nombreDepartamento, textoCobertura } from "@/lib/departamentos";
 import { formatCOP } from "@/lib/utils";
+import { formatMonto } from "@/lib/monedas";
 import type { Convocatoria, Proyecto } from "@/lib/types";
 
 /**
@@ -115,7 +116,7 @@ function bloqueConvocatoria(c: Convocatoria): string {
   const monto =
     c.montoMin == null && c.montoMax == null
       ? "(la entidad no lo informa)"
-      : [c.montoMin != null ? `desde ${formatCOP(c.montoMin)}` : null, c.montoMax != null ? `hasta ${formatCOP(c.montoMax)}` : null]
+      : [c.montoMin != null ? `desde ${formatMonto(c.montoMin, c.moneda)}` : null, c.montoMax != null ? `hasta ${formatMonto(c.montoMax, c.moneda)}` : null]
           .filter(Boolean)
           .join(" ");
   const requisitos = [...c.requisitos].sort((a, b) => a.orden - b.orden);

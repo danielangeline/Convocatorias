@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { EditorConvocatoria } from "@/components/admin/EditorConvocatoria";
 import { listarCategorias, listarFuentes, obtenerConvocatoria } from "@/lib/admin/catalogo";
+import { listarMonedas, listarPaises } from "@/lib/catalogo";
 
 export const metadata = { title: "Editar convocatoria · Panel admin" };
 
@@ -12,12 +13,23 @@ export default async function EditorConvocatoriaPage({ params }: { params: Promi
   const { id } = await params;
   if (!UUID.test(id)) notFound();
 
-  const [convocatoria, categorias, fuentes] = await Promise.all([
+  const [convocatoria, categorias, fuentes, paises, monedas] = await Promise.all([
     obtenerConvocatoria(id),
     listarCategorias(),
     listarFuentes(),
+    listarPaises(),
+    listarMonedas(),
   ]);
   if (!convocatoria) notFound();
 
-  return <EditorConvocatoria key={convocatoria.id} convocatoria={convocatoria} categorias={categorias} fuentes={fuentes} />;
+  return (
+    <EditorConvocatoria
+      key={convocatoria.id}
+      convocatoria={convocatoria}
+      categorias={categorias}
+      fuentes={fuentes}
+      paises={paises}
+      monedas={monedas}
+    />
+  );
 }

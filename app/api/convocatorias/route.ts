@@ -7,7 +7,8 @@ import { esClaveRegion, esCodigoDepartamento } from "@/lib/departamentos";
 import type { TipoDocumento } from "@/lib/types";
 
 // RF-11, RF-12, RF-94, CU-07 · Catálogo de la empresa: publicadas y vigentes (RN-33),
-// con texto libre, 20 filtros combinables y orden. Las cerradas solo con
+// con texto libre, 21 filtros combinables y orden. Sin incluirOtrosPaises=true, solo
+// las que admiten al país de la empresa (RN-39); los montos se comparan en pesos (RN-40). Las cerradas solo con
 // incluirCerradas=true, detrás de las vigentes (RN-02). Las categorías van como ids
 // separados por comas; los montos en pesos, en formato colombiano (CU-02 2b);
 // departamento como código DANE, y trae también las de cobertura nacional (RN-34).
@@ -55,7 +56,11 @@ export async function GET(request: NextRequest) {
     const orden = p.get("orden") ?? "";
     if (orden && !esClaveOrden(orden)) return bad("El orden pedido no existe.");
 
-    const filtradas = filtrarCatalogo(await listarCatalogo(p.get("incluirCerradas") === "true"), {
+    const otros = p.get("incluirOtrosPaises") ?? "";
+    if (otros && otros !== "true" && otros !== "false") return bad("incluirOtrosPaises debe ser true o false.");
+    const incluirOtrosPaises = otros === "true";
+
+    const filtradas = filtrarCatalogo(await listarCatalogo(p.get("incluirCerradas") === "true", incluirOtrosPaises), {
       q: p.get("q") ?? "",
       tipoProyecto: lista("tipoProyecto"),
       sector: lista("sector"),
@@ -75,6 +80,7 @@ export async function GET(request: NextRequest) {
       tipoDoc: tipoDoc as TipoDocumento[],
       exigeDocumentos: exige === "true",
       maxRequisitos: maxReq ? Number(maxReq) : null,
+      incluirOtrosPaises,
     });
     return NextResponse.json({ ok: true, datos: orden ? ordenarCatalogo(filtradas, orden as ClaveOrden) : filtradas });
   });

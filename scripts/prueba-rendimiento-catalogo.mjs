@@ -42,7 +42,7 @@ try {
   const { count: existentes } = await svc.from("convocatorias").select("id", { count: "exact", head: true })
     .eq("estado", "publicada").gte("fecha_cierre", hoy);
   N = TOTAL - existentes;
-  const filas = Array.from({ length: N }, (_, i) => ({
+  const filas = Array.from({ length: N }, (_, i) => ({ todos_los_paises: true, // RN-39: datos de prueba abiertos a todos los países
     nombre: `${marca} convocatoria ${i} ${["innovación", "agro", "turismo", "energía", "salud"][i % 5]}`,
     entidad_convocante: `Entidad ${i % 40} ${marca}`,
     descripcion: "Financiar proyectos de prueba de rendimiento",

@@ -45,6 +45,7 @@ export const CONVOCATORIAS = [
     apertura: "2026-10-23", cierre: "2026-11-13", montoMin: null, montoMax: 50000000000,
     ubicacion: "Todo el país: el macroproyecto interviene directamente en al menos dos regiones del SGR",
     nacional: true,
+    paises: ["CO"], // RN-39: todas admiten organizaciones de Colombia (verificado al cargarlas)
     url: "https://minciencias.gov.co/node/9581",
     categorias: { tipo_proyecto: ["Investigación aplicada y CTeI", "Innovación y desarrollo tecnológico"], sector: ["Todos los sectores"], tipo_entidad: ["Institución de educación superior", "Entidad territorial", "Gran empresa o corporativo", "MiPyme", "Organización social y comunitaria"] },
     requisitos: [
@@ -66,6 +67,7 @@ export const CONVOCATORIAS = [
     apertura: "2026-10-23", cierre: "2026-11-13", montoMin: null, montoMax: 17177626246,
     ubicacion: "Todo el país: el proyecto se ejecuta en al menos dos departamentos de una misma región del SGR",
     nacional: true,
+    paises: ["CO"], // RN-39: todas admiten organizaciones de Colombia (verificado al cargarlas)
     url: "https://minciencias.gov.co/node/9582",
     categorias: { tipo_proyecto: ["Investigación aplicada y CTeI", "Innovación y desarrollo tecnológico"], sector: ["Todos los sectores"], tipo_entidad: ["Institución de educación superior", "Entidad territorial", "MiPyme", "Gran empresa o corporativo", "Organización social y comunitaria"] },
     requisitos: [
@@ -86,6 +88,7 @@ export const CONVOCATORIAS = [
     apertura: "2026-10-12", cierre: "2026-11-16", montoMin: null, montoMax: null,
     ubicacion: "Países elegibles para la Ayuda Oficial al Desarrollo, o proyectos globales o temáticos",
     nacional: true,
+    paises: ["CO"], // RN-39: todas admiten organizaciones de Colombia (verificado al cargarlas)
     url: "https://gms-portal.iucn.org/public/calls/4c6561a2-74bc-436a-8a0c-c0eccd87fe65",
     categorias: { tipo_proyecto: ["Financiación no reembolsable y premios", "Investigación aplicada y CTeI"], sector: ["Medio ambiente y biodiversidad", "Energía y clima"], tipo_entidad: ["ONG o sin ánimo de lucro", "Organización social y comunitaria", "Institución de educación superior", "Gran empresa o corporativo"] },
     requisitos: [
@@ -106,6 +109,7 @@ export const CONVOCATORIAS = [
     apertura: null, cierre: "2026-11-29", montoMin: null, montoMax: null,
     ubicacion: "Ciudades de cualquier país, con un gobierno de ciudad como socio",
     nacional: true,
+    paises: ["CO"], // RN-39: todas admiten organizaciones de Colombia (verificado al cargarlas)
     url: "https://citiesdeliver.rockefellerfoundation.org/",
     categorias: { tipo_proyecto: ["Financiación no reembolsable y premios", "Innovación y desarrollo tecnológico", "Transformación digital"], sector: ["Gobierno y sector público", "TIC y software"], tipo_entidad: ["ONG o sin ánimo de lucro", "Institución de educación superior", "Startup", "MiPyme"] },
     requisitos: [
@@ -125,6 +129,7 @@ export const CONVOCATORIAS = [
     apertura: null, cierre: "2026-12-01", montoMin: null, montoMax: null,
     ubicacion: "Postulantes de cualquier país",
     nacional: true,
+    paises: ["CO"], // RN-39: todas admiten organizaciones de Colombia (verificado al cargarlas)
     url: "https://cieif.org/guidelines-for-grant-applicants/",
     categorias: { tipo_proyecto: ["Financiación no reembolsable y premios", "Investigación aplicada y CTeI"], sector: ["Energía y clima", "Medio ambiente y biodiversidad"], tipo_entidad: ["Startup", "Institución de educación superior", "ONG o sin ánimo de lucro"] },
     requisitos: [
@@ -144,6 +149,7 @@ export const CONVOCATORIAS = [
     apertura: null, cierre: "2026-11-25", montoMin: null, montoMax: null,
     ubicacion: "Startups de cualquier país; el día del reto es presencial en Suiza",
     nacional: true,
+    paises: ["CO"], // RN-39: todas admiten organizaciones de Colombia (verificado al cargarlas)
     url: "https://apply.masschallenge.org/en-us/mcch-sustainable-food-challenge-2027",
     categorias: { tipo_proyecto: ["Aceleración y competencia de startups", "Internacionalización y acceso a mercados"], sector: ["Agroindustria y alimentos"], tipo_entidad: ["Startup", "MiPyme"] },
     requisitos: [
@@ -162,6 +168,7 @@ export const CONVOCATORIAS = [
     apertura: "2026-09-30", cierre: "2026-11-23", montoMin: null, montoMax: null,
     ubicacion: "Países elegibles de la ronda 12, entre ellos Colombia",
     nacional: true,
+    paises: ["CO"], // RN-39: todas admiten organizaciones de Colombia (verificado al cargarlas)
     url: "https://bcfs.flexigrant.com/",
     categorias: { tipo_proyecto: ["Financiación no reembolsable y premios"], sector: ["Medio ambiente y biodiversidad"], tipo_entidad: ["ONG o sin ánimo de lucro", "Organización social y comunitaria", "Institución de educación superior"] },
     requisitos: [
@@ -181,6 +188,7 @@ export const CONVOCATORIAS = [
     apertura: "2026-09-30", cierre: "2027-02-15", montoMin: null, montoMax: null,
     ubicacion: "Países elegibles de la ronda 12, entre ellos Colombia",
     nacional: true,
+    paises: ["CO"], // RN-39: todas admiten organizaciones de Colombia (verificado al cargarlas)
     url: "https://bcfs.flexigrant.com/",
     categorias: { tipo_proyecto: ["Investigación aplicada y CTeI", "Financiación no reembolsable y premios"], sector: ["Medio ambiente y biodiversidad"], tipo_entidad: ["ONG o sin ánimo de lucro", "Institución de educación superior", "Organización social y comunitaria"] },
     requisitos: [
@@ -199,6 +207,7 @@ export const CONVOCATORIAS = [
     apertura: "2027-01-06", cierre: "2027-01-19", montoMin: null, montoMax: null,
     ubicacion: "Proyectos en países de habla hispana o portuguesa de América Latina, entre ellos Colombia",
     nacional: true,
+    paises: ["CO"], // RN-39: todas admiten organizaciones de Colombia (verificado al cargarlas)
     url: "https://tinker.fluxx.io/user_sessions/new",
     categorias: { tipo_proyecto: ["Financiación no reembolsable y premios", "Investigación aplicada y CTeI"], sector: ["Educación", "Gobierno y sector público", "Derechos humanos y sociedad civil"], tipo_entidad: ["ONG o sin ánimo de lucro", "Institución de educación superior", "Organización social y comunitaria"] },
     requisitos: [
@@ -218,6 +227,7 @@ export const CONVOCATORIAS = [
     apertura: "2026-10-07", cierre: "2026-11-07", montoMin: null, montoMax: null,
     ubicacion: "Organizaciones de cualquier país",
     nacional: true,
+    paises: ["CO"], // RN-39: todas admiten organizaciones de Colombia (verificado al cargarlas)
     url: "https://forms.gle/c9dcvc55qDX4GME48",
     categorias: { tipo_proyecto: ["Financiación no reembolsable y premios", "Transformación digital"], sector: ["TIC y software", "Educación"], tipo_entidad: ["ONG o sin ánimo de lucro", "Startup", "MiPyme", "Gran empresa o corporativo", "Entidad territorial", "Institución de educación superior"] },
     requisitos: [
@@ -236,6 +246,7 @@ export const CONVOCATORIAS = [
     apertura: "2026-10-26", cierre: "2026-12-07", montoMin: null, montoMax: null,
     ubicacion: "Convocatoria global: proyectos en uno o varios países",
     nacional: true,
+    paises: ["CO"], // RN-39: todas admiten organizaciones de Colombia (verificado al cargarlas)
     url: "https://www.grants.gov/search-results-detail/364149",
     categorias: { tipo_proyecto: ["Financiación no reembolsable y premios"], sector: ["Derechos humanos y sociedad civil"], tipo_entidad: ["ONG o sin ánimo de lucro", "Institución de educación superior", "Gran empresa o corporativo", "MiPyme"] },
     requisitos: [

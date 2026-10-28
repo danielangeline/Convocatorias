@@ -80,7 +80,7 @@ try {
   // --- Convocatoria temporal, copia de la real ---------------------------------------------
   const { data: real, error: eReal } = await svc.from("convocatorias").select("*").eq("id", ORIGEN).single();
   if (eReal) throw eReal;
-  const { data: conv, error: eConv } = await svc.from("convocatorias").insert({
+  const { data: conv, error: eConv } = await svc.from("convocatorias").insert({ todos_los_paises: true, // RN-39: datos de prueba abiertos a todos los países
     nombre: `${real.nombre} [medición ${sufijo}]`, entidad_convocante: real.entidad_convocante, descripcion: real.descripcion,
     monto_min: real.monto_min, monto_max: real.monto_max, cobertura_nacional: real.cobertura_nacional,
     ubicacion_cobertura: real.ubicacion_cobertura, fecha_apertura: real.fecha_apertura, fecha_cierre: enDias(20),

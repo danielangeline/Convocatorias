@@ -15,7 +15,8 @@ export const metadata = { title: "Guardadas" };
 export default async function GuardadasPage() {
   const [ids, catalogo, categorias, compat] = await Promise.all([
     listarGuardadas(),
-    listarCatalogo(true),
+    // También las de otros países: si la empresa guardó una, la sigue viendo (marcada).
+    listarCatalogo(true, true),
     listarCategoriasActivas(),
     compatibilidadEmpresa(),
   ]);

@@ -59,6 +59,18 @@ export interface Convocatoria {
   origen?: OrigenConvocatoria;
   /** Cuándo se publicó (para «nuevas esta semana»); nulo si nunca se publicó. */
   publicadaAt?: string | null;
+  /** RN-40: moneda de montoMin y montoMax (ISO 4217). Ausente en los datos de ejemplo: COP. */
+  moneda?: string;
+  /** RN-39: países que pueden postularse; `todosLosPaises` manda sobre la lista. */
+  todosLosPaises?: boolean;
+  paises?: string[];
+  /** RN-39: si el país de la empresa puede postularse. Ausente en los datos de ejemplo: sí. */
+  elegible?: boolean;
+  /** RN-40: los montos en pesos con la tasa de referencia, solo para comparar; null sin tasa. */
+  montoMinCop?: number | null;
+  montoMaxCop?: number | null;
+  /** Fecha de la tasa usada para el equivalente en pesos (null si es COP o no hay tasa). */
+  tasaVigenteDesde?: string | null;
 }
 
 export interface Proyecto {
@@ -736,6 +748,8 @@ export interface ConvocatoriaAdminListado {
   fuenteNombre: string | null;
   montoMin: number | null;
   montoMax: number | null;
+  /** RN-40: moneda de los montos (ISO 4217). */
+  moneda: string;
   fechaCierre: string;
   estado: EstadoConvocatoria;
 }
@@ -748,6 +762,11 @@ export interface ConvocatoriaAdmin {
   descripcion: string;
   montoMin: number | null;
   montoMax: number | null;
+  /** RN-40: moneda de los montos (ISO 4217). */
+  moneda: string;
+  /** RN-39: países que pueden postularse; `todosLosPaises` manda sobre la lista. */
+  todosLosPaises: boolean;
+  paises: string[];
   coberturaNacional: boolean;
   departamentos: string[];
   ubicacion: string;

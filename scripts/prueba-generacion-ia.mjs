@@ -73,7 +73,7 @@ try {
   await svc.from("consultor_perfiles").update({ nombre_profesional: `Consultora ${sufijo}`, estado_perfil: "aprobado" }).eq("id", a.id);
 
   const crearConvocatoria = async (nombre, cierre) => {
-    const { data, error } = await svc.from("convocatorias").insert({
+    const { data, error } = await svc.from("convocatorias").insert({ todos_los_paises: true, // RN-39: datos de prueba abiertos a todos los países
       nombre, entidad_convocante: "Entidad de prueba", cobertura_nacional: true, fecha_cierre: cierre,
       estado: "publicada", url_postulacion: "https://prueba.gov.co/ia",
     }).select("id").single();

@@ -6,7 +6,6 @@ import type { Categoria, Convocatoria } from "@/lib/types";
 import {
   cn,
   diasRestantes,
-  formatRangoCOP,
   ESTADO_CONVOCATORIA_LABEL,
   ESTADO_CONVOCATORIA_ESTILO,
   ORIGEN_CONVOCATORIA_LABEL,
@@ -14,6 +13,7 @@ import {
 import { Badge } from "./ui/Badge";
 import { CompatRing } from "./viz/CompatRing";
 import { DeadlineChip } from "./viz/Deadline";
+import { formatRangoConvocatoria } from "@/lib/monedas";
 
 /**
  * Tarjeta del catálogo. `href`: a dónde lleva; por defecto, la ficha de la
@@ -50,6 +50,8 @@ export function ConvocatoriaCard({
         <div className="flex flex-wrap gap-1.5">
           <Badge tono={tributario ? "violet" : "pri"}>{tributario ? "Beneficio tributario" : "Fondos"}</Badge>
           <Badge tono="neutro">{ORIGEN_CONVOCATORIA_LABEL[convocatoria.origen ?? "publico"]}</Badge>
+          {/* RN-39: solo aparece con «incluir las de otros países». */}
+          {convocatoria.elegible === false && <Badge tono="neutro">Tu país no es elegible</Badge>}
           {convocatoria.estado !== "publicada" && (
             <Badge className={ESTADO_CONVOCATORIA_ESTILO[convocatoria.estado]}>
               {ESTADO_CONVOCATORIA_LABEL[convocatoria.estado]}
@@ -82,7 +84,7 @@ export function ConvocatoriaCard({
             <p className="mt-0.5 text-[13px] font-semibold text-ink-3">No informado</p>
           ) : (
             <p className="font-tabular mt-0.5 text-sm font-semibold">
-              {formatRangoCOP(convocatoria.montoMin, convocatoria.montoMax)}
+              {formatRangoConvocatoria(convocatoria)}
             </p>
           )}
         </div>

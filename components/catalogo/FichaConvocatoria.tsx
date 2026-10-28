@@ -18,6 +18,7 @@ import {
   Sparkles,
   X,
   ExternalLink,
+  Globe2,
 } from "lucide-react";
 import { useAccesoSuscripcion, useProyectosPropios } from "@/lib/hooks";
 import {
@@ -26,13 +27,13 @@ import {
   ESTADO_CONVOCATORIA_LABEL,
   ESTADO_CONVOCATORIA_ESTILO,
   TIPO_DOCUMENTO_LABEL,
-  formatRangoCOP,
 } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 import { Chip } from "@/components/ui/Chip";
 import { Button } from "@/components/ui/Button";
 import type { Categoria, Convocatoria } from "@/lib/types";
 import { textoCobertura } from "@/lib/departamentos";
+import { equivalenteCop, formatRangoConvocatoria } from "@/lib/monedas";
 
 /**
  * CU-08 · Ficha de la convocatoria. Los datos llegan del servidor, leídos con la
@@ -49,6 +50,7 @@ export function FichaConvocatoria({
   documentosBase,
   acciones,
   guardada,
+  paisesTexto,
 }: {
   convocatoria: Convocatoria | null;
   categorias: Categoria[];
@@ -58,6 +60,8 @@ export function FichaConvocatoria({
   acciones?: React.ReactNode;
   /** RF-103: con la prop se ofrece guardar (solo la empresa). */
   guardada?: boolean;
+  /** RN-39: «Todos los países» o la lista de países elegibles, ya con sus nombres. */
+  paisesTexto?: string;
 }) {
   const router = useRouter();
   const proyectos = useProyectosPropios();
@@ -82,6 +86,10 @@ export function FichaConvocatoria({
 
   const dias = diasRestantes(convocatoria.fechaCierre);
   const cerrada = convocatoria.estado === "cerrada" || dias < 0;
+  // RN-39: si el país de la empresa no puede postularse, postular y generar no se ofrecen (y la base los rechaza).
+  const noElegible = convocatoria.elegible === false;
+  const bloqueada = cerrada || noElegible;
+  const equivalente = equivalenteCop(convocatoria);
   const categoriasCompletas = convocatoria.categorias.map((cid) => categorias.find((c) => c.id === cid)).filter(Boolean);
 
   // CU-08 paso 3, RNF-16: la URL se pide en el momento y vive 15 minutos. El
@@ -136,6 +144,7 @@ export function FichaConvocatoria({
           <Badge className={ESTADO_CONVOCATORIA_ESTILO[convocatoria.estado]}>
             {ESTADO_CONVOCATORIA_LABEL[convocatoria.estado]}
           </Badge>
+          {noElegible && <Badge className="bg-sky/10 text-sky-ink ring-sky/30">Tu país no es elegible</Badge>}
           {!cerrada && dias < 15 && (
             <Badge className="bg-amber/10 text-amber-ink ring-amber/30">
               Cierra en {dias} {dias === 1 ? "día" : "días"}
@@ -152,12 +161,18 @@ export function FichaConvocatoria({
 
         <p className="mt-5 text-[15px] leading-relaxed text-ink-2">{convocatoria.descripcion}</p>
 
-        <div className="mt-6 grid gap-4 rounded-xl bg-pri-soft/60 p-5 sm:grid-cols-3">
+        <div className="mt-6 grid gap-4 rounded-xl bg-pri-soft/60 p-5 sm:grid-cols-2">
           <Dato icon={Wallet} etiqueta="Monto de financiación">
             <span className="font-tabular">
-              {formatRangoCOP(convocatoria.montoMin, convocatoria.montoMax)}
+              {formatRangoConvocatoria(convocatoria)}
             </span>
+            {equivalente && <span className="mt-0.5 block text-xs font-normal text-ink-3">{equivalente}</span>}
           </Dato>
+          {paisesTexto && (
+            <Dato icon={Globe2} etiqueta="Pueden postularse">
+              {paisesTexto}
+            </Dato>
+          )}
           <Dato icon={MapPin} etiqueta="Cobertura">
             {textoCobertura(convocatoria)}
             {convocatoria.ubicacion && (
@@ -258,11 +273,13 @@ export function FichaConvocatoria({
               <Info className="h-3.5 w-3.5" />
               {cerrada
                 ? "Esta convocatoria ya cerró y no admite nuevas postulaciones."
-                : "Al postularte crearás un expediente de seguimiento para esta convocatoria."}
+                : noElegible
+                  ? "Las organizaciones de tu país no pueden postularse a esta convocatoria."
+                  : "Al postularte crearás un expediente de seguimiento para esta convocatoria."}
             </div>
             <div className="flex flex-wrap items-center gap-2">
               {/* RN-02: en una cerrada las tres acciones de CU-08 quedan deshabilitadas. */}
-              {convocatoria.urlPostulacion && !cerrada && (
+              {convocatoria.urlPostulacion && !bloqueada && (
                 <a href={convocatoria.urlPostulacion} target="_blank" rel="noreferrer">
                   <Button variant="ghost" size="lg">
                     <ExternalLink className="h-4 w-4" /> Ir al portal de la entidad
@@ -273,7 +290,7 @@ export function FichaConvocatoria({
               <Button
                 variant="ai"
                 size="lg"
-                disabled={cerrada}
+                disabled={bloqueada}
                 onClick={() => {
                   if (!requerirAcceso("generar un documento con IA")) return;
                   router.push(`/convocatorias/${convocatoria.id}/generar`);
@@ -284,7 +301,7 @@ export function FichaConvocatoria({
               <Button
                 variant="primary"
                 size="lg"
-                disabled={cerrada}
+                disabled={bloqueada}
                 onClick={() => {
                   if (!requerirAcceso("postularte a esta convocatoria")) return;
                   setErrorPostular(null);

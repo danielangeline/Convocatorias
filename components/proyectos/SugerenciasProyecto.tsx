@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { ArrowLeft, Check, X as XIcon, MapPin, Wallet, Info, Lock, Sparkles, CircleDashed } from "lucide-react";
-import { diasRestantes, formatRangoCOP, ESTADO_CONVOCATORIA_LABEL, ESTADO_CONVOCATORIA_ESTILO } from "@/lib/utils";
+import { diasRestantes, ESTADO_CONVOCATORIA_LABEL, ESTADO_CONVOCATORIA_ESTILO } from "@/lib/utils";
+import { formatRangoConvocatoria } from "@/lib/monedas";
 import { textoCobertura } from "@/lib/departamentos";
 import { useAccesoSuscripcion } from "@/lib/hooks";
 import type { ClaveCriterio, CriterioEvaluado, ResultadoSugerencias, Sugerencia } from "@/lib/sugerencias";
@@ -54,7 +55,7 @@ function Criterio({ c }: { c: CriterioEvaluado }) {
     <div className="flex items-center gap-1.5 text-xs">
       {c.estado === "cumple" ? (
         <Check className="h-3.5 w-3.5 shrink-0 text-pri-text" aria-hidden="true" />
-      ) : c.estado === "sin_dato" ? (
+      ) : c.estado === "sin_dato" || c.estado === "sin_tasa" ? (
         <CircleDashed className="h-3.5 w-3.5 shrink-0 text-ink-3" aria-hidden="true" />
       ) : (
         <XIcon className="h-3.5 w-3.5 shrink-0 text-ink-3" aria-hidden="true" />
@@ -62,7 +63,8 @@ function Criterio({ c }: { c: CriterioEvaluado }) {
       <span className={c.estado === "cumple" ? "text-ink" : "text-ink-3"}>
         {c.etiqueta}
         {c.estado === "sin_dato" && " · falta el dato"}
-        <span className="sr-only">{c.estado === "cumple" ? ": coincide" : c.estado === "sin_dato" ? "" : ": no coincide"}</span>
+        {c.estado === "sin_tasa" && " · en otra moneda, sin tasa para comparar"}
+        <span className="sr-only">{c.estado === "cumple" ? ": coincide" : c.estado === "sin_dato" || c.estado === "sin_tasa" ? "" : ": no coincide"}</span>
       </span>
     </div>
   );
@@ -163,7 +165,7 @@ export function TarjetaSugerencia({ s, href }: { s: Sugerencia; href?: string })
       <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-ink-3">
         <span className="flex items-center gap-1">
           <Wallet className="h-3.5 w-3.5" />
-          <span className="font-tabular">{formatRangoCOP(convocatoria.montoMin, convocatoria.montoMax)}</span>
+          <span className="font-tabular">{formatRangoConvocatoria(convocatoria)}</span>
         </span>
         <span className="flex items-center gap-1">
           <MapPin className="h-3.5 w-3.5" /> {textoCobertura(convocatoria)}

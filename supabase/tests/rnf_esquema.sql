@@ -19,7 +19,7 @@ declare
 begin
   -- ---------------------------------------------------------------- RNF-25
   select count(*) into v_n from pg_tables where schemaname = 'public';
-  v_res := v_res || format(E'\n%s RNF-25: 36 tablas en public -> %s', case when v_n = 36 then 'OK   ' else 'FALLA' end, v_n);
+  v_res := v_res || format(E'\n%s RNF-25: 40 tablas en public -> %s', case when v_n = 40 then 'OK   ' else 'FALLA' end, v_n);
 
   select string_agg(tablename, ', ') into v_o from pg_tables where schemaname = 'public' and not rowsecurity;
   v_res := v_res || format(E'\n%s RNF-25: todas con RLS habilitado -> sin RLS: %s', case when v_o is null then 'OK   ' else 'FALLA' end, coalesce(v_o, 'ninguna'));

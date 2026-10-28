@@ -140,7 +140,7 @@ try {
   ok(ultimo?.length === 1, "RNF-30: el evento identifica a quién se le negó");
 
   // --- RNF-03: datos de dos empresas y dos consultores ------------------------------
-  const { data: conv } = await svc.from("convocatorias").insert({
+  const { data: conv } = await svc.from("convocatorias").insert({ todos_los_paises: true, // RN-39: datos de prueba abiertos a todos los países
     nombre: `Convocatoria RNF ${sufijo}`, entidad_convocante: "Entidad RNF", cobertura_nacional: true,
     fecha_cierre: dia(20), estado: "publicada", url_postulacion: "https://prueba.gov.co/rnf",
   }).select("id").single();

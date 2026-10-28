@@ -3,6 +3,7 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { listarCatalogo, listarCategoriasActivas } from "@/lib/catalogo";
 import { obtenerProyecto } from "@/lib/proyectos-servidor";
 import { CRITERIOS, datosFaltantes, separarSugerencias, type ClaveCriterio } from "@/lib/sugerencias-calculo";
+import { montoMaxCop, montoMinCop } from "@/lib/monedas";
 import type { Convocatoria, Proyecto } from "@/lib/types";
 
 /**
@@ -15,8 +16,12 @@ import type { Convocatoria, Proyecto } from "@/lib/types";
  */
 
 export type { ClaveCriterio };
-/** `sin_dato`: no coincide porque el proyecto no tiene ese dato (docs/05 §9.6). */
-export type EstadoCriterio = "cumple" | "no_cumple" | "sin_dato";
+/**
+ * `sin_dato`: no coincide porque el proyecto no tiene ese dato (docs/05 §9.6).
+ * `sin_tasa`: el monto de la convocatoria está en otra moneda y no hay tasa de
+ * referencia para compararlo en pesos (RN-40, §9.36).
+ */
+export type EstadoCriterio = "cumple" | "no_cumple" | "sin_dato" | "sin_tasa";
 
 export interface CriterioEvaluado {
   clave: ClaveCriterio;
@@ -105,6 +110,9 @@ async function armar(
   });
 
   const porId = new Map(catalogo.map((c) => [c.id, c]));
+  // Como en la base: monto informado en otra moneda y ningún extremo convertible.
+  const sinTasa = (c: Convocatoria) =>
+    !!c.moneda && c.moneda !== "COP" && (c.montoMin != null || c.montoMax != null) && montoMinCop(c) == null && montoMaxCop(c) == null;
   const aSugerencia = (f: Fila): Sugerencia | null => {
     const convocatoria = porId.get(f.convocatoria_id);
     // La base y el catálogo leen con la misma sesión; si una cerró entre las dos lecturas, se omite.
@@ -116,7 +124,13 @@ async function armar(
       criterios: CRITERIOS.map(({ clave, etiqueta }) => ({
         clave,
         etiqueta,
-        estado: f[clave] ? "cumple" : faltan.includes(clave) ? "sin_dato" : "no_cumple",
+        estado: f[clave]
+          ? "cumple"
+          : faltan.includes(clave)
+            ? "sin_dato"
+            : clave === "monto" && sinTasa(convocatoria)
+              ? "sin_tasa"
+              : "no_cumple",
       })),
     };
   };

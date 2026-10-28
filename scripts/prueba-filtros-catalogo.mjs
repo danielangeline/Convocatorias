@@ -1,4 +1,4 @@
-// Prueba de los 20 filtros del catálogo y del orden (RF-12, RF-94, RN-02, RN-34 ·
+// Prueba de los 21 filtros del catálogo y del orden (RF-12, RF-94, RN-02, RN-34 ·
 // lib/catalogo-filtros.ts y lib/departamentos.ts). Código puro: no usa red ni Supabase.
 //
 //   node scripts/prueba-filtros-catalogo.mjs
@@ -106,6 +106,21 @@ ok(ordenarCatalogo([], "nombre").length === 0, "ordenar una lista vacía");
 const original = [...L];
 ordenarCatalogo(L, "nombre");
 ok(ids(L) === ids(original), "ordenar no modifica la lista recibida");
+
+// --- Países y moneda (RN-39, RN-40 · sesión 033): criterio 21 y montos comparados en pesos.
+const { equivalenteCop, formatRangoConvocatoria, montoMinCop, montoMaxCop } = await import("../lib/monedas.ts");
+const US = { ...C, id: "US", nombre: "Solo Estados Unidos", elegible: false, paises: ["US"] };
+const USD_CON = { ...C, id: "UC", nombre: "En dólares con tasa", moneda: "USD", montoMin: 1000, montoMax: 2000, montoMinCop: 4e6, montoMaxCop: 8e6, tasaVigenteDesde: "2026-10-28" };
+const USD_SIN = { ...C, id: "US2", nombre: "En dólares sin tasa", moneda: "USD", montoMin: 1000, montoMax: 2000, montoMinCop: null, montoMaxCop: null };
+const LP = [A, US, USD_CON, USD_SIN];
+ok(!ids(filtrarCatalogo(LP, {}, HOY)).includes("US,") && ids(filtrarCatalogo(LP, {}, HOY)) === "A,UC,US2", "sin el criterio 21, la convocatoria a la que el país no puede postularse queda fuera");
+ok(ids(filtrarCatalogo(LP, { incluirOtrosPaises: true }, HOY)) === "A,US,UC,US2", "con «incluir las de otros países» aparece");
+ok(ids(filtrarCatalogo([USD_CON, USD_SIN], { montoDesde: 5e6 }, HOY)) === "UC", "«apoya con al menos $5 millones»: USD 1.000–2.000 con tasa de 4.000 llega a $8 millones y entra; sin tasa no puede afirmarlo");
+ok(ids(filtrarCatalogo([USD_CON, USD_SIN], { montoHasta: 3e6 }, HOY)) === "US2", "«exige como máximo $3 millones»: USD 1.000 = $4 millones sale; sin tasa no hay umbral que la excluya");
+ok(ids(ordenarCatalogo([USD_SIN, USD_CON], "monto_desc")) === "UC,US2" && ids(ordenarCatalogo([USD_SIN, USD_CON], "monto_asc")) === "UC,US2", "orden por monto en pesos: la moneda sin tasa va al final");
+ok(montoMinCop(B) === 28e9 && montoMaxCop(USD_SIN) === null, "montoMinCop: en COP el mismo monto; sin tasa, null");
+ok(formatRangoConvocatoria(USD_CON).includes("USD") && formatRangoConvocatoria(USD_CON).includes("1.000"), "el rango se muestra en su moneda: " + formatRangoConvocatoria(USD_CON));
+ok(equivalenteCop(USD_CON)?.startsWith("≈") && equivalenteCop(USD_CON).includes("2026-10-28") && equivalenteCop(USD_SIN) === null && equivalenteCop(B) === null, "equivalente en pesos solo con tasa y en otra moneda: " + equivalenteCop(USD_CON));
 
 // --- Conteo por opción (RF-95).
 const cuenta = conteoPorCategoria([A, B, C, D_]);

@@ -87,7 +87,8 @@ try {
   const ficha = (extra = {}) => ({
     nombre: `Convocatoria publicar ${sufijo}`, entidadConvocante: "Entidad", fechaCierre: enDias(30),
     fuenteId: rFuente.json.datos.id, descripcion: "", ubicacion: "", urlPostulacion: "", montoMin: "", montoMax: "", fechaApertura: "",
-    categorias: [], requisitos: [], ...extra,
+    // RN-39 (sesión 033): Colombia como país elegible, salvo que el caso diga otra cosa.
+    categorias: [], requisitos: [], paises: ["CO"], ...extra,
   });
   const requisito = [{ descripcion: "Camara de comercio", tipo: "documento", obligatorio: true }];
   const dosRequisitos = [...requisito, { descripcion: "Ser pyme", tipo: "condicion", obligatorio: false }];
@@ -119,9 +120,15 @@ try {
 
   // --- RN-01: 400 enumerando de una vez todo lo que falta (lista de la sesion 015) ---
   const nombra = (t, ...partes) => partes.every((x) => new RegExp(x, "i").test(t ?? ""));
+  // Recién creada no declara países: RN-39 los pide y, sin Colombia, la cobertura no aplica.
   const sinNada = await api(adm, "POST", pub, {});
-  ok(sinNada.status === 400 && nombra(sinNada.json.error, "cobertura", "descripci", "enlace oficial", "categor", "documento adjunto", "requisito"),
-    `sin nada -> 400 nombrando las seis cosas que faltan ("${sinNada.json?.error}")`);
+  ok(sinNada.status === 400 && nombra(sinNada.json.error, "países", "descripci", "enlace oficial", "categor", "documento adjunto", "requisito") && !nombra(sinNada.json.error, "cobertura"),
+    `sin nada -> 400 nombrando las seis cosas que faltan, países incluidos y sin cobertura ("${sinNada.json?.error}")`);
+  // Con Colombia entre los países, la cobertura sí se pide (RN-34).
+  await api(adm, "PATCH", `/api/admin/convocatorias/${convId}`, ficha());
+  const conColombia = await api(adm, "POST", pub, {});
+  ok(conColombia.status === 400 && nombra(conColombia.json.error, "cobertura") && !nombra(conColombia.json.error, "países"),
+    `con Colombia elegible y sin cobertura -> 400 que nombra la cobertura ("${conColombia.json?.error}")`);
 
   // Todo menos el adjunto: debe nombrar solo el adjunto.
   await api(adm, "PATCH", `/api/admin/convocatorias/${convId}`, ficha({

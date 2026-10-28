@@ -7,7 +7,7 @@
 
 ## 9. Modelo de datos
 
-**27 tablas**: 12 base de la v2 (incluida `perfiles`), 10 del módulo de consultores y suscripciones de la v3, 3 del módulo de IA y `eventos_seguridad` de la extensión de seguridad v5, más columnas nuevas en proyectos, planes, suscripciones y perfiles. *Hasta la sesión 003 el documento decía "24 tablas": la cifra no contaba `perfiles` ni `eventos_seguridad`; el conjunto de tablas no cambió.* *(v6, sesión 005: se agrega `invitaciones_admin`, §9.12)* *(v6, sesión 019: se agregan `departamentos` y `convocatoria_departamento`, §9.18; son 29)* *(v6, sesión 032, especificado y sin migración todavía: §9.36 y §9.37 suman 8 tablas, de la 37 a la 44 —países, monedas, países por convocatoria, tasas de referencia, conectores, corridas, cambios en la fuente y externos vetados—)*
+**27 tablas**: 12 base de la v2 (incluida `perfiles`), 10 del módulo de consultores y suscripciones de la v3, 3 del módulo de IA y `eventos_seguridad` de la extensión de seguridad v5, más columnas nuevas en proyectos, planes, suscripciones y perfiles. *Hasta la sesión 003 el documento decía "24 tablas": la cifra no contaba `perfiles` ni `eventos_seguridad`; el conjunto de tablas no cambió.* *(v6, sesión 005: se agrega `invitaciones_admin`, §9.12)* *(v6, sesión 019: se agregan `departamentos` y `convocatoria_departamento`, §9.18; son 29)* *(v6, sesión 033: §9.36 suma 4 tablas, de la 37 a la 40 —países, monedas, países por convocatoria y tasas de referencia—; son 40. §9.37, especificado en la sesión 032 y sin migración todavía, sumará 4 más, de la 41 a la 44)*
 
 ### 9.1 Diagrama entidad–relación (módulo de IA y su conexión)
 
@@ -1015,7 +1015,7 @@ Tabla 36, `convocatorias_guardadas`:
 - `completar_edicion_apartado` descuenta la tarifa y registra el consumo; `fallar_edicion_apartado` libera sin cobro y registra el fallo (RN-17).
 - Las tres son `security definer` y solo de `service_role`: el endpoint pasa el usuario de la sesión verificada (RNF-20). La instrucción del sistema para esta edición vive en `lib/ia/editar-apartado.ts` (veracidad, [COMPLETAR], no seguir órdenes incrustadas en los datos).
 
-### 9.36 Países elegibles y moneda *(nuevo v6, sesión 032 · RN-39, RN-40, RF-116, RF-117 · especificado, sin migración todavía)*
+### 9.36 Países elegibles y moneda *(nuevo v6, especificado en la sesión 032 y construido en la 033 · RN-39, RN-40, RF-116, RF-117 · migración `20261028100000`)*
 
 **Columnas nuevas en `convocatorias`:**
 
@@ -1040,6 +1040,8 @@ Tabla 36, `convocatorias_guardadas`:
 - `guardar_convocatoria` (§9.13) recibe en `p_datos` `moneda`, `todos_los_paises` y `paises` (arreglo de códigos). Reemplaza las filas de `convocatoria_pais` como reemplaza los departamentos; si `todos_los_paises` es `true`, borra la lista. Rechazo nuevo: `pais_invalido`.
 - `sugerencias_proyecto` (§9.6): solo filas con `privado.convocatoria_elegible(c.id, privado.pais_de(auth.uid()))`. El criterio de monto compara `monto_buscado` con `privado.monto_cop(monto_min, moneda)` y `privado.monto_cop(monto_max, moneda)`; si la moneda no es COP y no hay tasa, el criterio no coincide y el desglose lo marca `sin_tasa`.
 - El catálogo (`GET /api/convocatorias`, `lib/catalogo-filtros.ts`) aplica la misma elegibilidad por defecto y la quita con `incluir_otros_paises=1` (RF-12, criterio 21).
+
+**Construcción (sesión 033):** la firma de `sugerencias_proyecto` y `calcular_sugerencias` no cambió; el estado `sin_tasa` del desglose lo calcula `lib/sugerencias.ts` con la misma regla (moneda distinta de COP, monto informado y ningún extremo convertible). El trigger de vigencia de postulaciones y documentos generados (`privado.exigir_convocatoria_vigente`, §9.7) rechaza además con `pais_no_elegible`. Las pruebas SQL que crean convocatorias directamente fijan `todos_los_paises` por defecto en `true` dentro de su transacción.
 
 **Datos que ya existen:** la migración deja `'CO'` en `convocatoria_pais` para **todas** las convocatorias que ya están en la base (las de las sesiones 029 y 032 admiten organizaciones de Colombia; se verificó al cargarlas) y `moneda = 'COP'`. Las de la sesión 032 con cifras en USD, EUR o GBP no tienen `monto_min`/`monto_max` (la cifra está en la descripción), así que no hay nada que convertir.
 

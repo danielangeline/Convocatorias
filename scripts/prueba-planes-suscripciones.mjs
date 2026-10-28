@@ -201,7 +201,7 @@ try {
   ok((await api(adm, "POST", `/api/admin/suscripciones/${susDos.id}/suspender`, {})).status === 409, "CU-31: no se suspende dos veces -> 409");
   // Con un proyecto propio y una convocatoria vigente, para que la única razón del rechazo sea la suscripción.
   const { data: proyectoDos } = await svc.from("proyectos").insert({ usuario_id: dos.id, nombre: `Proyecto ${sufijo}` }).select("id").single();
-  const { data: vigente, error: eConv } = await svc.from("convocatorias").insert({
+  const { data: vigente, error: eConv } = await svc.from("convocatorias").insert({ todos_los_paises: true, // RN-39: datos de prueba abiertos a todos los países
     nombre: `Convocatoria planes ${sufijo}`, entidad_convocante: "Entidad de prueba", cobertura_nacional: true,
     fecha_cierre: masDias(hoy, 20), estado: "publicada", url_postulacion: "https://prueba.gov.co/planes",
   }).select("id").single();

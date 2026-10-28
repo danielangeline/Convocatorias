@@ -94,7 +94,7 @@ try {
 
   const { data: cat } = await svc.from("categorias").insert({ tipo: "sector", nombre: `Sector encargos ${sufijo}`, activa: true }).select("id").single();
   categorias.push(cat.id);
-  const { data: conv, error: eConv } = await svc.from("convocatorias").insert({
+  const { data: conv, error: eConv } = await svc.from("convocatorias").insert({ todos_los_paises: true, // RN-39: datos de prueba abiertos a todos los países
     nombre: `Convocatoria encargos ${sufijo}`, entidad_convocante: "Entidad de prueba", cobertura_nacional: true,
     fecha_cierre: enDias(20), estado: "publicada", url_postulacion: "https://prueba.gov.co/encargos",
   }).select("id").single();

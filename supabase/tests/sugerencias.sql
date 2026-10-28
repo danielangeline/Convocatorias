@@ -33,6 +33,9 @@ declare
   v_datos jsonb;
 
 begin
+  -- RN-39 (sesión 033): las convocatorias de prueba admiten a todos los países;
+  -- se revierte con el resto al final.
+  alter table public.convocatorias alter column todos_los_paises set default true;
   -- Cuentas: nacen por el trigger de registro, con trial (RF-37).
   insert into auth.users (id, email, raw_user_meta_data) values
     (v_e1, 'sug1@prueba.co', '{"rol": "empresa", "nombre": "Sugerencias uno"}'),

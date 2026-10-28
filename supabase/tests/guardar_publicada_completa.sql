@@ -15,6 +15,9 @@ declare
   v_datos jsonb; v_reqs jsonb; v_res text := ''; v_doc1 uuid; v_doc2 uuid;
   v_caso record;
 begin
+  -- RN-39 (sesión 033): las convocatorias de prueba admiten a todos los países;
+  -- se revierte con el resto al final.
+  alter table public.convocatorias alter column todos_los_paises set default true;
   select id into v_admin from public.perfiles where es_propietario;
   insert into public.fuentes (nombre, activa) values ('Fuente verificacion s016 ' || gen_random_uuid(), true) returning id into v_fuente;
   insert into public.categorias (tipo, nombre, activa) values ('sector', 'Sector verificacion s016 ' || gen_random_uuid(), true) returning id into v_cat;

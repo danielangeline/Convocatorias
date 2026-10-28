@@ -5,6 +5,7 @@ import { cache } from "react";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { firmarDescarga } from "@/lib/supabase/descarga";
 import { hoyColombia } from "@/lib/fechas";
+import { PAIS_EMPRESA } from "@/lib/monedas";
 import type { Categoria, Convocatoria, Documento, EstadoConvocatoria, OrigenConvocatoria, TipoConvocatoria, TipoCategoria, TipoDocumento, TipoRequisito } from "@/lib/types";
 
 /**
@@ -14,7 +15,7 @@ import type { Categoria, Convocatoria, Documento, EstadoConvocatoria, OrigenConv
  */
 
 export const COLUMNAS_CONVOCATORIA =
-  "id, nombre, entidad_convocante, descripcion, monto_min, monto_max, ubicacion_cobertura, cobertura_nacional, fecha_apertura, fecha_cierre, url_postulacion, estado, tipo_convocatoria, origen, publicada_at, convocatoria_categoria (categoria_id), convocatoria_departamento (departamento_codigo), requisitos_convocatoria (id, descripcion, tipo, obligatorio, orden), documentos_convocatoria (id, tipo_doc, nombre, storage_path, tamano_bytes)";
+  "id, nombre, entidad_convocante, descripcion, monto_min, monto_max, ubicacion_cobertura, cobertura_nacional, fecha_apertura, fecha_cierre, url_postulacion, estado, tipo_convocatoria, origen, publicada_at, moneda, todos_los_paises, convocatoria_categoria (categoria_id), convocatoria_departamento (departamento_codigo), convocatoria_pais (pais_codigo), requisitos_convocatoria (id, descripcion, tipo, obligatorio, orden), documentos_convocatoria (id, tipo_doc, nombre, storage_path, tamano_bytes)";
 
 const BUCKET = "documentos-convocatorias";
 
@@ -34,6 +35,9 @@ export type FilaConvocatoria = {
   tipo_convocatoria: TipoConvocatoria;
   origen: OrigenConvocatoria;
   publicada_at: string | null;
+  moneda: string;
+  todos_los_paises: boolean;
+  convocatoria_pais: { pais_codigo: string }[];
   convocatoria_categoria: { categoria_id: string }[];
   convocatoria_departamento: { departamento_codigo: string }[];
   requisitos_convocatoria: { id: string; descripcion: string; tipo: TipoRequisito; obligatorio: boolean; orden: number }[];
@@ -44,14 +48,22 @@ const numero = (v: number | string | null) => (v === null ? null : Number(v));
 const hoy = hoyColombia;
 const extensionDe = (ruta: string) => ruta.slice(ruta.lastIndexOf(".") + 1).toLowerCase();
 
-export function aConvocatoria(f: FilaConvocatoria): Convocatoria {
+/** RN-40 · Tasa de referencia por moneda: pesos por unidad y desde cuándo. */
+export type Tasas = ReadonlyMap<string, { copPorUnidad: number; vigenteDesde: string }>;
+
+export function aConvocatoria(f: FilaConvocatoria, tasas: Tasas = new Map()): Convocatoria {
+  const montoMin = numero(f.monto_min);
+  const montoMax = numero(f.monto_max);
+  const tasa = f.moneda === "COP" ? null : tasas.get(f.moneda) ?? null;
+  const enPesos = (v: number | null) => (v == null ? null : f.moneda === "COP" ? v : tasa ? v * tasa.copPorUnidad : null);
+  const paises = (f.convocatoria_pais ?? []).map((p) => p.pais_codigo);
   return {
     id: f.id,
     nombre: f.nombre,
     entidadConvocante: f.entidad_convocante,
     descripcion: f.descripcion ?? "",
-    montoMin: numero(f.monto_min),
-    montoMax: numero(f.monto_max),
+    montoMin,
+    montoMax,
     coberturaNacional: f.cobertura_nacional,
     departamentos: f.convocatoria_departamento.map((d) => d.departamento_codigo),
     ubicacion: f.ubicacion_cobertura ?? "",
@@ -75,8 +87,39 @@ export function aConvocatoria(f: FilaConvocatoria): Convocatoria {
     tipo: f.tipo_convocatoria,
     origen: f.origen,
     publicadaAt: f.publicada_at,
+    moneda: f.moneda,
+    todosLosPaises: f.todos_los_paises,
+    paises,
+    elegible: f.todos_los_paises || paises.includes(PAIS_EMPRESA),
+    montoMinCop: enPesos(montoMin),
+    montoMaxCop: enPesos(montoMax),
+    tasaVigenteDesde: tasa?.vigenteDesde ?? null,
   };
 }
+
+/** RN-40 · Las tasas de referencia que fijó el administrador (RF-117). */
+export const listarTasas = cache(async (): Promise<Tasas> => {
+  const supabase = await crearClienteServidor();
+  const { data, error } = await supabase.from("tasas_referencia").select("moneda, cop_por_unidad, vigente_desde");
+  if (error) console.error("Catálogo: no se pudieron leer las tasas", error.code, error.message);
+  return new Map((data ?? []).map((t) => [t.moneda as string, { copPorUnidad: Number(t.cop_por_unidad), vigenteDesde: t.vigente_desde as string }]));
+});
+
+/** RN-40 · Monedas ISO 4217, para el editor del panel. */
+export const listarMonedas = cache(async (): Promise<{ codigo: string; nombre: string }[]> => {
+  const supabase = await crearClienteServidor();
+  const { data, error } = await supabase.from("monedas").select("codigo, nombre").order("codigo");
+  if (error) console.error("Catálogo: no se pudieron leer las monedas", error.code, error.message);
+  return (data ?? []) as { codigo: string; nombre: string }[];
+});
+
+/** RN-39 · Nombres de los países (ISO 3166-1), para mostrar la lista de elegibles. */
+export const listarPaises = cache(async (): Promise<{ codigo: string; nombre: string }[]> => {
+  const supabase = await crearClienteServidor();
+  const { data, error } = await supabase.from("paises").select("codigo, nombre").order("nombre");
+  if (error) console.error("Catálogo: no se pudieron leer los países", error.code, error.message);
+  return (data ?? []) as { codigo: string; nombre: string }[];
+});
 
 // `cache` de React: el layout y la página piden lo mismo en una petición.
 
@@ -87,8 +130,12 @@ export function aConvocatoria(f: FilaConvocatoria): Convocatoria {
  * va en la consulta, no solo en la RLS: la RLS deja ver las cerradas para este
  * filtro explícito y las despublicadas ligadas a las postulaciones de la
  * empresa, y ninguna de las dos es el catálogo por defecto.
+ *
+ * RN-39 · Sin `incluirOtrosPaises`, solo las convocatorias a las que el país de la
+ * empresa puede postularse. La pantalla del catálogo pide todas y filtra ella
+ * (criterio 21 de RF-12); inicio, menú y sugerencias, solo las elegibles.
  */
-export const listarCatalogo = cache(async (incluirCerradas: boolean = false): Promise<Convocatoria[]> => {
+export const listarCatalogo = cache(async (incluirCerradas: boolean = false, incluirOtrosPaises: boolean = false): Promise<Convocatoria[]> => {
   const supabase = await crearClienteServidor();
   const consulta = supabase.from("convocatorias").select(COLUMNAS_CONVOCATORIA);
   const { data, error } = incluirCerradas
@@ -98,7 +145,8 @@ export const listarCatalogo = cache(async (incluirCerradas: boolean = false): Pr
     console.error("Catálogo: no se pudo listar", error.code, error.message);
     return [];
   }
-  const todas = (data as unknown as FilaConvocatoria[]).map(aConvocatoria);
+  const tasas = await listarTasas();
+  const todas = (data as unknown as FilaConvocatoria[]).map((f) => aConvocatoria(f, tasas)).filter((c) => incluirOtrosPaises || c.elegible);
   const vigentes = todas.filter((c) => c.estado === "publicada").sort((a, b) => a.fechaCierre.localeCompare(b.fechaCierre));
   const cerradas = todas.filter((c) => c.estado === "cerrada").sort((a, b) => b.fechaCierre.localeCompare(a.fechaCierre));
   return [...vigentes, ...cerradas];
@@ -109,7 +157,7 @@ export const obtenerFicha = cache(async (id: string): Promise<Convocatoria | nul
   const supabase = await crearClienteServidor();
   const { data, error } = await supabase.from("convocatorias").select(COLUMNAS_CONVOCATORIA).eq("id", id).maybeSingle();
   if (error) console.error("Catálogo: no se pudo leer la ficha", error.code, error.message);
-  return data ? aConvocatoria(data as unknown as FilaConvocatoria) : null;
+  return data ? aConvocatoria(data as unknown as FilaConvocatoria, await listarTasas()) : null;
 });
 
 /** Categorías activas, para los filtros y los chips (RF-12, RF-43). */

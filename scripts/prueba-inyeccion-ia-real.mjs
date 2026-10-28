@@ -98,7 +98,7 @@ try {
 
   for (const caso of CASOS) {
     // Convocatoria temporal con este TDR.
-    const { data: conv, error: eC } = await svc.from("convocatorias").insert({
+    const { data: conv, error: eC } = await svc.from("convocatorias").insert({ todos_los_paises: true, // RN-39: datos de prueba abiertos a todos los países
       nombre: `${real.nombre} [inyección ${sufijo}]`, entidad_convocante: real.entidad_convocante, descripcion: real.descripcion,
       monto_min: real.monto_min, monto_max: real.monto_max, cobertura_nacional: real.cobertura_nacional,
       ubicacion_cobertura: real.ubicacion_cobertura, fecha_cierre: new Date(Date.now() + 20 * 86400000).toISOString().slice(0, 10),

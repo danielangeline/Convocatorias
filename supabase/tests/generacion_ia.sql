@@ -25,6 +25,9 @@ declare
   v_n int; v_m int;
   v_o text;
 begin
+  -- RN-39 (sesión 033): las convocatorias de prueba admiten a todos los países;
+  -- se revierte con el resto al final.
+  alter table public.convocatorias alter column todos_los_paises set default true;
   -- Sesión 030 (§9.32): estas comprobaciones son de la mecánica de reservas y
   -- cobro; con tarifa 1 y un trial de 3 dicen lo mismo que antes. Las tarifas
   -- reales se prueban en creditos_por_tarifa.sql. Todo se revierte al final.

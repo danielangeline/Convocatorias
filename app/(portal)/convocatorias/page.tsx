@@ -16,10 +16,10 @@ export default async function CatalogoConvocatoriasPage({
   const { q, tipo } = await searchParams;
   const busquedaInicial = (typeof q === "string" ? q : "").slice(0, 200);
   const tipoInicial = tipo === "fondo" || tipo === "beneficio_tributario" ? tipo : "todas";
-  // Vigentes y cerradas: la pantalla muestra las cerradas solo bajo el filtro
-  // explícito (RF-11, RN-02).
+  // Vigentes y cerradas, de todos los países: la pantalla muestra las cerradas y
+  // las de otros países solo bajo su filtro explícito (RF-11, RN-02, RN-39).
   const [convocatorias, categorias, compat, guardadas] = await Promise.all([
-    listarCatalogo(true),
+    listarCatalogo(true, true),
     listarCategoriasActivas(),
     compatibilidadEmpresa(),
     listarGuardadas(),

@@ -92,7 +92,7 @@ try {
   const te = await categoria("tipo_entidad", "Pyme");
 
   const convocatoria = async (nombre, { cats, deps = [], nacional = false, min = null, max = null, cierre = enDias(30) }) => {
-    const { data, error } = await svc.from("convocatorias").insert({
+    const { data, error } = await svc.from("convocatorias").insert({ todos_los_paises: true, // RN-39: datos de prueba abiertos a todos los países
       nombre: `${nombre} ${sufijo}`, entidad_convocante: "Entidad de prueba", monto_min: min, monto_max: max,
       cobertura_nacional: nacional, fecha_cierre: cierre, estado: "publicada", url_postulacion: "https://entidad.gov.co/x",
     }).select("id").single();

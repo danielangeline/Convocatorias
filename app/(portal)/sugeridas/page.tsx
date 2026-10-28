@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { FolderPlus, WandSparkles } from "lucide-react";
 import { compatibilidadEmpresa } from "@/lib/compatibilidad-empresa";
-import { diasRestantes, formatRangoCOP } from "@/lib/utils";
+import { diasRestantes } from "@/lib/utils";
+import { formatRangoConvocatoria } from "@/lib/monedas";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LinkButton } from "@/components/ui/Button";
@@ -67,11 +68,11 @@ export default async function SugeridasPage() {
                   criterios={s.criterios.map((k) => ({
                     nombre: k.etiqueta,
                     estado: k.estado === "cumple" ? "coincide" : "parcial",
-                    resultado: k.estado === "cumple" ? "Coincide" : k.estado === "sin_dato" ? "Falta el dato" : "Revisar",
+                    resultado: k.estado === "cumple" ? "Coincide" : k.estado === "sin_dato" ? "Falta el dato" : k.estado === "sin_tasa" ? "Otra moneda, sin tasa" : "Revisar",
                   }))}
                 />
                 <div className="mt-auto flex items-center justify-between gap-2 border-t border-line-2 pt-3">
-                  <span className="font-tabular text-sm font-semibold">{formatRangoCOP(c.montoMin, c.montoMax)}</span>
+                  <span className="font-tabular text-sm font-semibold">{formatRangoConvocatoria(c)}</span>
                   {dias < 15 ? (
                     <DeadlineChip dias={dias} />
                   ) : (

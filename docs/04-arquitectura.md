@@ -37,7 +37,7 @@ flowchart TB
         EXT["APIs de fuentes · Grants.gov, UE (SEDIA), iNNpulsa (sesión 032)"]
     end
     subgraph DATOS["CAPA DE DATOS — Supabase"]
-        DB["PostgreSQL + RLS · 36 tablas (44 con lo especificado en la sesión 032)"]
+        DB["PostgreSQL + RLS · 40 tablas (44 con la importación especificada en la sesión 032)"]
         ST["Storage · 3 buckets"]
         CR["pg_cron · 3 jobs"]
     end

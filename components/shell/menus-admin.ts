@@ -1,4 +1,5 @@
 import {
+  ArrowLeftRight,
   ClipboardList,
   CreditCard,
   FileStack,
@@ -31,6 +32,7 @@ const ADMIN: GrupoMenu[] = [
       { href: "/admin/convocatorias", label: "Convocatorias", icono: FileStack },
       { href: "/admin/fuentes", label: "Fuentes", icono: Rss },
       { href: "/admin/categorias", label: "Categorías", icono: Tags },
+      { href: "/admin/tasas", label: "Tasas de referencia", icono: ArrowLeftRight },
     ],
   },
   {

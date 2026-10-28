@@ -47,11 +47,13 @@ const RECHAZOS: Record<string, { status: number; error: string }> = {
   fuente_invalida: { status: 400, error: "La fuente no existe o está inactiva." },
   categoria_invalida: { status: 400, error: "Hay una categoría inexistente o inactiva." },
   departamento_invalido: { status: 400, error: "Hay un departamento que no existe." },
+  pais_invalido: { status: 400, error: "Hay un país que no está en la lista." },
+  moneda_invalida: { status: 400, error: "La moneda no está en la lista." },
   requisito_ajeno: { status: 400, error: "Uno de los requisitos no pertenece a esta convocatoria. Recarga la página." },
   publicada_incompleta: {
     status: 409,
     error:
-      "Una convocatoria publicada no puede quedar incompleta: necesita cobertura (nacional o algún departamento), descripción, enlace oficial, una categoría, un documento adjunto y dos requisitos. Despublícala antes de quitar alguno.",
+      "Una convocatoria publicada no puede quedar incompleta: necesita los países que pueden postularse, la cobertura si Colombia es uno de ellos (nacional o algún departamento), descripción, enlace oficial, una categoría, un documento adjunto y dos requisitos. Despublícala antes de quitar alguno.",
   },
   ya_publicada: { status: 409, error: "La convocatoria ya está publicada." },
   no_publicada: { status: 409, error: "Solo se despublica una convocatoria publicada." },
@@ -290,7 +292,7 @@ export async function listarConvocatorias(): Promise<ConvocatoriaAdminListado[]>
   const supabase = await crearClienteServidor();
   const { data, error } = await supabase
     .from("convocatorias")
-    .select("id, nombre, entidad_convocante, monto_min, monto_max, fecha_cierre, estado, fuentes (nombre)")
+    .select("id, nombre, entidad_convocante, monto_min, monto_max, moneda, fecha_cierre, estado, fuentes (nombre)")
     .order("actualizado_at", { ascending: false })
     .limit(1000);
   if (error) throw new Error(`No se pudieron leer las convocatorias: ${error.message}`);
@@ -301,6 +303,7 @@ export async function listarConvocatorias(): Promise<ConvocatoriaAdminListado[]>
     fuenteNombre: (c.fuentes as unknown as { nombre: string } | null)?.nombre ?? null,
     montoMin: c.monto_min === null ? null : Number(c.monto_min),
     montoMax: c.monto_max === null ? null : Number(c.monto_max),
+    moneda: c.moneda,
     fechaCierre: c.fecha_cierre,
     estado: c.estado as EstadoConvocatoria,
   }));
@@ -314,7 +317,7 @@ export async function obtenerConvocatoria(id: string): Promise<ConvocatoriaAdmin
   const { data: c, error } = await supabase
     .from("convocatorias")
     .select(
-      "id, fuente_id, nombre, entidad_convocante, descripcion, monto_min, monto_max, ubicacion_cobertura, cobertura_nacional, fecha_apertura, fecha_cierre, url_postulacion, tipo_convocatoria, origen, estado, publicada_at, actualizado_at, convocatoria_categoria (categoria_id), convocatoria_departamento (departamento_codigo), requisitos_convocatoria (id, descripcion, tipo, obligatorio, orden), documentos_convocatoria (id, tipo_doc, nombre, tipo_mime, tamano_bytes, creado_at)"
+      "id, fuente_id, nombre, entidad_convocante, descripcion, monto_min, monto_max, ubicacion_cobertura, cobertura_nacional, fecha_apertura, fecha_cierre, url_postulacion, tipo_convocatoria, origen, moneda, todos_los_paises, estado, publicada_at, actualizado_at, convocatoria_categoria (categoria_id), convocatoria_departamento (departamento_codigo), convocatoria_pais (pais_codigo), requisitos_convocatoria (id, descripcion, tipo, obligatorio, orden), documentos_convocatoria (id, tipo_doc, nombre, tipo_mime, tamano_bytes, creado_at)"
     )
     .eq("id", id)
     .maybeSingle();
@@ -350,6 +353,9 @@ export async function obtenerConvocatoria(id: string): Promise<ConvocatoriaAdmin
     descripcion: c.descripcion ?? "",
     montoMin: c.monto_min === null ? null : Number(c.monto_min),
     montoMax: c.monto_max === null ? null : Number(c.monto_max),
+    moneda: c.moneda,
+    todosLosPaises: c.todos_los_paises,
+    paises: (c.convocatoria_pais ?? []).map((p) => p.pais_codigo),
     coberturaNacional: c.cobertura_nacional,
     departamentos: (c.convocatoria_departamento ?? []).map((d) => d.departamento_codigo),
     ubicacion: c.ubicacion_cobertura ?? "",
@@ -419,6 +425,19 @@ export async function guardarConvocatoria(id: string, cuerpo: Cuerpo): Promise<R
 
   const fuenteId = texto(cuerpo?.fuenteId, 36) ?? "";
   if (fuenteId && !UUID.test(fuenteId)) return invalido("Fuente no válida.");
+
+  // RN-40 · Moneda ISO 4217 (la base comprueba que esté en la lista). Los montos
+  // son enteros en esa moneda, con el mismo formato de puntos de miles.
+  const moneda = cuerpo?.moneda === undefined ? "" : String(cuerpo.moneda).trim().toUpperCase();
+  if (moneda && !/^[A-Z]{3}$/.test(moneda)) return invalido("La moneda debe ser un código de tres letras (p. ej. COP, USD, EUR).");
+
+  // RN-39 · Países: todos, o una lista de códigos ISO 3166-1. Si no llegan, la base conserva los que había.
+  const todosLosPaises = cuerpo?.todosLosPaises === true;
+  const paises = cuerpo?.paises ?? [];
+  if (!Array.isArray(paises) || paises.length > 300 || !paises.every((p) => typeof p === "string" && /^[A-Z]{2}$/.test(p))) {
+    return invalido("Algún país no es válido.");
+  }
+  const conPaises = cuerpo?.todosLosPaises !== undefined || cuerpo?.paises !== undefined;
 
   // CU-02 2b: formato colombiano, sin interpretar a medias (lib/montos.ts).
   const lecturaMin = leerMontoCOP(cuerpo?.montoMin);
@@ -493,6 +512,8 @@ export async function guardarConvocatoria(id: string, cuerpo: Cuerpo): Promise<R
       url_postulacion: url.valor,
       tipo_convocatoria: tipo,
       origen,
+      moneda,
+      ...(conPaises && { todos_los_paises: todosLosPaises, paises: todosLosPaises ? [] : [...new Set(paises as string[])] }),
     },
     p_categorias: [...new Set(categorias as string[])],
     p_requisitos: requisitos.map((r) => ({ id: r.id ?? "", descripcion: r.descripcion, tipo: r.tipo, obligatorio: r.obligatorio })),
@@ -529,7 +550,10 @@ export async function cambiarPublicacion(id: string, publicar: boolean): Promise
     const falta: string[] = [];
     if (!ficha.nombre.trim()) falta.push("el nombre de la convocatoria");
     if (!ficha.entidadConvocante.trim()) falta.push("la entidad convocante");
-    if (!ficha.coberturaNacional && ficha.departamentos.length === 0) falta.push("la cobertura (nacional o al menos un departamento)");
+    // RN-39: países declarados; la cobertura solo se pide si Colombia es elegible.
+    if (!ficha.todosLosPaises && ficha.paises.length === 0) falta.push("los países que pueden postularse");
+    const colombiaElegible = ficha.todosLosPaises || ficha.paises.includes("CO");
+    if (colombiaElegible && !ficha.coberturaNacional && ficha.departamentos.length === 0) falta.push("la cobertura (nacional o al menos un departamento)");
     if (!ficha.descripcion.trim()) falta.push("la descripción u objeto");
     if (!ficha.urlPostulacion.trim()) falta.push("el enlace oficial de postulación");
     else if (!esUrlHttp(ficha.urlPostulacion)) falta.push("un enlace oficial válido que empiece por http:// o https://");

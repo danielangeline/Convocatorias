@@ -195,6 +195,11 @@ const RECHAZOS: Record<string, { status: number; error: string }> = {
     status: 409,
     error: "Esta convocatoria ya no está abierta: está cerrada o despublicada y no admite nuevos documentos.",
   },
+  // RN-39: la base rechaza a la empresa cuyo país no puede postularse (trigger de vigencia, sesión 033).
+  pais_no_elegible: {
+    status: 409,
+    error: "Las organizaciones de tu país no pueden postularse a esta convocatoria.",
+  },
   sin_suscripcion: { status: 402, error: "Necesitas una suscripción vigente para usar la IA." },
   sin_creditos: { status: 402, error: "No te quedan créditos de IA. Puedes pedir un paquete adicional o un plan con más créditos." },
   sin_plantilla: { status: 503, error: "La generación no está disponible en este momento. Intenta más tarde." },

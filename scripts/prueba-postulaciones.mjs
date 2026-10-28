@@ -60,7 +60,7 @@ try {
   const con = await crearCuenta("consultor", "consultor");
 
   const crearConvocatoria = async (nombre, cierre, estado) => {
-    const { data, error } = await svc.from("convocatorias").insert({
+    const { data, error } = await svc.from("convocatorias").insert({ todos_los_paises: true, // RN-39: datos de prueba abiertos a todos los países
       nombre: `${nombre} ${sufijo}`, entidad_convocante: "Entidad de prueba", cobertura_nacional: true,
       fecha_cierre: cierre, estado, url_postulacion: "https://entidad.gov.co/radicar",
     }).select("id").single();

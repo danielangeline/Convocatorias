@@ -6,6 +6,7 @@ import { listarPostulaciones } from "@/lib/postulaciones-servidor";
 import { compatibilidadEmpresa, nuevasEstaSemana } from "@/lib/compatibilidad-empresa";
 import { ETAPA_LABEL, etapaDe } from "@/lib/etapas-postulacion";
 import { diasRestantes } from "@/lib/utils";
+import { formatRangoConvocatoria, montoMaxCop } from "@/lib/monedas";
 import { LinkButton } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -65,19 +66,21 @@ export default async function InicioPage() {
     return { p, hechos, etapa: etapaDe(p.estado, hechos, p.checklist.length) };
   });
   const listas = conEtapa.filter((x) => x.etapa === "lista").length;
-  const conMonto = activas.filter((p) => p.convocatoria?.montoMax != null);
-  const enJuego = conMonto.reduce((suma, p) => suma + (p.convocatoria!.montoMax ?? 0), 0);
+  // En pesos (RN-40): un monto en otra moneda sin tasa no suma.
+  const conMonto = activas.filter((p) => p.convocatoria && montoMaxCop(p.convocatoria) != null);
+  const enJuego = conMonto.reduce((suma, p) => suma + (montoMaxCop(p.convocatoria!) ?? 0), 0);
 
   // Fondos por mes de cierre: suma del monto máximo de las compatibles,
   // pública abajo y privada o de cooperación arriba (RF-102). Los nulos no suman.
   const porMes = new Map<string, { publico: number; privado: number }>();
   for (const s of compatibles) {
     const c = s.convocatoria;
-    if (c.montoMax == null) continue;
+    const max = montoMaxCop(c);
+    if (max == null) continue;
     const mes = c.fechaCierre.slice(0, 7);
     const acc = porMes.get(mes) ?? { publico: 0, privado: 0 };
-    if ((c.origen ?? "publico") === "publico") acc.publico += c.montoMax;
-    else acc.privado += c.montoMax;
+    if ((c.origen ?? "publico") === "publico") acc.publico += max;
+    else acc.privado += max;
     porMes.set(mes, acc);
   }
   const barras: BarraApilada[] = [...porMes.entries()]
@@ -203,7 +206,7 @@ export default async function InicioPage() {
               <div className="min-w-0 flex-1">
                 <div className="truncate text-[13.5px] font-bold">{s.convocatoria.nombre}</div>
                 <div className="mt-0.5 truncate text-xs text-ink-3">
-                  {s.convocatoria.entidadConvocante} · {montoCorto(s.convocatoria.montoMin, s.convocatoria.montoMax)}
+                  {s.convocatoria.entidadConvocante} · {(s.convocatoria.moneda ?? "COP") === "COP" ? montoCorto(s.convocatoria.montoMin, s.convocatoria.montoMax) : formatRangoConvocatoria(s.convocatoria)}
                 </div>
               </div>
               <span className="font-tabular text-xs font-semibold text-pri-text">{s.porcentaje}%</span>

@@ -20,7 +20,8 @@ import { useAppStore } from "@/lib/store";
 import type { EstadoPostulacion, PostulacionConConvocatoria, Proyecto } from "@/lib/types";
 import { documentoParaProyectoConv, ESTADO_DOCUMENTO_LABEL, ESTADO_DOCUMENTO_ESTILO } from "@/lib/documentos";
 import { useAccesoSuscripcion, useDocumentosPropios } from "@/lib/hooks";
-import { formatFecha, ESTADO_POSTULACION_LABEL, ESTADO_POSTULACION_ESTILO, estadosAlcanzables, ESTADOS_POSTULACION_TERMINALES, formatRangoCOP } from "@/lib/utils";
+import { formatFecha, ESTADO_POSTULACION_LABEL, ESTADO_POSTULACION_ESTILO, estadosAlcanzables, ESTADOS_POSTULACION_TERMINALES } from "@/lib/utils";
+import { formatRangoConvocatoria } from "@/lib/monedas";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { ProgressBar } from "@/components/ui/ProgressBar";
@@ -277,7 +278,7 @@ export function DetallePostulacion({
             <span className="flex items-center gap-1.5">
               <Wallet className="h-4 w-4" />
               <span className="font-tabular">
-                {formatRangoCOP(convocatoria.montoMin, convocatoria.montoMax)}
+                {formatRangoConvocatoria(convocatoria)}
               </span>
             </span>
             <span className="flex items-center gap-1.5">

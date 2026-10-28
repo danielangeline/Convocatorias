@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { Plus, Pencil, FileStack, X } from "lucide-react";
 import type { ConvocatoriaAdminListado, EstadoConvocatoria, FuenteAdmin } from "@/lib/types";
 import { peticionAdmin } from "@/lib/admin/peticion";
-import { diasRestantes, formatCOP, formatFecha, ESTADO_CONVOCATORIA_LABEL, ESTADO_CONVOCATORIA_ESTILO } from "@/lib/utils";
+import { diasRestantes, formatFecha, ESTADO_CONVOCATORIA_LABEL, ESTADO_CONVOCATORIA_ESTILO } from "@/lib/utils";
+import { formatMonto } from "@/lib/monedas";
 import { Badge } from "@/components/ui/Badge";
 import { Button, LinkButton } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -28,12 +29,13 @@ const claseCampo =
   "w-full rounded-lg border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri";
 const claseEtiqueta = "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3";
 
-const rango = (min: number | null, max: number | null) =>
+// En la moneda de la convocatoria (RN-40).
+const rango = (min: number | null, max: number | null, moneda: string) =>
   min === null && max === null
     ? "—"
     : min !== null && max !== null
-      ? `${formatCOP(min)} – ${formatCOP(max)}`
-      : formatCOP((max ?? min) as number);
+      ? `${formatMonto(min, moneda)} – ${formatMonto(max, moneda)}`
+      : formatMonto((max ?? min) as number, moneda);
 
 /**
  * CU-02 · Convocatorias en todos sus estados. Crear pide lo mínimo (fuente
@@ -136,7 +138,7 @@ export function ListadoConvocatorias({
               clave: "monto",
               titulo: "Monto",
               ancho: "minmax(0,1.3fr)",
-              celda: (c) => <span className="font-tabular font-semibold text-ink-2">{rango(c.montoMin, c.montoMax)}</span>,
+              celda: (c) => <span className="font-tabular font-semibold text-ink-2">{rango(c.montoMin, c.montoMax, c.moneda)}</span>,
             },
             {
               clave: "cierre",

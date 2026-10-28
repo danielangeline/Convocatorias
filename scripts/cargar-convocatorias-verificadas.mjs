@@ -5,7 +5,9 @@
 //
 // El lote exporta FUENTES, CATEGORIAS y CONVOCATORIAS. Cada convocatoria puede declarar
 // `origen` (publico, privado o cooperacion) y `tipo` (fondo o beneficio_tributario), RF-102;
-// sin ellos quedan los valores por defecto de la tabla.
+// sin ellos quedan los valores por defecto de la tabla. Desde la sesión 033 declara también
+// los países que pueden postularse (RN-39): `todosLosPaises: true` o `paises: ["CO", ...]`,
+// y la moneda de sus montos (`moneda`, RN-40; por defecto COP).
 //
 // DOCS_DIR (por defecto ./tmp-convocatorias) debe tener los archivos oficiales que cita
 // cada convocatoria en `documentos`. Cada dato sale de la página o del documento oficial
@@ -77,7 +79,11 @@ function validar(c) {
   if (!/^https?:\/\/[^\s/]+\.[^\s]+$/i.test(c.url)) falla(`${c.nombre}: URL de postulación inválida`);
   if (c.requisitos.length < 2) falla(`${c.nombre}: menos de 2 requisitos (RN-01)`);
   if (!c.documentos.length) falla(`${c.nombre}: sin documentos (RN-01)`);
-  if (!c.nacional && !c.deptos?.length) falla(`${c.nombre}: sin cobertura (RN-34)`);
+  // RN-39: países declarados; la cobertura solo se exige si Colombia es elegible (RN-34).
+  if (!c.todosLosPaises && !c.paises?.length) falla(`${c.nombre}: sin países que puedan postularse (RN-39)`);
+  const colombia = c.todosLosPaises || (c.paises ?? []).includes("CO");
+  if (colombia && !c.nacional && !c.deptos?.length) falla(`${c.nombre}: sin cobertura (RN-34)`);
+  if (c.moneda && !/^[A-Z]{3}$/.test(c.moneda)) falla(`${c.nombre}: moneda inválida`);
   for (const d of c.documentos) if (!fs.existsSync(path.join(DOCS_DIR, d.archivo))) falla(`${c.nombre}: falta el archivo ${d.archivo}`);
   const cats = Object.values(c.categorias).flat();
   if (!cats.length) falla(`${c.nombre}: sin categorías`);
@@ -106,6 +112,7 @@ for (const c of CONVOCATORIAS) {
     monto_min: c.montoMin, monto_max: c.montoMax, ubicacion_cobertura: c.ubicacion, cobertura_nacional: !!c.nacional,
     fecha_apertura: c.apertura, fecha_cierre: c.cierre, url_postulacion: c.url, estado: "borrador",
     ...(c.origen && { origen: c.origen }), ...(c.tipo && { tipo_convocatoria: c.tipo }),
+    ...(c.moneda && { moneda: c.moneda }), todos_los_paises: !!c.todosLosPaises,
   }).select("id").single();
   if (error) throw new Error(`${c.nombre}: ${error.message}`);
   const id = conv.id;
@@ -114,7 +121,12 @@ for (const c of CONVOCATORIAS) {
   let r = await svc.from("convocatoria_categoria").insert(cats.map((categoria_id) => ({ convocatoria_id: id, categoria_id })));
   if (r.error) throw new Error(`categorías ${c.nombre}: ${r.error.message}`);
 
-  if (!c.nacional) {
+  if (!c.todosLosPaises) {
+    r = await svc.from("convocatoria_pais").insert(c.paises.map((p) => ({ convocatoria_id: id, pais_codigo: p })));
+    if (r.error) throw new Error(`países ${c.nombre}: ${r.error.message}`);
+  }
+
+  if (!c.nacional && c.deptos?.length) {
     r = await svc.from("convocatoria_departamento").insert(c.deptos.map((d) => ({ convocatoria_id: id, departamento_codigo: deptoCodigo(d) })));
     if (r.error) throw new Error(`departamentos ${c.nombre}: ${r.error.message}`);
   }
@@ -139,7 +151,8 @@ for (const c of CONVOCATORIAS) {
     svc.from("requisitos_convocatoria").select("*", { count: "exact", head: true }).eq("convocatoria_id", id),
     svc.from("convocatoria_departamento").select("*", { count: "exact", head: true }).eq("convocatoria_id", id),
   ]);
-  const publicable = nc >= 1 && nd >= 1 && nr >= 2 && (c.nacional || nx >= 1);
+  const colombiaElegible = c.todosLosPaises || c.paises.includes("CO");
+  const publicable = nc >= 1 && nd >= 1 && nr >= 2 && (!colombiaElegible || c.nacional || nx >= 1);
   if (!publicable) { falla(`${c.nombre}: la ficha no cumple RN-01, queda en borrador`); continue; }
   r = await svc.from("convocatorias").update({ estado: "publicada", publicada_at: new Date().toISOString() }).eq("id", id);
   if (r.error) throw new Error(`publicar ${c.nombre}: ${r.error.message}`);

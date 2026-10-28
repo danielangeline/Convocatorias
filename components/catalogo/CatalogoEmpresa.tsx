@@ -3,7 +3,8 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, Coins, LayoutGrid, Layers, List, ReceiptText, Search, SlidersHorizontal, X } from "lucide-react";
-import { cn, diasRestantes, formatFecha, formatRangoCOP } from "@/lib/utils";
+import { cn, diasRestantes, formatFecha } from "@/lib/utils";
+import { formatRangoConvocatoria } from "@/lib/monedas";
 import {
   DIAS_CIERRE,
   ORDENES,
@@ -59,6 +60,9 @@ type Filtros = {
   // RF-11 / RN-02: las cerradas salen del listado por defecto y solo
   // reaparecen bajo este filtro explícito, marcadas y sin acciones.
   incluirCerradas: boolean;
+  // RN-39 (criterio 21 de RF-12): las convocatorias a las que el país de la
+  // empresa no puede postularse solo entran bajo este filtro, marcadas.
+  incluirOtrosPaises: boolean;
 };
 
 const SIN_FILTROS: Filtros = {
@@ -81,6 +85,7 @@ const SIN_FILTROS: Filtros = {
   exigeDocumentos: false,
   maxRequisitos: "",
   incluirCerradas: false,
+  incluirOtrosPaises: false,
 };
 
 const CAMPO =
@@ -173,10 +178,11 @@ export function CatalogoEmpresa({
       todas.filter(
         (c) =>
           (f.incluirCerradas || c.estado !== "cerrada") &&
+          (f.incluirOtrosPaises || c.elegible !== false) &&
           (tipo === "todas" || (c.tipo ?? "fondo") === tipo) &&
           (origen === "todos" || (c.origen ?? "publico") === origen)
       ),
-    [todas, f.incluirCerradas, tipo, origen]
+    [todas, f.incluirCerradas, f.incluirOtrosPaises, tipo, origen]
   );
 
   const entidades = useMemo(() => {
@@ -230,6 +236,7 @@ export function CatalogoEmpresa({
       tipoDoc: f.tipoDoc,
       exigeDocumentos: f.exigeDocumentos,
       maxRequisitos: maxReq,
+      incluirOtrosPaises: f.incluirOtrosPaises,
     });
     // RF-94: con orden elegido, ese; si no, por compatibilidad con los proyectos (CU-10)
     // cuando la hay, y si no, el del servidor.
@@ -264,6 +271,7 @@ export function CatalogoEmpresa({
     if (f.exigeDocumentos) a.push({ clave: "ed", texto: "Exige documentos", quitar: () => set("exigeDocumentos", false) });
     if (f.maxRequisitos) a.push({ clave: "mr", texto: `Hasta ${f.maxRequisitos} requisitos`, quitar: () => set("maxRequisitos", "") });
     if (f.incluirCerradas) a.push({ clave: "cer", texto: "Incluye cerradas", quitar: () => set("incluirCerradas", false) });
+    if (f.incluirOtrosPaises) a.push({ clave: "pai", texto: "Incluye otros países", quitar: () => set("incluirOtrosPaises", false) });
     return a;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [f, categorias]);
@@ -541,6 +549,21 @@ export function CatalogoEmpresa({
               </label>
             </FiltroGrupo>
 
+            {/* RN-39: las de otros países solo entran bajo petición explícita. */}
+            {!soloVigentes && (
+              <FiltroGrupo titulo="Otros países" abierto>
+                <label className="flex cursor-pointer items-start gap-2">
+                  <input type="checkbox" checked={f.incluirOtrosPaises} onChange={(e) => set("incluirOtrosPaises", e.target.checked)} className="mt-0.5" />
+                  <span>
+                    <span className="block text-sm text-ink">Incluir las de otros países</span>
+                    <span className="block text-xs text-ink-3">
+                      Convocatorias a las que las organizaciones de tu país no pueden postularse. Se marcan y no admiten postulación.
+                    </span>
+                  </span>
+                </label>
+              </FiltroGrupo>
+            )}
+
             {/* RF-11 / RN-02: las cerradas solo entran bajo petición explícita. */}
             {!soloVigentes && (
               <FiltroGrupo titulo="Convocatorias cerradas" ultimo abierto>
@@ -629,7 +652,7 @@ export function CatalogoEmpresa({
                     clave: "monto",
                     titulo: "Monto",
                     ancho: "minmax(0,1.6fr)",
-                    celda: (c) => <span className="font-tabular font-semibold">{formatRangoCOP(c.montoMin, c.montoMax)}</span>,
+                    celda: (c) => <span className="font-tabular font-semibold">{formatRangoConvocatoria(c)}</span>,
                   },
                   {
                     clave: "cierre",

@@ -5,7 +5,7 @@
  */
 export async function peticionAdmin<T = unknown>(
   url: string,
-  metodo: "POST" | "PATCH",
+  metodo: "POST" | "PATCH" | "PUT",
   cuerpo: unknown
 ): Promise<{ ok: true; datos: T; aviso: string | null } | { ok: false; error: string }> {
   try {

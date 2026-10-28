@@ -110,6 +110,11 @@ const RECHAZOS: Record<string, { status: number; error: string }> = {
     status: 409,
     error: "Esa convocatoria ya no está abierta: cerró o se despublicó.",
   },
+  // RN-39: la base rechaza a la empresa cuyo país no puede postularse (trigger de vigencia, sesión 033).
+  pais_no_elegible: {
+    status: 409,
+    error: "Las organizaciones de tu país no pueden postularse a esta convocatoria.",
+  },
   ya_propuesta: { status: 409, error: "Ya propusiste esta convocatoria en este encargo." },
   nota_invalida: { status: 400, error: `Escribe por qué le sirve al proyecto (hasta ${NOTA_MAXIMA.toLocaleString("es-CO")} caracteres).` },
   estado_no_permite: { status: 409, error: "La propuesta o el encargo cambiaron: recarga la página para ver cómo quedaron." },

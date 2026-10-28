@@ -97,6 +97,11 @@ const RECHAZOS: Record<string, { status: number; error: string }> = {
     status: 409,
     error: "Esta convocatoria ya no está abierta: está cerrada o despublicada y no admite nuevas postulaciones.",
   },
+  // RN-39: la base rechaza a la empresa cuyo país no puede postularse (trigger de vigencia, sesión 033).
+  pais_no_elegible: {
+    status: 409,
+    error: "Las organizaciones de tu país no pueden postularse a esta convocatoria.",
+  },
   proyecto_fijo: { status: 409, error: "Esta postulación ya tiene un proyecto vinculado y no se puede cambiar." },
   postulacion_cerrada: { status: 409, error: "La postulación está cerrada: su checklist ya no se puede modificar." },
   transicion_invalida: { status: 409, error: "Ese cambio de estado no está permitido desde el estado actual." },
