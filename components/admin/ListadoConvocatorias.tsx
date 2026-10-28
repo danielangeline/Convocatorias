@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Pencil, FileStack, X } from "lucide-react";
-import type { ConvocatoriaAdminListado, EstadoConvocatoria, FuenteAdmin } from "@/lib/types";
+import { Plus, Pencil, FileStack, X, Upload } from "lucide-react";
+import type { CategoriaAdmin, ConvocatoriaAdminListado, EstadoConvocatoria, FuenteAdmin } from "@/lib/types";
 import { peticionAdmin } from "@/lib/admin/peticion";
 import { diasRestantes, formatFecha, ESTADO_CONVOCATORIA_LABEL, ESTADO_CONVOCATORIA_ESTILO } from "@/lib/utils";
 import { formatMonto } from "@/lib/monedas";
@@ -16,6 +16,7 @@ import { Tabs } from "@/components/ui/Tabs";
 import { DataTable } from "@/components/ui/DataTable";
 import { DeadlineChip } from "@/components/viz/Deadline";
 import { Aviso } from "@/components/identidad/Campo";
+import { CargaMasivaConvocatorias } from "./CargaMasivaConvocatorias";
 
 const filtros: Array<{ valor: EstadoConvocatoria | "todas"; etiqueta: string }> = [
   { valor: "todas", etiqueta: "Todas" },
@@ -41,17 +42,22 @@ const rango = (min: number | null, max: number | null, moneda: string) =>
  * CU-02 · Convocatorias en todos sus estados. Crear pide lo mínimo (fuente
  * activa, nombre, entidad y cierre) y lleva al editor en borrador. Ninguna se
  * elimina (RN-07); publicar y despublicar se hacen en el servidor (RF-09).
+ * La carga masiva (CU-50) crea muchas en borrador desde un CSV.
  */
 export function ListadoConvocatorias({
   convocatorias,
   fuentesActivas,
+  categorias,
 }: {
   convocatorias: ConvocatoriaAdminListado[];
   fuentesActivas: FuenteAdmin[];
+  categorias: CategoriaAdmin[];
 }) {
   const router = useRouter();
   const [filtro, setFiltro] = useState<EstadoConvocatoria | "todas">("todas");
   const [modalAbierto, setModalAbierto] = useState(false);
+  const [cargaAbierta, setCargaAbierta] = useState(false);
+  const cerrarCarga = useCallback(() => setCargaAbierta(false), []);
   const [form, setForm] = useState({ fuenteId: "", nombre: "", entidadConvocante: "", fechaCierre: "" });
   const [error, setError] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState(false);
@@ -86,9 +92,14 @@ export function ListadoConvocatorias({
         titulo="Convocatorias"
         descripcion="Administra el ciclo de vida de cada convocatoria."
         accion={
-          <Button variant="primary" onClick={abrirCrear}>
-            <Plus className="h-4 w-4" /> Nueva convocatoria
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="secondary" onClick={() => setCargaAbierta(true)}>
+              <Upload className="h-4 w-4" /> Carga masiva
+            </Button>
+            <Button variant="primary" onClick={abrirCrear}>
+              <Plus className="h-4 w-4" /> Nueva convocatoria
+            </Button>
+          </div>
         }
       />
 
@@ -173,6 +184,13 @@ export function ListadoConvocatorias({
           ]}
         />
       )}
+
+      <CargaMasivaConvocatorias
+        abierto={cargaAbierta}
+        onCerrar={cerrarCarga}
+        fuentesActivas={fuentesActivas}
+        categorias={categorias}
+      />
 
       {modalAbierto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">

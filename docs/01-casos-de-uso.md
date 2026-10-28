@@ -1,4 +1,4 @@
-# Casos de uso (CU-01 a CU-49)
+# Casos de uso (CU-01 a CU-50)
 
 > Parte de la especificación del MVP **v6** · Plataforma de Gestión de Convocatorias.
 > Índice general en `docs/README.md`. Contexto rápido en `CLAUDE.md`.
@@ -88,6 +88,18 @@
 | **Flujos alternos** | 1a. No sirve para la plataforma → «Descartar» con motivo: se borra el borrador y el identificador queda vetado para el importador (RN-38). 1b. Cambios pendientes → la pestaña «Cambios en la fuente» muestra, por publicada, el valor actual y el de la fuente; «Aplicar» lo escribe con la misma validación de RN-01 (si la deja incompleta, se rechaza) y «Descartar» lo archiva. 1c. «Cerrada en la fuente» → al aplicarlo, la convocatoria se despublica |
 | **Postcondiciones** | Lo publicado cumple RN-01; queda quién publicó, aplicó o descartó, y cuándo (RNF-11) |
 | **Incluye** | CU-02, CU-03, CU-04, CU-05 |
+
+#### CU-50 · Carga masiva de convocatorias desde un archivo *(nuevo v6, sesión 034)*
+
+| Campo | Contenido |
+|---|---|
+| **Actor** | Administrador de Contenido (con MFA) |
+| **Descripción** | Crear muchas convocatorias de una vez a partir de un archivo CSV que el administrador llena en Excel (u otra hoja de cálculo) con la plantilla que descarga del panel, una fila por convocatoria y una columna por cada campo de la ficha |
+| **Precondiciones** | Las fuentes y categorías que nombra el archivo ya existen y están activas (RF-04, RF-06) |
+| **Flujo principal** | 1. En `/admin/convocatorias`, «Carga masiva». 2. Descarga la plantilla (CSV con todas las columnas, una fila de ejemplo y la guía de cada columna en pantalla, con las fuentes y categorías válidas). 3. La llena y la sube. 4. El servidor valida **cada fila** con las mismas reglas del editor (CU-02, RF-05, RF-06, RF-08, RF-116, RF-117) y muestra una vista previa: cuáles se crearían y, de las que no, **todos** sus errores con el número de fila y la columna. 5. «Crear N borradores» → el servidor vuelve a validar y crea **en `borrador`** solo las filas válidas, con datos, países, cobertura, categorías y requisitos. 6. El resultado enlaza cada borrador al editor, donde se adjunta el documento oficial (RF-07) y se publica una por una (CU-05) |
+| **Flujos alternos** | 4a. Una fila repite una convocatoria que ya existe (mismo nombre y entidad, sin distinguir tildes ni mayúsculas) o que ya está más arriba en el archivo → se marca como duplicada y no se crea: subir el mismo archivo dos veces no duplica. 4b. El archivo no tiene las columnas obligatorias, no es CSV, está vacío o pasa de 200 filas → se rechaza entero con el motivo. 5a. Ninguna fila es válida → no se crea nada |
+| **Postcondiciones** | Borradores creados por el administrador (queda `creado_por`). **Nada se publica desde el archivo**: ninguna empresa ve una convocatoria cargada así hasta que un administrador la completa y la publica con RN-01 |
+| **Nota** | No usa IA: cada dato sale del archivo. Lo que el archivo no trae queda vacío (RNF-23) |
 
 ### Módulo B — Búsqueda y descubrimiento (Usuario Empresa)
 

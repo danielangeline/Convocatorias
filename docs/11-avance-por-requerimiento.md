@@ -213,6 +213,7 @@ Solo `verificado` cierra un requerimiento. La distinción entre `prototipo` y `s
 | RF-115 Bandeja de importadas | pendiente | **Sesión 032:** especificado (CU-49) |
 | RF-116 Países elegibles | verificado | **Sesión 033:** editor del panel (todos o lista con buscador; la cobertura solo si Colombia es elegible), publicar los exige, ficha «Pueden postularse», criterio 21 del catálogo y etiqueta «Tu país no es elegible». SQL 27/27, HTTP y pantalla (`docs/evidencias/sesion-033/`) |
 | RF-117 Moneda y tasa de referencia | verificado | **Sesión 033:** selector de moneda en el editor, montos en su moneda en todas las pantallas con «≈ $X COP aprox.», `/admin/tasas` y `GET/PUT /api/admin/tasas` (404 para quien no es administrador). Probado en pantalla con una tasa de prueba, ya borrada |
+| **RF-118** Carga masiva por CSV *(nuevo v6, sesión 034)* | verificado | **Sesión 034 (CU-50):** «Carga masiva» en `/admin/convocatorias` con plantilla CSV (también en `docs/plantillas/plantilla-convocatorias.csv`), guía de columnas, vista previa fila por fila y creación en borrador. `POST /api/admin/convocatorias/carga-masiva`; cada fila pasa por `validarFicha`, la misma validación del editor. `scripts/prueba-carga-masiva.mjs` **30/30** (404 a anónimo y empresa, MFA, origen, errores por columna, duplicados, idempotencia, RN-39/40); regresión `prueba-catalogo-admin.mjs` y `prueba-paises-y-moneda.mjs` en verde; recorrido en pantalla con administrador temporal y a 375 px (`docs/evidencias/sesion-034/`) |
 ---
 
 ## 23. Requerimientos no funcionales

@@ -60,7 +60,7 @@ const RECHAZOS: Record<string, { status: number; error: string }> = {
   vencida: { status: 400, error: "La fecha de cierre ya pasó. Actualízala antes de publicar." },
 };
 
-function rechazo(error: PostgrestError, accion: string): Rechazo {
+export function rechazo(error: PostgrestError, accion: string): Rechazo {
   const conocido = error.hint ? RECHAZOS[error.hint] : undefined;
   if (conocido) return { ok: false, ...conocido };
   // El nombre se compara normalizado: sin tildes, sin mayúsculas y sin espacios
@@ -103,7 +103,7 @@ function enlace(valor: unknown, campo: string): { ok: true; valor: string } | Re
   return { ok: true, valor: v };
 }
 
-function fechaValida(valor: string): boolean {
+export function fechaValida(valor: string): boolean {
   if (!FECHA.test(valor)) return false;
   const d = new Date(`${valor}T00:00:00Z`);
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === valor;
@@ -413,11 +413,18 @@ export async function crearConvocatoria(cuerpo: Cuerpo, usuarioId: string): Prom
   return { ok: true, datos: { id: data.id } };
 }
 
+/** Argumentos de `guardar_convocatoria` (docs/05 §9.13), ya validados. */
+export type FichaValidada = {
+  p_datos: Record<string, unknown>;
+  p_categorias: string[];
+  p_requisitos: Array<{ id: string; descripcion: string; tipo: TipoRequisito; obligatorio: boolean }>;
+};
+
 /**
- * CU-02 2a, CU-04 · Guarda datos, categorías y requisitos en una transacción
- * (`guardar_convocatoria`). No cambia el estado (RF-09 tiene su endpoint).
+ * Forma de la ficha que guarda el editor (CU-02 2a, CU-04). La usan el editor
+ * y la carga masiva (CU-50), así que las dos validan con las mismas reglas.
  */
-export async function guardarConvocatoria(id: string, cuerpo: Cuerpo): Promise<Resultado<ConvocatoriaAdmin>> {
+export function validarFicha(cuerpo: Cuerpo): { ok: true; ficha: FichaValidada } | Rechazo {
   const nombre = texto(cuerpo?.nombre, 300);
   const entidad = texto(cuerpo?.entidadConvocante, 200);
   if (!nombre) return invalido("Escribe el nombre de la convocatoria.");
@@ -494,30 +501,43 @@ export async function guardarConvocatoria(id: string, cuerpo: Cuerpo): Promise<R
     requisitos.push({ id: idReq, descripcion, tipo, obligatorio: r?.obligatorio !== false });
   }
 
-  const supabase = await crearClienteServidor();
-  const { error } = await supabase.rpc("guardar_convocatoria", {
-    p_id: id,
-    p_datos: {
-      fuente_id: fuenteId,
-      nombre,
-      entidad_convocante: entidad,
-      descripcion: texto(cuerpo?.descripcion, 10000) ?? "",
-      monto_min: montoMin === null ? "" : String(montoMin),
-      monto_max: montoMax === null ? "" : String(montoMax),
-      ubicacion_cobertura: texto(cuerpo?.ubicacion, 300) ?? "",
-      cobertura_nacional: coberturaNacional,
-      departamentos: [...new Set(departamentos as string[])],
-      fecha_apertura: apertura,
-      fecha_cierre: cierre,
-      url_postulacion: url.valor,
-      tipo_convocatoria: tipo,
-      origen,
-      moneda,
-      ...(conPaises && { todos_los_paises: todosLosPaises, paises: todosLosPaises ? [] : [...new Set(paises as string[])] }),
+  return {
+    ok: true,
+    ficha: {
+      p_datos: {
+        fuente_id: fuenteId,
+        nombre,
+        entidad_convocante: entidad,
+        descripcion: texto(cuerpo?.descripcion, 10000) ?? "",
+        monto_min: montoMin === null ? "" : String(montoMin),
+        monto_max: montoMax === null ? "" : String(montoMax),
+        ubicacion_cobertura: texto(cuerpo?.ubicacion, 300) ?? "",
+        cobertura_nacional: coberturaNacional,
+        departamentos: [...new Set(departamentos as string[])],
+        fecha_apertura: apertura,
+        fecha_cierre: cierre,
+        url_postulacion: url.valor,
+        tipo_convocatoria: tipo,
+        origen,
+        moneda,
+        ...(conPaises && { todos_los_paises: todosLosPaises, paises: todosLosPaises ? [] : [...new Set(paises as string[])] }),
+      },
+      p_categorias: [...new Set(categorias as string[])],
+      p_requisitos: requisitos.map((r) => ({ id: r.id ?? "", descripcion: r.descripcion, tipo: r.tipo, obligatorio: r.obligatorio })),
     },
-    p_categorias: [...new Set(categorias as string[])],
-    p_requisitos: requisitos.map((r) => ({ id: r.id ?? "", descripcion: r.descripcion, tipo: r.tipo, obligatorio: r.obligatorio })),
-  });
+  };
+}
+
+/**
+ * CU-02 2a, CU-04 · Guarda datos, categorías y requisitos en una transacción
+ * (`guardar_convocatoria`). No cambia el estado (RF-09 tiene su endpoint).
+ */
+export async function guardarConvocatoria(id: string, cuerpo: Cuerpo): Promise<Resultado<ConvocatoriaAdmin>> {
+  const validada = validarFicha(cuerpo);
+  if (!validada.ok) return validada;
+
+  const supabase = await crearClienteServidor();
+  const { error } = await supabase.rpc("guardar_convocatoria", { p_id: id, ...validada.ficha });
   if (error) return rechazo(error, "guardar convocatoria");
 
   const guardada = await obtenerConvocatoria(id);
