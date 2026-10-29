@@ -3,6 +3,7 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { firmarDescarga } from "@/lib/supabase/descarga";
 import type { DocumentoAdmin, TipoDocumento } from "@/lib/types";
 import type { Resultado } from "./administradores";
+import { descargarDocumento } from "./descarga-enlace";
 
 /**
  * Adjuntos de una convocatoria (CU-03, RF-07, docs/05 §9.14).
@@ -301,4 +302,37 @@ export async function enlaceDeDescarga(
     return { ok: false, status: 500, error: "No pudimos preparar la descarga. Intenta de nuevo." };
   }
   return { ok: true, datos: { url: firma.url, nombre: nombreDescarga } };
+}
+
+/**
+ * RF-118, RNF-37 · Adjunta un documento descargado de un enlace. La descarga
+ * pone sus barreras (`descarga-enlace.ts`); el objeto se sube con la sesión del
+ * administrador, así que la RLS del bucket decide igual que en una subida a
+ * mano, y el registro es el mismo paso 3 de arriba, que vuelve a comprobar el
+ * objeto, su tamaño y su tipo.
+ */
+export async function adjuntarDesdeEnlace(convocatoriaId: string, cuerpo: Cuerpo): Promise<Resultado<DocumentoAdmin>> {
+  const url = texto(cuerpo?.url, 2001);
+  const tipo = cuerpo?.tipo as TipoDocumento;
+  if (!url || url.length > 2000) return invalido("Escribe el enlace del documento.");
+  if (!TIPOS_DOC.includes(tipo)) return invalido("Tipo de documento no válido.");
+  if (!(await existeConvocatoria(convocatoriaId))) {
+    return { ok: false, status: 404, error: "La convocatoria no existe." };
+  }
+
+  const r = await descargarDocumento(url, TAMANO_MAXIMO);
+  if (!r.ok) return { ok: false, status: 422, error: r.error };
+  const { contenido, extension, nombre } = r.descarga;
+
+  const documentoId = crypto.randomUUID();
+  const ruta = `${convocatoriaId}/${documentoId}.${extension}`;
+  const supabase = await crearClienteServidor();
+  const { error } = await supabase.storage
+    .from(BUCKET)
+    .upload(ruta, contenido, { contentType: FORMATOS[extension][0], upsert: false });
+  if (error) {
+    console.error("Adjuntos: no se pudo guardar lo descargado", error.message);
+    return { ok: false, status: 500, error: "Se descargó, pero no pudimos guardarlo. Intenta de nuevo." };
+  }
+  return registrarDocumento(convocatoriaId, { documentoId, nombre, tipo, extension });
 }

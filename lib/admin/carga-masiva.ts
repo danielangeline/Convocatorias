@@ -42,7 +42,7 @@ export const COLUMNAS_CARGA: ReadonlyArray<ColumnaCarga> = [
   { clave: "categorias", obligatoria: false, guia: "Nombres de categorías activas separados por |.", ejemplo: "Innovación y desarrollo tecnológico|MiPyme" },
   { clave: "requisitos_documentos", obligatoria: false, guia: `Documentos que se piden, separados por |. Los que empiezan por ${MARCA_OPCIONAL} no son obligatorios.`, ejemplo: `Certificado de existencia y representación legal|${MARCA_OPCIONAL} Carta de apoyo de un aliado` },
   { clave: "requisitos_condiciones", obligatoria: false, guia: "Condiciones que se piden, separadas por |. Igual que los documentos.", ejemplo: "Ser empresa constituida en Colombia con al menos un año de existencia" },
-  { clave: "documentos", obligatoria: false, guia: "Nombres de los archivos que se adjuntan, separados por |, cada uno con su tipo tras = (TDR, terminos, anexo o formato; sin tipo, TDR). Los archivos se eligen junto con el CSV: PDF, Word, Excel o ZIP de hasta 20 MB.", ejemplo: "tdr-ejemplo.pdf=TDR|anexo-1-carta.docx=anexo" },
+  { clave: "documentos", obligatoria: false, guia: "Enlaces oficiales de los documentos (los descarga el sistema) o nombres de archivos que eliges junto con el CSV, separados por |, cada uno con su tipo tras = (TDR, terminos, anexo o formato; sin tipo, TDR). PDF, Word, Excel o ZIP de hasta 20 MB. También puedes arrastrarlos a cada convocatoria en la vista previa.", ejemplo: "https://www.ejemplo.gov.co/tdr-convocatoria.pdf=TDR|anexo-1-carta.docx=anexo" },
 ];
 
 /** Sin tildes, sin mayúsculas y con los espacios colapsados: así se comparan nombres. */
@@ -180,8 +180,11 @@ export function leerFecha(valor: string): string | null {
   return !Number.isNaN(comprobada.getTime()) && comprobada.toISOString().slice(0, 10) === fecha ? fecha : null;
 }
 
-/** Documento que nombra una fila: `archivo` es el nombre exacto del archivo elegido. */
-export type DocumentoCarga = { archivo: string; tipo: TipoDocumento };
+/**
+ * Documento de una fila: un archivo elegido junto al CSV (`archivo`, su nombre
+ * exacto) o un enlace que descarga el servidor (`enlace`, RNF-37).
+ */
+export type DocumentoCarga = { tipo: TipoDocumento } & ({ archivo: string; enlace?: undefined } | { enlace: string; archivo?: undefined });
 
 /** Lo que la pantalla dice de cada archivo elegido; el archivo mismo no viaja al servidor. */
 export type ArchivoElegido = { nombre: string; tamanoBytes: number };
@@ -212,29 +215,41 @@ const TIPOS_DOCUMENTO: Record<string, TipoDocumento> = {
   formato: "formato",
 };
 
+const esEnlace = (valor: string) => /^https?:\/\//i.test(valor);
+
 /**
- * Celda `documentos`: `archivo.pdf=TDR|otro.docx=anexo`. Devuelve el nombre de
- * cada archivo con su tipo (sin tipo, TDR) o los errores de forma; si el archivo
- * se eligió lo comprueba quien llama. `nombrados` son todos los archivos que la
- * celda menciona, aunque su tipo esté mal escrito.
+ * Celda `documentos`: `archivo.pdf=TDR|https://…/tdr.pdf|otro.docx=anexo`.
+ * Cada parte es un archivo elegido o un enlace, con su tipo tras el último `=`
+ * (sin tipo, TDR). En un enlace, lo que sigue al último `=` solo es el tipo si
+ * es uno de los cuatro: un enlace con `?id=123` es todo enlace. Devuelve los
+ * errores de forma; si el archivo se eligió, o si el enlace es válido, lo
+ * comprueba quien llama. `nombrados` son todos los archivos que la celda
+ * menciona, aunque su tipo esté mal escrito.
  */
 export function leerDocumentos(valor: string | undefined): {
-  documentos: Array<{ archivo: string; tipo: TipoDocumento }>;
+  documentos: DocumentoCarga[];
   nombrados: string[];
   errores: string[];
 } {
-  const documentos: Array<{ archivo: string; tipo: TipoDocumento }> = [];
+  const documentos: DocumentoCarga[] = [];
   const nombrados: string[] = [];
   const errores: string[] = [];
   for (const parte of lista(valor)) {
     const igual = parte.lastIndexOf("=");
-    const archivo = (igual === -1 ? parte : parte.slice(0, igual)).trim();
-    const tipoTexto = igual === -1 ? "TDR" : parte.slice(igual + 1).trim();
+    const sufijo = igual === -1 ? "" : parte.slice(igual + 1).trim();
+    const conTipo = igual !== -1 && (!esEnlace(parte) || normalizar(sufijo) in TIPOS_DOCUMENTO);
+    const valorDoc = (conTipo ? parte.slice(0, igual) : parte).trim();
+    const tipoTexto = conTipo ? sufijo : "TDR";
     const tipo = TIPOS_DOCUMENTO[normalizar(tipoTexto)];
-    if (archivo) nombrados.push(archivo);
-    if (!archivo) errores.push(`documentos: «${parte}» no dice el nombre del archivo.`);
-    else if (!tipo) errores.push(`documentos: el tipo «${tipoTexto}» de ${archivo} no es TDR, terminos, anexo ni formato.`);
-    else documentos.push({ archivo, tipo });
+    if (!valorDoc) errores.push(`documentos: «${parte}» no dice el archivo ni el enlace.`);
+    else if (esEnlace(valorDoc)) {
+      if (!tipo) errores.push(`documentos: el tipo «${tipoTexto}» de ${valorDoc} no es TDR, terminos, anexo ni formato.`);
+      else documentos.push({ enlace: valorDoc, tipo });
+    } else {
+      nombrados.push(valorDoc);
+      if (!tipo) errores.push(`documentos: el tipo «${tipoTexto}» de ${valorDoc} no es TDR, terminos, anexo ni formato.`);
+      else documentos.push({ archivo: valorDoc, tipo });
+    }
   }
   return { documentos, nombrados, errores };
 }

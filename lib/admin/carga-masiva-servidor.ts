@@ -4,7 +4,7 @@ import { refrescarIndicadores } from "@/lib/catalogo";
 import { hoyColombia } from "@/lib/fechas";
 import { DEPARTAMENTOS } from "@/lib/departamentos";
 import type { TipoConvocatoria, OrigenConvocatoria, TipoRequisito } from "@/lib/types";
-import { rechazo, validarFicha, type FichaValidada } from "./catalogo";
+import { esUrlHttp, rechazo, validarFicha, type FichaValidada } from "./catalogo";
 import { EXTENSIONES, TAMANO_MAXIMO, extensionDe } from "./documentos";
 import {
   COLUMNAS_CARGA,
@@ -177,7 +177,15 @@ function traducirFila(
   const leidos = leerDocumentos(c.documentos);
   errores.push(...leidos.errores);
   const documentos: DocumentoCarga[] = [];
-  for (const { archivo, tipo } of leidos.documentos) {
+  for (const doc of leidos.documentos) {
+    if (doc.enlace !== undefined) {
+      // RNF-29 · forma del enlace; la descarga (RNF-37) se hace después de crear el borrador.
+      if (doc.enlace.length > 2000 || !esUrlHttp(doc.enlace)) errores.push(`documentos: ${doc.enlace} no es un enlace válido.`);
+      else if (documentos.some((d) => d.enlace === doc.enlace)) errores.push(`documentos: ${doc.enlace} está dos veces en la fila.`);
+      else documentos.push(doc);
+      continue;
+    }
+    const { archivo, tipo } = doc;
     const elegido = archivos.get(archivo.toLowerCase());
     if (!EXTENSIONES.includes(extensionDe(archivo))) {
       errores.push(`documentos: ${archivo} no es PDF, Word, Excel ni ZIP.`);

@@ -180,6 +180,37 @@ try {
   ok(firma.status === 200 && !eSub && reg.status === 200, `documento subido y registrado en el borrador creado (${firma.status}, ${eSub?.message ?? "ok"}, ${reg.status})`);
   const { data: docsH } = await svc.from("documentos_convocatoria").select("tipo_doc, nombre").eq("convocatoria_id", creadaH.id);
   ok(docsH?.length === 1 && docsH[0].tipo_doc === "TDR", "la convocatoria H queda con su TDR adjunto");
+
+  // --- Enlaces (sesión 036): la columna admite enlaces y el servidor los descarga (RNF-37) ---
+  const PDF_PUBLICO = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf";
+  const csvEnlaces = [
+    encDocs,
+    `${nombreFuente};Carga J ${sufijo};Entidad J;2026-12-15;${PDF_PUBLICO}|https://portal.example.gov.co/descarga?id=55&doc=7=anexo`,
+    `${nombreFuente};Carga K ${sufijo};Entidad K;2026-12-15;https://sin punto/tdr.pdf`,
+  ].join("\n");
+  const pe = await api(adm, { csv: csvEnlaces });
+  const j = pe.json?.datos?.filas?.find((f) => f.numero === 2), k = pe.json?.datos?.filas?.find((f) => f.numero === 3);
+  ok(j?.estado === "valida" && JSON.stringify(j.documentos) === JSON.stringify([{ enlace: PDF_PUBLICO, tipo: "TDR" }, { enlace: "https://portal.example.gov.co/descarga?id=55&doc=7", tipo: "anexo" }]),
+    `fila J: enlaces sin tipo (TDR) y con «=» en la consulta y tipo al final (${JSON.stringify(j?.documentos)})`);
+  ok(k?.estado === "error" && /no es un enlace válido/.test(k.errores[0]), `fila K: enlace mal formado → error (${k?.errores?.[0]})`);
+
+  const ce = await api(adm, { csv: csvEnlaces, confirmar: true });
+  const creadaJ = ce.json?.datos?.filas?.find((f) => f.numero === 2);
+  ok(ce.json?.datos?.creadas === 1 && creadaJ?.id, "confirmar: se crea J");
+  const desde = (s, cuerpo, idConv = creadaJ.id, origen = APP) => fetch(`${APP}/api/admin/convocatorias/${idConv}/documentos/desde-enlace`, { method: "POST", headers: { "content-type": "application/json", origin: origen, ...(s && { cookie: s.cookie() }) }, body: JSON.stringify(cuerpo) }).then(async (r) => ({ status: r.status, json: await r.json().catch(() => null) }));
+  ok((await desde(null, { url: PDF_PUBLICO, tipo: "TDR" })).status === 404, "desde-enlace · anónimo → 404");
+  ok((await desde(emp, { url: PDF_PUBLICO, tipo: "TDR" })).status === 404, "desde-enlace · empresa → 404");
+  ok((await desde(adm, { url: PDF_PUBLICO, tipo: "TDR" }, creadaJ.id, "https://otro.example.com")).status === 403, "desde-enlace · origen ajeno → 403");
+  for (const interna of ["http://169.254.169.254/latest/meta-data/", "http://127.0.0.1.nip.io/", "http://localhost/", "http://[::1]/"]) {
+    const r = await desde(adm, { url: interna, tipo: "TDR" });
+    ok(r.status === 422 && /interna/.test(r.json?.error), `desde-enlace · ${interna} → 422 dirección interna (${r.status})`);
+  }
+  const html = await desde(adm, { url: "https://example.com/", tipo: "TDR" });
+  ok(html.status === 422 && /no entrega un PDF/.test(html.json?.error), `desde-enlace · página HTML → 422 (${html.json?.error})`);
+  const real = await desde(adm, { url: PDF_PUBLICO, tipo: "TDR" });
+  ok(real.status === 200 && real.json?.datos?.nombre === "dummy" && real.json?.datos?.tipoMime === "application/pdf", `desde-enlace · PDF público → 200, registrado como «dummy» (${real.status} ${real.json?.error ?? ""})`);
+  const { data: docsJ } = await svc.from("documentos_convocatoria").select("tipo_doc, tamano_bytes, storage_path").eq("convocatoria_id", creadaJ.id);
+  ok(docsJ?.length === 1 && Number(docsJ[0].tamano_bytes) > 10000 && docsJ[0].storage_path.endsWith(".pdf"), "la convocatoria J queda con el PDF descargado en el bucket");
 } finally {
   if (fuenteId) {
     const { data: creadasPrueba } = await svc.from("convocatorias").select("id").eq("fuente_id", fuenteId);

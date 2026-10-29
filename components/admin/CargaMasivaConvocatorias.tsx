@@ -3,12 +3,25 @@
 import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Download, Upload, FileSpreadsheet, FileText, Files, Check, X } from "lucide-react";
-import type { CategoriaAdmin, FuenteAdmin, TipoCategoria } from "@/lib/types";
+import { Download, Upload, FileSpreadsheet, FileText, Files, Check, X, Link2, Paperclip } from "lucide-react";
+import type { CategoriaAdmin, DocumentoAdmin, FuenteAdmin, TipoCategoria, TipoDocumento } from "@/lib/types";
 import { peticionAdmin } from "@/lib/admin/peticion";
-import { COLUMNAS_CARGA, MAXIMO_FILAS, plantillaCsv, type FilaCarga, type ResultadoCarga } from "@/lib/admin/carga-masiva";
-import { EXTENSIONES_ADJUNTO, subirAdjunto } from "@/lib/admin/subir-adjunto";
-import { TIPO_DOCUMENTO_LABEL } from "@/lib/utils";
+import {
+  COLUMNAS_CARGA,
+  MAXIMO_FILAS,
+  plantillaCsv,
+  type DocumentoCarga,
+  type FilaCarga,
+  type ResultadoCarga,
+} from "@/lib/admin/carga-masiva";
+import {
+  EXTENSIONES_ADJUNTO,
+  TAMANO_MAXIMO_ADJUNTO,
+  TIPOS_ADJUNTO,
+  extensionDe,
+  subirAdjunto,
+} from "@/lib/admin/subir-adjunto";
+import { TIPO_DOCUMENTO_LABEL, cn } from "@/lib/utils";
 import { Badge, type TonoBadge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Drawer } from "@/components/ui/Drawer";
@@ -22,8 +35,11 @@ const TIPO_CATEGORIA: Record<TipoCategoria, string> = {
 
 const ACEPTADOS = EXTENSIONES_ADJUNTO.map((e) => `.${e}`).join(",");
 
-/** Cómo terminó la subida de cada documento, por fila (CU-50 5b). */
-type Subida = { archivo: string; ok: boolean; error?: string };
+/** Documento arrastrado a una fila en la vista previa (RF-118, sesión 036). */
+type Manual = { clave: string; archivo: File; tipo: TipoDocumento };
+
+/** Cómo terminó la subida de cada documento, por fila (CU-50 5b, 5c). */
+type Subida = { clave: string; ok: boolean; error?: string };
 
 const ESTADO_FILA: Record<FilaCarga["estado"], { etiqueta: string; tono: TonoBadge }> = {
   valida: { etiqueta: "Lista para crear", tono: "pri" },
@@ -32,6 +48,8 @@ const ESTADO_FILA: Record<FilaCarga["estado"], { etiqueta: string; tono: TonoBad
   error: { etiqueta: "Con errores", tono: "rose" },
   fallo: { etiqueta: "No se creó", tono: "rose" },
 };
+
+const claveDe = (d: DocumentoCarga) => (d.enlace !== undefined ? `enlace:${d.enlace}` : `archivo:${d.archivo.toLowerCase()}`);
 
 /**
  * Excel en español guarda «CSV UTF-8» o «CSV (delimitado por comas)», que es
@@ -58,12 +76,115 @@ function descargarPlantilla() {
   URL.revokeObjectURL(url);
 }
 
+const tamanoLegible = (bytes: number) =>
+  bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+
+/** Ícono del estado de un documento: pendiente, adjunto o fallido. */
+function EstadoDoc({ subida, icono: Icono }: { subida?: Subida; icono: typeof FileText }) {
+  if (subida?.ok) return <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-pri-text" aria-label="Adjunto" />;
+  if (subida) return <X className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-ink" aria-label="No se adjuntó" />;
+  return <Icono className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink-3" />;
+}
+
 /**
- * CU-50, RF-118 · Carga masiva desde un CSV, con sus documentos. La pantalla
- * no valida nada por su cuenta (RNF-20): manda el texto y el nombre y tamaño de
- * cada documento elegido, el servidor responde fila por fila y, al confirmar,
- * vuelve a validar y crea en borrador. Después sube cada documento al borrador
- * de su fila por el camino del editor (RF-07). Nunca publica.
+ * Recuadro de una fila lista para arrastrar o elegir sus documentos sin
+ * nombrarlos en el CSV. Avisa de formato y tamaño antes de aceptar uno; el
+ * servidor y el bucket lo vuelven a comprobar al subirlo (RNF-18, RNF-20).
+ */
+function ZonaDocumentos({
+  numero,
+  manuales,
+  onCambio,
+}: {
+  numero: number;
+  manuales: Manual[];
+  onCambio: (siguientes: Manual[]) => void;
+}) {
+  const [encima, setEncima] = useState(false);
+  const [aviso, setAviso] = useState<string | null>(null);
+  const entrada = useRef<HTMLInputElement>(null);
+
+  const agregar = (lista: FileList | null) => {
+    const nuevos: Manual[] = [];
+    const rechazados: string[] = [];
+    for (const archivo of Array.from(lista ?? [])) {
+      if (!EXTENSIONES_ADJUNTO.includes(extensionDe(archivo.name))) rechazados.push(`${archivo.name} (formato)`);
+      else if (archivo.size > TAMANO_MAXIMO_ADJUNTO) rechazados.push(`${archivo.name} (más de 20 MB)`);
+      else if (![...manuales, ...nuevos].some((m) => m.archivo.name === archivo.name && m.archivo.size === archivo.size)) {
+        nuevos.push({ clave: `manual:${numero}:${archivo.name}:${archivo.size}`, archivo, tipo: "TDR" });
+      }
+    }
+    setAviso(rechazados.length > 0 ? `No se agregaron: ${rechazados.join(", ")}. Se aceptan PDF, Word, Excel o ZIP de hasta 20 MB.` : null);
+    if (nuevos.length > 0) onCambio([...manuales, ...nuevos]);
+    if (entrada.current) entrada.current.value = "";
+  };
+
+  const id = `zona-${numero}`;
+  return (
+    <div className="mt-2">
+      {manuales.length > 0 && (
+        <ul className="mb-2 space-y-1.5 text-[13px] text-ink-2">
+          {manuales.map((m) => (
+            <li key={m.clave} className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+              <Paperclip className="h-3.5 w-3.5 shrink-0 text-ink-3" />
+              <span className="min-w-[8rem] flex-1 [overflow-wrap:anywhere]">{m.archivo.name}</span>
+              <select
+                value={m.tipo}
+                onChange={(e) => onCambio(manuales.map((x) => (x.clave === m.clave ? { ...x, tipo: e.target.value as TipoDocumento } : x)))}
+                aria-label={`Tipo de ${m.archivo.name}`}
+                className="rounded-md border border-line bg-surface px-2 py-1 text-xs text-ink"
+              >
+                {TIPOS_ADJUNTO.map((t) => (
+                  <option key={t} value={t}>
+                    {TIPO_DOCUMENTO_LABEL[t]}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={() => onCambio(manuales.filter((x) => x.clave !== m.clave))}
+                aria-label={`Quitar ${m.archivo.name}`}
+                className="grid h-7 w-7 cursor-pointer place-items-center rounded-md text-ink-3 hover:bg-surface-2 hover:text-ink"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <input ref={entrada} id={id} type="file" multiple accept={ACEPTADOS} className="sr-only" onChange={(e) => agregar(e.target.files)} />
+      <label
+        htmlFor={id}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setEncima(true);
+        }}
+        onDragLeave={() => setEncima(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setEncima(false);
+          agregar(e.dataTransfer.files);
+        }}
+        className={cn(
+          "flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed px-3 py-2 text-xs text-ink-3 hover:bg-surface-2",
+          encima ? "border-pri bg-pri-soft text-pri-text" : "border-line"
+        )}
+      >
+        <Upload className="h-3.5 w-3.5" /> Arrastra aquí los documentos de esta convocatoria o <span className="font-semibold text-pri-text">elígelos</span>
+      </label>
+      {aviso && <p className="mt-1 text-xs text-rose-ink">{aviso}</p>}
+    </div>
+  );
+}
+
+/**
+ * CU-50, RF-118 · Carga masiva desde un CSV, con sus documentos: por enlace
+ * (los descarga el servidor, RNF-37), por nombre de archivo elegido junto al
+ * CSV, o arrastrados a cada fila en la vista previa. La pantalla no valida nada
+ * por su cuenta (RNF-20): manda el texto y el nombre y tamaño de los archivos
+ * elegidos, el servidor responde fila por fila y, al confirmar, vuelve a validar
+ * y crea en borrador. Después cada documento se adjunta a su borrador por el
+ * camino del editor (RF-07). Nunca publica.
  */
 export function CargaMasivaConvocatorias({
   abierto,
@@ -81,6 +202,7 @@ export function CargaMasivaConvocatorias({
   const entradaDocs = useRef<HTMLInputElement>(null);
   const [archivo, setArchivo] = useState<{ nombre: string; texto: string } | null>(null);
   const [documentos, setDocumentos] = useState<File[]>([]);
+  const [manuales, setManuales] = useState<Record<number, Manual[]>>({});
   const [subidas, setSubidas] = useState<Record<number, Subida[]>>({});
   const [progreso, setProgreso] = useState<{ hechos: number; total: number } | null>(null);
   const [resultado, setResultado] = useState<ResultadoCarga | null>(null);
@@ -90,6 +212,7 @@ export function CargaMasivaConvocatorias({
   const reiniciar = useCallback(() => {
     setArchivo(null);
     setDocumentos([]);
+    setManuales({});
     setSubidas({});
     setProgreso(null);
     setResultado(null);
@@ -104,19 +227,44 @@ export function CargaMasivaConvocatorias({
     onCerrar();
   }, [reiniciar, onCerrar]);
 
-  /** Sube los documentos de las filas creadas, uno a la vez, al borrador de cada una. */
-  const subirDocumentos = async (filas: FilaCarga[], elegidos: File[]) => {
+  /** Adjunta los documentos de las filas creadas, uno a la vez, al borrador de cada una. */
+  const adjuntarDocumentos = async (filas: FilaCarga[], elegidos: File[], arrastrados: Record<number, Manual[]>) => {
     const porNombre = new Map(elegidos.map((f) => [f.name.toLowerCase(), f]));
-    const pendientes = filas.filter((f) => f.estado === "creada" && f.id).flatMap((f) => f.documentos.map((d) => ({ fila: f, d })));
+    type Pendiente = { fila: FilaCarga; clave: string; subir: () => Promise<{ ok: true; documento: DocumentoAdmin } | { ok: false; error: string }> };
+    const pendientes: Pendiente[] = [];
+    for (const fila of filas) {
+      if (fila.estado !== "creada" || !fila.id) continue;
+      const id = fila.id;
+      for (const d of fila.documentos) {
+        if (d.enlace !== undefined) {
+          const url = d.enlace;
+          pendientes.push({
+            fila,
+            clave: claveDe(d),
+            subir: async () => {
+              const r = await peticionAdmin<DocumentoAdmin>(`/api/admin/convocatorias/${id}/documentos/desde-enlace`, "POST", { url, tipo: d.tipo });
+              return r.ok ? { ok: true, documento: r.datos } : r;
+            },
+          });
+        } else {
+          const elegido = porNombre.get(d.archivo.toLowerCase());
+          pendientes.push({
+            fila,
+            clave: claveDe(d),
+            subir: () => (elegido ? subirAdjunto(id, elegido, d.tipo) : Promise.resolve({ ok: false as const, error: "El archivo ya no está elegido." })),
+          });
+        }
+      }
+      for (const m of arrastrados[fila.numero] ?? []) {
+        pendientes.push({ fila, clave: m.clave, subir: () => subirAdjunto(id, m.archivo, m.tipo) });
+      }
+    }
     if (pendientes.length === 0) return;
     let hechos = 0;
     setProgreso({ hechos, total: pendientes.length });
-    for (const { fila, d } of pendientes) {
-      const archivoDoc = porNombre.get(d.archivo.toLowerCase());
-      const r = archivoDoc
-        ? await subirAdjunto(fila.id!, archivoDoc, d.tipo)
-        : { ok: false as const, error: "El archivo ya no está elegido." };
-      const subida: Subida = r.ok ? { archivo: d.archivo, ok: true } : { archivo: d.archivo, ok: false, error: r.error };
+    for (const { fila, clave, subir } of pendientes) {
+      const r = await subir();
+      const subida: Subida = r.ok ? { clave, ok: true } : { clave, ok: false, error: r.error };
       setSubidas((previas) => ({ ...previas, [fila.numero]: [...(previas[fila.numero] ?? []), subida] }));
       setProgreso({ hechos: ++hechos, total: pendientes.length });
     }
@@ -138,7 +286,7 @@ export function CargaMasivaConvocatorias({
     }
     setResultado(r.datos);
     if (confirmar) {
-      await subirDocumentos(r.datos.filas, elegidos);
+      await adjuntarDocumentos(r.datos.filas, elegidos, manuales);
       if (r.datos.creadas > 0) router.refresh();
     }
     setOcupado(false);
@@ -148,6 +296,8 @@ export function CargaMasivaConvocatorias({
     const elegido = e.target.files?.[0];
     if (!elegido) return;
     setResultado(null);
+    // Otro CSV, otras filas: lo arrastrado a la anterior ya no aplica.
+    setManuales({});
     const leido = await leerTexto(elegido);
     if (!leido.ok) {
       setArchivo(null);
@@ -179,6 +329,8 @@ export function CargaMasivaConvocatorias({
   const terminado = resultado?.confirmado === true;
   const docsFallidos = Object.values(subidas).flat().filter((s) => !s.ok).length;
   const tamanoDocs = documentos.reduce((suma, f) => suma + f.size, 0);
+  const enlacesPorCrear =
+    resultado?.filas.filter((f) => f.estado === "valida").reduce((n, f) => n + f.documentos.filter((d) => d.enlace !== undefined).length, 0) ?? 0;
 
   const pie = (
     <div className="flex flex-wrap items-center justify-end gap-3">
@@ -220,8 +372,9 @@ export function CargaMasivaConvocatorias({
           <p className="mb-3 text-sm text-ink-2">
             Una fila por convocatoria y una columna por cada campo de la ficha. Ábrela en Excel, borra la fila de ejemplo y
             guárdala como <strong>CSV UTF-8</strong>. Hasta {MAXIMO_FILAS} filas por archivo. En la columna{" "}
-            <code className="font-mono text-[12px]">documentos</code> escribe el nombre exacto de cada TDR o anexo. Todo
-            queda en <strong>borrador</strong>: cada una se revisa y se publica desde su editor.
+            <code className="font-mono text-[12px]">documentos</code> pega el <strong>enlace oficial</strong> de cada TDR o
+            anexo y nosotros lo descargamos; los que no tengan enlace los arrastras a su convocatoria en el paso 2. Todo queda
+            en <strong>borrador</strong>: cada una se revisa y se publica desde su editor.
           </p>
           <Button variant="secondary" onClick={descargarPlantilla}>
             <Download className="h-4 w-4" /> Descargar plantilla (.csv)
@@ -291,10 +444,10 @@ export function CargaMasivaConvocatorias({
         </section>
 
         <section>
-          <h3 className="mb-1 text-sm font-extrabold text-ink">2. Sube el CSV y los documentos, y revisa</h3>
+          <h3 className="mb-1 text-sm font-extrabold text-ink">2. Sube el CSV y revisa</h3>
           <p className="mb-3 text-sm text-ink-2">
-            Elige el CSV y todos los documentos que nombra (PDF, Word, Excel o ZIP, hasta 20 MB cada uno). Antes de crear nada
-            te mostramos qué filas están bien y qué le falta a cada una.
+            Antes de crear nada te mostramos qué filas están bien y qué le falta a cada una. Debajo de cada convocatoria lista
+            puedes arrastrar sus documentos (PDF, Word, Excel o ZIP, hasta 20 MB).
           </p>
           <input ref={entrada} type="file" accept=".csv,text/csv" onChange={alElegir} className="sr-only" id="archivo-carga" disabled={ocupado} />
           <label
@@ -309,37 +462,44 @@ export function CargaMasivaConvocatorias({
             <span className="font-semibold text-pri-text">{archivo ? "Cambiar" : "Elegir"}</span>
           </label>
 
-          <input
-            ref={entradaDocs}
-            type="file"
-            multiple
-            accept={ACEPTADOS}
-            onChange={alElegirDocumentos}
-            className="sr-only"
-            id="documentos-carga"
-            disabled={ocupado}
-          />
-          <div className="mt-3 flex items-center gap-3 rounded-xl border border-dashed border-line px-4 py-4 text-sm text-ink-2">
-            <Files className={documentos.length > 0 ? "h-5 w-5 text-pri-text" : "h-5 w-5 text-ink-3"} />
-            <span className="min-w-0 flex-1">
-              {documentos.length === 0
-                ? "Elige los documentos (TDR, anexos…)"
-                : `${documentos.length} ${documentos.length === 1 ? "documento elegido" : "documentos elegidos"} · ${tamanoDocs < 1024 * 1024 ? `${Math.max(1, Math.round(tamanoDocs / 1024))} KB` : `${(tamanoDocs / (1024 * 1024)).toFixed(1)} MB`}`}
-            </span>
-            {documentos.length > 0 && (
-              <button
-                type="button"
-                onClick={quitarDocumentos}
+          <details className="mt-3 rounded-xl border border-line" open={documentos.length > 0}>
+            <summary className="cursor-pointer px-4 py-3 text-sm font-bold text-ink">
+              ¿Nombraste archivos en la columna documentos? Elígelos aquí
+            </summary>
+            <div className="border-t border-line px-4 py-3">
+              <input
+                ref={entradaDocs}
+                type="file"
+                multiple
+                accept={ACEPTADOS}
+                onChange={alElegirDocumentos}
+                className="sr-only"
+                id="documentos-carga"
                 disabled={ocupado}
-                className="cursor-pointer text-xs font-semibold text-ink-3 hover:text-ink"
-              >
-                Quitar
-              </button>
-            )}
-            <label htmlFor="documentos-carga" className="cursor-pointer font-semibold text-pri-text">
-              {documentos.length > 0 ? "Añadir" : "Elegir"}
-            </label>
-          </div>
+              />
+              <div className="flex items-center gap-3 text-sm text-ink-2">
+                <Files className={documentos.length > 0 ? "h-5 w-5 text-pri-text" : "h-5 w-5 text-ink-3"} />
+                <span className="min-w-0 flex-1">
+                  {documentos.length === 0
+                    ? "Solo hace falta si escribiste nombres de archivo en lugar de enlaces."
+                    : `${documentos.length} ${documentos.length === 1 ? "documento elegido" : "documentos elegidos"} · ${tamanoLegible(tamanoDocs)}`}
+                </span>
+                {documentos.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={quitarDocumentos}
+                    disabled={ocupado}
+                    className="cursor-pointer text-xs font-semibold text-ink-3 hover:text-ink"
+                  >
+                    Quitar
+                  </button>
+                )}
+                <label htmlFor="documentos-carga" className="cursor-pointer font-semibold text-pri-text">
+                  {documentos.length > 0 ? "Añadir" : "Elegir"}
+                </label>
+              </div>
+            </div>
+          </details>
         </section>
 
         {error && <Aviso tipo="error">{error}</Aviso>}
@@ -350,7 +510,8 @@ export function CargaMasivaConvocatorias({
             {terminado ? (
               progreso && progreso.hechos < progreso.total ? (
                 <Aviso tipo="advertencia">
-                  Subiendo documentos: {progreso.hechos} de {progreso.total}. No cierres esta ventana.
+                  Adjuntando documentos: {progreso.hechos} de {progreso.total}. Los enlaces pueden tardar unos segundos cada
+                  uno. No cierres esta ventana.
                 </Aviso>
               ) : (
                 <Aviso tipo={resultado.creadas > 0 && docsFallidos === 0 ? "exito" : "advertencia"}>
@@ -359,15 +520,26 @@ export function CargaMasivaConvocatorias({
                     : `Se crearon ${resultado.creadas} convocatorias en borrador`}
                   {progreso ? ` con ${progreso.total - docsFallidos} de ${progreso.total} documentos adjuntos.` : "."}{" "}
                   {docsFallidos > 0
-                    ? "Los documentos que no se subieron están marcados abajo: súbelos desde el editor de cada una."
+                    ? "Los documentos que no se adjuntaron están marcados abajo con el motivo: súbelos desde el editor de cada una."
                     : "Ábrelas para revisarlas y publicarlas."}
                 </Aviso>
               )
             ) : (
               <div className="mb-1 flex flex-wrap gap-2">
-                <Badge tono="pri">{resultado.validas} listas para crear</Badge>
+                <Badge tono="pri">
+                  {resultado.validas} {resultado.validas === 1 ? "lista" : "listas"} para crear
+                </Badge>
                 {cuenta(["error"]) > 0 && <Badge tono="rose">{cuenta(["error"])} con errores</Badge>}
-                {cuenta(["duplicada"]) > 0 && <Badge tono="amber">{cuenta(["duplicada"])} duplicadas</Badge>}
+                {cuenta(["duplicada"]) > 0 && (
+                  <Badge tono="amber">
+                    {cuenta(["duplicada"])} {cuenta(["duplicada"]) === 1 ? "duplicada" : "duplicadas"}
+                  </Badge>
+                )}
+                {enlacesPorCrear > 0 && (
+                  <Badge tono="neutro">
+                    {enlacesPorCrear} {enlacesPorCrear === 1 ? "documento" : "documentos"} por enlace
+                  </Badge>
+                )}
               </div>
             )}
             {!terminado && resultado.archivosSinUsar.length > 0 && (
@@ -388,52 +560,74 @@ export function CargaMasivaConvocatorias({
             )}
 
             <ul className="mt-4 divide-y divide-line rounded-xl border border-line">
-              {resultado.filas.map((f) => (
-                <li key={f.numero} className="px-4 py-3">
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                    <span className="font-mono text-xs text-ink-3">Fila {f.numero}</span>
-                    <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">
-                      {f.id ? (
-                        <Link href={`/admin/convocatorias/${f.id}`} className="hover:text-pri-text hover:underline">
-                          {f.nombre || "(sin nombre)"}
-                        </Link>
-                      ) : (
-                        f.nombre || "(sin nombre)"
-                      )}
-                    </span>
-                    <Badge tono={ESTADO_FILA[f.estado].tono}>{ESTADO_FILA[f.estado].etiqueta}</Badge>
-                  </div>
-                  {f.documentos.length > 0 && (
-                    <ul className="mt-1.5 space-y-0.5 text-[13px] text-ink-2">
-                      {f.documentos.map((d) => {
-                        const subida = subidas[f.numero]?.find((s) => s.archivo === d.archivo);
-                        return (
-                          <li key={d.archivo} className="flex min-w-0 items-start gap-1.5">
-                            {subida?.ok ? (
-                              <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-pri-text" aria-label="Adjunto" />
-                            ) : subida ? (
-                              <X className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-ink" aria-label="No se subió" />
-                            ) : (
-                              <FileText className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink-3" />
-                            )}
-                            <span className="min-w-0 break-all">
-                              {d.archivo} <span className="text-ink-3">· {TIPO_DOCUMENTO_LABEL[d.tipo]}</span>
-                              {subida && !subida.ok && <span className="text-rose-ink"> — {subida.error}</span>}
-                            </span>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
-                  {f.errores.length > 0 && (
-                    <ul className="mt-1.5 list-disc space-y-0.5 pl-5 text-[13px] text-ink-2">
-                      {f.errores.map((e) => (
-                        <li key={e}>{e}</li>
-                      ))}
-                    </ul>
-                  )}
-                </li>
-              ))}
+              {resultado.filas.map((f) => {
+                const subidasFila = subidas[f.numero] ?? [];
+                const arrastrados = manuales[f.numero] ?? [];
+                return (
+                  <li key={f.numero} className="px-4 py-3">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                      <span className="font-mono text-xs text-ink-3">Fila {f.numero}</span>
+                      <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">
+                        {f.id ? (
+                          <Link href={`/admin/convocatorias/${f.id}`} className="hover:text-pri-text hover:underline">
+                            {f.nombre || "(sin nombre)"}
+                          </Link>
+                        ) : (
+                          f.nombre || "(sin nombre)"
+                        )}
+                      </span>
+                      <Badge tono={ESTADO_FILA[f.estado].tono}>{ESTADO_FILA[f.estado].etiqueta}</Badge>
+                    </div>
+
+                    {(f.documentos.length > 0 || (terminado && arrastrados.length > 0)) && (
+                      <ul className="mt-1.5 space-y-0.5 text-[13px] text-ink-2">
+                        {f.documentos.map((d) => {
+                          const subida = subidasFila.find((s) => s.clave === claveDe(d));
+                          return (
+                            <li key={claveDe(d)} className="flex min-w-0 items-start gap-1.5">
+                              <EstadoDoc subida={subida} icono={d.enlace !== undefined ? Link2 : FileText} />
+                              <span className="min-w-0 [overflow-wrap:anywhere]">
+                                {d.enlace ?? d.archivo} <span className="text-ink-3">· {TIPO_DOCUMENTO_LABEL[d.tipo]}</span>
+                                {subida && !subida.ok && <span className="text-rose-ink"> — {subida.error}</span>}
+                              </span>
+                            </li>
+                          );
+                        })}
+                        {terminado &&
+                          f.estado === "creada" &&
+                          arrastrados.map((m) => {
+                            const subida = subidasFila.find((s) => s.clave === m.clave);
+                            return (
+                              <li key={m.clave} className="flex min-w-0 items-start gap-1.5">
+                                <EstadoDoc subida={subida} icono={Paperclip} />
+                                <span className="min-w-0 [overflow-wrap:anywhere]">
+                                  {m.archivo.name} <span className="text-ink-3">· {TIPO_DOCUMENTO_LABEL[m.tipo]}</span>
+                                  {subida && !subida.ok && <span className="text-rose-ink"> — {subida.error}</span>}
+                                </span>
+                              </li>
+                            );
+                          })}
+                      </ul>
+                    )}
+
+                    {!terminado && f.estado === "valida" && (
+                      <ZonaDocumentos
+                        numero={f.numero}
+                        manuales={arrastrados}
+                        onCambio={(siguientes) => setManuales((previos) => ({ ...previos, [f.numero]: siguientes }))}
+                      />
+                    )}
+
+                    {f.errores.length > 0 && (
+                      <ul className="mt-1.5 list-disc space-y-0.5 pl-5 text-[13px] text-ink-2">
+                        {f.errores.map((e) => (
+                          <li key={e}>{e}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           </section>
         )}
