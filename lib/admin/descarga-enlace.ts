@@ -156,10 +156,24 @@ function pedir(url: URL, limite: number, fin: number): Promise<
   | { tipo: "redireccion"; destino: string }
   | { tipo: "archivo"; contenido: Buffer; contentType: string; disposicion?: string }
 > {
-  return new Promise((resolver, rechazar) => {
+  return new Promise((resolverPromesa, rechazarPromesa) => {
     const modulo = url.protocol === "https:" ? https : http;
     const restante = fin - Date.now();
-    if (restante <= 0) return rechazar(new Rechazo("tiempo"));
+    if (restante <= 0) return rechazarPromesa(new Rechazo("tiempo"));
+    // Plazo total: `timeout` de Node solo mide el tiempo sin recibir datos, y un
+    // portal que manda un byte cada pocos segundos lo burlaría.
+    const plazo = setTimeout(() => {
+      peticion.destroy();
+      rechazarPromesa(new Rechazo("tiempo"));
+    }, restante);
+    const resolver: typeof resolverPromesa = (valor) => {
+      clearTimeout(plazo);
+      resolverPromesa(valor);
+    };
+    const rechazar = (motivo: unknown) => {
+      clearTimeout(plazo);
+      rechazarPromesa(motivo);
+    };
     const peticion = modulo.get(
       url,
       {
@@ -201,6 +215,8 @@ function pedir(url: URL, limite: number, fin: number): Promise<
           })
         );
         respuesta.on("error", rechazar);
+        // Si se corta antes de terminar (plazo o tamaño), la promesa ya se rechazó; esto cubre un corte del portal.
+        respuesta.on("aborted", () => rechazar(new Rechazo("cortada")));
       }
     );
     peticion.on("timeout", () => peticion.destroy(new Rechazo("tiempo")));
@@ -212,6 +228,7 @@ const MOTIVOS: Record<string, string> = {
   privada: "apunta a una dirección interna.",
   tiempo: "el portal tardó más de 30 segundos en responder.",
   grande: "el documento pasa de 20 MB.",
+  cortada: "el portal cortó la descarga antes de terminar.",
 };
 
 export async function descargarDocumento(enlace: string, limite: number): Promise<ResultadoDescarga> {

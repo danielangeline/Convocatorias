@@ -38,6 +38,7 @@ async function api(s, cuerpo) {
 const sufijo = crypto.randomBytes(3).toString("hex");
 const cuentas = [], invitaciones = [];
 let fuenteId = null, categoriaId = null;
+const fuentesExtra = [];
 
 try {
   // --- Cuentas temporales ------------------------------------------------------
@@ -211,7 +212,34 @@ try {
   ok(real.status === 200 && real.json?.datos?.nombre === "dummy" && real.json?.datos?.tipoMime === "application/pdf", `desde-enlace · PDF público → 200, registrado como «dummy» (${real.status} ${real.json?.error ?? ""})`);
   const { data: docsJ } = await svc.from("documentos_convocatoria").select("tipo_doc, tamano_bytes, storage_path").eq("convocatoria_id", creadaJ.id);
   ok(docsJ?.length === 1 && Number(docsJ[0].tamano_bytes) > 10000 && docsJ[0].storage_path.endsWith(".pdf"), "la convocatoria J queda con el PDF descargado en el bucket");
+
+  // --- Fuentes no registradas (sesión 037, CU-50 4d) ----------------------------
+  const nueva = `Fuente nueva ${sufijo}`, inactiva = `Fuente inactiva ${sufijo}`;
+  const { data: fi } = await svc.from("fuentes").insert({ nombre: inactiva, activa: false }).select("id").single();
+  fuentesExtra.push(fi.id);
+  const csvFuentes = [
+    "fuente;nombre;entidad_convocante;fecha_cierre",
+    `${nueva};Carga L ${sufijo};Entidad L;2026-12-15`,
+    `${nueva.toUpperCase()};Carga M ${sufijo};Entidad M;2026-12-15`,
+    `${inactiva};Carga N ${sufijo};Entidad N;2026-12-15`,
+  ].join("\n");
+  const pf1 = await api(adm, { csv: csvFuentes });
+  ok(JSON.stringify(pf1.json?.datos?.fuentesNuevas) === JSON.stringify([{ nombre: nueva, filas: [2, 3] }]),
+    `fuente nueva listada una sola vez, sin distinguir mayúsculas, con sus filas (${JSON.stringify(pf1.json?.datos?.fuentesNuevas)})`);
+  ok(JSON.stringify(pf1.json?.datos?.fuentesInactivas) === JSON.stringify([{ nombre: inactiva, filas: [4] }]), "fuente inactiva listada aparte");
+  const filaL = pf1.json?.datos?.filas?.[0];
+  ok(filaL?.estado === "error" && /no está registrada/.test(filaL.errores[0]) && /inactiva/.test(pf1.json?.datos?.filas?.[2]?.errores?.[0]), "cada fila dice si su fuente falta o está inactiva");
+  const regFuente = await fetch(APP + "/api/admin/fuentes", { method: "POST", headers: { "content-type": "application/json", origin: APP, cookie: adm.cookie() }, body: JSON.stringify({ nombre: nueva, tipoEntidad: "Fundación", url: "", activa: true }) }).then((r) => r.json());
+  if (regFuente?.datos?.id) fuentesExtra.push(regFuente.datos.id);
+  ok(regFuente?.ok && regFuente.datos.nombre === nueva, "registrar la fuente con el endpoint de Fuentes (RF-04)");
+  const pf2 = await api(adm, { csv: csvFuentes });
+  ok(pf2.json?.datos?.validas === 2 && pf2.json?.datos?.fuentesNuevas.length === 0 && pf2.json?.datos?.fuentesInactivas.length === 1,
+    `al volver a revisar, las 2 filas de la fuente registrada quedan listas y la inactiva sigue señalada (${pf2.json?.datos?.validas})`);
 } finally {
+  for (const id of fuentesExtra) {
+    await svc.from("convocatorias").delete().eq("fuente_id", id);
+    await svc.from("fuentes").delete().eq("id", id);
+  }
   if (fuenteId) {
     const { data: creadasPrueba } = await svc.from("convocatorias").select("id").eq("fuente_id", fuenteId);
     for (const { id } of creadasPrueba ?? []) {

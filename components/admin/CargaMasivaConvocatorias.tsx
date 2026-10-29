@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Download, Upload, FileSpreadsheet, FileText, Files, Check, X, Link2, Paperclip } from "lucide-react";
+import { Download, Upload, FileSpreadsheet, FileText, Files, Check, X, Link2, Paperclip, Plus } from "lucide-react";
 import type { CategoriaAdmin, DocumentoAdmin, FuenteAdmin, TipoCategoria, TipoDocumento } from "@/lib/types";
 import { peticionAdmin } from "@/lib/admin/peticion";
 import {
@@ -174,6 +174,66 @@ function ZonaDocumentos({
       </label>
       {aviso && <p className="mt-1 text-xs text-rose-ink">{aviso}</p>}
     </div>
+  );
+}
+
+const textoFilas = (filas: number[]) =>
+  filas.length === 1 ? `fila ${filas[0]}` : `filas ${filas.slice(0, -1).join(", ")} y ${filas[filas.length - 1]}`;
+
+/**
+ * CU-50 4d · Una fuente que el archivo nombra y no existe, con «Registrar
+ * fuente». Crea con el mismo endpoint de Fuentes (RF-04), que valida todo;
+ * al terminar, quien llama vuelve a revisar el archivo.
+ */
+function FuenteNueva({ nombre, filas, onRegistrada }: { nombre: string; filas: number[]; onRegistrada: () => Promise<void> }) {
+  const [tipoEntidad, setTipoEntidad] = useState("");
+  const [url, setUrl] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [ocupado, setOcupado] = useState(false);
+
+  const registrar = async () => {
+    setOcupado(true);
+    setError(null);
+    const r = await peticionAdmin("/api/admin/fuentes", "POST", { nombre, tipoEntidad, url, activa: true });
+    if (!r.ok) {
+      setOcupado(false);
+      setError(r.error);
+      return;
+    }
+    await onRegistrada();
+  };
+
+  const campo = "w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-pri";
+  return (
+    <li className="px-4 py-3">
+      <p className="text-sm text-ink">
+        <strong>{nombre}</strong> <span className="text-ink-3">· {textoFilas(filas)}</span>
+      </p>
+      <div className="mt-2 grid gap-2 sm:grid-cols-2">
+        <input
+          value={tipoEntidad}
+          onChange={(e) => setTipoEntidad(e.target.value)}
+          placeholder="Tipo de entidad (opcional)"
+          aria-label={`Tipo de entidad de ${nombre}`}
+          maxLength={100}
+          className={campo}
+        />
+        <input
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="Sitio web (opcional)"
+          aria-label={`Sitio web de ${nombre}`}
+          maxLength={2000}
+          className={campo}
+        />
+      </div>
+      <div className="mt-2 flex flex-wrap items-center gap-3">
+        <Button size="sm" variant="secondary" onClick={registrar} disabled={ocupado}>
+          <Plus className="h-3.5 w-3.5" /> {ocupado ? "Registrando…" : "Registrar fuente"}
+        </Button>
+        {error && <span className="text-xs text-rose-ink">{error}</span>}
+      </div>
+    </li>
   );
 }
 
@@ -540,6 +600,44 @@ export function CargaMasivaConvocatorias({
                     {enlacesPorCrear} {enlacesPorCrear === 1 ? "documento" : "documentos"} por enlace
                   </Badge>
                 )}
+              </div>
+            )}
+            {!terminado && resultado.fuentesNuevas.length > 0 && (
+              <div className="mt-3 rounded-xl border border-amber">
+                <p className="px-4 pt-3 text-sm text-ink">
+                  {resultado.fuentesNuevas.length === 1
+                    ? "Esta fuente no está registrada. Regístrala para poder cargar sus convocatorias:"
+                    : `Estas ${resultado.fuentesNuevas.length} fuentes no están registradas. Regístralas para poder cargar sus convocatorias:`}
+                </p>
+                <p className="px-4 pt-1 text-xs text-ink-3">
+                  Revisa que el nombre esté bien escrito: una fuente no se borra. Si es otra forma de escribir una que ya
+                  existe, corrígela en el CSV.
+                </p>
+                <ul className="mt-1 divide-y divide-line">
+                  {resultado.fuentesNuevas.map((f) => (
+                    <FuenteNueva
+                      key={f.nombre}
+                      nombre={f.nombre}
+                      filas={f.filas}
+                      onRegistrada={async () => {
+                        router.refresh();
+                        if (archivo) await enviar(archivo.texto, documentos, false);
+                      }}
+                    />
+                  ))}
+                </ul>
+              </div>
+            )}
+            {!terminado && resultado.fuentesInactivas.length > 0 && (
+              <div className="mt-3">
+                <Aviso tipo="advertencia">
+                  {resultado.fuentesInactivas.length === 1 ? "Esta fuente está inactiva: " : "Estas fuentes están inactivas: "}
+                  {resultado.fuentesInactivas.map((f) => `${f.nombre} (${textoFilas(f.filas)})`).join(", ")}.{" "}
+                  <Link href="/admin/fuentes" className="font-semibold underline">
+                    Actívala en Fuentes
+                  </Link>{" "}
+                  y vuelve a subir el CSV.
+                </Aviso>
               </div>
             )}
             {!terminado && resultado.archivosSinUsar.length > 0 && (

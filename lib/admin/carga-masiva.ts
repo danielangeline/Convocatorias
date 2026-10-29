@@ -206,6 +206,10 @@ export type ResultadoCarga = {
   creadas: number;
   /** Archivos elegidos que ninguna fila nombra: no se suben (CU-50 4c). */
   archivosSinUsar: string[];
+  /** Fuentes que el archivo nombra y no existen, con las filas que las usan (CU-50 4d). */
+  fuentesNuevas: Array<{ nombre: string; filas: number[] }>;
+  /** Fuentes que existen pero están inactivas: se activan en Fuentes (CU-50 4d). */
+  fuentesInactivas: Array<{ nombre: string; filas: number[] }>;
 };
 
 const TIPOS_DOCUMENTO: Record<string, TipoDocumento> = {

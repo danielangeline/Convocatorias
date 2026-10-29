@@ -62,6 +62,8 @@ DEPTOS.set("san andres", "88");
 
 type Listas = {
   fuentes: Map<string, string>;
+  /** Nombre normalizado de las fuentes inactivas → nombre registrado. */
+  fuentesInactivas: Map<string, string>;
   categorias: Map<string, string[]>;
   paises: Map<string, string>;
   monedas: Set<string>;
@@ -73,7 +75,7 @@ const claveDuplicado = (nombre: string, entidad: string) => `${normalizar(nombre
 async function leerListas(): Promise<Listas> {
   const supabase = await crearClienteServidor();
   const [fuentes, categorias, paises, monedas, convocatorias] = await Promise.all([
-    supabase.from("fuentes").select("id, nombre").eq("activa", true),
+    supabase.from("fuentes").select("id, nombre, activa"),
     supabase.from("categorias").select("id, nombre").eq("activa", true),
     supabase.from("paises").select("codigo, nombre"),
     supabase.from("monedas").select("codigo"),
@@ -94,7 +96,8 @@ async function leerListas(): Promise<Listas> {
     porPais.set(normalizar(p.nombre), p.codigo);
   }
   return {
-    fuentes: new Map((fuentes.data ?? []).map((f) => [normalizar(f.nombre), f.id])),
+    fuentes: new Map((fuentes.data ?? []).filter((f) => f.activa).map((f) => [normalizar(f.nombre), f.id])),
+    fuentesInactivas: new Map((fuentes.data ?? []).filter((f) => !f.activa).map((f) => [normalizar(f.nombre), f.nombre])),
     categorias: porCategoria,
     paises: porPais,
     monedas: new Set((monedas.data ?? []).map((m) => m.codigo)),
@@ -125,7 +128,13 @@ function traducirFila(
 
   const fuenteId = listas.fuentes.get(normalizar(c.fuente ?? ""));
   if (!c.fuente) errores.push("fuente: falta.");
-  else if (!fuenteId) errores.push(`fuente: «${c.fuente}» no existe o está inactiva.`);
+  else if (!fuenteId) {
+    errores.push(
+      listas.fuentesInactivas.has(normalizar(c.fuente))
+        ? `fuente: «${c.fuente}» está inactiva. Actívala en Fuentes.`
+        : `fuente: «${c.fuente}» no está registrada. Regístrala arriba y se vuelve a revisar.`
+    );
+  }
 
   if (!c.nombre) errores.push("nombre: falta.");
   else if (normalizar(c.nombre) === EJEMPLO) errores.push("nombre: es la fila de ejemplo de la plantilla; bórrala.");
@@ -286,7 +295,32 @@ export async function cargaMasiva(cuerpo: Cuerpo, usuarioId: string): Promise<Re
   }
 
   const archivosSinUsar = [...archivos.entries()].filter(([clave]) => !nombrados.has(clave)).map(([, a]) => a.nombre);
-  const resultado: ResultadoCarga = { confirmado: confirmar, filas, validas: porCrear.length, creadas: 0, archivosSinUsar };
+
+  // CU-50 4d · Cada fuente desconocida o inactiva una sola vez, con el nombre de su primera aparición.
+  const nuevas = new Map<string, { nombre: string; filas: number[] }>();
+  const inactivas = new Map<string, { nombre: string; filas: number[] }>();
+  for (const { numero, celdas } of leido.filas) {
+    const clave = normalizar(celdas.fuente ?? "");
+    if (!clave || listas.fuentes.has(clave)) continue;
+    const destino = listas.fuentesInactivas.has(clave) ? inactivas : nuevas;
+    const previa = destino.get(clave);
+    if (previa) {
+      previa.filas.push(numero);
+      continue;
+    }
+    const nombre = listas.fuentesInactivas.get(clave) ?? (celdas.fuente ?? "").trim().replace(/\s+/g, " ").slice(0, 200);
+    destino.set(clave, { nombre, filas: [numero] });
+  }
+
+  const resultado: ResultadoCarga = {
+    confirmado: confirmar,
+    filas,
+    validas: porCrear.length,
+    creadas: 0,
+    archivosSinUsar,
+    fuentesNuevas: [...nuevas.values()],
+    fuentesInactivas: [...inactivas.values()],
+  };
   if (!confirmar || porCrear.length === 0) return { ok: true, datos: resultado };
 
   const supabase = await crearClienteServidor();
