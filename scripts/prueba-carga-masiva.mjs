@@ -1,4 +1,4 @@
-// Prueba de la carga masiva de convocatorias por CSV contra Supabase real (CU-50, RF-118, RF-85, RN-07, RN-39, RN-40).
+// Prueba de la carga masiva de convocatorias por CSV, con sus documentos, contra Supabase real (CU-50, RF-118, RF-07, RF-85, RN-07, RN-39, RN-40, RNF-18).
 //
 //   npm run dev                                   (en otra terminal; o PRUEBA_URL=http://localhost:3100 con next start)
 //   node --env-file=.env.local scripts/prueba-carga-masiva.mjs
@@ -142,7 +142,52 @@ try {
   ok(otra.status === 200 && otra.json?.datos?.creadas === 0 && dup === 3, `subir el mismo archivo otra vez → 0 creadas, 3 duplicadas (${otra.json?.datos?.creadas}, ${dup})`);
   const { count: alFinal } = await svc.from("convocatorias").select("id", { count: "exact", head: true }).eq("fuente_id", fuenteId);
   ok(alFinal === 2, `en la base siguen 2 (${alFinal})`);
+
+  // --- Documentos (sesión 035): la columna se cruza con los archivos elegidos ---
+  const encDocs = "fuente;nombre;entidad_convocante;fecha_cierre;documentos";
+  const csvDocs = [
+    encDocs,
+    `${nombreFuente};Carga H ${sufijo};Entidad H;2026-12-15;tdr-h.pdf=TDR|Anexo-H.docx=anexo`,
+    `${nombreFuente};Carga I ${sufijo};Entidad I;2026-12-15;falta.pdf|grande.pdf|foto.png|x.pdf=otro`,
+  ].join("\n");
+  const elegidos = [
+    { nombre: "TDR-H.pdf", tamanoBytes: 1000 },
+    { nombre: "anexo-h.docx", tamanoBytes: 2000 },
+    { nombre: "grande.pdf", tamanoBytes: 21 * 1024 * 1024 },
+    { nombre: "x.pdf", tamanoBytes: 10 },
+    { nombre: "sobra.pdf", tamanoBytes: 10 },
+  ];
+  ok((await api(adm, { csv: csvDocs, archivos: "nada" })).status === 400, "lista de archivos con forma inválida → 400");
+  const pd = await api(adm, { csv: csvDocs, archivos: elegidos });
+  const h = pd.json?.datos?.filas?.find((f) => f.numero === 2), i = pd.json?.datos?.filas?.find((f) => f.numero === 3);
+  ok(h?.estado === "valida" && JSON.stringify(h.documentos) === '[{"archivo":"TDR-H.pdf","tipo":"TDR"},{"archivo":"anexo-h.docx","tipo":"anexo"}]',
+    `fila H: documentos cruzados sin distinguir mayúsculas, con el nombre real y su tipo (${JSON.stringify(h?.documentos)})`);
+  ok(i?.estado === "error" && i.errores.length === 4, `fila I: no elegido, más de 20 MB, formato y tipo inválidos → 4 errores (${i?.errores?.join(" / ")})`);
+  ok(JSON.stringify(pd.json?.datos?.archivosSinUsar) === '["sobra.pdf"]', `archivo que ninguna fila nombra → avisado (${JSON.stringify(pd.json?.datos?.archivosSinUsar)})`);
+  const sinElegir = await api(adm, { csv: csvDocs });
+  ok(sinElegir.json?.datos?.filas?.[0]?.estado === "error", "con documentos en el CSV pero sin elegir archivos → la fila no se crea");
+
+  const cd = await api(adm, { csv: csvDocs, archivos: elegidos, confirmar: true });
+  const creadaH = cd.json?.datos?.filas?.find((f) => f.numero === 2);
+  ok(cd.json?.datos?.creadas === 1 && creadaH?.estado === "creada" && creadaH.documentos.length === 2, "confirmar: se crea H y devuelve sus documentos para subirlos");
+
+  // La subida de la pantalla: firma, archivo al bucket y registro (RF-07), al borrador recién creado.
+  const base = `/api/admin/convocatorias/${creadaH.id}/documentos`;
+  const post = (ruta, cuerpo) => fetch(APP + ruta, { method: "POST", headers: { "content-type": "application/json", origin: APP, cookie: adm.cookie() }, body: JSON.stringify(cuerpo) }).then(async (r) => ({ status: r.status, json: await r.json().catch(() => null) }));
+  const firma = await post(`${base}/subida`, { nombre: "TDR-H", tipo: "TDR", extension: "pdf", tamanoBytes: 20 });
+  const { error: eSub } = await adm.cliente.storage.from("documentos-convocatorias").uploadToSignedUrl(firma.json?.datos?.ruta, firma.json?.datos?.token, new Blob(["%PDF-1.4 prueba"], { type: "application/pdf" }), { contentType: "application/pdf" });
+  const reg = await post(base, { documentoId: firma.json?.datos?.documentoId, nombre: "TDR-H", tipo: "TDR", extension: "pdf" });
+  ok(firma.status === 200 && !eSub && reg.status === 200, `documento subido y registrado en el borrador creado (${firma.status}, ${eSub?.message ?? "ok"}, ${reg.status})`);
+  const { data: docsH } = await svc.from("documentos_convocatoria").select("tipo_doc, nombre").eq("convocatoria_id", creadaH.id);
+  ok(docsH?.length === 1 && docsH[0].tipo_doc === "TDR", "la convocatoria H queda con su TDR adjunto");
 } finally {
+  if (fuenteId) {
+    const { data: creadasPrueba } = await svc.from("convocatorias").select("id").eq("fuente_id", fuenteId);
+    for (const { id } of creadasPrueba ?? []) {
+      const { data: objetos } = await svc.storage.from("documentos-convocatorias").list(id);
+      if (objetos?.length) await svc.storage.from("documentos-convocatorias").remove(objetos.map((o) => `${id}/${o.name}`));
+    }
+  }
   if (fuenteId) await svc.from("convocatorias").delete().eq("fuente_id", fuenteId);
   if (categoriaId) await svc.from("categorias").delete().eq("id", categoriaId);
   if (fuenteId) await svc.from("fuentes").delete().eq("id", fuenteId);

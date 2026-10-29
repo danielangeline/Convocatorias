@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { Download, FileText, Loader2, Pencil, Trash2, Upload } from "lucide-react";
 import type { DocumentoAdmin, TipoDocumento } from "@/lib/types";
 import { peticionAdmin } from "@/lib/admin/peticion";
-import { crearClienteNavegador } from "@/lib/supabase/cliente";
+import { EXTENSIONES_ADJUNTO, TIPOS_ADJUNTO, subirAdjunto } from "@/lib/admin/subir-adjunto";
 import { TIPO_DOCUMENTO_LABEL } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Aviso } from "@/components/identidad/Campo";
@@ -18,21 +18,8 @@ import { Aviso } from "@/components/identidad/Campo";
  * bucket, así que no es la barrera, solo el aviso temprano (RNF-18, RNF-20).
  */
 
-const BUCKET = "documentos-convocatorias";
-const TAMANO_MAXIMO = 20 * 1024 * 1024;
-const EXTENSIONES = ["pdf", "doc", "docx", "xls", "xlsx", "zip"];
-const ACEPTADOS = EXTENSIONES.map((e) => `.${e}`).join(",");
-const TIPOS: TipoDocumento[] = ["TDR", "terminos", "anexo", "formato"];
-
-const extensionDe = (nombre: string) => {
-  const punto = nombre.lastIndexOf(".");
-  return punto === -1 ? "" : nombre.slice(punto + 1).toLowerCase();
-};
-
-const sinExtension = (nombre: string) => {
-  const punto = nombre.lastIndexOf(".");
-  return punto <= 0 ? nombre : nombre.slice(0, punto);
-};
+const ACEPTADOS = EXTENSIONES_ADJUNTO.map((e) => `.${e}`).join(",");
+const TIPOS = TIPOS_ADJUNTO;
 
 function tamanoLegible(bytes: number | null): string {
   if (bytes === null) return "";
@@ -79,56 +66,14 @@ export function DocumentosConvocatoria({
 
   const subir = async (archivo: File) => {
     onError(null);
-    const extension = extensionDe(archivo.name);
-    if (!EXTENSIONES.includes(extension)) {
-      onError(`Formato no admitido. Se aceptan ${EXTENSIONES.join(", ")}.`);
-      return;
-    }
-    if (archivo.size > TAMANO_MAXIMO) {
-      onError("El archivo supera los 20 MB permitidos.");
-      return;
-    }
-
     setSubiendo(true);
-    const nombre = sinExtension(archivo.name).slice(0, 200);
-
-    // Paso 1: el servidor decide la ruta y firma la subida.
-    const firma = await peticionAdmin<{ documentoId: string; ruta: string; token: string }>(`${base}/subida`, "POST", {
-      nombre,
-      tipo,
-      extension,
-      tamanoBytes: archivo.size,
-    });
-    if (!firma.ok) {
-      setSubiendo(false);
-      onError(firma.error);
-      return;
-    }
-
-    // Paso 2: el archivo va directo al bucket.
-    const supabase = crearClienteNavegador();
-    const { error: eSubida } = await supabase.storage
-      .from(BUCKET)
-      .uploadToSignedUrl(firma.datos.ruta, firma.datos.token, archivo, { contentType: archivo.type });
-    if (eSubida) {
-      setSubiendo(false);
-      onError("No pudimos subir el archivo. Revisa su tamaño y su formato e inténtalo otra vez.");
-      return;
-    }
-
-    // Paso 3: el servidor registra la fila con el tamaño y el tipo reales.
-    const registro = await peticionAdmin<DocumentoAdmin>(base, "POST", {
-      documentoId: firma.datos.documentoId,
-      nombre,
-      tipo,
-      extension,
-    });
+    const r = await subirAdjunto(convocatoriaId, archivo, tipo);
     setSubiendo(false);
-    if (!registro.ok) {
-      onError(registro.error);
+    if (!r.ok) {
+      onError(r.error);
       return;
     }
-    setDocumentos([...documentos, registro.datos]);
+    setDocumentos([...documentos, r.documento]);
     if (entrada.current) entrada.current.value = "";
   };
 

@@ -5,13 +5,17 @@ import { hoyColombia } from "@/lib/fechas";
 import { DEPARTAMENTOS } from "@/lib/departamentos";
 import type { TipoConvocatoria, OrigenConvocatoria, TipoRequisito } from "@/lib/types";
 import { rechazo, validarFicha, type FichaValidada } from "./catalogo";
+import { EXTENSIONES, TAMANO_MAXIMO, extensionDe } from "./documentos";
 import {
   COLUMNAS_CARGA,
   MARCA_OPCIONAL,
   leerCsv,
+  leerDocumentos,
   leerFecha,
   lista,
   normalizar,
+  type ArchivoElegido,
+  type DocumentoCarga,
   type FilaCarga,
   type ResultadoCarga,
 } from "./carga-masiva";
@@ -27,6 +31,11 @@ import type { Resultado } from "./administradores";
  * traduce nombres a identificadores (fuente, categorías, países, departamentos).
  * Todo se resuelve antes de escribir, porque una convocatoria no se borra
  * (RN-07): una fila que falla no deja un borrador a medias. Nunca publica.
+ *
+ * Los documentos (sesión 035) no pasan por aquí: la pantalla manda solo el
+ * nombre y el tamaño de cada archivo elegido; aquí se cruzan con la columna
+ * `documentos` y, ya creado el borrador, el navegador sube cada uno por el
+ * camino de RF-07, que vuelve a validar todo (`lib/admin/documentos.ts`).
  */
 
 type Cuerpo = Record<string, unknown> | null;
@@ -106,7 +115,12 @@ function requisitos(valor: string | undefined, tipo: TipoRequisito) {
  * de traducción de la fila; si no hay, `validarFicha` añade el primero que
  * encuentre entre filas (p. ej. apertura después del cierre).
  */
-function traducirFila(c: Record<string, string>, listas: Listas, hoy: string): { ficha: FichaValidada; fuenteId: string } | { errores: string[] } {
+function traducirFila(
+  c: Record<string, string>,
+  listas: Listas,
+  hoy: string,
+  archivos: Map<string, ArchivoElegido>
+): { ficha: FichaValidada; fuenteId: string; documentos: DocumentoCarga[] } | { errores: string[] } {
   const errores: string[] = [];
 
   const fuenteId = listas.fuentes.get(normalizar(c.fuente ?? ""));
@@ -159,6 +173,25 @@ function traducirFila(c: Record<string, string>, listas: Listas, hoy: string): {
     else errores.push(`categorias: «${nombre}» no existe o está inactiva.`);
   }
 
+  // RF-07, RNF-18 · Cada archivo nombrado tiene que estar entre los elegidos, con formato y tamaño admitidos.
+  const leidos = leerDocumentos(c.documentos);
+  errores.push(...leidos.errores);
+  const documentos: DocumentoCarga[] = [];
+  for (const { archivo, tipo } of leidos.documentos) {
+    const elegido = archivos.get(archivo.toLowerCase());
+    if (!EXTENSIONES.includes(extensionDe(archivo))) {
+      errores.push(`documentos: ${archivo} no es PDF, Word, Excel ni ZIP.`);
+    } else if (!elegido) {
+      errores.push(`documentos: no elegiste el archivo ${archivo}. Elígelo junto con el CSV (el nombre debe ser exacto).`);
+    } else if (elegido.tamanoBytes > TAMANO_MAXIMO) {
+      errores.push(`documentos: ${archivo} pasa de 20 MB.`);
+    } else if (documentos.some((d) => d.archivo === elegido.nombre)) {
+      errores.push(`documentos: ${archivo} está dos veces en la fila.`);
+    } else {
+      documentos.push({ archivo: elegido.nombre, tipo });
+    }
+  }
+
   if (errores.length > 0) return { errores };
 
   const validada = validarFicha({
@@ -183,7 +216,21 @@ function traducirFila(c: Record<string, string>, listas: Listas, hoy: string): {
     requisitos: [...requisitos(c.requisitos_documentos, "documento"), ...requisitos(c.requisitos_condiciones, "condicion")],
   });
   if (!validada.ok) return { errores: [validada.error] };
-  return { ficha: validada.ficha, fuenteId: fuenteId! };
+  return { ficha: validada.ficha, fuenteId: fuenteId!, documentos };
+}
+
+/** `archivos`: `[{ nombre, tamanoBytes }]` de los documentos elegidos en la pantalla. */
+function leerArchivos(valor: unknown): Map<string, ArchivoElegido> | null {
+  if (valor === undefined) return new Map();
+  if (!Array.isArray(valor) || valor.length > 1000) return null;
+  const archivos = new Map<string, ArchivoElegido>();
+  for (const a of valor as Record<string, unknown>[]) {
+    const nombre = typeof a?.nombre === "string" ? a.nombre.trim() : "";
+    const tamano = Number(a?.tamanoBytes);
+    if (!nombre || nombre.length > 255 || !Number.isFinite(tamano) || tamano < 0) return null;
+    archivos.set(nombre.toLowerCase(), { nombre, tamanoBytes: tamano });
+  }
+  return archivos;
 }
 
 /**
@@ -195,17 +242,21 @@ export async function cargaMasiva(cuerpo: Cuerpo, usuarioId: string): Promise<Re
   const confirmar = cuerpo.confirmar === true;
   const leido = leerCsv(cuerpo.csv);
   if (!leido.ok) return { ok: false, status: 400, error: leido.error };
+  const archivos = leerArchivos(cuerpo.archivos);
+  if (!archivos) return { ok: false, status: 400, error: "La lista de documentos elegidos no es válida." };
 
   const listas = await leerListas();
   const hoy = hoyColombia();
   const vistas = new Set<string>();
   const filas: FilaCarga[] = [];
   const porCrear: Array<{ fila: FilaCarga; ficha: FichaValidada; fuenteId: string }> = [];
+  const nombrados = new Set<string>();
 
   for (const { numero, celdas } of leido.filas) {
-    const fila: FilaCarga = { numero, nombre: celdas.nombre ?? "", estado: "valida", errores: [] };
+    const fila: FilaCarga = { numero, nombre: celdas.nombre ?? "", estado: "valida", errores: [], documentos: [] };
     filas.push(fila);
-    const traducida = traducirFila(celdas, listas, hoy);
+    for (const archivo of leerDocumentos(celdas.documentos).nombrados) nombrados.add(archivo.toLowerCase());
+    const traducida = traducirFila(celdas, listas, hoy, archivos);
     if ("errores" in traducida) {
       fila.estado = "error";
       fila.errores = traducida.errores;
@@ -221,11 +272,13 @@ export async function cargaMasiva(cuerpo: Cuerpo, usuarioId: string): Promise<Re
       fila.errores = ["Repite una fila anterior del archivo (mismo nombre y entidad)."];
     } else {
       vistas.add(clave);
+      fila.documentos = traducida.documentos;
       porCrear.push({ fila, ficha: traducida.ficha, fuenteId: traducida.fuenteId });
     }
   }
 
-  const resultado: ResultadoCarga = { confirmado: confirmar, filas, validas: porCrear.length, creadas: 0 };
+  const archivosSinUsar = [...archivos.entries()].filter(([clave]) => !nombrados.has(clave)).map(([, a]) => a.nombre);
+  const resultado: ResultadoCarga = { confirmado: confirmar, filas, validas: porCrear.length, creadas: 0, archivosSinUsar };
   if (!confirmar || porCrear.length === 0) return { ok: true, datos: resultado };
 
   const supabase = await crearClienteServidor();

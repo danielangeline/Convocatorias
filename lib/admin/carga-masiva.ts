@@ -7,6 +7,8 @@
  * solo descarga la plantilla y muestra la guía.
  */
 
+import type { TipoDocumento } from "@/lib/types";
+
 export const MAXIMO_FILAS = 200;
 export const MAXIMO_CARACTERES = 2_000_000;
 /** Separador de listas dentro de una celda (países, departamentos, categorías, requisitos). */
@@ -40,6 +42,7 @@ export const COLUMNAS_CARGA: ReadonlyArray<ColumnaCarga> = [
   { clave: "categorias", obligatoria: false, guia: "Nombres de categorías activas separados por |.", ejemplo: "Innovación y desarrollo tecnológico|MiPyme" },
   { clave: "requisitos_documentos", obligatoria: false, guia: `Documentos que se piden, separados por |. Los que empiezan por ${MARCA_OPCIONAL} no son obligatorios.`, ejemplo: `Certificado de existencia y representación legal|${MARCA_OPCIONAL} Carta de apoyo de un aliado` },
   { clave: "requisitos_condiciones", obligatoria: false, guia: "Condiciones que se piden, separadas por |. Igual que los documentos.", ejemplo: "Ser empresa constituida en Colombia con al menos un año de existencia" },
+  { clave: "documentos", obligatoria: false, guia: "Nombres de los archivos que se adjuntan, separados por |, cada uno con su tipo tras = (TDR, terminos, anexo o formato; sin tipo, TDR). Los archivos se eligen junto con el CSV: PDF, Word, Excel o ZIP de hasta 20 MB.", ejemplo: "tdr-ejemplo.pdf=TDR|anexo-1-carta.docx=anexo" },
 ];
 
 /** Sin tildes, sin mayúsculas y con los espacios colapsados: así se comparan nombres. */
@@ -177,12 +180,19 @@ export function leerFecha(valor: string): string | null {
   return !Number.isNaN(comprobada.getTime()) && comprobada.toISOString().slice(0, 10) === fecha ? fecha : null;
 }
 
+/** Documento que nombra una fila: `archivo` es el nombre exacto del archivo elegido. */
+export type DocumentoCarga = { archivo: string; tipo: TipoDocumento };
+
+/** Lo que la pantalla dice de cada archivo elegido; el archivo mismo no viaja al servidor. */
+export type ArchivoElegido = { nombre: string; tamanoBytes: number };
+
 /** Resultado de una fila, en la vista previa y al crear. */
 export type FilaCarga = {
   numero: number;
   nombre: string;
   estado: "valida" | "error" | "duplicada" | "creada" | "fallo";
   errores: string[];
+  documentos: DocumentoCarga[];
   id?: string;
 };
 
@@ -191,4 +201,40 @@ export type ResultadoCarga = {
   filas: FilaCarga[];
   validas: number;
   creadas: number;
+  /** Archivos elegidos que ninguna fila nombra: no se suben (CU-50 4c). */
+  archivosSinUsar: string[];
 };
+
+const TIPOS_DOCUMENTO: Record<string, TipoDocumento> = {
+  tdr: "TDR",
+  terminos: "terminos",
+  anexo: "anexo",
+  formato: "formato",
+};
+
+/**
+ * Celda `documentos`: `archivo.pdf=TDR|otro.docx=anexo`. Devuelve el nombre de
+ * cada archivo con su tipo (sin tipo, TDR) o los errores de forma; si el archivo
+ * se eligió lo comprueba quien llama. `nombrados` son todos los archivos que la
+ * celda menciona, aunque su tipo esté mal escrito.
+ */
+export function leerDocumentos(valor: string | undefined): {
+  documentos: Array<{ archivo: string; tipo: TipoDocumento }>;
+  nombrados: string[];
+  errores: string[];
+} {
+  const documentos: Array<{ archivo: string; tipo: TipoDocumento }> = [];
+  const nombrados: string[] = [];
+  const errores: string[] = [];
+  for (const parte of lista(valor)) {
+    const igual = parte.lastIndexOf("=");
+    const archivo = (igual === -1 ? parte : parte.slice(0, igual)).trim();
+    const tipoTexto = igual === -1 ? "TDR" : parte.slice(igual + 1).trim();
+    const tipo = TIPOS_DOCUMENTO[normalizar(tipoTexto)];
+    if (archivo) nombrados.push(archivo);
+    if (!archivo) errores.push(`documentos: «${parte}» no dice el nombre del archivo.`);
+    else if (!tipo) errores.push(`documentos: el tipo «${tipoTexto}» de ${archivo} no es TDR, terminos, anexo ni formato.`);
+    else documentos.push({ archivo, tipo });
+  }
+  return { documentos, nombrados, errores };
+}
