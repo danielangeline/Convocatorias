@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { Button, LinkButton } from "@/components/ui/Button";
 import { AjustesApariencia } from "@/components/ajustes/AjustesApariencia";
+import { VerRecorrido } from "@/components/ajustes/VerRecorrido";
 
 export const metadata = { title: "Ajustes" };
 
@@ -62,6 +63,11 @@ export default async function AjustesPage() {
       <Card className="flex flex-col gap-4">
         <CardHeader titulo="Apariencia" />
         <AjustesApariencia />
+      </Card>
+
+      <Card className="flex flex-col gap-4">
+        <CardHeader titulo="Ayuda" />
+        <VerRecorrido />
       </Card>
     </div>
   );

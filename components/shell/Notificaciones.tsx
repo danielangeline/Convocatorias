@@ -40,7 +40,7 @@ export function Notificaciones({ avisos }: { avisos: Notificacion[] }) {
   };
 
   return (
-    <div ref={caja} className="relative">
+    <div ref={caja} className="relative" data-recorrido="notificaciones">
       <button
         type="button"
         onClick={alternar}

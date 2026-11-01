@@ -39,6 +39,7 @@ function PieEmpresa() {
       type="button"
       onClick={() => abrir()}
       title="Créditos de IA: ver cómo conseguir más"
+      data-recorrido="creditos"
       className="cursor-pointer rounded-xl text-left"
     >
       <CreditMeter
@@ -139,6 +140,7 @@ export function Sidebar({
                       href={it.href}
                       onClick={alNavegar}
                       title={it.label}
+                      data-recorrido={it.href}
                       aria-current={esActivo ? "page" : undefined}
                       className={cn(
                         "relative flex h-[38px] items-center gap-2.5 rounded-[10px] px-2.5 text-[13.5px] transition-colors",
@@ -166,6 +168,7 @@ export function Sidebar({
             type="button"
             onClick={() => useAppStore.getState().abrirModalCreditos()}
             title="Créditos de IA"
+            data-recorrido="creditos"
             className="mx-auto grid h-[38px] w-[38px] cursor-pointer place-items-center rounded-[10px] bg-surface-2 text-violet"
           >
             <Sparkles className="h-4 w-4" />

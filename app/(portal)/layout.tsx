@@ -12,6 +12,7 @@ import { Suspense } from "react";
 import { AvisoPuerta } from "@/components/identidad/AvisoPuerta";
 import { AvisoSuscripcion } from "@/components/AvisoSuscripcion";
 import { AvisoConsentimiento } from "@/components/AvisoConsentimiento";
+import { RecorridoBienvenida } from "@/components/recorrido/RecorridoBienvenida";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { exigirRol } from "@/lib/auth";
 import { listarCatalogo, listarCategoriasActivas } from "@/lib/catalogo";
@@ -43,7 +44,8 @@ export default async function PortalLayout({ children }: { children: React.React
     listarDocumentos(),
     listarPlanesDelRol("empresa"),
     // RF-88: las cuentas anteriores a la casilla del registro aceptan en el portal.
-    supabase.from("perfiles").select("consentimiento_datos_at").eq("id", datos.sesion.usuarioId).maybeSingle(),
+    // RF-119: y el recorrido de bienvenida se abre mientras no lo haya visto.
+    supabase.from("perfiles").select("consentimiento_datos_at, recorrido_visto_at").eq("id", datos.sesion.usuarioId).maybeSingle(),
     leerTarifas(),
   ]);
   // RF-103, RF-105, RF-106: guardadas, avisos de la campana y compatibles nuevas.
@@ -51,6 +53,7 @@ export default async function PortalLayout({ children }: { children: React.React
   const sugeridasNuevas = nuevasEstaSemana([...compat.porConvocatoria.values()], convocatorias);
   const notificaciones = notificacionesEmpresa({ postulaciones, encargos, guardadas, catalogo: convocatorias });
   const faltaConsentimiento = !consentimiento.error && !consentimiento.data?.consentimiento_datos_at;
+  const faltaRecorrido = !consentimiento.error && !!consentimiento.data && !consentimiento.data.recorrido_visto_at;
 
   // Contador del menú: encargos que siguen abiertos (presentación).
   const encargosAbiertos = encargos.filter((e) =>
@@ -84,6 +87,7 @@ export default async function PortalLayout({ children }: { children: React.React
       </AppShell>
       <ModalSuscripcion />
       <ModalCreditos />
+      <RecorridoBienvenida abrirAlInicio={faltaRecorrido} />
     </>
   );
 }

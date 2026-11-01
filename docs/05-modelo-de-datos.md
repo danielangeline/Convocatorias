@@ -52,6 +52,7 @@ erDiagram
 - si es empresa: la suscripción trial contra el plan trial (RF-37). Si no existe plan trial activo, el registro **falla** en lugar de crear una empresa sin trial;
 - si es consultor: la fila de `consultor_perfiles` en estado `incompleto`, sin suscripción (RN-11, CU-14).
 - *(sesión 021, RF-88)* `perfiles.consentimiento_datos_at` (timestamptz, nullable) con `now()` si los metadatos traen `consentimiento_datos = true`. El formulario lo exige; una cuenta creada por otra vía (una invitación de administrador, un registro directo contra Auth) nace sin él. Lo fija solo la base: un trigger impide que el cliente lo cambie; se pone por primera vez con `aceptar_consentimiento_datos()`.
+- *(sesión 038, RF-119)* `perfiles.recorrido_visto_at` (timestamptz, nullable): cuándo la empresa terminó u omitió el recorrido de bienvenida (CU-51). Nula = el portal lo abre al entrar. La fija `marcar_recorrido_visto()` (security definer, solo `auth.uid()`, solo si está vacía); el trigger de `perfiles` impide que el cliente la cambie directamente. Es una preferencia de presentación: no autoriza nada.
 
 ### 9.3 Tablas nuevas
 

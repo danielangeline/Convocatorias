@@ -1,4 +1,4 @@
-# Casos de uso (CU-01 a CU-50)
+# Casos de uso (CU-01 a CU-51)
 
 > Parte de la especificación del MVP **v6** · Plataforma de Gestión de Convocatorias.
 > Índice general en `docs/README.md`. Contexto rápido en `CLAUDE.md`.
@@ -175,6 +175,18 @@
 | **Precondiciones** | Sesión de empresa |
 | **Flujo principal** | 1. Abre «Ajustes». 2. Ve la empresa, la persona de contacto y el correo con que se registró. 3. Puede pedir el cambio de contraseña (lleva a CU-15), cerrar la sesión, elegir el tema (claro, oscuro o el del sistema) y restablecer el menú lateral |
 | **Postcondiciones** | El tema y el menú se recuerdan en este navegador; los datos de la cuenta no cambian desde aquí |
+
+
+#### CU-51 · Recorrido guiado de bienvenida *(nuevo v6, sesión 038)*
+
+| Campo | Contenido |
+|---|---|
+| **Actor** | Usuario Empresa |
+| **Descripción** | Conocer, la primera vez que entra, para qué sirve cada sección del portal |
+| **Precondiciones** | Sesión de empresa. La cuenta no ha visto ni omitido el recorrido |
+| **Flujo principal** | 1. Al entrar al portal por primera vez, el sistema muestra un mensaje de bienvenida. 2. Pulsa «Empezar». 3. El sistema resalta, una por una, cada sección del menú y de la barra superior (inicio, buscador, convocatorias, sugeridas, beneficios tributarios, guardadas, proyectos, postulaciones, documentos con IA, directorio, encargos, plan y créditos, medidor de créditos, notificaciones y ajustes) con un recuadro pequeño al lado que explica qué se hace ahí, y el avance «paso N de M». 4. Avanza con «Siguiente» o retrocede con «Anterior». 5. En el último paso pulsa «Terminar». 6. El sistema registra en la cuenta que el recorrido se vio y no lo vuelve a mostrar solo |
+| **Flujos alternos** | 2a. Pulsa «Omitir tutorial» (o Esc) en cualquier paso → el recorrido se cierra y se registra como visto. 3a. La sección no está a la vista (pantalla angosta, grupo del menú plegado) → el recuadro se muestra centrado, sin resaltar nada. 6a. Quiere verlo otra vez → en «Ajustes», «Ver el recorrido» lo abre desde el principio. 6b. Falla el registro → el recorrido se cierra igual; puede volver a aparecer en el siguiente ingreso |
+| **Postcondiciones** | `perfiles.recorrido_visto_at` queda con la fecha del primer cierre. El recorrido no cambia ningún dato de negocio ni consume créditos |
 
 
 #### CU-47 · Editar un apartado del proyecto, a mano o con IA *(nuevo v6, sesión 031)*

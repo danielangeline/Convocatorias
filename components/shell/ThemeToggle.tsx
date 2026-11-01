@@ -13,6 +13,7 @@ export function ThemeToggle() {
   const oscuro = montado && resolvedTheme === "dark";
   return (
     <button
+      data-recorrido="tema"
       type="button"
       onClick={() => setTheme(oscuro ? "light" : "dark")}
       title={oscuro ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}

@@ -26,6 +26,7 @@
 | **CU-48 Importar convocatorias de fuentes externas** *(nuevo v6, sesión 032)* | **RF-110, 111, 112, 113, 114**, RF-04, 07, 116, 117 | **RN-38, 39, 40, RNF-36**, RN-01, RNF-11, 23, 25, 30 |
 | **CU-49 Revisar convocatorias importadas** *(nuevo v6, sesión 032)* | **RF-113, 115**, RF-05, 06, 07, 08, 09 | **RN-38**, RN-01, 34, 39, RNF-11, 28, 35 |
 | **CU-50 Carga masiva de convocatorias desde un archivo** *(nuevo v6, sesión 034)* | **RF-118**, RF-04, 05, 06, 08, 116, 117 | RN-01, 07, 34, 39, 40, RNF-18, 20, 23, 28, 29, **37** |
+| **CU-51 Recorrido guiado de bienvenida** *(nuevo v6, sesión 038)* | **RF-119**, RF-107 | RN-19, RN-30, RNF-30 |
 | CU-10 Sugerencias con % *(v6: solo vigentes; sesión 019: cálculo en servidor, ubicación por departamento, 2a y 2b; sesión 032: elegibilidad por país y moneda)* | RF-15, 16, **81**, **116, 117** | RN-05, RNF-05, **RN-02**, **RNF-20**, **RN-34**, **RN-39, 40** |
 | CU-11 Iniciar postulación *(v6: vigencia verificada en servidor; sesión 020: una en curso por par)* | RF-17, 21, **78** | RN-03, 04, 19, **RNF-20**, **RN-35** |
 | CU-12 Checklist *(sesión 020: solo lectura si está cerrada)* | RF-18, 20 | **RN-35** |

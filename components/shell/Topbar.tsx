@@ -63,6 +63,7 @@ export function Topbar({
       {conBusqueda && (
         <form
           role="search"
+          data-recorrido="buscar"
           onSubmit={(e) => {
             e.preventDefault();
             const q = new FormData(e.currentTarget).get("q")?.toString().trim();
