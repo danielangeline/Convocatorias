@@ -23,7 +23,9 @@ const ROJO = "FF8A2A21";
 const FILAS_CON_FORMATO = MAXIMO_FILAS + 1;
 
 /** Columnas que el agente no puede dejar vacías aunque la plataforma las acepte así. */
-const EXIGIDAS_AL_AGENTE = new Set(["paises", "cobertura_nacional", "url_postulacion", "documentos"]);
+const EXIGIDAS_AL_AGENTE = new Set(["paises", "cobertura_nacional", "url_postulacion"]);
+/** La columna puede faltar (el TDR se puede arrastrar), pero la plataforma rechaza la fila sin TDR (CU-50 4e). */
+const exigeLaPlataforma = (c: { clave: string; obligatoria: boolean }) => c.obligatoria || c.clave === "documentos";
 
 /** Indicación de cada columna en el prompt; sin entrada, se usa la guía de la plantilla. */
 const INDICACIONES: Record<string, string> = {
@@ -49,11 +51,10 @@ const INDICACIONES: Record<string, string> = {
   documentos: "enlaces DIRECTOS a los archivos oficiales, separados por |, cada uno seguido de = y su tipo: TDR, terminos, anexo o formato. Al menos uno =TDR. Ejemplo: https://www.entidad.gov.co/tdr-2027.pdf=TDR|https://www.entidad.gov.co/anexo-1.docx=anexo",
 };
 
-const esObligatoria = (clave: string, obligatoria: boolean) => obligatoria || EXIGIDAS_AL_AGENTE.has(clave);
 
 function textoPrompt(hoy: string): string[] {
   const columnas = COLUMNAS_CARGA.map((c, i) => {
-    const marca = esObligatoria(c.clave, c.obligatoria) ? " (OBLIGATORIA)" : "";
+    const marca = exigeLaPlataforma(c) || EXIGIDAS_AL_AGENTE.has(c.clave) ? " (OBLIGATORIA)" : "";
     return `${i + 1}. ${c.clave}${marca}: ${INDICACIONES[c.clave] ?? c.guia}`;
   });
   return [
@@ -129,9 +130,9 @@ export async function plantillaExcel(): Promise<Buffer> {
     for (let fila = 2; fila <= FILAS_CON_FORMATO; fila++) hoja.getCell(fila, i + 1).numFmt = "@";
     const celda = hoja.getCell(1, i + 1);
     celda.value = c.clave;
-    const color = c.obligatoria ? ROJO : EXIGIDAS_AL_AGENTE.has(c.clave) ? VERDE : AZUL;
+    const color = exigeLaPlataforma(c) ? ROJO : EXIGIDAS_AL_AGENTE.has(c.clave) ? VERDE : AZUL;
     encabezado(celda, color);
-    const etiqueta = c.obligatoria ? "OBLIGATORIA (la plataforma la exige)" : EXIGIDAS_AL_AGENTE.has(c.clave) ? "OBLIGATORIA para el agente" : "Opcional";
+    const etiqueta = exigeLaPlataforma(c) ? "OBLIGATORIA (la plataforma la exige)" : EXIGIDAS_AL_AGENTE.has(c.clave) ? "OBLIGATORIA para el agente" : "Opcional";
     celda.note = `${etiqueta}\n${INDICACIONES[c.clave] ?? c.guia}`;
   });
   hoja.getRow(1).height = 24;
@@ -172,7 +173,7 @@ export async function plantillaExcel(): Promise<Buffer> {
   guia.columns = [{ width: 5 }, { width: 24 }, { width: 28 }, { width: 70 }, { width: 60 }];
   guia.addRow(["#", "Columna", "¿Obligatoria?", "Regla", "Ejemplo"]).eachCell((c) => encabezado(c));
   COLUMNAS_CARGA.forEach((c, i) => {
-    const etiqueta = c.obligatoria ? "Sí (la plataforma la exige)" : EXIGIDAS_AL_AGENTE.has(c.clave) ? "Sí (regla para el agente)" : "No";
+    const etiqueta = exigeLaPlataforma(c) ? "Sí (la plataforma la exige)" : EXIGIDAS_AL_AGENTE.has(c.clave) ? "Sí (regla para el agente)" : "No";
     const fila = guia.addRow([i + 1, c.clave, etiqueta, INDICACIONES[c.clave] ?? c.guia, c.ejemplo]);
     fila.alignment = { wrapText: true, vertical: "top" };
   });

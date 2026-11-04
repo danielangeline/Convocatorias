@@ -83,16 +83,18 @@ try {
   ok(sinCol.status === 400 && /entidad_convocante/.test(sinCol.json?.error), `faltan columnas obligatorias → 400 con la lista (${sinCol.json?.error})`);
 
   // --- Vista previa ------------------------------------------------------------
-  const encabezado = "fuente;nombre;entidad_convocante;descripcion;tipo;origen;moneda;monto_minimo;monto_maximo;paises;cobertura_nacional;departamentos;ubicacion_detalle;fecha_apertura;fecha_cierre;url_postulacion;categorias;requisitos_documentos;requisitos_condiciones";
+  const encabezado = "fuente;nombre;entidad_convocante;descripcion;tipo;origen;moneda;monto_minimo;monto_maximo;paises;cobertura_nacional;departamentos;ubicacion_detalle;fecha_apertura;fecha_cierre;url_postulacion;categorias;requisitos_documentos;requisitos_condiciones;documentos";
+  // Desde la sesión 039 toda fila necesita un TDR (CU-50 4e): estas lo traen por enlace para probar lo demás.
+  const TDR = "https://ejemplo.gov.co/tdr.pdf=TDR";
   // fuente en minúsculas y sin tildes: se compara normalizada.
-  const fila1 = [nombreFuente.toLowerCase(), `Carga A ${sufijo}`, "Entidad A", "Descripción A", "fondo", "público", "", "1.000.000", "50000000", "CO|México", "no", "05|Bogotá D.C.", "Medellín y Bogotá", "2026-11-01", "15/12/2026", "https://ejemplo.gov.co/a", nombreCategoria.toUpperCase(), "RUT|[opcional] Carta de apoyo", "Tener un año de constituida"].join(";");
-  const fila2 = [nombreFuente, `Carga B ${sufijo}`, "Entidad B", "", "beneficio tributario", "cooperacion", "usd", "", "250000", "TODOS", "si", "", "", "", "2027-01-31", "", "", "", ""].join(";");
-  const fila3 = ["Fuente que no existe", `Carga C ${sufijo}`, "Entidad C", "", "subsidio", "", "XXX", "", "", "Narnia", "talvez", "Gotham", "", "", "2020-01-01", "", "No existe", "", ""].join(";");
+  const fila1 = [nombreFuente.toLowerCase(), `Carga A ${sufijo}`, "Entidad A", "Descripción A", "fondo", "público", "", "1.000.000", "50000000", "CO|México", "no", "05|Bogotá D.C.", "Medellín y Bogotá", "2026-11-01", "15/12/2026", "https://ejemplo.gov.co/a", nombreCategoria.toUpperCase(), "RUT|[opcional] Carta de apoyo", "Tener un año de constituida", TDR].join(";");
+  const fila2 = [nombreFuente, `Carga B ${sufijo}`, "Entidad B", "", "beneficio tributario", "cooperacion", "usd", "", "250000", "TODOS", "si", "", "", "", "2027-01-31", "", "", "", "", TDR].join(";");
+  const fila3 = ["Fuente que no existe", `Carga C ${sufijo}`, "Entidad C", "", "subsidio", "", "XXX", "", "", "Narnia", "talvez", "Gotham", "", "", "2020-01-01", "", "No existe", "", "", TDR].join(";");
   const fila4 = fila1.replace("Entidad A", "entidad a"); // duplica la 1 dentro del archivo
-  const fila5 = [nombreFuente, "Convocatoria de ejemplo para innovación empresarial 2027", "X", "", "", "", "", "", "", "", "", "", "", "", "2026-12-15", "", "", "", ""].join(";");
-  const fila6 = [nombreFuente, `Carga F ${sufijo}`, "Entidad F", "", "", "", "", "", "", "CO", "si", "05", "", "", "2026-12-15", "", "", "", ""].join(";");
-  const fila7 = [nombreFuente, `Carga G ${sufijo}`, "Entidad G", "", "", "", "", "9.000.000", "1.000", "", "", "", "", "", "2026-12-15", "notaurl", "", "", ""].join(";");
-  const csv = "﻿" + [encabezado, fila1, fila2, fila3, fila4, fila5, fila6, fila7, ";;;;;;;;;;;;;;;;;;"].join("\r\n");
+  const fila5 = [nombreFuente, "Convocatoria de ejemplo para innovación empresarial 2027", "X", "", "", "", "", "", "", "", "", "", "", "", "2026-12-15", "", "", "", "", TDR].join(";");
+  const fila6 = [nombreFuente, `Carga F ${sufijo}`, "Entidad F", "", "", "", "", "", "", "CO", "si", "05", "", "", "2026-12-15", "", "", "", "", TDR].join(";");
+  const fila7 = [nombreFuente, `Carga G ${sufijo}`, "Entidad G", "", "", "", "", "9.000.000", "1.000", "", "", "", "", "", "2026-12-15", "notaurl", "", "", "", TDR].join(";");
+  const csv = "﻿" + [encabezado, fila1, fila2, fila3, fila4, fila5, fila6, fila7, ";;;;;;;;;;;;;;;;;;;"].join("\r\n");
 
   const previa = await api(adm, { csv, confirmar: false });
   const pf = previa.json?.datos?.filas ?? [];
@@ -218,10 +220,10 @@ try {
   const { data: fi } = await svc.from("fuentes").insert({ nombre: inactiva, activa: false }).select("id").single();
   fuentesExtra.push(fi.id);
   const csvFuentes = [
-    "fuente;nombre;entidad_convocante;fecha_cierre",
-    `${nueva};Carga L ${sufijo};Entidad L;2026-12-15`,
-    `${nueva.toUpperCase()};Carga M ${sufijo};Entidad M;2026-12-15`,
-    `${inactiva};Carga N ${sufijo};Entidad N;2026-12-15`,
+    "fuente;nombre;entidad_convocante;fecha_cierre;documentos",
+    `${nueva};Carga L ${sufijo};Entidad L;2026-12-15;${TDR}`,
+    `${nueva.toUpperCase()};Carga M ${sufijo};Entidad M;2026-12-15;${TDR}`,
+    `${inactiva};Carga N ${sufijo};Entidad N;2026-12-15;${TDR}`,
   ].join("\n");
   const pf1 = await api(adm, { csv: csvFuentes });
   ok(JSON.stringify(pf1.json?.datos?.fuentesNuevas) === JSON.stringify([{ nombre: nueva, filas: [2, 3] }]),
@@ -235,6 +237,31 @@ try {
   const pf2 = await api(adm, { csv: csvFuentes });
   ok(pf2.json?.datos?.validas === 2 && pf2.json?.datos?.fuentesNuevas.length === 0 && pf2.json?.datos?.fuentesInactivas.length === 1,
     `al volver a revisar, las 2 filas de la fuente registrada quedan listas y la inactiva sigue señalada (${pf2.json?.datos?.validas})`);
+
+  // --- Ninguna fila sin TDR (sesión 039, CU-50 4e) --------------------------------
+  const csvTdr = [
+    encDocs,
+    `${nombreFuente};Carga O ${sufijo};Entidad O;2026-12-15;`,
+    `${nombreFuente};Carga P ${sufijo};Entidad P;2026-12-15;https://ejemplo.gov.co/anexo.pdf=anexo`,
+    `${nombreFuente};Carga Q ${sufijo};Entidad Q;2026-12-15;https://ejemplo.gov.co/tdr-q.pdf=TDR|https://ejemplo.gov.co/anexo-q.pdf=anexo`,
+    `${nombreFuente};Carga R ${sufijo};Entidad R;2027-13-45;`,
+  ].join("\n");
+  const pt = await api(adm, { csv: csvTdr });
+  const ft = (n) => pt.json?.datos?.filas?.find((f) => f.numero === n);
+  ok(ft(2)?.estado === "error" && ft(2).faltaTdr === true && ft(2).errores.length === 1 && /falta el TDR/.test(ft(2).errores[0]), `fila O sin documentos → solo «falta el TDR», marcada faltaTdr (${ft(2)?.errores?.join(" / ")})`);
+  ok(ft(3)?.estado === "error" && ft(3).faltaTdr === true, "fila P con solo un anexo → falta el TDR");
+  ok(ft(4)?.estado === "valida" && !ft(4).faltaTdr, "fila Q con TDR por enlace → lista");
+  ok(ft(5)?.estado === "error" && ft(5).faltaTdr === true && ft(5).errores.length === 2, `fila R: falta el TDR junto con otro error → los dos (${ft(5)?.errores?.length})`);
+  const conArrastre = await api(adm, { csv: csvTdr, arrastrados: { 2: ["TDR"], 3: ["anexo", "formato"] } });
+  const fa = (n) => conArrastre.json?.datos?.filas?.find((f) => f.numero === n);
+  ok(fa(2)?.estado === "valida", "fila O con un TDR arrastrado → lista");
+  ok(fa(3)?.estado === "error" && fa(3).faltaTdr, "fila P con anexo y formato arrastrados → sigue sin TDR");
+  ok((await api(adm, { csv: csvTdr, arrastrados: { 2: ["otro"] } })).status === 400, "tipo arrastrado inválido → 400");
+  ok((await api(adm, { csv: csvTdr, arrastrados: [1] })).status === 400, "arrastrados con forma inválida → 400");
+  const ct = await api(adm, { csv: csvTdr, confirmar: true });
+  ok(ct.json?.datos?.creadas === 1 && ct.json.datos.filas.find((f) => f.estado === "creada")?.numero === 4, `confirmar sin arrastrar: solo se crea Q (${ct.json?.datos?.creadas})`);
+  const ct2 = await api(adm, { csv: csvTdr, arrastrados: { 2: ["TDR"] }, confirmar: true });
+  ok(ct2.json?.datos?.creadas === 1 && ct2.json.datos.filas.find((f) => f.estado === "creada")?.numero === 2, "confirmar con el TDR arrastrado a O: se crea O");
 } finally {
   for (const id of fuentesExtra) {
     await svc.from("convocatorias").delete().eq("fuente_id", id);

@@ -348,13 +348,15 @@ export function CargaMasivaConvocatorias({
     }
   };
 
-  const enviar = async (texto: string, elegidos: File[], confirmar: boolean) => {
+  const enviar = async (texto: string, elegidos: File[], confirmar: boolean, porFila: Record<number, Manual[]> = manuales) => {
     setOcupado(true);
     setError(null);
     const r = await peticionAdmin<ResultadoCarga>("/api/admin/convocatorias/carga-masiva", "POST", {
       csv: texto,
       confirmar,
       archivos: elegidos.map((f) => ({ nombre: f.name, tamanoBytes: f.size })),
+      // CU-50 4e · El servidor exige un TDR por fila y cuenta también lo arrastrado.
+      arrastrados: Object.fromEntries(Object.entries(porFila).map(([fila, lista]) => [fila, lista.map((m) => m.tipo)])),
     });
     if (!r.ok) {
       setOcupado(false);
@@ -364,7 +366,7 @@ export function CargaMasivaConvocatorias({
     }
     setResultado(r.datos);
     if (confirmar) {
-      await adjuntarDocumentos(r.datos.filas, elegidos, manuales);
+      await adjuntarDocumentos(r.datos.filas, elegidos, porFila);
       if (r.datos.creadas > 0) router.refresh();
     }
     setOcupado(false);
@@ -383,7 +385,7 @@ export function CargaMasivaConvocatorias({
       return;
     }
     setArchivo({ nombre: elegido.name, texto: leido.texto });
-    await enviar(leido.texto, documentos, false);
+    await enviar(leido.texto, documentos, false, {});
   };
 
   // Se pueden elegir en varias tandas: se suman, y uno con el mismo nombre reemplaza al anterior.
@@ -451,7 +453,8 @@ export function CargaMasivaConvocatorias({
             Una fila por convocatoria y una columna por cada campo de la ficha. Ábrela en Excel, borra la fila de ejemplo y
             guárdala como <strong>CSV UTF-8</strong>. Hasta {MAXIMO_FILAS} filas por archivo. En la columna{" "}
             <code className="font-mono text-[12px]">documentos</code> pega el <strong>enlace oficial</strong> de cada TDR o
-            anexo y nosotros lo descargamos; los que no tengan enlace los arrastras a su convocatoria en el paso 2. Todo queda
+            anexo y nosotros lo descargamos; los que no tengan enlace los arrastras a su convocatoria en el paso 2.{" "}
+            <strong>Cada convocatoria necesita al menos un TDR</strong>: sin él, la fila no se crea. Todo queda
             en <strong>borrador</strong>: cada una se revisa y se publica desde su editor.
           </p>
           <div className="flex flex-wrap gap-2">
@@ -742,11 +745,16 @@ export function CargaMasivaConvocatorias({
                       </ul>
                     )}
 
-                    {!terminado && f.estado === "valida" && (
+                    {!terminado && (f.estado === "valida" || (f.faltaTdr && f.errores.length === 1)) && (
                       <ZonaDocumentos
                         numero={f.numero}
                         manuales={arrastrados}
-                        onCambio={(siguientes) => setManuales((previos) => ({ ...previos, [f.numero]: siguientes }))}
+                        onCambio={async (siguientes) => {
+                          const porFila = { ...manuales, [f.numero]: siguientes };
+                          setManuales(porFila);
+                          // Agregar o quitar un TDR cambia si la fila queda lista (CU-50 4e).
+                          if (archivo) await enviar(archivo.texto, documentos, false, porFila);
+                        }}
                       />
                     )}
 

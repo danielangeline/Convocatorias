@@ -42,7 +42,7 @@ export const COLUMNAS_CARGA: ReadonlyArray<ColumnaCarga> = [
   { clave: "categorias", obligatoria: false, guia: "Nombres de categorías activas separados por |.", ejemplo: "Innovación y desarrollo tecnológico|MiPyme" },
   { clave: "requisitos_documentos", obligatoria: false, guia: `Documentos que se piden, separados por |. Los que empiezan por ${MARCA_OPCIONAL} no son obligatorios.`, ejemplo: `Certificado de existencia y representación legal|${MARCA_OPCIONAL} Carta de apoyo de un aliado` },
   { clave: "requisitos_condiciones", obligatoria: false, guia: "Condiciones que se piden, separadas por |. Igual que los documentos.", ejemplo: "Ser empresa constituida en Colombia con al menos un año de existencia" },
-  { clave: "documentos", obligatoria: false, guia: "Enlaces oficiales de los documentos (los descarga el sistema) o nombres de archivos que eliges junto con el CSV, separados por |, cada uno con su tipo tras = (TDR, terminos, anexo o formato; sin tipo, TDR). PDF, Word, Excel o ZIP de hasta 20 MB. También puedes arrastrarlos a cada convocatoria en la vista previa.", ejemplo: "https://www.ejemplo.gov.co/tdr-convocatoria.pdf=TDR|anexo-1-carta.docx=anexo" },
+  { clave: "documentos", obligatoria: false, guia: "Enlaces oficiales de los documentos (los descarga el sistema) o nombres de archivos que eliges junto con el CSV, separados por |, cada uno con su tipo tras = (TDR, terminos, anexo o formato; sin tipo, TDR). PDF, Word, Excel o ZIP de hasta 20 MB. También puedes arrastrarlos a cada convocatoria en la vista previa. Cada fila necesita al menos un TDR, aquí o arrastrado.", ejemplo: "https://www.ejemplo.gov.co/tdr-convocatoria.pdf=TDR|anexo-1-carta.docx=anexo" },
 ];
 
 /** Sin tildes, sin mayúsculas y con los espacios colapsados: así se comparan nombres. */
@@ -197,6 +197,8 @@ export type FilaCarga = {
   errores: string[];
   documentos: DocumentoCarga[];
   id?: string;
+  /** Sin TDR en la celda ni arrastrado (CU-50 4e): la pantalla ofrece arrastrarlo. */
+  faltaTdr?: boolean;
 };
 
 export type ResultadoCarga = {

@@ -3,7 +3,7 @@ import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { refrescarIndicadores } from "@/lib/catalogo";
 import { hoyColombia } from "@/lib/fechas";
 import { DEPARTAMENTOS } from "@/lib/departamentos";
-import type { TipoConvocatoria, OrigenConvocatoria, TipoRequisito } from "@/lib/types";
+import type { TipoConvocatoria, OrigenConvocatoria, TipoDocumento, TipoRequisito } from "@/lib/types";
 import { esUrlHttp, rechazo, validarFicha, type FichaValidada } from "./catalogo";
 import { EXTENSIONES, TAMANO_MAXIMO, extensionDe } from "./documentos";
 import {
@@ -49,6 +49,9 @@ const TIPOS: Record<string, TipoConvocatoria> = {
   "beneficio tributario": "beneficio_tributario",
 };
 const ORIGENES: Record<string, OrigenConvocatoria> = { publico: "publico", privado: "privado", cooperacion: "cooperacion" };
+const TIPOS_DOC = new Set<TipoDocumento>(["TDR", "terminos", "anexo", "formato"]);
+const FALTA_TDR =
+  "documentos: falta el TDR. Pon su enlace o su archivo con =TDR en la columna documentos, o arrástralo a esta fila como TDR.";
 
 /** Nombres de departamento comparables: sin tildes, sin puntos («Bogotá D.C.» = «bogota dc» = «bogota»). */
 const sinPuntos = (v: string) => normalizar(v).replace(/[.,]/g, "").replace(/\s+/g, " ").trim();
@@ -122,8 +125,9 @@ function traducirFila(
   c: Record<string, string>,
   listas: Listas,
   hoy: string,
-  archivos: Map<string, ArchivoElegido>
-): { ficha: FichaValidada; fuenteId: string; documentos: DocumentoCarga[] } | { errores: string[] } {
+  archivos: Map<string, ArchivoElegido>,
+  arrastrados: TipoDocumento[]
+): { ficha: FichaValidada; fuenteId: string; documentos: DocumentoCarga[] } | { errores: string[]; faltaTdr: boolean } {
   const errores: string[] = [];
 
   const fuenteId = listas.fuentes.get(normalizar(c.fuente ?? ""));
@@ -209,7 +213,11 @@ function traducirFila(
     }
   }
 
-  if (errores.length > 0) return { errores };
+  // CU-50 4e (sesión 039) · Ninguna fila sin TDR: en la celda o arrastrado a la fila en la vista previa.
+  const faltaTdr = !leidos.documentos.some((d) => d.tipo === "TDR") && !arrastrados.includes("TDR");
+  if (faltaTdr) errores.push(FALTA_TDR);
+
+  if (errores.length > 0) return { errores, faltaTdr };
 
   const validada = validarFicha({
     fuenteId,
@@ -232,7 +240,7 @@ function traducirFila(
     categorias,
     requisitos: [...requisitos(c.requisitos_documentos, "documento"), ...requisitos(c.requisitos_condiciones, "condicion")],
   });
-  if (!validada.ok) return { errores: [validada.error] };
+  if (!validada.ok) return { errores: [validada.error], faltaTdr: false };
   return { ficha: validada.ficha, fuenteId: fuenteId!, documentos };
 }
 
@@ -250,6 +258,20 @@ function leerArchivos(valor: unknown): Map<string, ArchivoElegido> | null {
   return archivos;
 }
 
+/** `arrastrados`: `{ [fila]: [tipos] }` de los documentos arrastrados a cada fila en la vista previa. */
+function leerArrastrados(valor: unknown): Map<number, TipoDocumento[]> | null {
+  if (valor === undefined) return new Map();
+  if (!valor || typeof valor !== "object" || Array.isArray(valor)) return null;
+  const arrastrados = new Map<number, TipoDocumento[]>();
+  for (const [fila, tipos] of Object.entries(valor as Record<string, unknown>)) {
+    const numero = Number(fila);
+    if (!Number.isInteger(numero) || numero < 2 || !Array.isArray(tipos) || tipos.length > 100) return null;
+    if (!tipos.every((t) => TIPOS_DOC.has(t as TipoDocumento))) return null;
+    arrastrados.set(numero, tipos as TipoDocumento[]);
+  }
+  return arrastrados;
+}
+
 /**
  * `{ csv, confirmar }`. Con `confirmar: false` solo valida (vista previa); con
  * `true` vuelve a validar todo y crea en borrador las filas válidas.
@@ -261,6 +283,8 @@ export async function cargaMasiva(cuerpo: Cuerpo, usuarioId: string): Promise<Re
   if (!leido.ok) return { ok: false, status: 400, error: leido.error };
   const archivos = leerArchivos(cuerpo.archivos);
   if (!archivos) return { ok: false, status: 400, error: "La lista de documentos elegidos no es válida." };
+  const arrastrados = leerArrastrados(cuerpo.arrastrados);
+  if (!arrastrados) return { ok: false, status: 400, error: "La lista de documentos arrastrados no es válida." };
 
   const listas = await leerListas();
   const hoy = hoyColombia();
@@ -273,10 +297,11 @@ export async function cargaMasiva(cuerpo: Cuerpo, usuarioId: string): Promise<Re
     const fila: FilaCarga = { numero, nombre: celdas.nombre ?? "", estado: "valida", errores: [], documentos: [] };
     filas.push(fila);
     for (const archivo of leerDocumentos(celdas.documentos).nombrados) nombrados.add(archivo.toLowerCase());
-    const traducida = traducirFila(celdas, listas, hoy, archivos);
+    const traducida = traducirFila(celdas, listas, hoy, archivos, arrastrados.get(numero) ?? []);
     if ("errores" in traducida) {
       fila.estado = "error";
       fila.errores = traducida.errores;
+      fila.faltaTdr = traducida.faltaTdr;
       continue;
     }
     // CU-50 4a · Ni contra el catálogo ni dentro del archivo: subirlo dos veces no duplica.
