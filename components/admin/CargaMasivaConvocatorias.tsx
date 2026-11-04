@@ -76,6 +76,23 @@ function descargarPlantilla() {
   URL.revokeObjectURL(url);
 }
 
+/**
+ * RF-118 (sesión 039) · La plantilla en Excel la arma el servidor en cada
+ * descarga, con el prompt para el agente y las listas válidas del momento.
+ */
+async function descargarPlantillaExcel(): Promise<string | null> {
+  const respuesta = await fetch("/api/admin/convocatorias/carga-masiva/plantilla").catch(() => null);
+  if (!respuesta?.ok) return "No se pudo descargar la plantilla en Excel. Revisa la conexión e inténtalo de nuevo.";
+  const nombre = /filename="([^"]+)"/.exec(respuesta.headers.get("Content-Disposition") ?? "")?.[1] ?? "plantilla-convocatorias.xlsx";
+  const url = URL.createObjectURL(await respuesta.blob());
+  const enlace = document.createElement("a");
+  enlace.href = url;
+  enlace.download = nombre;
+  enlace.click();
+  URL.revokeObjectURL(url);
+  return null;
+}
+
 const tamanoLegible = (bytes: number) =>
   bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 
@@ -268,6 +285,7 @@ export function CargaMasivaConvocatorias({
   const [resultado, setResultado] = useState<ResultadoCarga | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState(false);
+  const [bajandoExcel, setBajandoExcel] = useState(false);
 
   const reiniciar = useCallback(() => {
     setArchivo(null);
@@ -436,9 +454,25 @@ export function CargaMasivaConvocatorias({
             anexo y nosotros lo descargamos; los que no tengan enlace los arrastras a su convocatoria en el paso 2. Todo queda
             en <strong>borrador</strong>: cada una se revisa y se publica desde su editor.
           </p>
-          <Button variant="secondary" onClick={descargarPlantilla}>
-            <Download className="h-4 w-4" /> Descargar plantilla (.csv)
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="secondary"
+              disabled={bajandoExcel}
+              onClick={async () => {
+                setBajandoExcel(true);
+                setError(await descargarPlantillaExcel());
+                setBajandoExcel(false);
+              }}
+            >
+              <FileSpreadsheet className="h-4 w-4" /> {bajandoExcel ? "Preparando…" : "Descargar plantilla Excel"}
+            </Button>
+            <Button variant="secondary" onClick={descargarPlantilla}>
+              <Download className="h-4 w-4" /> Descargar plantilla (.csv)
+            </Button>
+          </div>
+          <p className="mt-2 text-xs text-ink-3">
+            La de Excel trae el prompt para el agente de IA que busca convocatorias y las fuentes y categorías válidas de hoy.
+          </p>
 
           <details className="mt-4 rounded-xl border border-line">
             <summary className="cursor-pointer px-4 py-3 text-sm font-bold text-ink">Guía de columnas</summary>
