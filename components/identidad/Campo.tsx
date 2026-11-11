@@ -24,7 +24,7 @@ export function Aviso({ tipo, children }: { tipo: "error" | "exito" | "advertenc
           ? "rounded-lg bg-rose/10 px-3 py-2.5 text-sm text-rose-ink"
           : tipo === "advertencia"
             ? "rounded-lg bg-amber/10 px-3 py-2.5 text-sm text-amber-ink"
-            : "rounded-lg bg-violet/10 px-3 py-2.5 text-sm text-violet-ink"
+            : "rounded-lg bg-pri-soft px-3 py-2.5 text-sm text-pri-text"
       }
     >
       {children}

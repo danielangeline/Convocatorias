@@ -115,12 +115,12 @@ export function EncargosConsultor({
       <div className="mb-6">
         <KpiGrid>
           <KpiCard etiqueta="Solicitudes nuevas" valor={solicitudes.length} nota="Esperan tu respuesta" icono={ClipboardList} tono="amber" />
-          <KpiCard etiqueta="Encargos en curso" valor={enCurso.length} nota="Aceptados y sin completar" icono={Target} tono="sky" />
+          <KpiCard etiqueta="Encargos en curso" valor={enCurso.length} nota="Aceptados y sin completar" icono={Target} tono="pri" />
           {ratingPromedio !== undefined && (completados ?? 0) > 0 && (
             <KpiCard etiqueta="Calificación" valor={ratingPromedio.toFixed(1)} sufijo=" /5" nota="Promedio de las empresas" icono={CheckCircle2} />
           )}
           {completados !== undefined && (
-            <KpiCard etiqueta="Completados" valor={completados} nota="Encargos terminados" icono={Check} tono="violet" />
+            <KpiCard etiqueta="Completados" valor={completados} nota="Encargos terminados" icono={Check} tono="pri" />
           )}
         </KpiGrid>
       </div>
@@ -280,8 +280,8 @@ function BusquedaResumen({ e }: { e: EncargoConsultor }) {
   const elegida = e.propuestas.find((p) => p.estado === "elegida");
   const abiertas = e.propuestas.filter((p) => p.estado === "propuesta").length;
   return (
-    <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-sky/10 px-3 py-2.5">
-      <p className="flex items-start gap-1.5 text-xs text-sky-ink">
+    <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-pri-soft px-3 py-2.5">
+      <p className="flex items-start gap-1.5 text-xs text-pri-text">
         <Compass className="mt-0.5 h-3.5 w-3.5 shrink-0" />
         {elegida
           ? `La empresa eligió "${elegida.convocatoriaNombre}". Sigue ayudándola con esa convocatoria.`
@@ -291,7 +291,7 @@ function BusquedaResumen({ e }: { e: EncargoConsultor }) {
       </p>
       <Link
         href={`/consultor/encargos/${e.id}/convocatorias`}
-        className="inline-flex items-center gap-1.5 rounded-lg bg-surface px-3 py-1.5 text-xs font-semibold text-sky-ink ring-1 ring-sky/30 hover:bg-sky/10"
+        className="inline-flex items-center gap-1.5 rounded-lg bg-surface px-3 py-1.5 text-xs font-semibold text-pri-text ring-1 ring-pri/30 hover:bg-pri-soft"
       >
         <Search className="h-3.5 w-3.5" /> {elegida ? "Ver la búsqueda" : "Buscar y proponer"}
       </Link>
@@ -393,7 +393,7 @@ function Contexto({ contexto, abierto = false }: { contexto: ContextoEncargo; ab
             {c.nombre} <span className="font-normal text-ink-3">· {c.entidad} · cierra el {formatFecha(c.fechaCierre)}</span>
           </p>
           {c.urlPostulacion && (
-            <a href={c.urlPostulacion} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-violet-ink hover:underline">
+            <a href={c.urlPostulacion} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-pri-text hover:underline">
               Portal de la entidad <ExternalLink className="h-3 w-3" />
             </a>
           )}

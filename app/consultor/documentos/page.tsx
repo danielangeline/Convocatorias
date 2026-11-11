@@ -16,7 +16,7 @@ export default async function DocumentosConsultorPage() {
     <GuardaConsultor>
       <div>
         <div className="mb-6">
-          <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-violet-ink">
+          <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-pri-text">
             <Sparkles className="h-3.5 w-3.5" /> Módulo de IA
           </p>
           <h1 className="mt-1 text-[26px] font-extrabold tracking-[-0.025em] text-ink">Documentos</h1>
@@ -38,7 +38,7 @@ export default async function DocumentosConsultorPage() {
               <Link
                 key={doc.id}
                 href={`/consultor/documentos/${doc.id}`}
-                className="flex flex-col rounded-2xl border border-line bg-surface p-5 shadow-card transition-colors hover:border-violet/30 hover:bg-violet/10"
+                className="flex flex-col rounded-2xl border border-line bg-surface p-5 shadow-card transition-colors hover:border-pri/30 hover:bg-pri-soft"
               >
                 <div className="flex items-start justify-between gap-2">
                   <Badge className={ESTADO_DOCUMENTO_ESTILO[doc.estado]}>{ESTADO_DOCUMENTO_LABEL[doc.estado]}</Badge>

@@ -37,7 +37,7 @@ export function SelectorPuerta({
               puerta === valor
                 ? valor === "empresa"
                   ? "border-pri bg-pri-soft"
-                  : "border-sky bg-sky/10"
+                  : "border-pri bg-pri-soft"
                 : "border-line hover:bg-surface-2"
             )}
           >

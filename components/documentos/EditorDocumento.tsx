@@ -193,7 +193,7 @@ export function EditorDocumento({
             )}
           </p>
           {!esConsultor && documento.postulacionId && (
-            <Link href={`/postulaciones/${documento.postulacionId}`} className="mt-1 inline-block text-xs font-semibold text-violet-ink hover:underline">
+            <Link href={`/postulaciones/${documento.postulacionId}`} className="mt-1 inline-block text-xs font-semibold text-pri-text hover:underline">
               Ver postulación relacionada →
             </Link>
           )}
@@ -206,7 +206,7 @@ export function EditorDocumento({
           ) : (
             <>
               {consultorEncargo && (
-                <Button variant={compartidoConEncargo ? "outline-amber" : "secondary"} onClick={alternarCompartir} disabled={ocupado !== null}>
+                <Button variant={compartidoConEncargo ? "outline" : "secondary"} onClick={alternarCompartir} disabled={ocupado !== null}>
                   {compartidoConEncargo ? (
                     <>
                       <ShieldOff className="h-4 w-4" /> Dejar de compartir
@@ -243,8 +243,8 @@ export function EditorDocumento({
       )}
 
       {ocupado === "regenerar" && (
-        <div className="mb-4 flex items-center gap-3 rounded-xl border border-violet/30 bg-violet/10 px-4 py-3 text-sm text-violet-ink">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-violet/30 border-t-violet" />
+        <div className="mb-4 flex items-center gap-3 rounded-xl border border-pri/30 bg-pri-soft px-4 py-3 text-sm text-pri-text">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-pri/30 border-t-pri" />
           Generando la versión nueva. Puede tardar hasta dos minutos; si falla, no se descuenta ningún crédito.
         </div>
       )}
@@ -264,11 +264,11 @@ export function EditorDocumento({
             />
           ))}
 
-          <div className="rounded-2xl border border-violet/30 bg-violet/10 p-5">
-            <p className="flex items-center gap-1.5 text-sm font-semibold text-violet-ink">
+          <div className="rounded-2xl border border-pri/30 bg-pri-soft p-5">
+            <p className="flex items-center gap-1.5 text-sm font-semibold text-pri-text">
               <Sparkles className="h-4 w-4" /> Pedir ajuste a la IA
             </p>
-            <p className="mt-1 text-xs text-violet-ink/70">
+            <p className="mt-1 text-xs text-pri-text/70">
               {ajustesGratisRestantes > 0
                 ? `${ajustesGratisRestantes} de 3 ajustes gratis restantes.`
                 : esConsultor
@@ -280,7 +280,7 @@ export function EditorDocumento({
                 <button
                   key={ej}
                   onClick={() => setInstruccion(ej)}
-                  className="rounded-full bg-surface px-3 py-1 text-xs font-medium text-violet-ink ring-1 ring-inset ring-violet/30 hover:bg-violet/10"
+                  className="rounded-full bg-surface px-3 py-1 text-xs font-medium text-pri-text ring-1 ring-inset ring-pri/30 hover:bg-pri-soft"
                 >
                   {ej}
                 </button>
@@ -292,9 +292,9 @@ export function EditorDocumento({
                 onChange={(e) => setInstruccion(e.target.value)}
                 maxLength={1000}
                 placeholder="Ej. hazlo más breve"
-                className="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-violet"
+                className="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-pri"
               />
-              <Button variant="ai" onClick={enviarAjuste} disabled={!instruccion.trim() || ocupado !== null}>
+              <Button variant="primary" onClick={enviarAjuste} disabled={!instruccion.trim() || ocupado !== null}>
                 {ocupado === "ajustar" ? "Aplicando… (hasta 2 min)" : "Aplicar ajuste"}
               </Button>
             </div>
@@ -350,7 +350,7 @@ export function EditorDocumento({
               <Button variant="ghost" onClick={() => setConfirmandoRegenerar(false)}>
                 Cancelar
               </Button>
-              <Button variant="ai" onClick={confirmarRegenerar}>
+              <Button variant="primary" onClick={confirmarRegenerar}>
                 Regenerar ({textoCreditos(tarifas.generacion)})
               </Button>
             </div>

@@ -24,7 +24,7 @@ export function FormularioLogin({ puertaInicial, errorInicial }: { puertaInicial
         </Link>
       </p>
       {estado.error && <Aviso tipo="error">{estado.error}</Aviso>}
-      <Button type="submit" variant={puerta === "empresa" ? "primary" : "consultor"} className="w-full" disabled={enviando}>
+      <Button type="submit" variant="primary" className="w-full" disabled={enviando}>
         {enviando ? "Entrando…" : "Entrar"}
       </Button>
     </form>

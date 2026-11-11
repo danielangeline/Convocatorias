@@ -69,7 +69,7 @@ export function EventosSeguridad({ eventos, ahora, limite }: { eventos: EventoSe
       {/* Bloqueos activos (CU-40) */}
       <div className="mb-8 rounded-2xl border border-line p-4 sm:p-6 bg-surface shadow-card">
         <h2 className="flex items-center gap-2 font-display text-base font-semibold text-ink">
-          <Lock className="h-4 w-4 text-sky-ink" /> Bloqueos activos por límite de tasa
+          <Lock className="h-4 w-4 text-pri-text" /> Bloqueos activos por límite de tasa
         </h2>
         {mensaje && (
           <div className="mt-3">
@@ -83,7 +83,7 @@ export function EventosSeguridad({ eventos, ahora, limite }: { eventos: EventoSe
             {bloqueosActivos.map((e) => (
               <li
                 key={e.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-sky/30 bg-sky/10 px-4 py-3"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-pri/30 bg-pri-soft px-4 py-3"
               >
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-ink">
@@ -92,11 +92,11 @@ export function EventosSeguridad({ eventos, ahora, limite }: { eventos: EventoSe
                   <p className="break-words text-xs text-ink-3">
                     {e.ruta} — {e.detalle}
                   </p>
-                  <p className="mt-0.5 text-xs text-sky-ink">
+                  <p className="mt-0.5 text-xs text-pri-text">
                     Bloqueado hasta {e.bloqueadoHasta ? fechaHoraColombia(e.bloqueadoHasta) : "—"}
                   </p>
                 </div>
-                <Button variant="outline-amber" size="sm" onClick={() => liberar(e)} disabled={liberando === e.id}>
+                <Button variant="outline" size="sm" onClick={() => liberar(e)} disabled={liberando === e.id}>
                   <Unlock className="h-3.5 w-3.5" /> {liberando === e.id ? "Liberando…" : "Liberar ahora"}
                 </Button>
               </li>

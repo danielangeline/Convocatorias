@@ -119,22 +119,22 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
       </Link>
 
       <div className="mb-6">
-        <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-violet-ink">
+        <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-pri-text">
           <Sparkles className="h-3.5 w-3.5" /> Generar documento con IA
         </p>
         <h1 className="mt-1 text-[26px] font-extrabold tracking-[-0.025em] text-ink">{convocatoria.nombre}</h1>
         <p className="mt-1 text-sm text-ink-2">{convocatoria.entidadConvocante}</p>
       </div>
 
-      <div className="mb-6 flex items-center justify-between gap-3 rounded-xl border border-violet/30 bg-violet/10 px-5 py-3">
-        <p className="text-sm text-violet-ink">
+      <div className="mb-6 flex items-center justify-between gap-3 rounded-xl border border-pri/30 bg-pri-soft px-5 py-3">
+        <p className="text-sm text-pri-text">
           Te quedan <strong>{textoCreditos(disponibles)}</strong>. Generar consumirá {textoCreditos(costo)}.
         </p>
       </div>
 
       {generando ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-violet/30 bg-violet/10 px-6 py-20 text-center">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-violet/30 border-t-violet" />
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-pri/30 bg-pri-soft px-6 py-20 text-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-pri/30 border-t-pri" />
           <p className="mt-5 font-display text-base font-semibold text-ink">Generando tu documento…</p>
           <p className="mt-1.5 text-sm text-ink-2">{MENSAJES_CARGA[mensajeIndex]}</p>
         </div>
@@ -172,7 +172,7 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
                   onClick={() => setSeleccionId(p.id)}
                   className={cn(
                     "flex flex-col rounded-2xl border p-5 text-left transition-colors",
-                    activo ? "border-violet bg-violet/10 ring-1 ring-violet/30" : "border-line hover:border-violet/30"
+                    activo ? "border-pri bg-pri-soft ring-1 ring-pri/30" : "border-line hover:border-pri/30"
                   )}
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -195,9 +195,9 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
           </div>
 
           {documentoExistente && (
-            <div className="mt-5 flex items-start gap-3 rounded-xl border border-violet/30 bg-violet/10 px-4 py-3">
-              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-violet-ink" />
-              <p className="text-sm text-violet-ink">
+            <div className="mt-5 flex items-start gap-3 rounded-xl border border-pri/30 bg-pri-soft px-4 py-3">
+              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-pri-text" />
+              <p className="text-sm text-pri-text">
                 Ya tienes un documento de este proyecto para esta convocatoria (versión {documentoExistente.version}).{" "}
                 <Link href={`/documentos/${documentoExistente.id}`} className="font-semibold underline">
                   Editar documento
@@ -225,7 +225,7 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
             una base: los datos que falten quedan marcados como pendientes, nunca se inventan.
           </p>
           <div className="mt-3 flex items-center justify-end">
-            <Button variant="ai" size="lg" disabled={!seleccionId} onClick={iniciarGeneracion}>
+            <Button variant="primary" size="lg" disabled={!seleccionId} onClick={iniciarGeneracion}>
               <Sparkles className="h-4 w-4" /> {documentoExistente ? `Generar versión nueva (${textoCreditos(costo)})` : `Generar documento (${textoCreditos(costo)})`}
             </Button>
           </div>

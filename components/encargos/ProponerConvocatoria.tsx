@@ -125,7 +125,7 @@ export function ProponerConvocatoria({
           href={urlPostulacion}
           target="_blank"
           rel="noreferrer"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-violet-ink hover:underline"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-pri-text hover:underline"
         >
           <ExternalLink className="h-4 w-4" /> Ver en el portal de la entidad
         </a>

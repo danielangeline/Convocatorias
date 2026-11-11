@@ -10,13 +10,13 @@ export function Card({
   as?: "div" | "section" | "article";
 }) {
   return (
-    <Tag className={cn("rounded-2xl border border-line bg-surface p-5 shadow-card", className)}>
+    <Tag className={cn("rounded-md border border-line bg-surface p-5", className)}>
       {children}
     </Tag>
   );
 }
 
-/** Encabezado de tarjeta: título 15/800, subtítulo opcional y acción a la derecha. */
+/** Encabezado de tarjeta: título serif 20/600, subtítulo opcional y acción a la derecha. */
 export function CardHeader({
   titulo,
   subtitulo,
@@ -31,7 +31,7 @@ export function CardHeader({
   return (
     <div className={cn("flex items-start justify-between gap-3", className)}>
       <div className="min-w-0">
-        <h2 className="text-[15px] font-extrabold text-ink">{titulo}</h2>
+        <h2 className="font-display text-xl font-semibold text-ink">{titulo}</h2>
         {subtitulo && <p className="mt-[3px] text-[12.5px] text-ink-3">{subtitulo}</p>}
       </div>
       {accion}

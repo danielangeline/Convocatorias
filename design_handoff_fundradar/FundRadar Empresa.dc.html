@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#E9E6DF}
+.fr{--bg:#F4F1EA;--surface:#FFFFFF;--surface-2:#F8F6F1;--line:#DAD6CC;--line-2:#E9E6DF;--line-strong:#8A949A;--ink:#0A1A22;--ink-2:#2B3A42;--ink-3:#5A666C;--pri:#0F4C5C;--pri-hover:#0A3A47;--pri-soft:#E3EEF0;--pri-text:#0F4C5C;--on-pri:#FFFFFF;--amber:#F2A93B;--amber-soft:#FBEBD0;--rose:#A63D2A;--rose-soft:#F6E3DE;--topbar:rgba(244,241,234,.88);--overlay:rgba(10,26,34,.45);--shadow:0 20px 50px rgba(10,26,34,.12)}
+.fr[data-theme="dark"]{--bg:#0A1519;--surface:#10212A;--surface-2:#142931;--line:#20363F;--line-2:#1A2E36;--line-strong:#4A6069;--ink:#EEF1EE;--ink-2:#BFCBCF;--ink-3:#8A9AA0;--pri:#5DB0C2;--pri-hover:#7CC3D2;--pri-soft:#123843;--pri-text:#8FD3E0;--on-pri:#06161B;--amber-soft:#3A2C14;--rose:#F09A86;--rose-soft:#3A1E19;--topbar:rgba(10,21,25,.88);--overlay:rgba(0,0,0,.6);--shadow:0 20px 50px rgba(0,0,0,.5)}
+.fr a{color:var(--pri-text)}.fr a:hover{color:var(--ink)}
+.fr *{box-sizing:border-box;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.fr input::placeholder{color:var(--ink-3)}
+@keyframes ping{0%{transform:scale(1);opacity:.7}100%{transform:scale(3);opacity:0}}
+.ping-ring{animation:ping 2.2s ease-out infinite;transform-box:fill-box;transform-origin:center}
+@media (prefers-reduced-motion: reduce){.ping-ring{animation:none}}
+</style>
+</helmet>
+<div style="display: flex; justify-content: center; height: {{ outerH }}; overflow: {{ outerOv }}; padding: {{ framePad }}">
+<div data-fr-root="empresa" class="fr" data-theme="{{ theme }}" style="position: relative; transform: translateZ(0); width: 100%; max-width: {{ frameW }}; height: {{ frameH }}; overflow-x: hidden; overflow-y: auto; border-radius: {{ frameRadius }}; box-shadow: {{ frameShadow }}; background: var(--bg); color: var(--ink); font-family: Inter, system-ui, sans-serif; font-size: 14px; display: flex">
+
+<sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}">
+<aside style="position: sticky; top: 0; height: {{ asideH }}; width: 252px; flex: none; background: var(--surface); border-right: 1px solid var(--line); display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; gap: 10px; padding: 20px 20px 14px">
+<svg width="32" height="32" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="15" fill="none" stroke="var(--pri)" stroke-width="2"></circle><circle cx="17" cy="17" r="9" fill="none" stroke="var(--pri)" stroke-width="2" opacity="0.5"></circle><circle cx="17" cy="17" r="4" fill="#F2A93B"></circle></svg>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 22px; line-height: 1; letter-spacing: -0.01em"><span>Fund</span><span style="color: var(--pri-text)">Radar</span></div>
+<div style="font-size: 12px; color: var(--ink-3)">Portal empresa</div>
+</div>
+</div>
+<nav aria-label="Menú principal" style="flex: 1; overflow-y: auto; padding: 4px 12px 12px; display: flex; flex-direction: column; gap: 2px">
+<sc-for list="{{ navGroups }}" as="g" hint-placeholder-count="4">
+<div style="display: flex; flex-direction: column; gap: 2px; padding-top: 12px">
+<sc-if value="{{ g.hasTitle }}" hint-placeholder-val="{{ true }}"><div style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); padding: 0 10px 6px">{{ g.titulo }}</div></sc-if>
+<sc-for list="{{ g.items }}" as="it" hint-placeholder-count="2">
+<button onClick="{{ it.go }}" aria-current="{{ it.current }}" style="display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border: 0; border-radius: 4px; background: {{ it.bg }}; color: {{ it.fg }}; font-family: Inter, sans-serif; font-size: 14px; font-weight: {{ it.fw }}; cursor: pointer; text-align: left; width: 100%" style-hover="color: var(--ink)">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{ it.d }}"></path></svg>
+<span style="flex: 1">{{ it.label }}</span>
+<sc-if value="{{ it.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500; color: #0A1A22; background: #F2A93B; border-radius: 3px; padding: 1px 6px">{{ it.badge }}</span></sc-if>
+</button>
+</sc-for>
+</div>
+</sc-for>
+</nav>
+<div style="border-top: 1px solid var(--line); padding: 14px; display: flex; flex-direction: column; gap: 12px">
+<button onClick="{{ goPlan }}" style="background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px; padding: 12px; display: flex; flex-direction: column; gap: 8px; cursor: pointer; text-align: left; color: var(--ink); font-family: Inter, sans-serif" style-hover="border-color: var(--pri)">
+<div style="display: flex; justify-content: space-between; align-items: baseline; font-size: 12px"><span style="font-weight: 600">Créditos de IA</span><span style="font-family: 'IBM Plex Mono', monospace; color: var(--ink-2)">340 / 500</span></div>
+<div style="height: 5px; border-radius: 3px; background: var(--line-2); overflow: hidden"><div style="width: 68%; height: 100%; background: var(--pri)"></div></div>
+<div style="font-size: 12px; color: var(--ink-3)">Te alcanzan para 3 documentos</div>
+</button>
+<div style="display: flex; align-items: center; gap: 10px">
+<div style="width: 34px; height: 34px; flex: none; border-radius: 50%; background: var(--pri-soft); color: var(--pri-text); display: grid; place-items: center; font-size: 12px; font-weight: 700">LM</div>
+<div style="flex: 1; min-width: 0"><div style="font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Agroinnova S.A.S.</div><div style="font-size: 12px; color: var(--ink-3)">Laura Méndez</div></div>
+<a href="FundRadar Acceso.dc.html" title="Cerrar sesión" aria-label="Cerrar sesión" style="width: 32px; height: 32px; display: grid; place-items: center; border-radius: 4px; color: var(--ink-3)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5V3h4M16 17l5-5-5-5M21 12H9"></path></svg></a>
+</div>
+</div>
+</aside>
+</sc-if>
+
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+<header style="position: sticky; top: 0; z-index: 20; height: 60px; flex: none; display: flex; align-items: center; gap: 12px; padding: 0 {{ padX }}; background: var(--topbar); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line)">
+<sc-if value="{{ mobile }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; align-items: center; gap: 8px">
+<svg width="26" height="26" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="15" fill="none" stroke="var(--pri)" stroke-width="2.2"></circle><circle cx="17" cy="17" r="9" fill="none" stroke="var(--pri)" stroke-width="2.2" opacity="0.5"></circle><circle cx="17" cy="17" r="4" fill="#F2A93B"></circle></svg>
+<div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 19px"><span>Fund</span><span style="color: var(--pri-text)">Radar</span></div>
+</div>
+</sc-if>
+<sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; align-items: center; gap: 8px; font-size: 13px; white-space: nowrap"><span style="color: var(--ink-3)">{{ crumb.grupo }}</span><span style="color: var(--line-strong)">/</span><span style="font-weight: 600">{{ crumb.pantalla }}</span></div>
+</sc-if>
+<div style="flex: 1"></div>
+<sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}">
+<button onClick="{{ goBuscar }}" style="height: 38px; width: 280px; display: flex; align-items: center; gap: 8px; padding: 0 10px 0 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--ink-3); font-family: Inter, sans-serif; font-size: 13px; cursor: pointer" style-hover="border-color: var(--pri)">
+<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14zM21 21l-4.3-4.3"></path></svg>
+<span style="flex: 1; text-align: left">Buscar convocatorias…</span>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; border: 1px solid var(--line); border-radius: 3px; padding: 1px 5px">⌘K</span>
+</button>
+</sc-if>
+<button onClick="{{ toggleTheme }}" title="{{ themeLabel }}" aria-label="{{ themeLabel }}" style="width: 38px; height: 38px; flex: none; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--ink-2); cursor: pointer">
+<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ themeIcon }}"></path></svg>
+</button>
+<button onClick="{{ toggleNotif }}" aria-label="Avisos" style="position: relative; width: 38px; height: 38px; flex: none; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--ink-2); cursor: pointer">
+<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15zM10 20a2 2 0 0 0 4 0"></path></svg>
+<svg width="10" height="10" viewBox="0 0 14 14" style="position: absolute; top: 6px; right: 6px"><circle class="ping-ring" cx="7" cy="7" r="4" fill="#F2A93B"></circle><circle cx="7" cy="7" r="4" fill="#F2A93B"></circle></svg>
+</button>
+</header>
+
+<sc-if value="{{ notifOpen }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ toggleNotif }}" style="position: fixed; inset: 0; z-index: 30"></div>
+<div style="position: fixed; top: 66px; right: 16px; z-index: 31; width: 360px; max-width: calc(100% - 32px); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; box-shadow: var(--shadow); overflow: hidden">
+<div style="padding: 14px 16px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center"><div style="font-weight: 600">Avisos</div><span style="font-size: 12px; color: var(--ink-3)">3 sin leer</span></div>
+<sc-for list="{{ avisos }}" as="a" hint-placeholder-count="3">
+<button onClick="{{ a.go }}" style="width: 100%; display: flex; gap: 12px; padding: 14px 16px; border: 0; border-bottom: 1px solid var(--line-2); background: transparent; color: var(--ink); text-align: left; cursor: pointer; font-family: Inter, sans-serif" style-hover="background: var(--surface-2)">
+<div style="width: 8px; height: 8px; margin-top: 6px; flex: none; border-radius: 50%; background: #F2A93B"></div>
+<div style="display: flex; flex-direction: column; gap: 3px"><div style="font-size: 13.5px; font-weight: 600; line-height: 1.35">{{ a.t }}</div><div style="font-size: 12.5px; color: var(--ink-3)">{{ a.d }}</div></div>
+</button>
+</sc-for>
+</div>
+</sc-if>
+
+<main style="flex: 1; width: 100%; max-width: 1200px; margin: 0 auto; padding: {{ mainPad }}; display: flex; flex-direction: column; gap: 24px">
+
+<sc-if value="{{ s.inicio }}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 8px; max-width: 720px">
+<div style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pri-text)">Martes, 10 de noviembre</div>
+<h1 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 32px; line-height: 1.1; letter-spacing: -0.01em">Buenas tardes, Laura</h1>
+<p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink-2); text-wrap: pretty">Tienes <strong style="color: var(--ink)">2 convocatorias compatibles</strong> que cierran en los próximos 15 días.</p>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<button onClick="{{ goProyectos }}" style="min-height: 44px; padding: 0 16px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap" style-hover="background: var(--surface-2)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Nuevo proyecto</button>
+<button onClick="{{ goBuscar }}" style="min-height: 44px; padding: 0 18px; display: inline-flex; align-items: center; gap: 8px; border: 0; border-radius: 4px; background: var(--pri); color: var(--on-pri); font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer" style-hover="background: var(--pri-hover)">Explorar convocatorias<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button>
+</div>
+</div>
+
+<div style="background: var(--pri-soft); border: 1px solid var(--line); border-left: 0; border-radius: 6px; padding: 24px; display: flex; flex-wrap: wrap; gap: 24px; align-items: center">
+<div style="flex: 1 1 420px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pri-text)"><svg width="12" height="12" viewBox="0 0 14 14"><circle class="ping-ring" cx="7" cy="7" r="4" fill="#F2A93B"></circle><circle cx="7" cy="7" r="4" fill="#F2A93B"></circle></svg>Tu próximo paso</div>
+<div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 23px; line-height: 1.25; text-wrap: pretty">Completa la postulación a Colombia Inteligente</div>
+<div style="font-size: 14.5px; line-height: 1.55; color: var(--ink-2); text-wrap: pretty">Te faltan {{ faltanN }} de 9 requisitos: {{ faltanTxt }}.</div>
+<div style="display: flex; align-items: center; gap: 10px"><div style="flex: 1; max-width: 360px; height: 6px; border-radius: 3px; background: var(--surface); overflow: hidden"><div style="height: 100%; width: {{ p1Pct }}; background: var(--pri)"></div></div><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-2)">{{ p1Hechos }}/9</span></div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; padding-top: 4px">
+<button onClick="{{ goDetalle }}" style="min-height: 44px; padding: 0 18px; border: 0; border-radius: 4px; background: var(--pri); color: var(--on-pri); font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer" style-hover="background: var(--pri-hover)">Continuar postulación</button>
+<button onClick="{{ goFicha1 }}" style="min-height: 44px; padding: 0 16px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap">Ver la convocatoria</button>
+</div>
+</div>
+<div style="flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px 28px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px">
+<div style="font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 44px; line-height: 1; color: var(--rose)">8</div>
+<div style="font-size: 12.5px; color: var(--ink-2)">días para el cierre</div>
+<div style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-3)">18 nov 2026</div>
+</div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; overflow: hidden">
+<sc-for list="{{ stats }}" as="k" hint-placeholder-count="4">
+<button onClick="{{ k.go }}" style="display: flex; flex-direction: column; gap: 6px; padding: 18px 20px; border: 0; border-right: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); margin: 0 -1px -1px 0; background: transparent; color: var(--ink); text-align: left; cursor: pointer; font-family: Inter, sans-serif" style-hover="background: var(--surface-2)">
+<div style="font-size: 12.5px; font-weight: 600; color: var(--ink-3)">{{ k.label }}</div>
+<div style="font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 28px; line-height: 1.1">{{ k.v }}</div>
+<div style="font-size: 12.5px; color: var(--ink-2)">{{ k.note }}</div>
+</button>
+</sc-for>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px">
+<section style="background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 6px"><h2 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 20px">Próximos cierres</h2><button onClick="{{ goBuscar }}" style="border: 0; background: none; padding: 0; font-family: Inter, sans-serif; font-size: 13px; font-weight: 600; color: var(--pri-text); cursor: pointer">Ver todas</button></div>
+<sc-for list="{{ cierres }}" as="c" hint-placeholder-count="4">
+<button onClick="{{ c.go }}" style="display: flex; align-items: center; gap: 14px; padding: 10px; margin: 0 -10px; border: 0; border-radius: 4px; background: transparent; color: var(--ink); text-align: left; cursor: pointer; font-family: Inter, sans-serif" style-hover="background: var(--surface-2)">
+<div style="width: 48px; height: 48px; flex: none; border-radius: 4px; background: {{ c.dl.bg }}; color: {{ c.dl.fg }}; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px"><span style="font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 18px; line-height: 1">{{ c.dias }}</span><span style="font-size: 9.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase">días</span></div>
+<div style="flex: 1; min-width: 0"><div style="font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ c.nombre }}</div><div style="font-size: 12.5px; color: var(--ink-3); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ c.entidad }} · {{ c.monto }}</div></div>
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: var(--pri-text)">{{ c.compat }}%</span>
+</button>
+</sc-for>
+</section>
+<section style="background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 6px"><h2 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 20px">Mis postulaciones</h2><button onClick="{{ goPost }}" style="border: 0; background: none; padding: 0; font-family: Inter, sans-serif; font-size: 13px; font-weight: 600; color: var(--pri-text); cursor: pointer">Abrir tablero</button></div>
+<sc-for list="{{ posts }}" as="p" hint-placeholder-count="4">
+<button onClick="{{ p.go }}" style="display: flex; flex-direction: column; gap: 8px; padding: 12px 10px; margin: 0 -10px; border: 0; border-radius: 4px; background: transparent; color: var(--ink); text-align: left; cursor: pointer; font-family: Inter, sans-serif" style-hover="background: var(--surface-2)">
+<div style="display: flex; justify-content: space-between; gap: 12px; width: 100%"><span style="font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ p.nombre }}</span><span style="font-size: 12px; font-weight: 600; color: var(--ink-2); white-space: nowrap">{{ p.etapa }}</span></div>
+<div style="display: flex; align-items: center; gap: 10px; width: 100%"><div style="flex: 1; height: 5px; border-radius: 3px; background: var(--line-2); overflow: hidden"><div style="height: 100%; width: {{ p.pct }}; background: var(--pri)"></div></div><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--ink-3); white-space: nowrap">{{ p.hechos }}/{{ p.total }} · {{ p.diasTxt }}</span></div>
+</button>
+</sc-for>
+</section>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.convocatorias }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 8px; max-width: 760px">
+<h1 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 32px; line-height: 1.1">Convocatorias</h1>
+<p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink-2)">Fondos, créditos, beneficios tributarios y cooperación. Revisamos las fuentes oficiales hoy a las 6:00 a. m.</p>
+</div>
+<div style="display: flex; gap: 24px; border-bottom: 1px solid var(--line); overflow-x: auto">
+<sc-for list="{{ catTabs }}" as="t" hint-placeholder-count="3">
+<button onClick="{{ t.go }}" style="display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 2px; border: 0; border-bottom: 2px solid {{ t.bd }}; margin-bottom: -1px; background: transparent; color: {{ t.fg }}; font-family: Inter, sans-serif; font-size: 14px; font-weight: {{ t.fw }}; cursor: pointer; white-space: nowrap">{{ t.label }}<span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--ink-3); background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 3px; padding: 0 5px">{{ t.n }}</span></button>
+</sc-for>
+</div>
+<sc-if value="{{ notSug }}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<label style="flex: 1 1 320px; min-height: 48px; display: flex; align-items: center; gap: 10px; padding: 0 14px; background: var(--surface); border: 1px solid var(--line-strong); border-radius: 4px; color: var(--ink-3)">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14zM21 21l-4.3-4.3"></path></svg>
+<input value="{{ q }}" onChange="{{ setQ }}" aria-label="Buscar convocatorias" placeholder="Busca por nombre, entidad o tema" style="flex: 1; min-width: 0; border: 0; outline: none; background: transparent; color: var(--ink); font-family: Inter, sans-serif; font-size: 15px">
+</label>
+<button onClick="{{ openFiltros }}" style="min-height: 48px; padding: 0 16px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M14 4v4M8 10v4M16 16v4"></path></svg>Filtros
+<sc-if value="{{ hasNF }}" hint-placeholder-val="{{ true }}"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; background: var(--pri); color: var(--on-pri); border-radius: 3px; padding: 1px 6px">{{ nF }}</span></sc-if>
+</button>
+</div>
+<div style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px">
+<sc-for list="{{ chips }}" as="ch" hint-placeholder-count="6">
+<button onClick="{{ ch.toggle }}" aria-pressed="{{ ch.on }}" style="min-height: 36px; padding: 0 14px; border: 1px solid {{ ch.bd }}; border-radius: 999px; background: {{ ch.bg }}; color: {{ ch.fg }}; font-family: Inter, sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap">{{ ch.label }}</button>
+</sc-for>
+</div>
+</sc-if>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px">
+<div style="font-size: 14px; color: var(--ink-2)"><span style="font-weight: 600; color: var(--ink)">{{ resCount }}</span> coinciden</div>
+<div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--pri-text)"><svg width="12" height="12" viewBox="0 0 14 14"><circle class="ping-ring" cx="7" cy="7" r="4" fill="#F2A93B"></circle><circle cx="7" cy="7" r="4" fill="#F2A93B"></circle></svg>3 nuevas esta semana</div>
+</div>
+<sc-if value="{{ noResults }}" hint-placeholder-val="{{ false }}">
+<div style="background: var(--surface); border: 1px dashed var(--line-strong); border-radius: 6px; padding: 40px 24px; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center">
+<div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 20px">No encontramos convocatorias con esos filtros</div>
+<div style="font-size: 14px; color: var(--ink-2); max-width: 420px">Prueba quitando algún filtro o buscando con otras palabras.</div>
+<button onClick="{{ clearAll }}" style="min-height: 44px; padding: 0 18px; border: 0; border-radius: 4px; background: var(--pri); color: var(--on-pri); font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer">Limpiar filtros</button>
+</div>
+</sc-if>
+<sc-if value="{{ notSug }}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{ results }}" as="r" hint-placeholder-count="5">
+<div style="background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 16px 18px; display: flex; flex-wrap: wrap; gap: 14px; align-items: center">
+<button onClick="{{ r.go }}" style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 6px; border: 0; padding: 0; background: transparent; color: var(--ink); text-align: left; cursor: pointer; font-family: Inter, sans-serif">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 12.5px; color: var(--ink-3)"><span>{{ r.entidad }}</span><span style="color: var(--line-strong)">·</span><span>{{ r.tipo }}</span>
+<sc-if value="{{ r.nuevo }}" hint-placeholder-val="{{ false }}"><span style="font-size: 11px; font-weight: 700; color: #0A1A22; background: #F2A93B; border-radius: 3px; padding: 2px 7px">NUEVO</span></sc-if>
+</div>
+<div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 18px; line-height: 1.3; text-wrap: pretty">{{ r.nombre }}</div>
+</button>
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center">
+<div style="display: flex; flex-direction: column; gap: 2px"><div style="font-size: 11.5px; color: var(--ink-3)">Monto</div><div style="font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 14px">{{ r.monto }}</div></div>
+<div style="display: flex; flex-direction: column; gap: 2px"><div style="font-size: 11.5px; color: var(--ink-3)">Cierre</div><div style="font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 13px; background: {{ r.dl.bg }}; color: {{ r.dl.fg }}; border-radius: 3px; padding: 1px 6px">{{ r.diasTxt }}</div></div>
+<div style="display: flex; flex-direction: column; gap: 2px"><div style="font-size: 11.5px; color: var(--ink-3)">Te aplica</div><div style="font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 14px; color: var(--pri-text)">{{ r.compat }}%</div></div>
+<div style="display: flex; gap: 8px">
+<button onClick="{{ r.toggleSave }}" aria-label="{{ r.savedLabel }}" title="{{ r.savedLabel }}" style="width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--pri-text); cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="{{ r.savedFill }}" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"></path></svg></button>
+<button onClick="{{ r.go }}" style="min-height: 44px; padding: 0 14px; border: 1px solid var(--pri); border-radius: 4px; background: var(--surface); color: var(--pri-text); font-family: Inter, sans-serif; font-size: 13.5px; font-weight: 600; cursor: pointer; white-space: nowrap" style-hover="background: var(--pri-soft)">Ver detalle</button>
+</div>
+</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ isSug }}" hint-placeholder-val="{{ false }}">
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 14px">
+<sc-for list="{{ results }}" as="r" hint-placeholder-count="4">
+<button onClick="{{ r.go }}" style="display: flex; flex-direction: column; gap: 14px; padding: 20px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; color: var(--ink); text-align: left; cursor: pointer; font-family: Inter, sans-serif" style-hover="border-color: var(--pri)">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; width: 100%">
+<div style="width: 48px; height: 48px; border-radius: 50%; background: {{ r.ringBg }}; display: grid; place-items: center"><div style="width: 38px; height: 38px; border-radius: 50%; background: var(--surface); display: grid; place-items: center; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; font-weight: 500">{{ r.compat }}%</div></div>
+<span style="font-size: 12px; font-weight: 600; color: var(--pri-text); background: var(--pri-soft); border-radius: 3px; padding: 3px 8px">{{ r.tipo }}</span>
+</div>
+<div><div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 18px; line-height: 1.3; text-wrap: pretty">{{ r.nombre }}</div><div style="font-size: 12.5px; color: var(--ink-3); margin-top: 4px">{{ r.entidad }}</div></div>
+<div style="font-size: 13px; color: var(--ink-2)">Para tu proyecto <strong style="color: var(--ink)">{{ r.proyecto }}</strong></div>
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%; border-top: 1px solid var(--line-2); padding-top: 12px; margin-top: auto"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13.5px; font-weight: 500">{{ r.monto }}</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; background: {{ r.dl.bg }}; color: {{ r.dl.fg }}; border-radius: 3px; padding: 2px 7px">{{ r.diasTxt }}</span></div>
+</button>
+</sc-for>
+</div>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{ s.ficha }}" hint-placeholder-val="{{ false }}">
+<button onClick="{{ backConv }}" style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0; border: 0; background: none; color: var(--pri-text); font-family: Inter, sans-serif; font-size: 13.5px; font-weight: 600; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"></path></svg>Convocatorias</button>
+<div style="display: flex; flex-direction: column; gap: 12px; max-width: 820px">
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<span style="font-size: 12px; font-weight: 600; color: var(--pri-text); background: var(--pri-soft); border-radius: 3px; padding: 4px 8px">{{ c.tipo }}</span>
+<span style="font-size: 12px; font-weight: 600; color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 3px; padding: 3px 8px">{{ c.origen }}</span>
+<sc-if value="{{ c.nuevo }}" hint-placeholder-val="{{ false }}"><span style="font-size: 12px; font-weight: 700; color: #0A1A22; background: #F2A93B; border-radius: 3px; padding: 4px 8px">Nuevo</span></sc-if>
+</div>
+<h1 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 32px; line-height: 1.12; text-wrap: pretty">{{ c.nombre }}</h1>
+<div style="display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 14px; color: var(--ink-2)"><span>{{ c.entidad }}</span><a href="#" style="font-weight: 600; display: inline-flex; align-items: center; gap: 4px">Ver en el portal oficial<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"></path></svg></a></div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; overflow: hidden">
+<div style="padding: 16px 18px; border-right: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); margin: 0 -1px -1px 0; display: flex; flex-direction: column; gap: 4px"><div style="font-size: 12px; color: var(--ink-3)">Monto</div><div style="font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 17px">{{ c.monto }}</div></div>
+<div style="padding: 16px 18px; border-right: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); margin: 0 -1px -1px 0; display: flex; flex-direction: column; gap: 4px"><div style="font-size: 12px; color: var(--ink-3)">Cierre</div><div style="display: flex; align-items: center; gap: 8px"><span style="font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 15px">{{ c.cierre }}</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; background: {{ c.dl.bg }}; color: {{ c.dl.fg }}; border-radius: 3px; padding: 1px 6px">{{ c.diasTxt }}</span></div></div>
+<div style="padding: 16px 18px; border-right: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); margin: 0 -1px -1px 0; display: flex; flex-direction: column; gap: 4px"><div style="font-size: 12px; color: var(--ink-3)">Pueden postularse</div><div style="font-size: 14px; font-weight: 600">{{ c.postulan }}</div></div>
+<div style="padding: 16px 18px; border-right: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); margin: 0 -1px -1px 0; display: flex; flex-direction: column; gap: 4px"><div style="font-size: 12px; color: var(--ink-3)">Cobertura</div><div style="font-size: 14px; font-weight: 600">{{ c.cobertura }}</div></div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+<div style="flex: 1 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<section style="background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 22px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; align-items: center; gap: 16px">
+<div style="width: 72px; height: 72px; flex: none; border-radius: 50%; background: {{ ringBig }}; display: grid; place-items: center"><div style="width: 58px; height: 58px; border-radius: 50%; background: var(--surface); display: grid; place-items: center; font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 17px">{{ c.compat }}%</div></div>
+<div><h2 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 20px">¿Te aplica?</h2><div style="font-size: 13.5px; color: var(--ink-2); margin-top: 4px">Comparada con tu proyecto <strong style="color: var(--ink)">{{ c.proyecto }}</strong></div></div>
+</div>
+<div style="display: flex; flex-direction: column">
+<sc-for list="{{ crit }}" as="k" hint-placeholder-count="5">
+<div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line-2)">
+<div style="width: 24px; height: 24px; flex: none; border-radius: 50%; background: {{ k.bg }}; color: {{ k.fg }}; display: grid; place-items: center"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="{{ k.d }}"></path></svg></div>
+<div style="flex: 1; min-width: 0"><div style="font-size: 14px; font-weight: 600">{{ k.n }}</div><div style="font-size: 12.5px; color: var(--ink-3)">{{ k.v }}</div></div>
+<div style="font-size: 13px; font-weight: 600; color: {{ k.fg }}; text-align: right">{{ k.r }}</div>
+</div>
+</sc-for>
+</div>
+</section>
+<section style="background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 22px; display: flex; flex-direction: column; gap: 10px">
+<h2 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 20px">De qué se trata</h2>
+<p style="margin: 0; font-size: 15px; line-height: 1.65; color: var(--ink-2); max-width: 68ch; text-wrap: pretty">Cofinancia proyectos de investigación, desarrollo tecnológico e innovación que presenten empresas en alianza con una universidad o centro de investigación reconocido. Financia hasta el 70 % del proyecto; la empresa aporta el resto como contrapartida en dinero o en especie.</p>
+</section>
+<section style="background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 22px; display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px"><h2 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 20px">Requisitos</h2><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: var(--ink-3)">9</span></div>
+<sc-for list="{{ fichaReqs }}" as="rq" hint-placeholder-count="9">
+<div style="display: flex; gap: 14px; padding: 10px 0; border-bottom: 1px solid var(--line-2); font-size: 14.5px; line-height: 1.45"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: var(--pri-text); padding-top: 2px">{{ rq.n }}</span><span>{{ rq.t }}</span></div>
+</sc-for>
+</section>
+<section style="background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 22px; display: flex; flex-direction: column; gap: 6px">
+<h2 style="margin: 0 0 6px; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 20px">Documentos de la convocatoria</h2>
+<sc-for list="{{ fichaDocs }}" as="f" hint-placeholder-count="3">
+<a href="#" style="display: flex; align-items: center; gap: 12px; min-height: 48px; padding: 0 12px; border: 1px solid var(--line-2); border-radius: 4px; text-decoration: none; color: var(--ink)">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--pri-text)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h7l4 4v14H7zM14 3v4h4M10 12h5M10 16h5"></path></svg>
+<span style="flex: 1; font-size: 14px; font-weight: 500">{{ f.n }}</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-3)">{{ f.s }}</span>
+</a>
+</sc-for>
+</section>
+</div>
+<aside style="flex: 1 1 300px; max-width: 100%; position: sticky; top: 80px; display: flex; flex-direction: column; gap: 12px">
+<div style="background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--pri); border-radius: 4px; padding: 22px; display: flex; flex-direction: column; gap: 12px">
+<div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 20px">¿Te interesa?</div>
+<div style="font-size: 13.5px; line-height: 1.5; color: var(--ink-2)">Abrimos tu expediente con los 9 requisitos como lista de tareas y te avisamos antes del cierre.</div>
+<button onClick="{{ interesa }}" style="min-height: 48px; border: 0; border-radius: 4px; background: var(--pri); color: var(--on-pri); font-family: Inter, sans-serif; font-size: 15px; font-weight: 600; cursor: pointer" style-hover="background: var(--pri-hover)">Me interesa</button>
+<button onClick="{{ c.toggleSave }}" style="min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="{{ c.savedFill }}" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"></path></svg>{{ c.savedLabel }}</button>
+</div>
+<div style="background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 6px">
+<button onClick="{{ goDocs }}" style="width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px; border: 0; border-radius: 4px; background: transparent; color: var(--ink); text-align: left; cursor: pointer; font-family: Inter, sans-serif" style-hover="background: var(--surface-2)">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--pri-text)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"></path></svg>
+<div style="flex: 1"><div style="font-size: 14px; font-weight: 600">Escribir el borrador con IA</div><div style="font-size: 12.5px; color: var(--ink-3)">Usa 100 de tus 340 créditos</div></div>
+</button>
+<button onClick="{{ goConsultores }}" style="width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px; border: 0; border-top: 1px solid var(--line-2); border-radius: 0; background: transparent; color: var(--ink); text-align: left; cursor: pointer; font-family: Inter, sans-serif" style-hover="background: var(--surface-2)">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--pri-text)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 3a4 4 0 1 0 0 8a4 4 0 1 0 0-8zM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"></path></svg>
+<div style="flex: 1"><div style="font-size: 14px; font-weight: 600">Pedir ayuda a un consultor</div><div style="font-size: 12.5px; color: var(--ink-3)">4 expertos en Minciencias</div></div>
+</button>
+</div>
+<div style="font-size: 12px; color: var(--ink-3); padding: 0 4px">Fuente: portal de {{ c.entidad }} · verificada hoy</div>
+</aside>
+</div>
+</sc-if>
+<sc-if value="{{ s.proyectos }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 8px; max-width: 680px">
+<h1 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 32px; line-height: 1.1">Proyectos</h1>
+<p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink-2); text-wrap: pretty">Tus proyectos son la base de las sugerencias: entre más completos, mejor te encontramos convocatorias.</p>
+</div>
+<button onClick="{{ openNuevo }}" style="min-height: 44px; padding: 0 18px; display: inline-flex; align-items: center; gap: 8px; border: 0; border-radius: 4px; background: var(--pri); color: var(--on-pri); font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer" style-hover="background: var(--pri-hover)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Nuevo proyecto</button>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 14px">
+<sc-for list="{{ proyectos }}" as="p" hint-placeholder-count="3">
+<div style="background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<div><div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 19px; line-height: 1.3; text-wrap: pretty">{{ p.nombre }}</div><div style="font-size: 12.5px; color: var(--ink-3); margin-top: 4px">{{ p.meta }}</div></div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; justify-content: space-between; font-size: 12.5px"><span style="color: var(--ink-2)">Información del proyecto</span><span style="font-family: 'IBM Plex Mono', monospace">{{ p.pct }}</span></div>
+<div style="height: 5px; border-radius: 3px; background: var(--line-2); overflow: hidden"><div style="height: 100%; width: {{ p.pct }}; background: {{ p.color }}"></div></div>
+<sc-if value="{{ p.hasTip }}" hint-placeholder-val="{{ false }}"><div style="font-size: 12.5px; color: var(--ink-2); line-height: 1.45">{{ p.tip }}</div></sc-if>
+</div>
+<div style="display: flex; gap: 24px; border-top: 1px solid var(--line-2); padding-top: 12px">
+<div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 500">{{ p.compat }}</div><div style="font-size: 12px; color: var(--ink-3)">compatibles</div></div>
+<div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 18px; font-weight: 500">{{ p.posts }}</div><div style="font-size: 12px; color: var(--ink-3)">postulaciones</div></div>
+</div>
+<div style="display: flex; gap: 8px; margin-top: auto">
+<button onClick="{{ p.goSug }}" style="flex: 1; min-height: 44px; border: 1px solid var(--pri); border-radius: 4px; background: var(--surface); color: var(--pri-text); font-family: Inter, sans-serif; font-size: 13.5px; font-weight: 600; cursor: pointer">Ver sugeridas</button>
+<button style="min-height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--ink-2); font-family: Inter, sans-serif; font-size: 13.5px; font-weight: 600; cursor: pointer">Editar</button>
+</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.postulaciones }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 8px; max-width: 680px">
+<h1 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 32px; line-height: 1.1">Postulaciones</h1>
+<p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink-2); text-wrap: pretty">Cada postulación avanza sola de etapa a medida que marcas sus requisitos.</p>
+</div>
+<sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}">
+<div role="group" aria-label="Vista" style="display: flex; gap: 2px; padding: 3px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px">
+<sc-for list="{{ vistaOps }}" as="v" hint-placeholder-count="2"><button onClick="{{ v.go }}" style="min-height: 34px; padding: 0 14px; border: 0; border-radius: 3px; background: {{ v.bg }}; box-shadow: {{ v.sh }}; color: {{ v.fg }}; font-family: Inter, sans-serif; font-size: 13px; font-weight: 600; cursor: pointer">{{ v.t }}</button></sc-for>
+</div>
+</sc-if>
+</div>
+<sc-if value="{{ tablero }}" hint-placeholder-val="{{ true }}">
+<div style="display: grid; grid-template-columns: repeat(4, minmax(220px, 1fr)); gap: 12px; overflow-x: auto; padding-bottom: 4px">
+<sc-for list="{{ columns }}" as="col" hint-placeholder-count="4">
+<div style="background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 10px; min-height: 300px">
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 2px 4px"><span style="font-size: 13px; font-weight: 600">{{ col.t }}</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-3)">{{ col.n }}</span></div>
+<sc-for list="{{ col.cards }}" as="p" hint-placeholder-count="1">
+<button onClick="{{ p.go }}" style="display: flex; flex-direction: column; gap: 10px; padding: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; color: var(--ink); text-align: left; cursor: pointer; font-family: Inter, sans-serif" style-hover="border-color: var(--pri)">
+<div style="font-size: 12px; color: var(--ink-3)">{{ p.entidad }}</div>
+<div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 15.5px; line-height: 1.3">{{ p.nombre }}</div>
+<div style="font-size: 12px; color: var(--ink-2)">{{ p.proyecto }}</div>
+<div style="display: flex; align-items: center; gap: 8px; width: 100%"><div style="flex: 1; height: 4px; border-radius: 2px; background: var(--line-2); overflow: hidden"><div style="height: 100%; width: {{ p.pct }}; background: var(--pri)"></div></div><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--ink-3)">{{ p.hechos }}/{{ p.total }}</span></div>
+<div style="display: flex; justify-content: space-between; align-items: center; width: 100%"><span style="font-size: 12px; color: var(--ink-2)">{{ p.nota }}</span><sc-if value="{{ p.hasCons }}" hint-placeholder-val="{{ false }}"><span title="Con consultor" style="width: 24px; height: 24px; border-radius: 50%; background: var(--pri-soft); color: var(--pri-text); display: grid; place-items: center; font-size: 10px; font-weight: 700">{{ p.consultor }}</span></sc-if></div>
+</button>
+</sc-for>
+<sc-if value="{{ col.empty }}" hint-placeholder-val="{{ false }}"><div style="font-size: 12.5px; color: var(--ink-3); padding: 12px 4px">Nada en esta etapa.</div></sc-if>
+</div>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ lista }}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{ mobile }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; gap: 8px; overflow-x: auto">
+<sc-for list="{{ etapaChips }}" as="e" hint-placeholder-count="4"><button onClick="{{ e.go }}" style="min-height: 38px; padding: 0 14px; border: 1px solid {{ e.bd }}; border-radius: 999px; background: {{ e.bg }}; color: {{ e.fg }}; font-family: Inter, sans-serif; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer">{{ e.t }} · {{ e.n }}</button></sc-for>
+</div>
+</sc-if>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{ listaMovil }}" as="p" hint-placeholder-count="2">
+<button onClick="{{ p.go }}" style="display: flex; flex-direction: column; gap: 10px; padding: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; color: var(--ink); text-align: left; cursor: pointer; font-family: Inter, sans-serif">
+<div style="display: flex; justify-content: space-between; gap: 8px; width: 100%; font-size: 12px; color: var(--ink-3)"><span>{{ p.entidad }}</span><span style="font-family: 'IBM Plex Mono', monospace; background: {{ p.dl.bg }}; color: {{ p.dl.fg }}; border-radius: 3px; padding: 1px 6px">{{ p.diasTxt }}</span></div>
+<div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 17px; line-height: 1.3">{{ p.nombre }}</div>
+<div style="display: flex; align-items: center; gap: 8px; width: 100%"><div style="flex: 1; height: 5px; border-radius: 3px; background: var(--line-2); overflow: hidden"><div style="height: 100%; width: {{ p.pct }}; background: var(--pri)"></div></div><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-3)">{{ p.hechos }}/{{ p.total }} requisitos</span></div>
+</button>
+</sc-for>
+</div>
+</sc-if>
+</sc-if>
+<sc-if value="{{ s.detalle }}" hint-placeholder-val="{{ false }}">
+<button onClick="{{ backPost }}" style="align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0; border: 0; background: none; color: var(--pri-text); font-family: Inter, sans-serif; font-size: 13.5px; font-weight: 600; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"></path></svg>Postulaciones</button>
+<div style="display: flex; flex-direction: column; gap: 8px; max-width: 820px">
+<div style="font-size: 13px; color: var(--ink-3)">Minciencias · Proyecto: Secado solar de café de especialidad</div>
+<h1 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 30px; line-height: 1.15; text-wrap: pretty">Colombia Inteligente: I+D+i empresarial 2026</h1>
+</div>
+<div style="background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 18px 20px; display: flex; align-items: flex-start; gap: 0; overflow-x: auto">
+<sc-for list="{{ stepper }}" as="st" hint-placeholder-count="4">
+<div style="flex: 1 0 120px; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; align-items: center">
+<div style="width: 28px; height: 28px; flex: none; border-radius: 50%; border: 2px solid {{ st.bd }}; background: {{ st.bg }}; color: {{ st.fg }}; display: grid; place-items: center; font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 500">
+<sc-if value="{{ st.isDone }}" hint-placeholder-val="{{ false }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></sc-if>
+<sc-if value="{{ st.notDone }}" hint-placeholder-val="{{ true }}">{{ st.n }}</sc-if>
+</div>
+<sc-if value="{{ st.notLast }}" hint-placeholder-val="{{ true }}"><div style="flex: 1; height: 2px; background: {{ st.line }}; margin: 0 8px"></div></sc-if>
+</div>
+<div style="font-size: 13px; font-weight: {{ st.tfw }}; color: {{ st.tfg }}; padding-right: 12px">{{ st.t }}</div>
+</div>
+</sc-for>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+<section style="flex: 1 1 520px; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 22px; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 4px"><h2 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 20px">Requisitos</h2><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--ink-2)">{{ p1Hechos }} de 9</span></div>
+<div style="height: 6px; border-radius: 3px; background: var(--line-2); overflow: hidden; margin-bottom: 8px"><div style="height: 100%; width: {{ p1Pct }}; background: var(--pri)"></div></div>
+<sc-for list="{{ checklist }}" as="k" hint-placeholder-count="9">
+<button onClick="{{ k.toggle }}" role="checkbox" aria-checked="{{ k.on }}" style="display: flex; align-items: center; gap: 14px; min-height: 52px; padding: 8px 0; border: 0; border-bottom: 1px solid var(--line-2); background: transparent; color: var(--ink); text-align: left; cursor: pointer; font-family: Inter, sans-serif">
+<div style="width: 24px; height: 24px; flex: none; border-radius: 4px; border: 2px solid {{ k.bd }}; background: {{ k.bg }}; display: grid; place-items: center; color: var(--on-pri)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="visibility: {{ k.show }}"><path d="M20 6L9 17l-5-5"></path></svg></div>
+<span style="flex: 1; font-size: 14.5px; line-height: 1.4; color: {{ k.tfg }}; text-decoration: {{ k.deco }}">{{ k.t }}</span>
+<sc-if value="{{ k.notOn }}" hint-placeholder-val="{{ false }}"><span style="font-size: 12.5px; font-weight: 600; color: var(--pri-text); white-space: nowrap">Adjuntar</span></sc-if>
+</button>
+</sc-for>
+</section>
+<div style="flex: 1 1 300px; max-width: 100%; display: flex; flex-direction: column; gap: 12px">
+<div style="background: var(--pri-soft); border: 1px solid var(--line); border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pri-text)">Siguiente paso</div>
+<sc-if value="{{ incompleta }}" hint-placeholder-val="{{ true }}">
+<div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 19px; line-height: 1.3">Te faltan {{ faltanN }} requisitos</div>
+<div style="font-size: 13.5px; line-height: 1.5; color: var(--ink-2)">{{ faltanTxt }}. Cuando los marques, te mostramos cómo radicar.</div>
+</sc-if>
+<sc-if value="{{ completa }}" hint-placeholder-val="{{ false }}">
+<div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 19px; line-height: 1.3">Ya puedes radicar</div>
+<div style="font-size: 13.5px; line-height: 1.5; color: var(--ink-2)">Sube los documentos en el portal de Minciencias y vuelve para marcarla como radicada.</div>
+<a href="#" style="min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 4px; background: var(--pri); color: var(--on-pri); text-decoration: none; font-size: 14px; font-weight: 600">Ir al portal oficial</a>
+<button style="min-height: 44px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer">Marcar como radicada</button>
+</sc-if>
+</div>
+<button onClick="{{ goDocs }}" style="display: flex; gap: 12px; align-items: flex-start; padding: 18px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; color: var(--ink); text-align: left; cursor: pointer; font-family: Inter, sans-serif" style-hover="border-color: var(--pri)">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--pri-text)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex: none; margin-top: 2px"><path d="M7 3h7l4 4v14H7zM14 3v4h4M10 12h5M10 16h5"></path></svg>
+<div style="flex: 1"><div style="font-size: 14px; font-weight: 600">Documento de propuesta · v2</div><div style="font-size: 12.5px; color: var(--ink-3); margin-top: 2px">Borrador con IA · 2 apartados por revisar</div></div>
+</button>
+<button onClick="{{ goEncargos }}" style="display: flex; gap: 12px; align-items: center; padding: 18px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; color: var(--ink); text-align: left; cursor: pointer; font-family: Inter, sans-serif" style-hover="border-color: var(--pri)">
+<div style="width: 36px; height: 36px; flex: none; border-radius: 50%; background: var(--pri-soft); color: var(--pri-text); display: grid; place-items: center; font-size: 12px; font-weight: 700">AR</div>
+<div style="flex: 1"><div style="font-size: 14px; font-weight: 600">Andrés Rojas te acompaña</div><div style="font-size: 12.5px; color: var(--ink-3); margin-top: 2px">Consultor · revisó el presupuesto ayer</div></div>
+</button>
+<div style="background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+<div style="font-size: 14px; font-weight: 600">Historial</div>
+<div style="display: flex; gap: 10px; font-size: 13px"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-3); width: 52px; flex: none">9 nov</span><span style="color: var(--ink-2)">Marcaste «Cronograma de actividades»</span></div>
+<div style="display: flex; gap: 10px; font-size: 13px"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-3); width: 52px; flex: none">8 nov</span><span style="color: var(--ink-2)">Se generó el borrador v2 con IA</span></div>
+<div style="display: flex; gap: 10px; font-size: 13px"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-3); width: 52px; flex: none">2 nov</span><span style="color: var(--ink-2)">Iniciaste la postulación</span></div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.documentos }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 8px; max-width: 680px">
+<div style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pri-text)">Con IA</div>
+<h1 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 32px; line-height: 1.1">Documentos</h1>
+<p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink-2); text-wrap: pretty">Borradores de propuesta escritos con IA a partir de tu proyecto y los términos de la convocatoria. Tú revisas y ajustas.</p>
+</div>
+<button onClick="{{ goBuscar }}" style="min-height: 44px; padding: 0 18px; display: inline-flex; align-items: center; gap: 8px; border: 0; border-radius: 4px; background: var(--pri); color: var(--on-pri); font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Nuevo documento</button>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 14px 18px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; font-size: 13.5px; color: var(--ink-2)">
+<span>Cada documento usa <strong style="color: var(--ink)">100 créditos</strong> y cada ajuste, 10.</span>
+<span>Te quedan <strong style="color: var(--ink); font-family: 'IBM Plex Mono', monospace; font-weight: 500">340</strong>: alcanzan para 3 documentos.</span>
+<button onClick="{{ goPlan }}" style="margin-left: auto; border: 0; background: none; padding: 0; font-family: Inter, sans-serif; font-size: 13.5px; font-weight: 600; color: var(--pri-text); cursor: pointer">Conseguir más</button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{ docs }}" as="d" hint-placeholder-count="3">
+<div style="background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 16px 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 14px">
+<div style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; align-items: center; gap: 8px"><span style="font-size: 12px; font-weight: 600; background: {{ d.bg }}; color: {{ d.fg }}; border-radius: 3px; padding: 2px 8px">{{ d.estado }}</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-3)">{{ d.v }} · {{ d.fecha }}</span></div>
+<div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 17px; line-height: 1.3">{{ d.proyecto }}</div>
+<div style="font-size: 13px; color: var(--ink-3)">{{ d.conv }}</div>
+</div>
+<span style="font-size: 13px; color: var(--ink-2)">{{ d.pend }}</span>
+<button style="min-height: 44px; padding: 0 16px; border: 1px solid var(--pri); border-radius: 4px; background: var(--surface); color: var(--pri-text); font-family: Inter, sans-serif; font-size: 13.5px; font-weight: 600; cursor: pointer">Abrir</button>
+</div>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ s.consultores }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 8px; max-width: 700px">
+<h1 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 32px; line-height: 1.1">Consultores</h1>
+<p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink-2); text-wrap: pretty">Expertos revisados por nuestro equipo. Trabajan contigo dentro de la misma postulación, sin cruzar correos.</p>
+</div>
+<div style="display: flex; gap: 8px; overflow-x: auto">
+<sc-for list="{{ espChips }}" as="e" hint-placeholder-count="5"><button onClick="{{ e.go }}" style="min-height: 36px; padding: 0 14px; border: 1px solid {{ e.bd }}; border-radius: 999px; background: {{ e.bg }}; color: {{ e.fg }}; font-family: Inter, sans-serif; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer">{{ e.o }}</button></sc-for>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 14px">
+<sc-for list="{{ cons }}" as="c" hint-placeholder-count="4">
+<div style="background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; align-items: center; gap: 12px">
+<div style="width: 48px; height: 48px; flex: none; border-radius: 50%; background: var(--pri); color: var(--on-pri); display: grid; place-items: center; font-size: 15px; font-weight: 700">{{ c.ini }}</div>
+<div style="flex: 1; min-width: 0"><div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 18px">{{ c.nombre }}</div><div style="font-size: 12.5px; color: var(--ink-3)">{{ c.ciudad }}</div></div>
+<div style="text-align: right"><div style="font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 500">★ {{ c.rating }}</div><div style="font-size: 11.5px; color: var(--ink-3)">{{ c.enc }} encargos</div></div>
+</div>
+<div style="font-size: 13.5px; line-height: 1.5; color: var(--ink-2)">{{ c.bio }}</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{ c.espL }}" as="e" hint-placeholder-count="2"><span style="font-size: 12px; font-weight: 600; color: var(--pri-text); background: var(--pri-soft); border-radius: 3px; padding: 3px 8px">{{ e.t }}</span></sc-for></div>
+<div style="display: flex; gap: 8px; margin-top: auto">
+<button style="flex: 1; min-height: 44px; border: 0; border-radius: 4px; background: var(--pri); color: var(--on-pri); font-family: Inter, sans-serif; font-size: 13.5px; font-weight: 600; cursor: pointer">Solicitar</button>
+<button style="min-height: 44px; padding: 0 14px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 13.5px; font-weight: 600; cursor: pointer">Ver perfil</button>
+</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.encargos }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 8px; max-width: 680px">
+<h1 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 32px; line-height: 1.1">Mis encargos</h1>
+<p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink-2)">Lo que pediste a consultores y en qué va cada encargo.</p>
+</div>
+<button onClick="{{ goConsultores }}" style="min-height: 44px; padding: 0 18px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer">Buscar consultor</button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{ encargos }}" as="e" hint-placeholder-count="3">
+<div style="background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px">
+<div style="flex: 1 1 280px; min-width: 0; display: flex; gap: 12px; align-items: center">
+<div style="width: 40px; height: 40px; flex: none; border-radius: 50%; background: var(--pri-soft); color: var(--pri-text); display: grid; place-items: center; font-size: 13px; font-weight: 700">{{ e.ini }}</div>
+<div style="min-width: 0"><div style="font-size: 14.5px; font-weight: 600">{{ e.cons }}</div><div style="font-size: 13px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{ e.conv }}</div></div>
+</div>
+<div style="flex: 1 1 300px; display: flex; flex-direction: column; gap: 6px">
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px"><sc-for list="{{ e.dots }}" as="d" hint-placeholder-count="4"><div style="display: flex; flex-direction: column; gap: 5px"><div style="height: 4px; border-radius: 2px; background: {{ d.bg }}"></div><span style="font-size: 11px; color: {{ d.fg }}">{{ d.t }}</span></div></sc-for></div>
+<div style="font-size: 12.5px; color: var(--ink-2)">{{ e.nota }}</div>
+</div>
+<button style="min-height: 44px; padding: 0 16px; border: 1px solid var(--pri); border-radius: 4px; background: var(--surface); color: var(--pri-text); font-family: Inter, sans-serif; font-size: 13.5px; font-weight: 600; cursor: pointer; white-space: nowrap">{{ e.accion }}</button>
+</div>
+</sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.plan }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 8px; max-width: 680px">
+<h1 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 32px; line-height: 1.1">Plan y créditos</h1>
+<p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink-2)">Lo que tienes hoy y cuánto te alcanza, en palabras simples.</p>
+</div>
+<div style="background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 24px; display: flex; flex-wrap: wrap; gap: 24px 40px; align-items: center">
+<div style="flex: 1 1 280px; display: flex; flex-direction: column; gap: 6px">
+<div style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pri-text)">Tu plan</div>
+<div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 24px">Prueba gratuita</div>
+<div style="font-size: 14px; color: var(--ink-2)">Termina en <strong style="color: var(--ink)">5 días</strong>, el 15 de noviembre. No te cobramos nada al terminar.</div>
+</div>
+<div style="flex: 1 1 320px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: baseline; gap: 8px"><span style="font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 34px; line-height: 1">340</span><span style="font-size: 14px; color: var(--ink-2)">de 500 créditos de IA</span></div>
+<div style="height: 8px; border-radius: 4px; background: var(--line-2); overflow: hidden"><div style="height: 100%; width: 68%; background: var(--pri)"></div></div>
+<div style="font-size: 13.5px; color: var(--ink-2); line-height: 1.5">Te alcanzan para <strong style="color: var(--ink)">3 documentos</strong>. Un documento usa 100 créditos; un ajuste, 10.</div>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 14px">
+<sc-for list="{{ planes }}" as="p" hint-placeholder-count="3">
+<div style="background: var(--surface); border: 1px solid var(--line); border-top: {{ p.bt }}; border-radius: 4px; padding: 22px; display: flex; flex-direction: column; gap: 14px">
+<div style="display: flex; justify-content: space-between; align-items: center"><div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 21px">{{ p.n }}</div><sc-if value="{{ p.rec }}" hint-placeholder-val="{{ false }}"><span style="font-size: 11.5px; font-weight: 600; color: var(--pri-text); background: var(--pri-soft); border-radius: 3px; padding: 3px 8px">Recomendado</span></sc-if></div>
+<div><span style="font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 24px">{{ p.p }}</span><span style="font-size: 13px; color: var(--ink-3)"> COP / mes</span></div>
+<div style="display: flex; flex-direction: column; gap: 8px; font-size: 13.5px; color: var(--ink-2)">
+<div style="display: flex; gap: 8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--pri-text)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none; margin-top: 2px"><path d="M20 6L9 17l-5-5"></path></svg><strong style="color: var(--ink); font-weight: 600">{{ p.cred }}</strong></div>
+<div style="display: flex; gap: 8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--pri-text)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none; margin-top: 2px"><path d="M20 6L9 17l-5-5"></path></svg>Postulaciones y sugerencias ilimitadas</div>
+<div style="display: flex; gap: 8px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--pri-text)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none; margin-top: 2px"><path d="M20 6L9 17l-5-5"></path></svg>Solicitud de consultores</div>
+</div>
+<button style="margin-top: auto; min-height: 44px; border: 1px solid {{ p.btnBd }}; border-radius: 4px; background: {{ p.btnBg }}; color: {{ p.btnFg }}; font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer">{{ p.cta }}</button>
+</div>
+</sc-for>
+</div>
+<section style="background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 22px; display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 20px">Paquetes de créditos</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 10px">
+<sc-for list="{{ paquetes }}" as="k" hint-placeholder-count="3">
+<button style="display: flex; flex-direction: column; gap: 4px; padding: 16px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface-2); color: var(--ink); text-align: left; cursor: pointer; font-family: Inter, sans-serif" style-hover="border-color: var(--pri)"><span style="font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 20px">{{ k.c }}</span><span style="font-size: 12.5px; color: var(--ink-3)">créditos · {{ k.d }}</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; margin-top: 6px">{{ k.p }}</span></button>
+</sc-for>
+</div>
+<div style="font-size: 13px; line-height: 1.55; color: var(--ink-3); border-top: 1px solid var(--line-2); padding-top: 12px">Durante el piloto, los planes y paquetes se contratan con nuestro equipo: acuerdas el pago por fuera de la plataforma y activamos tu plan. Aquí no se hace ningún cobro.</div>
+</section>
+</sc-if>
+
+<sc-if value="{{ s.ajustes }}" hint-placeholder-val="{{ false }}">
+<div style="max-width: 760px; width: 100%; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h1 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 32px; line-height: 1.1">Ajustes</h1>
+<p style="margin: 0; font-size: 15px; color: var(--ink-2)">Tu cuenta y cómo se ve la plataforma.</p>
+</div>
+<section style="background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 22px; display: flex; flex-direction: column">
+<h2 style="margin: 0 0 8px; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 19px">Cuenta</h2>
+<sc-for list="{{ cuenta }}" as="r" hint-placeholder-count="3"><div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; padding: 12px 0; border-top: 1px solid var(--line-2)"><span style="font-size: 13.5px; color: var(--ink-3)">{{ r.k }}</span><span style="font-size: 14px; font-weight: 600">{{ r.v }}</span></div></sc-for>
+</section>
+<section style="background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 22px; display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 19px">Apariencia</h2>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px"><div><div style="font-size: 14px; font-weight: 600">Tema</div><div style="font-size: 12.5px; color: var(--ink-3)">Se guarda en este navegador.</div></div>
+<div role="group" aria-label="Tema" style="display: flex; gap: 2px; padding: 3px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 4px"><sc-for list="{{ temaOps }}" as="v" hint-placeholder-count="2"><button onClick="{{ v.go }}" style="min-height: 36px; padding: 0 16px; border: 0; border-radius: 3px; background: {{ v.bg }}; box-shadow: {{ v.sh }}; color: {{ v.fg }}; font-family: Inter, sans-serif; font-size: 13px; font-weight: 600; cursor: pointer">{{ v.t }}</button></sc-for></div>
+</div>
+</section>
+<section style="background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 22px; display: flex; flex-direction: column; gap: 14px">
+<h2 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 19px">Seguridad</h2>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px"><div><div style="font-size: 14px; font-weight: 600">Contraseña</div><div style="font-size: 12.5px; color: var(--ink-3)">Te enviamos un enlace a tu correo para definir una nueva.</div></div><button style="min-height: 44px; padding: 0 16px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 13.5px; font-weight: 600; cursor: pointer">Cambiar contraseña</button></div>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; border-top: 1px solid var(--line-2); padding-top: 14px"><div><div style="font-size: 14px; font-weight: 600">Sesión</div><div style="font-size: 12.5px; color: var(--ink-3)">Cierra la sesión en este navegador.</div></div><a href="FundRadar Acceso.dc.html" style="min-height: 44px; padding: 0 16px; display: inline-flex; align-items: center; border: 1px solid var(--line-strong); border-radius: 4px; color: var(--ink); text-decoration: none; font-size: 13.5px; font-weight: 600">Cerrar sesión</a></div>
+</section>
+<section style="background: var(--surface-2); border: 1px dashed var(--line-strong); border-radius: 6px; padding: 18px 22px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; font-size: 13.5px">
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-3)">PROTOTIPO · otros portales</span>
+<a href="FundRadar Acceso.dc.html" style="font-weight: 600">Acceso</a>
+<a href="FundRadar Consultor.dc.html" style="font-weight: 600">Portal consultor</a>
+<a href="FundRadar Admin.dc.html" style="font-weight: 600">Panel administrativo</a>
+</section>
+</div>
+</sc-if>
+</main>
+
+<sc-if value="{{ mobile }}" hint-placeholder-val="{{ false }}">
+<nav aria-label="Navegación" style="position: sticky; bottom: 0; z-index: 20; flex: none; display: grid; grid-template-columns: repeat(5, 1fr); background: var(--surface); border-top: 1px solid var(--line); padding-bottom: 6px">
+<sc-for list="{{ tabs }}" as="t" hint-placeholder-count="5">
+<button onClick="{{ t.go }}" style="position: relative; min-height: 58px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 0; background: transparent; color: {{ t.fg }}; font-family: Inter, sans-serif; font-size: 11px; font-weight: {{ t.fw }}; cursor: pointer">
+<div style="position: absolute; top: 0; left: 25%; right: 25%; height: 2px; background: {{ t.bar }}"></div>
+<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ t.d }}"></path></svg>
+<span>{{ t.label }}</span>
+</button>
+</sc-for>
+</nav>
+</sc-if>
+</div>
+
+<sc-if value="{{ masOpen }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ toggleMas }}" style="position: fixed; inset: 0; z-index: 40; background: var(--overlay)"></div>
+<div style="position: fixed; left: 0; right: 0; bottom: 0; z-index: 41; background: var(--surface); border-radius: 12px 12px 0 0; padding: 8px 16px 24px; display: flex; flex-direction: column">
+<div style="width: 40px; height: 4px; border-radius: 2px; background: var(--line); margin: 4px auto 12px"></div>
+<sc-for list="{{ masItems }}" as="it" hint-placeholder-count="6">
+<button onClick="{{ it.go }}" style="display: flex; align-items: center; gap: 14px; min-height: 52px; padding: 0 8px; border: 0; border-bottom: 1px solid var(--line-2); background: transparent; color: var(--ink); font-family: Inter, sans-serif; font-size: 15px; font-weight: 500; text-align: left; cursor: pointer">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--pri-text)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ it.d }}"></path></svg>
+<span style="flex: 1">{{ it.label }}</span>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"></path></svg>
+</button>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ filtrosOpen }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeFiltros }}" style="position: fixed; inset: 0; z-index: 40; background: var(--overlay)"></div>
+<div role="dialog" aria-label="Filtros" style="position: fixed; z-index: 41; right: 0; bottom: 0; left: {{ drawer.l }}; top: {{ drawer.t }}; width: {{ drawer.w }}; max-height: {{ drawer.mh }}; border-radius: {{ drawer.r }}; background: var(--surface); display: flex; flex-direction: column; box-shadow: var(--shadow)">
+<div style="display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--line)">
+<div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 20px">Filtros</div>
+<button onClick="{{ closeFiltros }}" aria-label="Cerrar" style="width: 40px; height: 40px; display: grid; place-items: center; border: 0; border-radius: 4px; background: transparent; color: var(--ink-2); cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"></path></svg></button>
+</div>
+<div style="flex: 1; overflow-y: auto; padding: 8px 20px 20px; display: flex; flex-direction: column">
+<div style="margin-top: 12px; padding: 12px 14px; background: var(--pri-soft); border-radius: 4px; font-size: 13px; line-height: 1.5; color: var(--ink-2)">Ya filtramos por tu perfil: <strong style="color: var(--ink)">empresa del sector agro en Huila</strong>. Ajusta solo si buscas algo distinto.</div>
+<sc-for list="{{ fGroups }}" as="g" hint-placeholder-count="4">
+<div style="padding: 18px 0; border-bottom: 1px solid var(--line-2); display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 14px; font-weight: 600">{{ g.t }}</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{ g.ops }}" as="o" hint-placeholder-count="4">
+<button onClick="{{ o.toggle }}" style="min-height: 38px; padding: 0 12px; border: 1px solid {{ o.bd }}; border-radius: 4px; background: {{ o.bg }}; color: {{ o.fg }}; font-family: Inter, sans-serif; font-size: 13.5px; font-weight: 500; cursor: pointer">{{ o.o }}</button>
+</sc-for>
+</div>
+</div>
+</sc-for>
+<div style="padding: 18px 0; display: flex; flex-direction: column; gap: 8px">
+<label style="font-size: 14px; font-weight: 600" for="monto-f">Cuánto necesitas</label>
+<input id="monto-f" placeholder="$ 400.000.000" style="min-height: 46px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: 'IBM Plex Mono', monospace; font-size: 15px">
+<div style="font-size: 12.5px; color: var(--ink-3)">Mostramos las que apoyan al menos este monto.</div>
+</div>
+</div>
+<div style="display: flex; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--line)">
+<button onClick="{{ clearF }}" style="min-height: 48px; padding: 0 18px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer">Limpiar</button>
+<button onClick="{{ closeFiltros }}" style="flex: 1; min-height: 48px; border: 0; border-radius: 4px; background: var(--pri); color: var(--on-pri); font-family: Inter, sans-serif; font-size: 15px; font-weight: 600; cursor: pointer">Ver {{ resCount }}</button>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ nuevoProy }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeNuevo }}" style="position: fixed; inset: 0; z-index: 40; background: var(--overlay)"></div>
+<div role="dialog" aria-label="Nuevo proyecto" style="position: fixed; z-index: 41; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 520px; max-width: calc(100% - 32px); background: var(--surface); border-radius: 6px; padding: 24px; display: flex; flex-direction: column; gap: 16px; box-shadow: var(--shadow)">
+<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px"><div><div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 22px">Nuevo proyecto</div><div style="font-size: 13.5px; color: var(--ink-2); margin-top: 4px">¿Cómo prefieres empezar?</div></div><button onClick="{{ closeNuevo }}" aria-label="Cerrar" style="width: 40px; height: 40px; display: grid; place-items: center; border: 0; background: transparent; color: var(--ink-2); cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"></path></svg></button></div>
+<button onClick="{{ closeNuevo }}" style="display: flex; gap: 14px; padding: 18px; border: 2px solid var(--pri); border-radius: 4px; background: var(--pri-soft); color: var(--ink); text-align: left; cursor: pointer; font-family: Inter, sans-serif">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--pri-text)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"></path></svg>
+<div><div style="font-size: 15px; font-weight: 600">Cuéntalo con tus palabras</div><div style="font-size: 13px; color: var(--ink-2); margin-top: 4px; line-height: 1.5">Escribe o dicta de qué se trata y la IA llena la ficha. Tú revisas antes de guardar. Usa 20 créditos.</div></div>
+</button>
+<button onClick="{{ closeNuevo }}" style="display: flex; gap: 14px; padding: 18px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--ink); text-align: left; cursor: pointer; font-family: Inter, sans-serif">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--pri-text)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="flex: none"><path d="M7 3h7l4 4v14H7zM14 3v4h4M10 12h5M10 16h5"></path></svg>
+<div><div style="font-size: 15px; font-weight: 600">Llenar el formulario</div><div style="font-size: 13px; color: var(--ink-2); margin-top: 4px; line-height: 1.5">Tipo, sector, monto, ubicación y duración. Unos 5 minutos.</div></div>
+</button>
+</div>
+</sc-if>
+<sc-if value="{{ fichaBar }}" hint-placeholder-val="{{ false }}">
+<div style="position: fixed; left: 0; right: 0; bottom: 64px; z-index: 19; display: flex; gap: 8px; padding: 10px 16px; background: var(--surface); border-top: 1px solid var(--line)">
+<button onClick="{{ c.toggleSave }}" aria-label="{{ c.savedLabel }}" style="width: 48px; height: 48px; flex: none; display: grid; place-items: center; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--pri-text); cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="{{ c.savedFill }}" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4z"></path></svg></button>
+<button onClick="{{ interesa }}" style="flex: 1; min-height: 48px; border: 0; border-radius: 4px; background: var(--pri); color: var(--on-pri); font-family: Inter, sans-serif; font-size: 15px; font-weight: 600; cursor: pointer">Me interesa</button>
+</div>
+</sc-if>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;vista&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;auto&quot;, &quot;movil&quot;], &quot;default&quot;: &quot;auto&quot;, &quot;tsType&quot;: &quot;'auto' | 'movil'&quot;, &quot;section&quot;: &quot;Vista&quot;}, &quot;tema&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;claro&quot;, &quot;oscuro&quot;], &quot;default&quot;: &quot;claro&quot;, &quot;tsType&quot;: &quot;'claro' | 'oscuro'&quot;, &quot;section&quot;: &quot;Vista&quot;}}">
+class Component extends DCLogic {
+  state = { screen: 'inicio', dark: null, mobile: false, notif: false, mas: false, tab: 'todas', q: '', chips: { perfil: true }, filtros: false, fsel: { 'Innovación': true, 'Agro': true, 'Empresa': true }, saved: { c1: true, c4: true }, convSel: 'c1', vistaPost: 'tablero', etapaM: 'documentos', checks: [true, true, false, false, true, true, true, true, false], nuevoProy: false, consEsp: 'Todas' };
+  rootRef = { current: null };
+  setRoot = (el) => {
+    if (el === this.rootRef.current) return;
+    this.ro && this.ro.disconnect();
+    this.rootRef.current = el;
+    if (el && window.ResizeObserver) {
+      this.ro = new ResizeObserver(([e]) => { window.__frW = e.contentRect.width; window.__frS = this.state.mobile; const m = e.contentRect.width < 900; if (m !== this.state.mobile) this.setState({ mobile: m }); });
+      this.ro.observe(el);
+    }
+  };
+  I = {
+    home: 'M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z',
+    search: 'M11 4a7 7 0 1 0 0 14a7 7 0 1 0 0-14zM21 21l-4.3-4.3',
+    folder: 'M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z',
+    clip: 'M9 3h6v3H9zM7 4.5H5V21h14V4.5h-2M9 14l2 2 4-4',
+    spark: 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z',
+    users: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 3a4 4 0 1 0 0 8a4 4 0 1 0 0-8zM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8',
+    brief: 'M3 7h18v13H3zM8 7V4h8v3M3 13h18',
+    card: 'M2 5h20v14H2zM2 10h20',
+    sliders: 'M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M14 4v4M8 10v4M16 16v4',
+    more: 'M4 6h16M4 12h16M4 18h16',
+    moon: 'M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z',
+    sun: 'M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4'
+  };
+  convs = [
+    { id: 'c1', nombre: 'Colombia Inteligente: I+D+i empresarial 2026', entidad: 'Minciencias', tipo: 'Cofinanciación', cat: 'noreemb', origen: 'Pública', monto: 'Hasta $1.500 M', dias: 8, cierre: '18 nov 2026', compat: 92, nuevo: true, proyecto: 'Secado solar de café', postulan: 'Empresas y alianzas con universidades', cobertura: 'Nacional' },
+    { id: 'c7', nombre: 'Economía circular en el agro', entidad: 'Fundación Bolívar Davivienda', tipo: 'Fondos privados', cat: 'noreemb', origen: 'Privada', monto: 'Hasta $250 M', dias: 9, cierre: '19 nov 2026', compat: 69, nuevo: false, proyecto: 'Planta piloto de bioinsumos', postulan: 'Empresas y fundaciones', cobertura: 'Nacional' },
+    { id: 'c2', nombre: 'Innova Región Pacífico', entidad: 'iNNpulsa Colombia', tipo: 'No reembolsable', cat: 'noreemb', origen: 'Pública', monto: 'Hasta $400 M', dias: 12, cierre: '22 nov 2026', compat: 81, nuevo: true, proyecto: 'Planta piloto de bioinsumos', postulan: 'Mipymes', cobertura: 'Valle, Cauca, Nariño y Chocó' },
+    { id: 'c3', nombre: 'Fondo Emprender: convocatoria nacional', entidad: 'SENA', tipo: 'Capital semilla', cat: 'noreemb', origen: 'Pública', monto: 'Hasta $160 M', dias: 21, cierre: '1 dic 2026', compat: 74, nuevo: false, proyecto: 'Trazabilidad de cacao', postulan: 'Emprendimientos', cobertura: 'Nacional' },
+    { id: 'c6', nombre: 'Paisajes sostenibles del Pacífico', entidad: 'Fondo Acción', tipo: 'Cooperación internacional', cat: 'cooperacion', origen: 'Cooperación', monto: 'USD 120.000', dias: 33, cierre: '13 dic 2026', compat: 58, nuevo: true, proyecto: 'Planta piloto de bioinsumos', postulan: 'Fundaciones y empresas', cobertura: 'Región Pacífico' },
+    { id: 'c4', nombre: 'Deducción por inversión en CTeI', entidad: 'Minciencias', tipo: 'Beneficio tributario', cat: 'tributario', origen: 'Pública', monto: 'Deducción del 30 %', dias: 45, cierre: '25 dic 2026', compat: 85, nuevo: false, proyecto: 'Secado solar de café', postulan: 'Empresas contribuyentes', cobertura: 'Nacional' },
+    { id: 'c5', nombre: 'Línea Bancóldex Sostenible', entidad: 'Bancóldex', tipo: 'Crédito de fomento', cat: 'credito', origen: 'Pública', monto: 'Hasta $5.000 M', dias: 60, cierre: '9 ene 2027', compat: 64, nuevo: false, proyecto: 'Secado solar de café', postulan: 'Empresas', cobertura: 'Nacional' }
+  ];
+  reqs = ['Certificado de existencia y representación legal (menos de 30 días)', 'RUT actualizado', 'Estados financieros 2025 firmados por contador', 'Carta de aval de la universidad aliada', 'Formulario de presentación del proyecto', 'Presupuesto en la plantilla oficial', 'Cronograma de actividades', 'Hojas de vida del equipo técnico', 'Certificación de contrapartida (mínimo 30 %)'];
+  reqCorto = ['certificado de existencia', 'RUT', 'estados financieros 2025', 'carta de aval', 'formulario', 'presupuesto', 'cronograma', 'hojas de vida', 'certificación de contrapartida'];
+  checkW = () => {
+    const el = document.querySelector('[data-fr-root]');
+    if (!el) return;
+    this.rootRef.current = el;
+    const m = el.clientWidth < 900;
+    if (m !== this.state.mobile) this.setState({ mobile: m });
+  };
+  componentDidMount() {
+    this.timer = setInterval(this.checkW, 250);
+    this.checkW();
+    try { const s = localStorage.getItem('fr-emp-screen'); if (s) this.setState({ screen: s }); } catch (e) {}
+  }
+  componentWillUnmount() { clearInterval(this.timer); }
+  go(screen, extra) {
+    this.setState({ screen, mas: false, notif: false, filtros: false, ...(extra || {}) });
+    try { localStorage.setItem('fr-emp-screen', screen); } catch (e) {}
+    const el = this.rootRef.current; if (el) el.scrollTop = 0; window.scrollTo(0, 0);
+  }
+  dl(d) { return d < 10 ? { bg: 'var(--rose-soft)', fg: 'var(--rose)' } : d < 15 ? { bg: 'var(--amber-soft)', fg: 'var(--ink)' } : { bg: 'var(--surface-2)', fg: 'var(--ink-2)' }; }
+  etapaDe(h, t) { return h >= t ? 'lista' : h / t >= 0.5 ? 'documentos' : 'preparacion'; }
+  renderVals() {
+    const st = this.state, I = this.I, mobile = st.mobile;
+    const dark = st.dark ?? (this.props.tema === 'oscuro');
+    const movilFrame = this.props.vista === 'movil';
+    const sc = st.screen;
+    const sec = { ficha: 'convocatorias', detalle: 'postulaciones' }[sc] || sc;
+    const nav = [
+      { titulo: '', items: [['inicio', 'Inicio', I.home]] },
+      { titulo: 'Descubrir', items: [['convocatorias', 'Convocatorias', I.search, '3']] },
+      { titulo: 'Mi trabajo', items: [['proyectos', 'Proyectos', I.folder], ['postulaciones', 'Postulaciones', I.clip, '1'], ['documentos', 'Documentos con IA', I.spark]] },
+      { titulo: 'Consultores', items: [['consultores', 'Directorio', I.users], ['encargos', 'Mis encargos', I.brief]] },
+      { titulo: 'Cuenta', items: [['plan', 'Plan y créditos', I.card], ['ajustes', 'Ajustes', I.sliders]] }
+    ];
+    const mk = ([k, label, d, badge]) => ({ label, d, badge, hasBadge: !!badge, go: () => this.go(k), current: sec === k ? 'page' : undefined, bg: sec === k ? 'var(--pri-soft)' : 'transparent', fg: sec === k ? 'var(--pri-text)' : 'var(--ink-2)', fw: sec === k ? 600 : 500 });
+    const navGroups = nav.map(g => ({ titulo: g.titulo, hasTitle: !!g.titulo, items: g.items.map(mk) }));
+    const crumbG = nav.find(g => g.items.some(i => i[0] === sec));
+    const crumbI = crumbG && crumbG.items.find(i => i[0] === sec);
+    const tabKeys = ['inicio', 'convocatorias', 'postulaciones', 'proyectos'];
+    const inMas = !tabKeys.includes(sec);
+    const tabs = [['inicio', 'Inicio', I.home], ['convocatorias', 'Buscar', I.search], ['postulaciones', 'Postular', I.clip], ['proyectos', 'Proyectos', I.folder]].map(([k, label, d]) => ({ label, d, go: () => this.go(k), fg: sec === k ? 'var(--pri-text)' : 'var(--ink-3)', fw: sec === k ? 600 : 500, bar: sec === k ? 'var(--pri)' : 'transparent' }));
+    tabs.push({ label: 'Más', d: I.more, go: () => this.setState({ mas: !st.mas }), fg: inMas ? 'var(--pri-text)' : 'var(--ink-3)', fw: inMas ? 600 : 500, bar: inMas ? 'var(--pri)' : 'transparent' });
+    const masItems = [['documentos', 'Documentos con IA', I.spark], ['consultores', 'Directorio de consultores', I.users], ['encargos', 'Mis encargos', I.brief], ['plan', 'Plan y créditos', I.card], ['ajustes', 'Ajustes', I.sliders]].map(([k, label, d]) => ({ label, d, go: () => this.go(k) }));
+    const byId = Object.fromEntries(this.convs.map(c => [c.id, c]));
+    const hechos1 = st.checks.filter(Boolean).length;
+    const faltan = st.checks.map((v, i) => v ? null : this.reqCorto[i]).filter(Boolean);
+    const faltanTxt = faltan.length ? faltan.join(', ').replace(/, ([^,]*)$/, ' y $1') : 'ninguno';
+    const etLabel = { preparacion: 'En preparación', documentos: 'Documentos', lista: 'Lista para radicar', radicada: 'Radicada' };
+    const postsRaw = [
+      { id: 'p1', c: 'c1', proyecto: 'Secado solar de café', hechos: hechos1, total: 9, consultor: 'AR' },
+      { id: 'p2', c: 'c2', proyecto: 'Planta piloto de bioinsumos', hechos: 2, total: 7 },
+      { id: 'p3', c: 'c7', proyecto: 'Planta piloto de bioinsumos', hechos: 8, total: 8 },
+      { id: 'p4', c: 'c4', proyecto: 'Trazabilidad de cacao', hechos: 5, total: 5, radicada: true, nota: 'Radicada hace 6 días' }
+    ];
+    const posts = postsRaw.map(p => { const c = byId[p.c]; const et = p.radicada ? 'radicada' : this.etapaDe(p.hechos, p.total); return { ...p, nombre: c.nombre, entidad: c.entidad, etKey: et, etapa: etLabel[et], pct: Math.round(p.hechos / p.total * 100) + '%', dias: c.dias, diasTxt: p.radicada ? 'radicada' : c.dias + ' días', dl: this.dl(c.dias), hasCons: !!p.consultor, nota: p.nota || (c.dias + ' días para el cierre'), go: () => this.go(p.id === 'p1' ? 'detalle' : 'detalle') }; });
+    const convRow = c => ({ ...c, dl: this.dl(c.dias), diasTxt: c.dias + (c.dias === 1 ? ' día' : ' días'), go: () => this.go('ficha', { convSel: c.id }), saved: !!st.saved[c.id], savedFill: st.saved[c.id] ? 'var(--pri)' : 'none', savedLabel: st.saved[c.id] ? 'Guardada' : 'Guardar', toggleSave: (e) => { e && e.stopPropagation && e.stopPropagation(); this.setState(s => ({ saved: { ...s.saved, [c.id]: !s.saved[c.id] } })); }, ringBg: `conic-gradient(${c.compat >= 80 ? 'var(--pri)' : '#F2A93B'} ${c.compat * 3.6}deg, var(--line-2) 0)` });
+    const cierres = this.convs.filter(c => c.compat >= 60).slice(0, 4).map(convRow);
+    return {
+      rootRef: this.setRoot, theme: dark ? 'dark' : 'light', mobile, desktop: !mobile,
+      framePad: movilFrame ? '24px' : '0', outerH: movilFrame ? 'auto' : '100vh', outerOv: movilFrame ? 'visible' : 'hidden', frameW: movilFrame ? '390px' : 'none', frameH: movilFrame ? '844px' : '100vh', frameRadius: movilFrame ? '28px' : '0', frameShadow: movilFrame ? '0 0 0 10px #0A1A22, 0 30px 60px rgba(0,0,0,.3)' : 'none',
+      asideH: '100%', padX: mobile ? '16px' : '28px', mainPad: mobile ? '20px 16px 32px' : '28px 28px 56px',
+      navGroups, tabs, masItems, masOpen: st.mas, toggleMas: () => this.setState({ mas: !st.mas }),
+      crumb: { grupo: crumbG && crumbG.titulo ? crumbG.titulo : 'General', pantalla: crumbI ? crumbI[1] : '' },
+      s: Object.fromEntries(['inicio', 'convocatorias', 'ficha', 'proyectos', 'postulaciones', 'detalle', 'documentos', 'consultores', 'encargos', 'plan', 'ajustes'].map(k => [k, sc === k])),
+      toggleTheme: () => this.setState({ dark: !dark }), themeIcon: dark ? I.sun : I.moon, themeLabel: dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro',
+      notifOpen: st.notif, toggleNotif: () => this.setState({ notif: !st.notif }),
+      avisos: [
+        { t: 'Nueva convocatoria compatible: Innova Región Pacífico', d: '81 % con Planta piloto de bioinsumos · hace 2 h', go: () => this.go('ficha', { convSel: 'c2' }) },
+        { t: 'Colombia Inteligente cierra en 8 días', d: `Te faltan ${faltan.length} requisitos · hoy`, go: () => this.go('detalle') },
+        { t: 'Andrés Rojas aceptó tu encargo', d: 'Ya puede ver tu postulación · ayer', go: () => this.go('encargos') }
+      ],
+      goPlan: () => this.go('plan'), goBuscar: () => this.go('convocatorias'), goProyectos: () => this.go('proyectos'), goPost: () => this.go('postulaciones'), goDetalle: () => this.go('detalle'), goFicha1: () => this.go('ficha', { convSel: 'c1' }), goConsultores: () => this.go('consultores'), goDocs: () => this.go('documentos'), goEncargos: () => this.go('encargos'),
+      faltanN: faltan.length, faltanTxt, p1Hechos: hechos1, p1Pct: Math.round(hechos1 / 9 * 100) + '%',
+      stats: [
+        { label: 'Compatibles contigo', v: '12', note: '+3 nuevas esta semana', go: () => this.go('convocatorias', { tab: 'sugeridas' }) },
+        { label: 'Postulaciones activas', v: '4', note: '1 lista para radicar', go: () => this.go('postulaciones') },
+        { label: 'Monto en juego', v: '$2.060 M', note: 'COP en 3 postulaciones', go: () => this.go('postulaciones') },
+        { label: 'Créditos de IA', v: '340', note: 'Te alcanzan para 3 documentos', go: () => this.go('plan') }
+      ],
+      cierres, posts,
+      ...this.catalogo(st, convRow, mobile),
+      ...this.ficha(st, byId, convRow, mobile),
+      ...this.trabajo(st, byId, posts, hechos1, faltan, mobile),
+      ...this.resto(st, mobile, dark)
+    };
+  }
+  catalogo(st, convRow, mobile) {
+    const q = st.q.trim().toLowerCase();
+    const chipDefs = [['perfil', 'Para mi perfil'], ['pronto', 'Cierran en 15 días'], ['noreemb', 'No reembolsable'], ['credito', 'Crédito'], ['tributario', 'Beneficio tributario'], ['cooperacion', 'Cooperación']];
+    const cats = ['noreemb', 'credito', 'tributario', 'cooperacion'].filter(k => st.chips[k]);
+    let list = this.convs.filter(c => (!q || (c.nombre + ' ' + c.entidad).toLowerCase().includes(q)) && (!st.chips.perfil || c.compat >= 60) && (!st.chips.pronto || c.dias <= 15) && (!cats.length || cats.includes(c.cat)));
+    if (st.tab === 'guardadas') list = this.convs.filter(c => st.saved[c.id]);
+    if (st.tab === 'sugeridas') list = this.convs.filter(c => c.compat >= 60).sort((a, b) => b.compat - a.compat);
+    const nSaved = Object.values(st.saved).filter(Boolean).length;
+    const catTabs = [['todas', 'Todas', 24], ['sugeridas', 'Sugeridas para ti', 12], ['guardadas', 'Guardadas', nSaved]].map(([k, label, n]) => ({ label, n, go: () => this.setState({ tab: k }), fg: st.tab === k ? 'var(--ink)' : 'var(--ink-3)', bd: st.tab === k ? 'var(--pri)' : 'transparent', fw: st.tab === k ? 600 : 500 }));
+    const chips = chipDefs.map(([k, label]) => { const on = !!st.chips[k]; return { label, on, toggle: () => this.setState(s => ({ chips: { ...s.chips, [k]: !s.chips[k] } })), bg: on ? 'var(--pri)' : 'var(--surface)', fg: on ? 'var(--on-pri)' : 'var(--ink-2)', bd: on ? 'var(--pri)' : 'var(--line)' }; });
+    const fGroups = [['Tipo de proyecto', ['Innovación', 'Investigación', 'Emprendimiento', 'Sostenibilidad', 'Transformación digital']], ['Sector', ['Agro', 'Manufactura', 'TIC', 'Salud', 'Energía', 'Turismo']], ['Quién puede postular', ['Empresa', 'Fundación / ONG', 'Universidad', 'Entidad territorial', 'Emprendimiento']], ['Fecha de cierre', ['Cualquiera', 'Próximos 15 días', 'Próximos 30 días', 'Próximos 90 días']]].map(([t, ops]) => ({ t, ops: ops.map(o => { const on = !!st.fsel[o]; return { o, toggle: () => this.setState(s => ({ fsel: { ...s.fsel, [o]: !s.fsel[o] } })), bg: on ? 'var(--pri-soft)' : 'var(--surface)', fg: on ? 'var(--pri-text)' : 'var(--ink-2)', bd: on ? 'var(--pri)' : 'var(--line)' }; }) }));
+    const nF = Object.values(st.fsel).filter(Boolean).length;
+    return {
+      q: st.q, setQ: e => this.setState({ q: e.target.value }), catTabs, chips, results: list.map(convRow), resCount: list.length + (list.length === 1 ? ' convocatoria' : ' convocatorias'), noResults: list.length === 0, hasResults: list.length > 0,
+      isSug: st.tab === 'sugeridas', notSug: st.tab !== 'sugeridas',
+      clearAll: () => this.setState({ q: '', chips: {}, tab: 'todas' }),
+      filtrosOpen: st.filtros, openFiltros: () => this.setState({ filtros: true }), closeFiltros: () => this.setState({ filtros: false }), clearF: () => this.setState({ fsel: {} }), fGroups, nF, hasNF: nF > 0,
+      drawer: mobile ? { l: '0', t: 'auto', w: '100%', r: '12px 12px 0 0', mh: '86%' } : { l: 'auto', t: '0', w: '420px', r: '0', mh: '100%' }
+    };
+  }
+  ficha(st, byId, convRow, mobile) {
+    const c = convRow(byId[st.convSel] || this.convs[0]);
+    const crit = [
+      ['Sector', 'Agro', true, 'Coincide'], ['Tipo de entidad', 'Empresa (S.A.S.)', true, 'Coincide'], ['Ubicación', 'Huila', true, 'Coincide'],
+      ['Monto', 'Buscas $400 M', true, 'Dentro del rango'], ['Duración', 'Tu proyecto: 30 meses', false, 'Máximo 24 meses']
+    ].map(([n, v, ok, r]) => ({ n, v, r, ok, bad: !ok, fg: ok ? 'var(--pri-text)' : 'var(--rose)', bg: ok ? 'var(--pri-soft)' : 'var(--rose-soft)', d: ok ? 'M20 6L9 17l-5-5' : 'M12 8v5M12 16.5v.01' }));
+    return {
+      c, crit, fichaReqs: this.reqs.map((t, i) => ({ t, n: String(i + 1).padStart(2, '0') })),
+      fichaDocs: [{ n: 'Términos de referencia.pdf', s: '2,4 MB' }, { n: 'Anexo 1 · Formulario de presentación.docx', s: '180 KB' }, { n: 'Anexo 2 · Plantilla de presupuesto.xlsx', s: '96 KB' }],
+      fichaBar: mobile && st.screen === 'ficha',
+      backConv: () => this.go('convocatorias'), interesa: () => this.go('detalle'),
+      ringBig: `conic-gradient(${c.compat >= 80 ? 'var(--pri)' : '#F2A93B'} ${c.compat * 3.6}deg, var(--line-2) 0)`
+    };
+  }
+  trabajo(st, byId, posts, hechos1, faltan, mobile) {
+    const cols = [['preparacion', 'En preparación'], ['documentos', 'Reuniendo documentos'], ['lista', 'Lista para radicar'], ['radicada', 'Radicada']];
+    const columns = cols.map(([k, t]) => { const cards = posts.filter(p => p.etKey === k); return { k, t, n: cards.length, cards, empty: cards.length === 0 }; });
+    const etapaChips = cols.map(([k, t]) => { const on = st.etapaM === k; const n = posts.filter(p => p.etKey === k).length; return { t, n, go: () => this.setState({ etapaM: k }), bg: on ? 'var(--pri)' : 'var(--surface)', fg: on ? 'var(--on-pri)' : 'var(--ink-2)', bd: on ? 'var(--pri)' : 'var(--line)' }; });
+    const tablero = st.vistaPost === 'tablero' && !mobile;
+    const et1 = this.etapaDe(hechos1, 9);
+    const order = ['preparacion', 'documentos', 'lista', 'radicada'];
+    const idx = order.indexOf(et1);
+    const stepper = cols.map(([k, t], i) => ({ t, n: i + 1, bg: i < idx ? 'var(--pri)' : i === idx ? 'var(--surface)' : 'var(--surface)', fg: i < idx ? 'var(--on-pri)' : i === idx ? 'var(--pri-text)' : 'var(--ink-3)', bd: i <= idx ? 'var(--pri)' : 'var(--line)', line: i < idx ? 'var(--pri)' : 'var(--line)', tfg: i === idx ? 'var(--ink)' : 'var(--ink-3)', tfw: i === idx ? 600 : 500, last: i === cols.length - 1, notLast: i < cols.length - 1, isDone: i < idx, notDone: i >= idx }));
+    const checklist = this.reqs.map((t, i) => { const on = st.checks[i]; return { t, on, toggle: () => this.setState(s => { const c = [...s.checks]; c[i] = !c[i]; return { checks: c }; }), bg: on ? 'var(--pri)' : 'var(--surface)', bd: on ? 'var(--pri)' : 'var(--line-strong)', tfg: on ? 'var(--ink-3)' : 'var(--ink)', deco: on ? 'line-through' : 'none', show: on ? 'visible' : 'hidden', notOn: !on }; });
+    const completa = faltan.length === 0;
+    return {
+      columns, etapaChips, listaMovil: mobile ? posts.filter(p => p.etKey === st.etapaM) : posts, tablero, lista: !tablero,
+      vistaOps: [['tablero', 'Tablero'], ['lista', 'Lista']].map(([k, t]) => ({ t, go: () => this.setState({ vistaPost: k }), bg: st.vistaPost === k ? 'var(--surface)' : 'transparent', fg: st.vistaPost === k ? 'var(--ink)' : 'var(--ink-3)', sh: st.vistaPost === k ? '0 1px 2px rgba(10,26,34,.12)' : 'none' })),
+      stepper, checklist, completa, incompleta: !completa, p1Etapa: { preparacion: 'En preparación', documentos: 'Reuniendo documentos', lista: 'Lista para radicar' }[et1],
+      proyectos: [
+        { nombre: 'Secado solar de café de especialidad', meta: 'Innovación · Agro · Huila', pct: '100%', pctN: 100, compat: 8, posts: 1, tip: '', hasTip: false, color: 'var(--pri)' },
+        { nombre: 'Planta piloto de bioinsumos', meta: 'Sostenibilidad · Agro · Valle del Cauca', pct: '80%', pctN: 80, compat: 5, posts: 2, tip: 'Agrega el presupuesto estimado para afinar el cruce.', hasTip: true, color: 'var(--pri)' },
+        { nombre: 'Trazabilidad de cacao con registro digital', meta: 'Transformación digital · Agro', pct: '60%', pctN: 60, compat: 3, posts: 1, tip: 'Falta el departamento y la duración.', hasTip: true, color: '#F2A93B' }
+      ].map(p => ({ ...p, goSug: () => this.go('convocatorias', { tab: 'sugeridas' }) })),
+      nuevoProy: st.nuevoProy, openNuevo: () => this.setState({ nuevoProy: true }), closeNuevo: () => this.setState({ nuevoProy: false }),
+      docs: [
+        { proyecto: 'Secado solar de café de especialidad', conv: 'Colombia Inteligente: I+D+i empresarial 2026', estado: 'Borrador', v: 'v2', pend: '2 apartados por revisar', fecha: '8 nov 2026', bg: 'var(--amber-soft)', fg: 'var(--ink)' },
+        { proyecto: 'Planta piloto de bioinsumos', conv: 'Economía circular en el agro', estado: 'Listo', v: 'v3', pend: 'Sin pendientes', fecha: '2 nov 2026', bg: 'var(--pri-soft)', fg: 'var(--pri-text)' },
+        { proyecto: 'Trazabilidad de cacao con registro digital', conv: 'Deducción por inversión en CTeI', estado: 'Listo', v: 'v1', pend: 'Sin pendientes', fecha: '21 oct 2026', bg: 'var(--pri-soft)', fg: 'var(--pri-text)' }
+      ],
+      backPost: () => this.go('postulaciones')
+    };
+  }
+  resto(st, mobile, dark) {
+    const cons = [
+      { ini: 'AR', nombre: 'Andrés Rojas', ciudad: 'Medellín', rating: '4,9', enc: 32, esp: ['I+D+i', 'Minciencias', 'Presupuestos'], bio: 'Diez años formulando proyectos de ciencia y tecnología para empresas del agro y la manufactura.' },
+      { ini: 'MO', nombre: 'María Camila Ortiz', ciudad: 'Bogotá', rating: '4,8', enc: 21, esp: ['Cooperación internacional', 'Marco lógico'], bio: 'Acompaña fundaciones y empresas en convocatorias de cooperación y fondos ambientales.' },
+      { ini: 'JP', nombre: 'Julián Pardo', ciudad: 'Cali', rating: '4,7', enc: 17, esp: ['Beneficios tributarios', 'Finanzas'], bio: 'Contador especializado en deducciones por inversión en ciencia, tecnología e innovación.' },
+      { ini: 'SV', nombre: 'Sofía Valencia', ciudad: 'Barranquilla', rating: '5,0', enc: 9, esp: ['Emprendimiento', 'Capital semilla'], bio: 'Prepara planes de negocio y pitch para Fondo Emprender y aceleradoras.' }
+    ];
+    const espOps = ['Todas', 'I+D+i', 'Cooperación internacional', 'Beneficios tributarios', 'Emprendimiento'];
+    const espChips = espOps.map(o => { const on = st.consEsp === o; return { o, go: () => this.setState({ consEsp: o }), bg: on ? 'var(--pri)' : 'var(--surface)', fg: on ? 'var(--on-pri)' : 'var(--ink-2)', bd: on ? 'var(--pri)' : 'var(--line)' }; });
+    const pasos = ['Solicitado', 'Aceptado', 'En curso', 'Completado'];
+    const encargos = [
+      { ini: 'AR', cons: 'Andrés Rojas', conv: 'Colombia Inteligente: I+D+i empresarial 2026', paso: 2, estado: 'En curso', accion: 'Ver avances', nota: 'Revisó el presupuesto · ayer' },
+      { ini: 'MO', cons: 'María Camila Ortiz', conv: 'Paisajes sostenibles del Pacífico', paso: 0, estado: 'Esperando respuesta', accion: 'Cancelar solicitud', nota: 'Enviada hace 2 días' },
+      { ini: 'JP', cons: 'Julián Pardo', conv: 'Deducción por inversión en CTeI', paso: 3, estado: 'Completado', accion: 'Calificar', nota: 'Terminó el 28 oct' }
+    ].map(e => ({ ...e, dots: pasos.map((t, i) => ({ t, bg: i <= e.paso ? 'var(--pri)' : 'var(--line)', fg: i <= e.paso ? 'var(--ink)' : 'var(--ink-3)' })) }));
+    const planes = [
+      { n: 'Esencial', p: '$290.000', cred: '300 créditos de IA al mes (hasta 3 documentos)', rec: false, cta: 'Elegir Esencial' },
+      { n: 'Profesional', p: '$590.000', cred: '1.000 créditos de IA al mes (hasta 10 documentos)', rec: true, cta: 'Elegir Profesional' },
+      { n: 'Empresarial', p: '$1.190.000', cred: '3.000 créditos de IA al mes (hasta 30 documentos)', rec: false, cta: 'Elegir Empresarial' }
+    ].map(p => ({ ...p, bd: p.rec ? 'var(--pri)' : 'var(--line)', bt: p.rec ? '3px solid var(--pri)' : '1px solid var(--line)', btnBg: p.rec ? 'var(--pri)' : 'var(--surface)', btnFg: p.rec ? 'var(--on-pri)' : 'var(--ink)', btnBd: p.rec ? 'var(--pri)' : 'var(--line-strong)' }));
+    const temaOps = [['claro', 'Claro'], ['oscuro', 'Oscuro']].map(([k, t]) => { const on = (k === 'oscuro') === dark; return { t, go: () => this.setState({ dark: k === 'oscuro' }), bg: on ? 'var(--surface)' : 'transparent', fg: on ? 'var(--ink)' : 'var(--ink-3)', sh: on ? '0 1px 2px rgba(10,26,34,.12)' : 'none' }; });
+    return {
+      cons: cons.filter(c => st.consEsp === 'Todas' || c.esp.some(e => e.startsWith(st.consEsp.split(' ')[0]))).map(c => ({ ...c, espL: c.esp.map(t => ({ t })) })), espChips,
+      encargos, planes, temaOps,
+      paquetes: [{ c: '200', p: '$90.000', d: '2 documentos' }, { c: '500', p: '$200.000', d: '5 documentos' }, { c: '1.000', p: '$360.000', d: '10 documentos' }],
+      cuenta: [['Empresa o entidad', 'Agroinnova S.A.S.'], ['Persona de contacto', 'Laura Méndez'], ['Correo', 'laura@agroinnova.co']].map(([k, v]) => ({ k, v }))
+    };
+  }
+}
+</script>
+</body>
+</html>

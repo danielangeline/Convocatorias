@@ -48,7 +48,7 @@ export function ConvocatoriaCard({
     >
       <div className="flex items-start justify-between gap-2.5">
         <div className="flex flex-wrap gap-1.5">
-          <Badge tono={tributario ? "violet" : "pri"}>{tributario ? "Beneficio tributario" : "Fondos"}</Badge>
+          <Badge tono={tributario ? "pri" : "pri"}>{tributario ? "Beneficio tributario" : "Fondos"}</Badge>
           <Badge tono="neutro">{ORIGEN_CONVOCATORIA_LABEL[convocatoria.origen ?? "publico"]}</Badge>
           {/* RN-39: solo aparece con «incluir las de otros países». */}
           {convocatoria.elegible === false && <Badge tono="neutro">Tu país no es elegible</Badge>}

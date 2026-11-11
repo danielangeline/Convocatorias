@@ -55,7 +55,7 @@ export function DashboardPanel({ datos, solicitudesEquipo }: { datos: DatosTable
               : "Todos con documentos"
           }
           icono={FilePen}
-          tono="sky"
+          tono="pri"
         />
         <KpiCard etiqueta="Cierran en < 15 días" valor={datos.cierranPronto.length} nota="Revisa vigencias" icono={Clock} tono="amber" />
         <KpiCard
@@ -63,7 +63,7 @@ export function DashboardPanel({ datos, solicitudesEquipo }: { datos: DatosTable
           valor={s.activas}
           nota={datos.conversion !== null ? `Conversión de prueba: ${datos.conversion}%` : "Sin cuentas todavía"}
           icono={CreditCard}
-          tono="violet"
+          tono="pri"
         />
       </KpiGrid>
 
@@ -90,7 +90,7 @@ export function DashboardPanel({ datos, solicitudesEquipo }: { datos: DatosTable
             etiquetaAccesible="Suscripciones por estado"
             segmentos={[
               { etiqueta: "Activa", valor: s.activas, tono: "pri" },
-              { etiqueta: "Prueba", valor: s.trial, tono: "sky" },
+              { etiqueta: "Prueba", valor: s.trial, tono: "pri" },
               { etiqueta: "En gracia", valor: s.enGracia, tono: "amber" },
               { etiqueta: "Vencida", valor: s.vencidas, tono: "rose" },
               { etiqueta: "Suspendida", valor: s.suspendidas, tono: "neutro" },

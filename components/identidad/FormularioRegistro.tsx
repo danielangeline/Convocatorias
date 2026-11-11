@@ -22,7 +22,7 @@ export function FormularioRegistro({ puertaInicial }: { puertaInicial: Puerta })
   if (estado.mensaje) {
     return (
       <div className="mt-6 flex flex-col items-center gap-3 text-center">
-        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-violet/10 text-violet-ink">
+        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-pri-soft text-pri-text">
           <MailCheck className="h-6 w-6" />
         </span>
         <p className="font-display text-lg font-bold text-ink">Revisa tu correo</p>
@@ -64,7 +64,7 @@ export function FormularioRegistro({ puertaInicial }: { puertaInicial: Puerta })
         </span>
       </label>
       {estado.error && <Aviso tipo="error">{estado.error}</Aviso>}
-      <Button type="submit" variant={rol === "empresa" ? "primary" : "consultor"} className="w-full" disabled={enviando}>
+      <Button type="submit" variant="primary" className="w-full" disabled={enviando}>
         {enviando ? "Creando cuenta…" : rol === "empresa" ? "Crear cuenta y empezar el trial" : "Crear cuenta de consultor"}
       </Button>
     </form>

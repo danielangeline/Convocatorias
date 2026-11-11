@@ -1,29 +1,38 @@
 import { cn } from "@/lib/utils";
 
-/** Marca: cuadro de 34 px en `--pri` con el anillo y el punto del diseño. */
-export function LogoMarca({ className }: { className?: string }) {
+/** Símbolo FundRadar: dos anillos concéntricos en `--pri` y un punto ámbar (el "ping"). */
+export function LogoMarca({ className, tamano = 34 }: { className?: string; tamano?: number }) {
   return (
-    <span
+    <svg
       aria-hidden
-      className={cn(
-        "relative grid h-[34px] w-[34px] flex-none place-items-center overflow-hidden rounded-[10px] bg-pri text-on-pri",
-        className
-      )}
+      viewBox="0 0 34 34"
+      width={tamano}
+      height={tamano}
+      fill="none"
+      className={cn("flex-none text-pri", className)}
     >
-      <span className="absolute left-1.5 top-1.5 h-[22px] w-[22px] rounded-full border-[3px] border-current opacity-95" />
-      <span className="absolute right-[5px] top-[5px] h-[9px] w-[9px] rounded-full bg-current" />
-    </span>
+      <circle cx="17" cy="17" r="15" stroke="currentColor" strokeWidth="2" />
+      <circle cx="17" cy="17" r="9" stroke="currentColor" strokeWidth="2" opacity="0.5" />
+      <circle cx="17" cy="17" r="4" fill="#F2A93B" />
+    </svg>
   );
 }
 
 /** Marca con el nombre y, opcionalmente, el portal debajo. */
-export function Logo({ subtitulo }: { subtitulo?: string }) {
+export function Logo({ subtitulo, compacto = false }: { subtitulo?: string; compacto?: boolean }) {
   return (
     <span className="inline-flex items-center gap-2.5">
-      <LogoMarca />
+      <LogoMarca tamano={compacto ? 26 : 34} />
       <span className="min-w-0">
-        <span className="block text-[15px] font-extrabold leading-[1.1] tracking-[-0.01em] text-ink">Convocatorias</span>
-        {subtitulo && <span className="mt-[3px] block text-[11.5px] text-ink-3">{subtitulo}</span>}
+        <span
+          className={cn(
+            "block font-display font-semibold leading-[1.1] text-ink",
+            compacto ? "text-lg" : "text-[22px]"
+          )}
+        >
+          Fund<span className="text-pri-text">Radar</span>
+        </span>
+        {subtitulo && !compacto && <span className="mt-[3px] block text-xs text-ink-3">{subtitulo}</span>}
       </span>
     </span>
   );

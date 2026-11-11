@@ -121,14 +121,14 @@ export function AsistenteProyecto({
           </button>
         </div>
 
-        <p className="mb-4 flex items-center gap-1.5 text-sm font-semibold text-violet-ink">
+        <p className="mb-4 flex items-center gap-1.5 text-sm font-semibold text-pri-text">
           <Sparkles className="h-4 w-4" /> Cuéntanos tu proyecto y la IA lo crea por ti
         </p>
 
         <label htmlFor="explicacion-proyecto" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3">
           ¿De qué trata tu proyecto?
         </label>
-        <div className="rounded-xl border border-line focus-within:border-violet">
+        <div className="rounded-xl border border-line focus-within:border-pri">
           <textarea
             id="explicacion-proyecto"
             value={parcial ? `${explicacion ? `${explicacion.trimEnd()} ` : ""}${parcial}` : explicacion}
@@ -171,7 +171,7 @@ export function AsistenteProyecto({
           <Button variant="ghost" onClick={onManual} disabled={creando}>
             <PencilLine className="h-4 w-4" /> Llenar el formulario a mano
           </Button>
-          <Button variant="ai" onClick={crear} disabled={creando || sinCredito || largo === 0}>
+          <Button variant="primary" onClick={crear} disabled={creando || sinCredito || largo === 0}>
             {creando ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" /> {etapa === "armando" ? "Armando tu proyecto…" : "Guardando…"}

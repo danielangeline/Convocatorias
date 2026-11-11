@@ -156,18 +156,18 @@ export function GestionPlanes({ planes }: { planes: Plan[] }) {
                     {p.esTrial && <span className="ml-2 text-xs font-normal text-ink-3">{p.diasTrial} días · al registrarse</span>}
                   </td>
                   <td className="px-5 py-3">
-                    <Badge className={p.rol === "empresa" ? "bg-pri-soft text-pri-text ring-pri-soft" : "bg-sky/10 text-sky-ink ring-sky/30"}>
+                    <Badge className={p.rol === "empresa" ? "bg-pri-soft text-pri-text ring-pri-soft" : "bg-pri-soft text-pri-text ring-pri/30"}>
                       {p.rol === "empresa" ? "Empresa" : "Consultor"}
                     </Badge>
                   </td>
                   <td className="px-5 py-3 font-tabular text-ink-2">{p.esTrial ? "Gratis" : formatCOP(p.precioMensual)}</td>
                   <td className="px-5 py-3 font-tabular text-ink-2">{p.esTrial ? "—" : formatCOP(p.precioAnual)}</td>
-                  <td className="px-5 py-3 font-tabular text-violet-ink">{p.rol === "consultor" ? "—" : p.creditosIaMensuales}</td>
+                  <td className="px-5 py-3 font-tabular text-pri-text">{p.rol === "consultor" ? "—" : p.creditosIaMensuales}</td>
                   <td className="px-5 py-3">
                     {p.activo === false ? (
                       <Badge className="bg-surface-2 text-ink-3 ring-line">Inactivo</Badge>
                     ) : (
-                      <Badge className="bg-violet/10 text-violet-ink ring-violet/30">Activo</Badge>
+                      <Badge className="bg-pri-soft text-pri-text ring-pri/30">Activo</Badge>
                     )}
                   </td>
                   <td className="px-5 py-3">

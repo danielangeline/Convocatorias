@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Prototipos de referencia del rediseño: no son código de la app.
+    "design_handoff_fundradar/**",
   ]),
 ]);
 

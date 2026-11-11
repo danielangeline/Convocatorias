@@ -243,7 +243,7 @@ export function BotonDictado({
 
   if (estado === "transcribiendo") {
     return (
-      <span className="inline-flex items-center gap-2 rounded-full bg-violet/10 px-3 py-1.5 text-xs font-semibold text-violet-ink" role="status">
+      <span className="inline-flex items-center gap-2 rounded-full bg-pri-soft px-3 py-1.5 text-xs font-semibold text-pri-text" role="status">
         <Loader2 className="h-3.5 w-3.5 animate-spin" /> Transcribiendo…
       </span>
     );
@@ -277,7 +277,7 @@ export function BotonDictado({
       aria-label="Dictar con tu voz"
       className={cn(
         "inline-flex h-9 w-9 items-center justify-center rounded-full text-ink-2 ring-1 ring-inset ring-line transition-colors",
-        "hover:bg-violet/10 hover:text-violet-ink hover:ring-violet/30 disabled:cursor-not-allowed disabled:opacity-40"
+        "hover:bg-pri-soft hover:text-pri-text hover:ring-pri/30 disabled:cursor-not-allowed disabled:opacity-40"
       )}
     >
       <Mic className="h-4 w-4" />

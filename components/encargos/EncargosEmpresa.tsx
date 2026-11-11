@@ -106,7 +106,7 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
                 {e.convocatoriaId && e.convocatoriaNombre && (
                   <>
                     {" · "}
-                    <Link href={`/convocatorias/${e.convocatoriaId}`} className="font-medium text-violet-ink hover:underline">
+                    <Link href={`/convocatorias/${e.convocatoriaId}`} className="font-medium text-pri-text hover:underline">
                       {e.convocatoriaNombre}
                     </Link>
                   </>
@@ -121,7 +121,7 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
                       // eslint-disable-next-line @next/next/no-img-element -- URL firmada de Storage (RNF-16)
                       <img src={e.consultor.fotoUrl} alt="" className="h-8 w-8 rounded-full object-cover ring-1 ring-line" />
                     ) : (
-                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-sky/10 text-xs font-bold text-sky-ink">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-pri-soft text-xs font-bold text-pri-text">
                         {e.consultor.nombre.slice(0, 1).toUpperCase()}
                       </span>
                     )}
@@ -202,7 +202,7 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
                 )}
 
                 {e.estado === "completado" && (
-                  <Button variant="outline-amber" size="sm" className="w-full" onClick={() => abrirCalificar(e)}>
+                  <Button variant="outline" size="sm" className="w-full" onClick={() => abrirCalificar(e)}>
                     <Star className="h-3.5 w-3.5" /> Calificar
                   </Button>
                 )}
@@ -310,8 +310,8 @@ function Propuestas({ e, onError }: { e: EncargoDetalle; onError: (error: string
   };
 
   return (
-    <div className="mt-3 rounded-lg border border-sky/30 bg-sky/10 p-3">
-      <p className="text-xs font-semibold uppercase tracking-wide text-sky-ink">
+    <div className="mt-3 rounded-lg border border-pri/30 bg-pri-soft p-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-pri-text">
         {elegida ? "Convocatoria elegida" : `Propuestas del consultor (${abiertas.length})`}
       </p>
       {visibles.length === 0 ? (
@@ -330,7 +330,7 @@ function Propuestas({ e, onError }: { e: EncargoDetalle; onError: (error: string
                 {p.porcentaje !== null && <span className="font-semibold text-ink-2">{p.porcentaje}% compatible</span>}
                 {!p.vigente && <span className="text-ink-3">· ya no está vigente</span>}
               </div>
-              <Link href={`/convocatorias/${p.convocatoriaId}`} className="mt-1 block text-sm font-semibold text-violet-ink hover:underline">
+              <Link href={`/convocatorias/${p.convocatoriaId}`} className="mt-1 block text-sm font-semibold text-pri-text hover:underline">
                 {p.convocatoriaNombre}
               </Link>
               <p className="text-ink-3">

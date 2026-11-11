@@ -50,7 +50,7 @@ export function BusquedaEncargo({
       </Link>
 
       <div className="mb-6">
-        <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-sky-ink">
+        <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-pri-text">
           <Compass className="h-3.5 w-3.5" /> Buscar convocatoria para {encargo.empresaNombre}
         </p>
         <h1 className="mt-1 text-[26px] font-extrabold tracking-[-0.025em] text-ink">{encargo.proyectoNombre}</h1>
@@ -89,7 +89,7 @@ export function BusquedaEncargo({
             onClick={() => setPestana(valor)}
             className={cn(
               "border-b-2 px-3 py-2.5 text-sm font-semibold transition-colors",
-              pestana === valor ? "border-sky text-sky-ink" : "border-transparent text-ink-2 hover:text-ink"
+              pestana === valor ? "border-pri text-pri-text" : "border-transparent text-ink-2 hover:text-ink"
             )}
           >
             {etiqueta}

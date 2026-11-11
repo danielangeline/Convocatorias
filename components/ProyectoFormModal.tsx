@@ -360,7 +360,7 @@ export function ProyectoFormModal({
 
         <div className="flex-1 overflow-y-auto bg-bg px-4 py-5 sm:px-6">
           {propuesta && (
-            <div className="mb-4 rounded-xl bg-violet/10 p-4 text-sm text-violet-ink ring-1 ring-inset ring-violet/30">
+            <div className="mb-4 rounded-xl bg-pri-soft p-4 text-sm text-pri-text ring-1 ring-inset ring-pri/30">
               <p className="flex items-center gap-1.5 font-semibold">
                 <Sparkles className="h-4 w-4" /> La IA llenó el formulario con lo que contaste
               </p>
@@ -442,7 +442,7 @@ export function ProyectoFormModal({
 
             {verTodo && (
               <div className="mt-2">
-                <p className="flex items-center gap-1.5 text-[15px] font-extrabold text-violet-ink">
+                <p className="flex items-center gap-1.5 text-[15px] font-extrabold text-pri-text">
                   <Sparkles className="h-4 w-4" /> Contenido para generación de documentos
                 </p>
                 <p className="mt-1 text-[13px] text-ink-3">

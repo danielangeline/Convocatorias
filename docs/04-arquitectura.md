@@ -124,3 +124,13 @@ Toda tabla con datos de usuario lleva su columna de propietario y ningún listad
 
 ---
 
+
+---
+
+## Nota de diseño · Rediseño FundRadar (sesión 040)
+
+Sustituye el rediseño visual de la sesión 031 (verde, Plus Jakarta). **No cambia ningún RF, RN ni la autorización**: solo presentación, navegación y jerarquía. Referencia: `design_handoff_fundradar/README.md`.
+
+- **Fase 1 (hecha):** tokens claro y oscuro (hueso y teal, un solo acento; el ámbar es solo el «ping»), fuentes Source Serif 4 / Inter / IBM Plex Mono, logo de dos anillos, `Button` (variantes `primary | secondary | outline | ghost | danger`; `ai`, `consultor` y `outline-amber` eliminadas), `Card`, `Badge` (`ok | aviso | error | neutro`), `PageHeader`, `Deadline` y `CompatRing`.
+- **Fase 2 (pendiente):** menú de empresa más corto; «Sugeridas», «Guardadas» y «Beneficios tributarios» salen del menú y pasan a pestañas y chips de `/convocatorias`; `/sugeridas` y `/guardadas` se conservan como redirecciones a `/convocatorias?tab=…`. Pestañas inferiores en móvil. Esta tabla de rutas se actualiza al hacer la fase.
+- **Fases 3 a 6:** identidad, portal empresa, consultor y admin, según el README del handoff.

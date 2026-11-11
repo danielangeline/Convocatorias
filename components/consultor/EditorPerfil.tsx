@@ -351,7 +351,7 @@ export function EditorPerfil({
                             onClick={() => toggleEspecialidad(c.id)}
                             className={cn(
                               "rounded-md px-2.5 py-1 text-xs font-medium ring-1 ring-inset transition-colors",
-                              activo ? "bg-sky text-white ring-sky/30" : "bg-surface text-ink-2 ring-line hover:bg-surface-2"
+                              activo ? "bg-pri text-white ring-pri/30" : "bg-surface text-ink-2 ring-line hover:bg-surface-2"
                             )}
                           >
                             {c.nombre}
@@ -685,7 +685,7 @@ function BannerEstado({
         <Badge className={ESTADO_PERFIL_ESTILO["incompleto"]}>{ESTADO_PERFIL_LABEL["incompleto"]}</Badge>
         <p className="text-sm text-ink-2">{aviso}</p>
       </div>
-      <Button variant="consultor" size="sm" className="mt-3" onClick={onEnviar} disabled={deshabilitado || faltan.length > 0}>
+      <Button variant="primary" size="sm" className="mt-3" onClick={onEnviar} disabled={deshabilitado || faltan.length > 0}>
         {enviando ? "Enviando…" : "Enviar a revisión"}
       </Button>
     </div>

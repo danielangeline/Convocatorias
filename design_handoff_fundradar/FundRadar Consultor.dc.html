@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#E9E6DF}
+.fr{--bg:#F4F1EA;--surface:#FFFFFF;--surface-2:#F8F6F1;--line:#DAD6CC;--line-2:#E9E6DF;--line-strong:#8A949A;--ink:#0A1A22;--ink-2:#2B3A42;--ink-3:#5A666C;--pri:#0F4C5C;--pri-hover:#0A3A47;--pri-soft:#E3EEF0;--pri-text:#0F4C5C;--on-pri:#FFFFFF;--amber-soft:#FBEBD0;--rose:#A63D2A;--rose-soft:#F6E3DE;--topbar:rgba(244,241,234,.88);--overlay:rgba(10,26,34,.45);--shadow:0 20px 50px rgba(10,26,34,.12)}
+.fr[data-theme="dark"]{--bg:#0A1519;--surface:#10212A;--surface-2:#142931;--line:#20363F;--line-2:#1A2E36;--line-strong:#4A6069;--ink:#EEF1EE;--ink-2:#BFCBCF;--ink-3:#8A9AA0;--pri:#5DB0C2;--pri-hover:#7CC3D2;--pri-soft:#123843;--pri-text:#8FD3E0;--on-pri:#06161B;--amber-soft:#3A2C14;--rose:#F09A86;--rose-soft:#3A1E19;--topbar:rgba(10,21,25,.88);--overlay:rgba(0,0,0,.6);--shadow:0 20px 50px rgba(0,0,0,.5)}
+.fr a{color:var(--pri-text)}.fr a:hover{color:var(--ink)}
+.fr *{box-sizing:border-box;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.fr input::placeholder,.fr textarea::placeholder{color:var(--ink-3)}
+</style>
+</helmet>
+<div style="display: flex; justify-content: center; height: {{ outerH }}; overflow: {{ outerOv }}; padding: {{ framePad }}">
+<div data-fr-root="consultor" class="fr" data-theme="{{ theme }}" style="position: relative; transform: translateZ(0); width: 100%; max-width: {{ frameW }}; height: {{ frameH }}; overflow-x: hidden; overflow-y: auto; border-radius: {{ frameRadius }}; box-shadow: {{ frameShadow }}; background: var(--bg); color: var(--ink); font-family: Inter, system-ui, sans-serif; font-size: 14px; display: flex">
+
+<sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}">
+<aside style="position: sticky; top: 0; height: 100%; width: 252px; flex: none; background: var(--surface); border-right: 1px solid var(--line); display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; gap: 10px; padding: 20px 20px 14px">
+<svg width="32" height="32" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="15" fill="none" stroke="var(--pri)" stroke-width="2"></circle><circle cx="17" cy="17" r="9" fill="none" stroke="var(--pri)" stroke-width="2" opacity="0.5"></circle><circle cx="17" cy="17" r="4" fill="#F2A93B"></circle></svg>
+<div style="display: flex; flex-direction: column; gap: 2px"><div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 22px; line-height: 1"><span>Fund</span><span style="color: var(--pri-text)">Radar</span></div><div style="font-size: 12px; color: var(--ink-3)">Portal consultor</div></div>
+</div>
+<nav aria-label="Menú principal" style="flex: 1; overflow-y: auto; padding: 12px 12px; display: flex; flex-direction: column; gap: 2px">
+<sc-for list="{{ nav }}" as="it" hint-placeholder-count="4">
+<button onClick="{{ it.go }}" style="display: flex; align-items: center; gap: 10px; min-height: 42px; padding: 0 10px; border: 0; border-radius: 4px; background: {{ it.bg }}; color: {{ it.fg }}; font-family: Inter, sans-serif; font-size: 14px; font-weight: {{ it.fw }}; cursor: pointer; text-align: left; width: 100%">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ it.d }}"></path></svg>
+<span style="flex: 1">{{ it.label }}</span>
+<sc-if value="{{ it.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #0A1A22; background: #F2A93B; border-radius: 3px; padding: 1px 6px">{{ it.badge }}</span></sc-if>
+</button>
+</sc-for>
+</nav>
+<div style="border-top: 1px solid var(--line); padding: 14px; display: flex; align-items: center; gap: 10px">
+<div style="width: 34px; height: 34px; flex: none; border-radius: 50%; background: var(--pri); color: var(--on-pri); display: grid; place-items: center; font-size: 12px; font-weight: 700">AR</div>
+<div style="flex: 1; min-width: 0"><div style="font-size: 13px; font-weight: 600">Andrés Rojas</div><div style="font-size: 12px; color: var(--ink-3)">Consultor aprobado</div></div>
+<a href="FundRadar Acceso.dc.html" aria-label="Cerrar sesión" style="width: 32px; height: 32px; display: grid; place-items: center; color: var(--ink-3)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5V3h4M16 17l5-5-5-5M21 12H9"></path></svg></a>
+</div>
+</aside>
+</sc-if>
+
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+<header style="position: sticky; top: 0; z-index: 20; height: 60px; flex: none; display: flex; align-items: center; gap: 12px; padding: 0 {{ padX }}; background: var(--topbar); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line)">
+<sc-if value="{{ mobile }}" hint-placeholder-val="{{ false }}"><div style="display: flex; align-items: center; gap: 8px"><svg width="26" height="26" viewBox="0 0 34 34"><circle cx="17" cy="17" r="15" fill="none" stroke="var(--pri)" stroke-width="2.2"></circle><circle cx="17" cy="17" r="9" fill="none" stroke="var(--pri)" stroke-width="2.2" opacity="0.5"></circle><circle cx="17" cy="17" r="4" fill="#F2A93B"></circle></svg><div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 19px"><span>Fund</span><span style="color: var(--pri-text)">Radar</span></div></div></sc-if>
+<sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}"><div style="font-size: 13px"><span style="color: var(--ink-3)">Portal consultor</span><span style="color: var(--line-strong)"> / </span><span style="font-weight: 600">{{ crumb }}</span></div></sc-if>
+<div style="flex: 1"></div>
+<button onClick="{{ toggleTheme }}" aria-label="Cambiar tema" style="width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--ink-2); cursor: pointer"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ themeIcon }}"></path></svg></button>
+</header>
+<main style="flex: 1; width: 100%; max-width: 1120px; margin: 0 auto; padding: {{ mainPad }}; display: flex; flex-direction: column; gap: 24px">
+
+<sc-if value="{{ s.perfil }}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 8px; max-width: 640px"><h1 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 32px; line-height: 1.1">Mi perfil</h1><p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink-2)">Así te ven las empresas en el directorio. Un perfil completo recibe hasta 3 veces más solicitudes.</p></div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap"><button style="min-height: 44px; padding: 0 16px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap">Ver como empresa</button><button style="min-height: 44px; padding: 0 18px; border: 0; border-radius: 4px; background: var(--pri); color: var(--on-pri); font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap">Guardar cambios</button></div>
+</div>
+<div style="background: var(--pri-soft); border: 1px solid var(--line); border-radius: 6px; padding: 20px; display: flex; flex-wrap: wrap; gap: 20px; align-items: center">
+<div style="width: 76px; height: 76px; flex: none; border-radius: 50%; background: conic-gradient(var(--pri) 302deg, var(--surface) 0); display: grid; place-items: center"><div style="width: 62px; height: 62px; border-radius: 50%; background: var(--pri-soft); display: grid; place-items: center; font-family: 'IBM Plex Mono', monospace; font-size: 17px; font-weight: 500">84%</div></div>
+<div style="flex: 1 1 280px; display: flex; flex-direction: column; gap: 6px"><div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 19px">Te faltan 2 cosas para el 100 %</div><div style="font-size: 14px; color: var(--ink-2); line-height: 1.5">Sube tu hoja de vida en PDF y agrega al menos un caso al portafolio.</div></div>
+<span style="font-size: 12.5px; font-weight: 600; color: var(--pri-text); background: var(--surface); border: 1px solid var(--line); border-radius: 3px; padding: 4px 10px">Publicado en el directorio</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+<div style="flex: 1 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<section style="background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 22px; display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 20px">Datos principales</h2>
+<div style="display: flex; align-items: center; gap: 16px"><div style="width: 64px; height: 64px; border-radius: 50%; background: var(--pri); color: var(--on-pri); display: grid; place-items: center; font-size: 20px; font-weight: 700">AR</div><button style="min-height: 40px; padding: 0 14px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 13.5px; font-weight: 600; cursor: pointer">Cambiar foto</button></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label style="font-size: 14px; font-weight: 600">Nombre profesional</label><input value="Andrés Rojas" readOnly="{{ true }}" style="min-height: 46px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 15px"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label style="font-size: 14px; font-weight: 600">Descripción</label><textarea rows="4" readOnly="{{ true }}" style="padding: 12px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 15px; line-height: 1.55; resize: vertical">Diez años formulando proyectos de ciencia y tecnología para empresas del agro y la manufactura. He acompañado 32 postulaciones a Minciencias e iNNpulsa.</textarea><span style="font-size: 12.5px; color: var(--ink-3)">Cuenta tu experiencia y en qué ayudas a las empresas.</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label style="font-size: 14px; font-weight: 600">Sitio web <span style="font-weight: 400; color: var(--ink-3)">(opcional)</span></label><input placeholder="https://" style="min-height: 46px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 15px"></div>
+</section>
+<section style="background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 22px; display: flex; flex-direction: column; gap: 14px">
+<div><h2 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 20px">Especialidades</h2><div style="font-size: 13px; color: var(--ink-3); margin-top: 4px">Las empresas filtran el directorio por estas etiquetas.</div></div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px"><sc-for list="{{ esp }}" as="e" hint-placeholder-count="8"><button onClick="{{ e.toggle }}" style="min-height: 38px; padding: 0 12px; border: 1px solid {{ e.bd }}; border-radius: 4px; background: {{ e.bg }}; color: {{ e.fg }}; font-family: Inter, sans-serif; font-size: 13.5px; font-weight: 500; cursor: pointer">{{ e.t }}</button></sc-for></div>
+</section>
+<section style="background: var(--surface); border: 1px dashed var(--line-strong); border-radius: 6px; padding: 22px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px"><h2 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 20px">Portafolio</h2><span style="font-size: 12px; font-weight: 600; background: var(--amber-soft); color: var(--ink); border-radius: 3px; padding: 3px 8px">Pendiente</span></div>
+<div style="font-size: 14px; color: var(--ink-2); line-height: 1.5">Agrega casos con la convocatoria, el resultado y el año. No incluyas datos confidenciales de tus clientes.</div>
+<button style="align-self: flex-start; min-height: 44px; padding: 0 16px; border: 1px solid var(--pri); border-radius: 4px; background: var(--surface); color: var(--pri-text); font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer">+ Agregar caso</button>
+</section>
+</div>
+<div style="flex: 1 1 300px; max-width: 100%; display: flex; flex-direction: column; gap: 12px">
+<section style="background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="font-size: 14px; font-weight: 600">Hoja de vida</div>
+<div style="border: 1px dashed var(--line-strong); border-radius: 4px; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; background: var(--surface-2)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--pri-text)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"></path></svg><div style="font-size: 13.5px; font-weight: 600">Arrastra tu PDF o elige un archivo</div><div style="font-size: 12px; color: var(--ink-3)">Máximo 5 MB</div></div>
+</section>
+<section style="background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 14px; font-weight: 600">Tu reputación</div>
+<div style="display: flex; gap: 24px"><div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 500">★ 4,9</div><div style="font-size: 12px; color: var(--ink-3)">promedio</div></div><div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 500">32</div><div style="font-size: 12px; color: var(--ink-3)">encargos completados</div></div></div>
+</section>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{ s.encargos }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 8px; max-width: 640px"><h1 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 32px; line-height: 1.1">Encargos</h1><p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink-2)">Responde las solicitudes en menos de 48 horas para mantenerte arriba en el directorio.</p></div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; overflow: hidden">
+<div style="padding: 16px 18px; border-right: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); margin: 0 -1px -1px 0"><div style="font-size: 12.5px; font-weight: 600; color: var(--ink-3)">Esperan respuesta</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 500">2</div></div>
+<div style="padding: 16px 18px; border-right: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); margin: 0 -1px -1px 0"><div style="font-size: 12.5px; font-weight: 600; color: var(--ink-3)">En curso</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 500">1</div></div>
+<div style="padding: 16px 18px; border-right: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); margin: 0 -1px -1px 0"><div style="font-size: 12.5px; font-weight: 600; color: var(--ink-3)">Calificación</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 500">4,9<span style="font-size: 14px; color: var(--ink-3)"> /5</span></div></div>
+<div style="padding: 16px 18px; border-right: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); margin: 0 -1px -1px 0"><div style="font-size: 12.5px; font-weight: 600; color: var(--ink-3)">Completados</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 500">32</div></div>
+</div>
+<div style="display: flex; gap: 24px; border-bottom: 1px solid var(--line); overflow-x: auto">
+<sc-for list="{{ encTabs }}" as="t" hint-placeholder-count="3"><button onClick="{{ t.go }}" style="display: flex; align-items: center; gap: 8px; min-height: 44px; border: 0; border-bottom: 2px solid {{ t.bd }}; margin-bottom: -1px; background: transparent; color: {{ t.fg }}; font-family: Inter, sans-serif; font-size: 14px; font-weight: {{ t.fw }}; cursor: pointer; white-space: nowrap">{{ t.t }}<span style="font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--ink-3)">{{ t.n }}</span></button></sc-for>
+</div>
+<sc-if value="{{ tabNuevas }}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 12px">
+<sc-for list="{{ nuevas }}" as="n" hint-placeholder-count="2">
+<div style="background: var(--surface); border: 1px solid var(--line); border-left: 3px solid #F2A93B; border-radius: 4px; padding: 20px; display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+<div style="flex: 1 1 360px; display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; gap: 8px; font-size: 12.5px; color: var(--ink-3)"><span style="font-weight: 600; color: var(--ink)">{{ n.emp }}</span><span>· {{ n.hace }}</span></div>
+<div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 18px; line-height: 1.3">{{ n.conv }}</div>
+<div style="font-size: 13px; color: var(--ink-2)">Proyecto: {{ n.proy }} · {{ n.meta }}</div>
+<div style="font-size: 14px; line-height: 1.5; color: var(--ink-2); background: var(--surface-2); border-radius: 4px; padding: 10px 12px; margin-top: 4px">«{{ n.msg }}»</div>
+</div>
+<div style="display: flex; gap: 8px; flex-wrap: wrap">
+<button style="min-height: 44px; padding: 0 18px; border: 0; border-radius: 4px; background: var(--pri); color: var(--on-pri); font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer">Enviar propuesta</button>
+<button style="min-height: 44px; padding: 0 16px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer">No puedo</button>
+</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{ tabCurso }}" hint-placeholder-val="{{ false }}">
+<sc-for list="{{ curso }}" as="c" hint-placeholder-count="1">
+<div style="background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 22px; display: flex; flex-wrap: wrap; gap: 24px">
+<div style="flex: 1 1 320px; display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 12.5px; font-weight: 600">{{ c.emp }}</div>
+<div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 19px; line-height: 1.3">{{ c.conv }}</div>
+<div style="font-size: 13px; color: var(--ink-2)">{{ c.proy }} · {{ c.meta }}</div>
+<div style="display: flex; align-items: center; gap: 10px; margin-top: 6px"><div style="flex: 1; height: 6px; border-radius: 3px; background: var(--line-2); overflow: hidden"><div style="height: 100%; width: {{ c.pct }}; background: var(--pri)"></div></div><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-3)">{{ c.hechos }}/{{ c.total }}</span></div>
+<div style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap"><button style="min-height: 44px; padding: 0 16px; border: 0; border-radius: 4px; background: var(--pri); color: var(--on-pri); font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer">Abrir postulación</button><button style="min-height: 44px; padding: 0 16px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer">Marcar como completado</button></div>
+</div>
+<div style="flex: 1 1 260px; display: flex; flex-direction: column">
+<div style="font-size: 13px; font-weight: 600; color: var(--ink-3); margin-bottom: 6px">Tareas acordadas</div>
+<sc-for list="{{ c.tl }}" as="t" hint-placeholder-count="4"><div style="display: flex; align-items: center; gap: 12px; min-height: 44px; border-bottom: 1px solid var(--line-2)"><span style="width: 20px; height: 20px; flex: none; border-radius: 4px; border: 2px solid {{ t.bd }}; background: {{ t.bg }}; display: grid; place-items: center; color: var(--on-pri)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="visibility: {{ t.vis }}"><path d="M20 6L9 17l-5-5"></path></svg></span><span style="font-size: 14px; color: {{ t.fg }}">{{ t.t }}</span></div></sc-for>
+</div>
+</div>
+</sc-for>
+</sc-if>
+<sc-if value="{{ tabHist }}" hint-placeholder-val="{{ false }}">
+<div style="background: var(--surface); border: 1px solid var(--line); border-radius: 6px; overflow: hidden">
+<sc-for list="{{ historial }}" as="h" hint-placeholder-count="2"><div style="display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--line-2)"><div style="flex: 1 1 280px"><div style="font-size: 14.5px; font-weight: 600">{{ h.conv }}</div><div style="font-size: 12.5px; color: var(--ink-3)">{{ h.emp }}</div></div><span style="font-size: 13px; color: var(--pri-text); font-weight: 600">{{ h.res }}</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-3)">{{ h.fecha }}</span></div></sc-for>
+</div>
+</sc-if>
+</sc-if>
+
+<sc-if value="{{ s.documentos }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 8px; max-width: 640px"><h1 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 32px; line-height: 1.1">Documentos</h1><p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink-2)">Los documentos que las empresas compartieron contigo. Cada una decide si puedes comentar o editar.</p></div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{ docsC }}" as="d" hint-placeholder-count="2"><div style="background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 16px 18px; display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center"><div style="flex: 1 1 300px"><div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 17px">{{ d.t }}</div><div style="font-size: 13px; color: var(--ink-3); margin-top: 2px">{{ d.emp }} · <span style="font-family: 'IBM Plex Mono', monospace">{{ d.v }} · {{ d.f }}</span></div></div><span style="font-size: 12px; font-weight: 600; color: var(--pri-text); background: var(--pri-soft); border-radius: 3px; padding: 3px 8px">{{ d.perm }}</span><button style="min-height: 44px; padding: 0 16px; border: 1px solid var(--pri); border-radius: 4px; background: var(--surface); color: var(--pri-text); font-family: Inter, sans-serif; font-size: 13.5px; font-weight: 600; cursor: pointer">Abrir</button></div></sc-for>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.suscripcion }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 8px; max-width: 640px"><h1 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 32px; line-height: 1.1">Mi suscripción</h1><p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink-2)">Tu plan está activo hasta el <strong style="color: var(--ink)">10 de diciembre de 2026</strong>.</p></div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 14px">
+<sc-for list="{{ planesC }}" as="p" hint-placeholder-count="2">
+<div style="background: var(--surface); border: 1px solid var(--line); border-top: {{ p.bt }}; border-radius: 4px; padding: 22px; display: flex; flex-direction: column; gap: 14px">
+<div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 21px">{{ p.n }}</div>
+<div><span style="font-family: 'IBM Plex Mono', monospace; font-size: 24px; font-weight: 500">{{ p.p }}</span><span style="font-size: 13px; color: var(--ink-3)"> COP / mes</span></div>
+<sc-for list="{{ p.bl }}" as="b" hint-placeholder-count="3"><div style="display: flex; gap: 8px; font-size: 13.5px; color: var(--ink-2)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--pri-text)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex: none; margin-top: 2px"><path d="M20 6L9 17l-5-5"></path></svg>{{ b.t }}</div></sc-for>
+<button style="margin-top: auto; min-height: 44px; border: 0; border-radius: 4px; background: {{ p.btnBg }}; color: {{ p.btnFg }}; font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer">{{ p.cta }}</button>
+</div>
+</sc-for>
+</div>
+<div style="font-size: 13px; line-height: 1.55; color: var(--ink-3)">Durante el piloto, los planes se contratan con nuestro equipo: acuerdas el pago por fuera de la plataforma y activamos tu plan.</div>
+</sc-if>
+</main>
+<sc-if value="{{ mobile }}" hint-placeholder-val="{{ false }}">
+<nav aria-label="Navegación" style="position: sticky; bottom: 0; z-index: 20; flex: none; display: grid; grid-template-columns: repeat(4, 1fr); background: var(--surface); border-top: 1px solid var(--line); padding-bottom: 6px">
+<sc-for list="{{ nav }}" as="t" hint-placeholder-count="4">
+<button onClick="{{ t.go }}" style="position: relative; min-height: 58px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border: 0; background: transparent; color: {{ t.fg }}; font-family: Inter, sans-serif; font-size: 11px; font-weight: {{ t.fw }}; cursor: pointer">
+<div style="position: absolute; top: 0; left: 25%; right: 25%; height: 2px; background: {{ t.bar }}"></div>
+<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ t.d }}"></path></svg>
+<span>{{ t.short }}</span>
+</button>
+</sc-for>
+</nav>
+</sc-if>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;vista&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;auto&quot;, &quot;movil&quot;], &quot;default&quot;: &quot;auto&quot;, &quot;tsType&quot;: &quot;'auto' | 'movil'&quot;, &quot;section&quot;: &quot;Vista&quot;}, &quot;tema&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;claro&quot;, &quot;oscuro&quot;], &quot;default&quot;: &quot;claro&quot;, &quot;tsType&quot;: &quot;'claro' | 'oscuro'&quot;, &quot;section&quot;: &quot;Vista&quot;}}">
+class Component extends DCLogic {
+  state = { screen: 'perfil', dark: null, mobile: false, tab: 'nuevas', esp: { 'I+D+i': true, 'Minciencias': true, 'Presupuestos': true, 'Agro': true } };
+  checkW = () => { const el = document.querySelector('[data-fr-root="consultor"]'); if (!el) return; const m = el.clientWidth < 900; if (m !== this.state.mobile) this.setState({ mobile: m }); };
+  componentDidMount() { this.timer = setInterval(this.checkW, 250); this.checkW(); try { const s = localStorage.getItem('fr-con-screen'); if (s) this.setState({ screen: s }); } catch (e) {} }
+  componentWillUnmount() { clearInterval(this.timer); }
+  go(screen) { this.setState({ screen }); try { localStorage.setItem('fr-con-screen', screen); } catch (e) {} const el = document.querySelector('[data-fr-root="consultor"]'); if (el) el.scrollTop = 0; }
+  renderVals() {
+    const st = this.state, mobile = st.mobile;
+    const dark = st.dark ?? (this.props.tema === 'oscuro');
+    const movil = this.props.vista === 'movil';
+    const items = [['perfil', 'Mi perfil', 'Perfil', 'M12 3a4 4 0 1 0 0 8a4 4 0 1 0 0-8zM4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1'], ['encargos', 'Encargos', 'Encargos', 'M3 7h18v13H3zM8 7V4h8v3M3 13h18', '2'], ['documentos', 'Documentos', 'Docs', 'M7 3h7l4 4v14H7zM14 3v4h4M10 12h5M10 16h5'], ['suscripcion', 'Mi suscripción', 'Plan', 'M2 5h20v14H2zM2 10h20']];
+    const nav = items.map(([k, label, short, d, badge]) => { const on = st.screen === k; return { label, short, d, badge, hasBadge: !!badge, go: () => this.go(k), bg: on ? 'var(--pri-soft)' : 'transparent', fg: on ? 'var(--pri-text)' : (mobile ? 'var(--ink-3)' : 'var(--ink-2)'), fw: on ? 600 : 500, bar: on ? 'var(--pri)' : 'transparent' }; });
+    const espAll = ['I+D+i', 'Minciencias', 'iNNpulsa', 'Presupuestos', 'Agro', 'Manufactura', 'Cooperación internacional', 'Beneficios tributarios', 'Marco lógico', 'Emprendimiento'];
+    return {
+      theme: dark ? 'dark' : 'light', mobile, desktop: !mobile,
+      framePad: movil ? '24px' : '0', outerH: movil ? 'auto' : '100vh', outerOv: movil ? 'visible' : 'hidden', frameW: movil ? '390px' : 'none', frameH: movil ? '844px' : '100vh', frameRadius: movil ? '28px' : '0', frameShadow: movil ? '0 0 0 10px #0A1A22, 0 30px 60px rgba(0,0,0,.3)' : 'none',
+      padX: mobile ? '16px' : '28px', mainPad: mobile ? '20px 16px 32px' : '28px 28px 56px',
+      nav, crumb: (items.find(i => i[0] === st.screen) || items[0])[1],
+      s: { perfil: st.screen === 'perfil', encargos: st.screen === 'encargos', documentos: st.screen === 'documentos', suscripcion: st.screen === 'suscripcion' },
+      toggleTheme: () => this.setState({ dark: !dark }), themeIcon: dark ? 'M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4' : 'M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z',
+      esp: espAll.map(t => { const on = !!st.esp[t]; return { t, toggle: () => this.setState(s => ({ esp: { ...s.esp, [t]: !s.esp[t] } })), bg: on ? 'var(--pri-soft)' : 'var(--surface)', fg: on ? 'var(--pri-text)' : 'var(--ink-2)', bd: on ? 'var(--pri)' : 'var(--line)' }; }),
+      ...this.encargos(st)
+    };
+  }
+  encargos(st) {
+    const data = {
+      nuevas: [
+        { emp: 'Agroinnova S.A.S.', conv: 'Paisajes sostenibles del Pacífico', proy: 'Planta piloto de bioinsumos', meta: 'Cierra en 33 días · USD 120.000', msg: 'Necesitamos ayuda con el marco lógico y el presupuesto en dólares.', hace: 'hace 2 días' },
+        { emp: 'Café del Macizo', conv: 'Colombia Inteligente: I+D+i empresarial 2026', proy: 'Tostión con energía solar', meta: 'Cierra en 8 días · Hasta $1.500 M', msg: '¿Puedes revisar la propuesta técnica antes del cierre?', hace: 'hoy' }
+      ],
+      curso: [
+        { emp: 'Agroinnova S.A.S.', conv: 'Colombia Inteligente: I+D+i empresarial 2026', proy: 'Secado solar de café', meta: 'Cierra en 8 días', hechos: 2, total: 4, tareas: [['Revisar presupuesto', true], ['Ajustar cronograma', true], ['Redactar impacto esperado', false], ['Revisión final', false]] }
+      ],
+      historial: [
+        { emp: 'Lácteos del Norte', conv: 'Innova Región Pacífico', res: 'Completado · ★ 5', fecha: '28 oct 2026' },
+        { emp: 'Biotec Andina', conv: 'Deducción por inversión en CTeI', res: 'Completado · ★ 4,8', fecha: '3 oct 2026' }
+      ]
+    };
+    const tabs = [['nuevas', 'Solicitudes nuevas', data.nuevas.length], ['curso', 'En curso', data.curso.length], ['historial', 'Historial', data.historial.length]].map(([k, t, n]) => ({ t, n, go: () => this.setState({ tab: k }), fg: st.tab === k ? 'var(--ink)' : 'var(--ink-3)', bd: st.tab === k ? 'var(--pri)' : 'transparent', fw: st.tab === k ? 600 : 500 }));
+    return {
+      encTabs: tabs, tabNuevas: st.tab === 'nuevas', tabCurso: st.tab === 'curso', tabHist: st.tab === 'historial',
+      nuevas: data.nuevas, curso: data.curso.map(c => ({ ...c, pct: Math.round(c.hechos / c.total * 100) + '%', tl: c.tareas.map(([t, on]) => ({ t, bg: on ? 'var(--pri)' : 'var(--surface)', bd: on ? 'var(--pri)' : 'var(--line-strong)', vis: on ? 'visible' : 'hidden', fg: on ? 'var(--ink-3)' : 'var(--ink)' })) })), historial: data.historial,
+      docsC: [
+        { t: 'Propuesta técnica · Secado solar de café', emp: 'Agroinnova S.A.S.', perm: 'Puede comentar', v: 'v2', f: '8 nov 2026' },
+        { t: 'Presupuesto · Secado solar de café', emp: 'Agroinnova S.A.S.', perm: 'Puede editar', v: 'v4', f: '9 nov 2026' }
+      ],
+      planesC: [
+        { n: 'Consultor', p: '$120.000', on: true, b: ['Visibilidad en el directorio', 'Recepción de encargos ilimitados', 'Acceso a los documentos que la empresa te autorice'] },
+        { n: 'Consultor Destacado', p: '$240.000', on: false, b: ['Todo lo del plan Consultor', 'Primeros lugares en el directorio de tus especialidades', '300 créditos de IA al mes (hasta 3 documentos)'] }
+      ].map(p => ({ ...p, bl: p.b.map(t => ({ t })), bt: p.on ? '3px solid var(--pri)' : '1px solid var(--line)', cta: p.on ? 'Tu plan actual' : 'Cambiar a este plan', btnBg: p.on ? 'var(--surface-2)' : 'var(--pri)', btnFg: p.on ? 'var(--ink-3)' : 'var(--on-pri)' }))
+    };
+  }
+}
+</script>
+</body>
+</html>

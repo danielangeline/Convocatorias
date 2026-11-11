@@ -11,7 +11,7 @@ function iniciales(texto: string): string {
 }
 
 /** Identidad de la sesión y cierre de sesión (CU-14). */
-export function MenuUsuario({ tono = "amber" }: { tono?: "amber" | "sky" | "pri" }) {
+export function MenuUsuario({ tono = "amber" }: { tono?: "amber" | "pri" | "pri" }) {
   const sesion = useAppStore((s) => s.sesion);
   if (!sesion) return null;
   const titulo = sesion.nombreEmpresa ?? sesion.nombre;
@@ -23,7 +23,7 @@ export function MenuUsuario({ tono = "amber" }: { tono?: "amber" | "sky" | "pri"
         className={cn(
           "hidden h-9 w-9 shrink-0 items-center justify-center rounded-full font-display text-sm font-bold ring-1 sm:flex",
           tono === "amber" && "bg-amber/10 text-amber-ink ring-amber/30",
-          tono === "sky" && "bg-sky/10 text-sky-ink ring-sky/30",
+          tono === "pri" && "bg-pri-soft text-pri-text ring-pri/30",
           tono === "pri" && "bg-pri-soft text-pri-text ring-pri-soft"
         )}
       >

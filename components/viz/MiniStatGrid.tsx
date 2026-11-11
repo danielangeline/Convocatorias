@@ -22,7 +22,7 @@ export function MiniStatGrid({ stats, titulo }: { stats: MiniStat[]; titulo?: st
   return (
     <Card className="flex flex-col gap-3.5">
       <div className="flex items-center gap-2 text-[15px] font-extrabold">
-        <span className="grid h-7 w-7 place-items-center rounded-lg bg-[color-mix(in_oklch,var(--violet)_16%,transparent)] text-violet">
+        <span className="grid h-7 w-7 place-items-center rounded-lg bg-[color-mix(in_oklch,var(--pri)_16%,transparent)] text-pri">
           <Sparkles className="h-4 w-4" aria-hidden />
         </span>
         {titulo}

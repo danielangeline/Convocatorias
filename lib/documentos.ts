@@ -250,7 +250,7 @@ export const ESTADO_DOCUMENTO_LABEL: Record<string, string> = {
 };
 
 export const ESTADO_DOCUMENTO_ESTILO: Record<string, string> = {
-  generado: "bg-violet/10 text-violet-ink",
+  generado: "bg-pri-soft text-pri-text",
   editado: "bg-amber/10 text-amber-ink",
   exportado: "bg-pri-soft text-pri-text",
 };

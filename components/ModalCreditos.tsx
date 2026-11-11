@@ -26,7 +26,7 @@ export function ModalCreditos() {
       <div role="dialog" aria-modal="true" aria-labelledby="titulo-sin-creditos" className="w-full max-w-md rounded-2xl border border-line bg-surface p-6 shadow-2xl">
         <div className="mb-2 flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-violet/10 text-violet-ink">
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-pri-soft text-pri-text">
               <Sparkles className="h-5 w-5" />
             </span>
             <div>

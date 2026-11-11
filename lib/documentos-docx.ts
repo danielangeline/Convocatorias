@@ -57,7 +57,7 @@ export async function documentoAWord(doc: DocumentoServidor): Promise<Buffer> {
   );
 
   const word = new Document({
-    creator: "Plataforma de Gestión de Convocatorias",
+    creator: "FundRadar",
     title: doc.titulo,
     styles: { default: { document: { run: { font: "Calibri", size: 24 } } } },
     sections: [{ children: cuerpo }],

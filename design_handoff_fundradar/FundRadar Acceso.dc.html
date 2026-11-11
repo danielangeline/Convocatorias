@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.fr{--bg:#F4F1EA;--surface:#FFFFFF;--surface-2:#F8F6F1;--line:#DAD6CC;--line-2:#E9E6DF;--line-strong:#8A949A;--ink:#0A1A22;--ink-2:#2B3A42;--ink-3:#5A666C;--pri:#0F4C5C;--pri-hover:#0A3A47;--pri-soft:#E3EEF0;--pri-text:#0F4C5C;--on-pri:#FFFFFF;--rose:#A63D2A;--rose-soft:#F6E3DE}
+.fr[data-theme="dark"]{--bg:#0A1519;--surface:#10212A;--surface-2:#142931;--line:#20363F;--line-2:#1A2E36;--line-strong:#4A6069;--ink:#EEF1EE;--ink-2:#BFCBCF;--ink-3:#8A9AA0;--pri:#5DB0C2;--pri-hover:#7CC3D2;--pri-soft:#123843;--pri-text:#8FD3E0;--on-pri:#06161B;--rose:#F09A86;--rose-soft:#3A1E19}
+.fr *{box-sizing:border-box}
+.fr a{color:var(--pri-text)}.fr a:hover{color:var(--ink)}
+.fr input::placeholder{color:var(--ink-3)}
+@keyframes ping{0%{transform:scale(1);opacity:.7}100%{transform:scale(3);opacity:0}}
+.ping-ring{animation:ping 2.2s ease-out infinite;transform-box:fill-box;transform-origin:center}
+@media (prefers-reduced-motion: reduce){.ping-ring{animation:none}}
+</style>
+</helmet>
+<div class="fr" data-theme="{{ theme }}" style="min-height: 100vh; display: flex; flex-wrap: wrap; background: var(--bg); color: var(--ink); font-family: Inter, system-ui, sans-serif; font-size: 14px">
+<div style="flex: 1 1 460px; background: #0A1A22; color: #FFFFFF; padding: 40px; display: flex; flex-direction: column; justify-content: space-between; gap: 40px; min-height: 280px">
+<a href="#" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: #FFFFFF">
+<svg width="32" height="32" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="15" fill="none" stroke="#7CC3D2" stroke-width="2"></circle><circle cx="17" cy="17" r="9" fill="none" stroke="#7CC3D2" stroke-width="2" opacity="0.5"></circle><circle cx="17" cy="17" r="4" fill="#F2A93B"></circle></svg>
+<span style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 24px"><span>Fund</span><span style="color: #7CC3D2">Radar</span></span>
+</a>
+<div style="display: flex; flex-direction: column; gap: 18px; max-width: 520px">
+<div style="display: flex; align-items: center; gap: 10px; font-size: 12.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #F2A93B"><svg width="12" height="12" viewBox="0 0 14 14"><circle class="ping-ring" cx="7" cy="7" r="4" fill="#F2A93B"></circle><circle cx="7" cy="7" r="4" fill="#F2A93B"></circle></svg>3 convocatorias nuevas hoy</div>
+<div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 40px; line-height: 1.1; letter-spacing: -0.01em; text-wrap: pretty">¿A qué financiación puede postular su organización hoy?</div>
+<div style="font-size: 16px; line-height: 1.6; color: #C9D3DD">Rastreamos a diario las fuentes oficiales, le avisamos cuando aparece una convocatoria para su perfil y le ayudamos a preparar la postulación.</div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 32px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.18)">
+<div><div style="font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 24px; color: #F2A93B">20</div><div style="font-size: 12.5px; color: #C9D3DD">Convocatorias vigentes</div></div>
+<div><div style="font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 24px; color: #F2A93B">$67,2 mil M</div><div style="font-size: 12.5px; color: #C9D3DD">Monto disponible (COP)</div></div>
+<div><div style="font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 24px; color: #F2A93B">18</div><div style="font-size: 12.5px; color: #C9D3DD">Entidades convocantes</div></div>
+</div>
+</div>
+
+<div style="flex: 1 1 460px; display: flex; flex-direction: column; padding: 24px">
+<div style="display: flex; justify-content: flex-end; gap: 8px">
+<button onClick="{{ toggleTheme }}" aria-label="Cambiar tema" style="width: 40px; height: 40px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--ink-2); cursor: pointer"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ themeIcon }}"></path></svg></button>
+</div>
+<div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px 0">
+<div style="width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 20px">
+
+<sc-if value="{{ s.login }}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 8px"><h1 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 30px; line-height: 1.15">Entre a la plataforma</h1><p style="margin: 0; font-size: 15px; color: var(--ink-2); line-height: 1.5">Use el correo con el que se registró.</p></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="correo" style="font-size: 14px; font-weight: 600">Correo electrónico</label><input id="correo" type="email" placeholder="nombre@organizacion.org" autoComplete="email" style="min-height: 48px; padding: 0 13px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 16px"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><div style="display: flex; justify-content: space-between; align-items: baseline"><label for="clave" style="font-size: 14px; font-weight: 600">Contraseña</label><button onClick="{{ goRecuperar }}" style="border: 0; background: none; padding: 0; font-family: Inter, sans-serif; font-size: 13px; font-weight: 600; color: var(--pri-text); cursor: pointer">¿La olvidó?</button></div><input id="clave" type="password" autoComplete="current-password" style="min-height: 48px; padding: 0 13px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 16px"></div>
+<a href="FundRadar Empresa.dc.html" style="min-height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 4px; background: var(--pri); color: var(--on-pri); text-decoration: none; font-size: 16px; font-weight: 600">Entrar</a>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; font-size: 14px; color: var(--ink-2); border-top: 1px solid var(--line-2); padding-top: 16px">¿Aún no tiene cuenta?<button onClick="{{ goRegistro }}" style="border: 0; background: none; padding: 0; font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; color: var(--pri-text); cursor: pointer">Cree una gratis</button></div>
+<div style="font-size: 13px; color: var(--ink-3)">¿Es administrador? <button onClick="{{ goMfa }}" style="border: 0; background: none; padding: 0; font-family: Inter, sans-serif; font-size: 13px; font-weight: 600; color: var(--pri-text); cursor: pointer">Entre con verificación en dos pasos</button></div>
+</sc-if>
+
+<sc-if value="{{ s.registro }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 8px"><h1 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 30px; line-height: 1.15">Cree su cuenta</h1><p style="margin: 0; font-size: 15px; color: var(--ink-2)">Primero díganos cómo usará FundRadar.</p></div>
+<div role="radiogroup" aria-label="Tipo de cuenta" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px">
+<sc-for list="{{ puertas }}" as="p" hint-placeholder-count="2">
+<button onClick="{{ p.go }}" role="radio" aria-checked="{{ p.on }}" style="display: flex; flex-direction: column; gap: 6px; padding: 16px; border: 2px solid {{ p.bd }}; border-radius: 4px; background: {{ p.bg }}; color: var(--ink); text-align: left; cursor: pointer; font-family: Inter, sans-serif">
+<span style="font-size: 15px; font-weight: 600">{{ p.t }}</span><span style="font-size: 12.5px; line-height: 1.45; color: var(--ink-2)">{{ p.d }}</span>
+</button>
+</sc-for>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="nombre" style="font-size: 14px; font-weight: 600">Su nombre</label><input id="nombre" autoComplete="name" style="min-height: 48px; padding: 0 13px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 16px"></div>
+<sc-if value="{{ esEmpresa }}" hint-placeholder-val="{{ true }}"><div style="display: flex; flex-direction: column; gap: 6px"><label for="org" style="font-size: 14px; font-weight: 600">Nombre de la organización</label><input id="org" autoComplete="organization" style="min-height: 48px; padding: 0 13px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 16px"></div></sc-if>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="correo2" style="font-size: 14px; font-weight: 600">Correo electrónico</label><input id="correo2" type="email" placeholder="nombre@organizacion.org" style="min-height: 48px; padding: 0 13px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 16px"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="clave2" style="font-size: 14px; font-weight: 600">Contraseña</label><input id="clave2" type="password" style="min-height: 48px; padding: 0 13px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 16px"><span style="font-size: 12.5px; color: var(--ink-3)">Mínimo 8 caracteres.</span></div>
+<button onClick="{{ toggleConsent }}" role="checkbox" aria-checked="{{ consent }}" style="display: flex; gap: 12px; align-items: flex-start; border: 0; padding: 0; background: none; color: var(--ink-2); text-align: left; cursor: pointer; font-family: Inter, sans-serif; font-size: 13.5px; line-height: 1.5">
+<span style="width: 22px; height: 22px; flex: none; border-radius: 4px; border: 2px solid {{ cBd }}; background: {{ cBg }}; display: grid; place-items: center; color: var(--on-pri)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="visibility: {{ cVis }}"><path d="M20 6L9 17l-5-5"></path></svg></span>
+<span>Autorizo el tratamiento de mis datos personales para crear y operar mi cuenta, conforme a la Ley 1581 de 2012.</span>
+</button>
+<button onClick="{{ goCorreo }}" style="min-height: 48px; border: 0; border-radius: 4px; background: var(--pri); color: var(--on-pri); font-family: Inter, sans-serif; font-size: 16px; font-weight: 600; cursor: pointer; opacity: {{ cOp }}">{{ ctaRegistro }}</button>
+<sc-if value="{{ esEmpresa }}" hint-placeholder-val="{{ true }}"><div style="display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--ink-3)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--pri-text)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>Prueba gratuita de 7 días. Sin tarjeta de crédito.</div></sc-if>
+<div style="font-size: 14px; color: var(--ink-2); border-top: 1px solid var(--line-2); padding-top: 16px">¿Ya tiene cuenta? <button onClick="{{ goLogin }}" style="border: 0; background: none; padding: 0; font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; color: var(--pri-text); cursor: pointer">Entrar</button></div>
+</sc-if>
+
+<sc-if value="{{ s.correo }}" hint-placeholder-val="{{ false }}">
+<div style="width: 56px; height: 56px; border-radius: 50%; background: var(--pri-soft); display: grid; place-items: center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--pri-text)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18v14H3zM3 7l9 6 9-6"></path></svg></div>
+<h1 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 30px; line-height: 1.15">Revise su correo</h1>
+<p style="margin: 0; font-size: 15px; line-height: 1.6; color: var(--ink-2)">Le enviamos un enlace a <strong style="color: var(--ink)">laura@agroinnova.co</strong>. Ábralo para confirmar la cuenta; vence en 24 horas.</p>
+<div style="padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; font-size: 13.5px; line-height: 1.5; color: var(--ink-2)">¿No llegó? Revise la carpeta de spam o <button style="border: 0; background: none; padding: 0; font-family: Inter, sans-serif; font-size: 13.5px; font-weight: 600; color: var(--pri-text); cursor: pointer">reenvíe el enlace</button>.</div>
+<a href="FundRadar Empresa.dc.html" style="font-size: 14px; font-weight: 600">Continuar al prototipo del portal →</a>
+</sc-if>
+
+<sc-if value="{{ s.recuperar }}" hint-placeholder-val="{{ false }}">
+<button onClick="{{ goLogin }}" style="align-self: flex-start; border: 0; background: none; padding: 0; font-family: Inter, sans-serif; font-size: 13.5px; font-weight: 600; color: var(--pri-text); cursor: pointer">← Volver</button>
+<div style="display: flex; flex-direction: column; gap: 8px"><h1 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 30px; line-height: 1.15">Recupere su contraseña</h1><p style="margin: 0; font-size: 15px; color: var(--ink-2); line-height: 1.5">Escriba su correo y le enviamos un enlace para definir una nueva.</p></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="correo3" style="font-size: 14px; font-weight: 600">Correo electrónico</label><input id="correo3" type="email" style="min-height: 48px; padding: 0 13px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 16px"></div>
+<button onClick="{{ goCorreo }}" style="min-height: 48px; border: 0; border-radius: 4px; background: var(--pri); color: var(--on-pri); font-family: Inter, sans-serif; font-size: 16px; font-weight: 600; cursor: pointer">Enviar enlace</button>
+</sc-if>
+
+<sc-if value="{{ s.mfa }}" hint-placeholder-val="{{ false }}">
+<button onClick="{{ goLogin }}" style="align-self: flex-start; border: 0; background: none; padding: 0; font-family: Inter, sans-serif; font-size: 13.5px; font-weight: 600; color: var(--pri-text); cursor: pointer">← Volver</button>
+<div style="width: 56px; height: 56px; border-radius: 50%; background: var(--pri-soft); display: grid; place-items: center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--pri-text)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6zM9 12l2 2 4-4"></path></svg></div>
+<div style="display: flex; flex-direction: column; gap: 8px"><h1 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 30px; line-height: 1.15">Verificación en dos pasos</h1><p style="margin: 0; font-size: 15px; color: var(--ink-2); line-height: 1.5">Escriba el código de 6 dígitos de su aplicación autenticadora.</p></div>
+<div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px">
+<sc-for list="{{ digits }}" as="d" hint-placeholder-count="6"><div style="height: 56px; display: grid; place-items: center; border: 1px solid {{ d.bd }}; border-radius: 4px; background: var(--surface); font-family: 'IBM Plex Mono', monospace; font-size: 24px; font-weight: 500">{{ d.v }}</div></sc-for>
+</div>
+<input value="{{ code }}" onChange="{{ setCode }}" inputMode="numeric" autoComplete="one-time-code" aria-label="Código de 6 dígitos" placeholder="Escriba aquí el código" style="min-height: 44px; padding: 0 13px; border: 1px dashed var(--line-strong); border-radius: 4px; background: transparent; color: var(--ink); font-family: 'IBM Plex Mono', monospace; font-size: 15px; letter-spacing: 0.2em">
+<a href="FundRadar Admin.dc.html" style="min-height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 4px; background: var(--pri); color: var(--on-pri); text-decoration: none; font-size: 16px; font-weight: 600">Verificar y continuar</a>
+<div style="font-size: 13px; color: var(--ink-3); line-height: 1.5">El código cambia cada 30 segundos. Si falla, espere el siguiente.</div>
+</sc-if>
+
+</div>
+</div>
+<div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; font-size: 12.5px; color: var(--ink-3)"><a href="#">Términos y condiciones</a><a href="#">Tratamiento de datos</a></div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;tema&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;claro&quot;, &quot;oscuro&quot;], &quot;default&quot;: &quot;claro&quot;, &quot;tsType&quot;: &quot;'claro' | 'oscuro'&quot;}}">class Component extends DCLogic {
+  state = { screen: 'login', dark: null, puerta: 'empresa', consent: false, code: '48' };
+  go(screen) { this.setState({ screen }); }
+  renderVals() {
+    const st = this.state;
+    const dark = st.dark ?? (this.props.tema === 'oscuro');
+    const puertas = [['empresa', 'Soy empresa o entidad', 'Busco convocatorias y preparo postulaciones. Prueba gratis 7 días con créditos de IA.'], ['consultor', 'Soy consultor', 'Ofrezco mis servicios. Mi perfil pasa por revisión antes de publicarse.']].map(([k, t, d]) => { const on = st.puerta === k; return { t, d, on, go: () => this.setState({ puerta: k }), bd: on ? 'var(--pri)' : 'var(--line)', bg: on ? 'var(--pri-soft)' : 'var(--surface)' }; });
+    const code = st.code.replace(/\D/g, '').slice(0, 6);
+    return {
+      theme: dark ? 'dark' : 'light', toggleTheme: () => this.setState({ dark: !dark }), themeIcon: dark ? 'M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4' : 'M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z',
+      s: { login: st.screen === 'login', registro: st.screen === 'registro', correo: st.screen === 'correo', recuperar: st.screen === 'recuperar', mfa: st.screen === 'mfa' },
+      goLogin: () => this.go('login'), goRegistro: () => this.go('registro'), goRecuperar: () => this.go('recuperar'), goMfa: () => this.go('mfa'), goCorreo: () => { if (st.screen !== 'registro' || st.consent) this.go('correo'); },
+      puertas, esEmpresa: st.puerta === 'empresa', ctaRegistro: st.puerta === 'empresa' ? 'Crear cuenta y empezar la prueba' : 'Crear cuenta de consultor',
+      consent: st.consent, toggleConsent: () => this.setState({ consent: !st.consent }), cBd: st.consent ? 'var(--pri)' : 'var(--line-strong)', cBg: st.consent ? 'var(--pri)' : 'var(--surface)', cVis: st.consent ? 'visible' : 'hidden', cOp: st.consent ? 1 : 0.5,
+      code, setCode: e => this.setState({ code: e.target.value }), digits: Array.from({ length: 6 }, (_, i) => ({ v: code[i] || '', bd: i === code.length ? 'var(--pri)' : 'var(--line-strong)' }))
+    };
+  }
+}</script>
+</body>
+</html>

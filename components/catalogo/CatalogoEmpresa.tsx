@@ -350,7 +350,7 @@ export function CatalogoEmpresa({
             </option>
           ))}
         </select>
-        <Button variant={filtrosAbiertos ? "secondary" : "outline-amber"} size="md" onClick={() => setFiltrosAbiertos((v) => !v)} className="h-[42px] sm:w-auto">
+        <Button variant={filtrosAbiertos ? "secondary" : "outline"} size="md" onClick={() => setFiltrosAbiertos((v) => !v)} className="h-[42px] sm:w-auto">
           <SlidersHorizontal className="h-4 w-4" />
           Filtros {activos.length > 0 && `(${activos.length})`}
         </Button>
@@ -775,7 +775,7 @@ function CampoMonto({
         />
         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-3">COP</span>
       </div>
-      {!lectura.ok && <p className="mt-1 text-xs text-sky-ink">El monto {lectura.error}</p>}
+      {!lectura.ok && <p className="mt-1 text-xs text-pri-text">El monto {lectura.error}</p>}
     </label>
   );
 }

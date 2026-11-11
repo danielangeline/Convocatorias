@@ -38,7 +38,7 @@ export function StackedBarChart({
           Públicos
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-sm bg-sky" />
+          <span className="h-2 w-2 rounded-sm bg-pri" />
           {etiquetaPrivado}
         </span>
       </div>
@@ -57,7 +57,7 @@ export function StackedBarChart({
               <div className="flex w-full max-w-[46px] flex-col gap-[3px]">
                 {hPriv > 0 && (
                   <div
-                    className="crece-alto rounded-t-md rounded-b-[3px] bg-sky"
+                    className="crece-alto rounded-t-md rounded-b-[3px] bg-pri"
                     style={{ height: Math.max(3, hPriv) }}
                     title={`${etiquetaPrivado}: ${formatear(d.privado)} COP`}
                   />

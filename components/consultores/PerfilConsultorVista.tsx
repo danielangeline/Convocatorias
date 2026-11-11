@@ -213,9 +213,9 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
         <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center">
           {consultor.fotoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- URL firmada de Storage
-            <img src={consultor.fotoUrl} alt="" className="h-24 w-24 rounded-full object-cover ring-2 ring-sky/30" />
+            <img src={consultor.fotoUrl} alt="" className="h-24 w-24 rounded-full object-cover ring-2 ring-pri/30" />
           ) : (
-            <span className="flex h-24 w-24 items-center justify-center rounded-full bg-surface-2 text-ink-3 ring-2 ring-sky/30">
+            <span className="flex h-24 w-24 items-center justify-center rounded-full bg-surface-2 text-ink-3 ring-2 ring-pri/30">
               <UserRound className="h-10 w-10" />
             </span>
           )}
@@ -233,7 +233,7 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
               Solicitar para mi tarea
             </Button>
           ) : (
-            <Button variant="consultor" size="lg" onClick={abrirSolicitudDirecta} className="w-full shrink-0 sm:w-auto">
+            <Button variant="primary" size="lg" onClick={abrirSolicitudDirecta} className="w-full shrink-0 sm:w-auto">
               <UserPlus className="h-4 w-4" /> Solicitar a este consultor
             </Button>
           )}
@@ -441,11 +441,11 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                           className={cn(
                             "flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-colors",
                             tipoAyuda === "convocatoria_especifica"
-                              ? "border-violet bg-violet/10"
-                              : "border-line hover:border-violet/30"
+                              ? "border-pri bg-pri-soft"
+                              : "border-line hover:border-pri/30"
                           )}
                         >
-                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet/10 text-violet-ink">
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-pri-soft text-pri-text">
                             <Target className="h-5 w-5" />
                           </span>
                           <span>
@@ -462,11 +462,11 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                           className={cn(
                             "flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-colors",
                             tipoAyuda === "buscar_convocatoria"
-                              ? "border-sky bg-sky/10"
-                              : "border-line hover:border-sky/30"
+                              ? "border-pri bg-pri-soft"
+                              : "border-line hover:border-pri/30"
                           )}
                         >
-                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky/10 text-sky-ink">
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-pri-soft text-pri-text">
                             <Compass className="h-5 w-5" />
                           </span>
                           <span>

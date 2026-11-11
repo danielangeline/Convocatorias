@@ -15,7 +15,7 @@ export function KpiCreditos() {
       sufijo={` / ${(incluidos + extra).toLocaleString("es-CO")}`}
       nota={fechaReinicio ? "Se renuevan cada mes" : "Disponibles este periodo"}
       icono={Sparkles}
-      tono="violet"
+      tono="pri"
     />
   );
 }

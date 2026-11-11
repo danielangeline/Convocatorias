@@ -54,10 +54,8 @@ export function diasRestantes(fechaCierre: string): number {
 }
 
 // Tonos de badge sobre los tokens del rediseño (claro y oscuro).
-const TONO_AMBER = "bg-[color-mix(in_oklch,var(--amber)_16%,transparent)] text-[color-mix(in_oklch,var(--amber)_62%,var(--ink))]";
-const TONO_SKY = "bg-[color-mix(in_oklch,var(--sky)_16%,transparent)] text-[color-mix(in_oklch,var(--sky)_65%,var(--ink))]";
-const TONO_ROSE = "bg-[color-mix(in_oklch,var(--rose)_16%,transparent)] text-[color-mix(in_oklch,var(--rose)_65%,var(--ink))]";
-const TONO_VIOLET = "bg-[color-mix(in_oklch,var(--violet)_16%,transparent)] text-[color-mix(in_oklch,var(--violet)_65%,var(--ink))]";
+const TONO_AMBER = "bg-amber-soft text-ink";
+const TONO_ROSE = "bg-rose-soft text-rose";
 const TONO_PRI = "bg-pri-soft text-pri-text";
 const TONO_NEUTRO = "bg-surface-2 text-ink-2";
 
@@ -101,7 +99,7 @@ export const ESTADO_POSTULACION_LABEL: Record<EstadoPostulacion, string> = {
 
 export const ESTADO_POSTULACION_ESTILO: Record<EstadoPostulacion, string> = {
   en_preparacion: TONO_NEUTRO,
-  presentada: TONO_SKY,
+  presentada: TONO_PRI,
   en_evaluacion: TONO_AMBER,
   aprobada: TONO_PRI,
   rechazada: TONO_ROSE,
@@ -191,7 +189,7 @@ export const ESTADO_ENCARGO_ESTILO: Record<EstadoEncargo, string> = {
   esperando_asignacion: TONO_ROSE,
   atendido: TONO_PRI,
   pendiente: TONO_AMBER,
-  en_curso: TONO_SKY,
+  en_curso: TONO_PRI,
   rechazado: TONO_ROSE,
   completado: TONO_PRI,
   calificado: TONO_PRI,
@@ -207,7 +205,7 @@ export const ESTADO_SUSCRIPCION_LABEL: Record<EstadoSuscripcion, string> = {
 };
 
 export const ESTADO_SUSCRIPCION_ESTILO: Record<EstadoSuscripcion, string> = {
-  trial: TONO_SKY,
+  trial: TONO_PRI,
   activa: TONO_PRI,
   en_gracia: TONO_AMBER,
   vencida: TONO_ROSE,
@@ -234,7 +232,7 @@ export const TIPO_AYUDA_LABEL: Record<TipoAyudaEncargo, string> = {
 };
 
 export const TIPO_AYUDA_ESTILO: Record<TipoAyudaEncargo, string> = {
-  convocatoria_especifica: TONO_VIOLET,
+  convocatoria_especifica: TONO_PRI,
   buscar_convocatoria: TONO_ROSE,
 };
 

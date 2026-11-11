@@ -179,7 +179,7 @@ export function ListadoProyectos({ proyectos, categorias }: { proyectos: Proyect
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="flex-1 text-sky-ink hover:bg-sky/10"
+                  className="flex-1 text-pri-text hover:bg-pri-soft"
                   onClick={() => solicitarConsultor(p.id)}
                 >
                   <UserPlus className="h-3.5 w-3.5" /> Solicitar consultor

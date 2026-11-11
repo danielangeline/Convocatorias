@@ -224,7 +224,7 @@ export function DetallePostulacion({
               </a>
             )}
             {proyecto && (
-              <Button variant="ghost" className="w-full text-sky-ink hover:bg-sky/10" onClick={abrirSolicitudConsultor}>
+              <Button variant="ghost" className="w-full text-pri-text hover:bg-pri-soft" onClick={abrirSolicitudConsultor}>
                 <UserPlus className="h-4 w-4" /> Solicitar consultor
               </Button>
             )}
@@ -264,7 +264,7 @@ export function DetallePostulacion({
         )}
 
         {error && (
-          <p role="alert" className="mt-4 rounded-lg bg-sky/10 px-4 py-2.5 text-sm text-sky-ink">
+          <p role="alert" className="mt-4 rounded-lg bg-pri-soft px-4 py-2.5 text-sm text-pri-text">
             {error}
           </p>
         )}
@@ -333,9 +333,9 @@ export function DetallePostulacion({
           {documento ? (
             <button
               onClick={irAGenerarOEditar}
-              className="mt-3 flex w-full items-center gap-3 rounded-lg border border-violet/30 bg-violet/10 px-4 py-3 text-left transition-colors hover:bg-violet/10"
+              className="mt-3 flex w-full items-center gap-3 rounded-lg border border-pri/30 bg-pri-soft px-4 py-3 text-left transition-colors hover:bg-pri-soft"
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet/15 text-violet-ink">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-pri-soft text-pri-text">
                 <FileText className="h-4 w-4" />
               </span>
               <span className="flex-1">
@@ -343,17 +343,17 @@ export function DetallePostulacion({
                 <span className="block text-xs text-ink-3">Versión {documento.version}</span>
               </span>
               <Badge className={ESTADO_DOCUMENTO_ESTILO[documento.estado]}>{ESTADO_DOCUMENTO_LABEL[documento.estado]}</Badge>
-              <Pencil className="h-4 w-4 shrink-0 text-violet-ink" />
+              <Pencil className="h-4 w-4 shrink-0 text-pri-text" />
             </button>
           ) : postulacion.proyectoId ? (
             <button
               onClick={irAGenerarOEditar}
-              className="mt-3 flex w-full items-center gap-3 rounded-lg border border-dashed border-violet/30 bg-violet/10 px-4 py-3 text-left transition-colors hover:bg-violet/10"
+              className="mt-3 flex w-full items-center gap-3 rounded-lg border border-dashed border-pri/30 bg-pri-soft px-4 py-3 text-left transition-colors hover:bg-pri-soft"
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-violet/15 text-violet-ink">
+              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-pri-soft text-pri-text">
                 <Sparkles className="h-4 w-4" />
               </span>
-              <span className="flex-1 text-sm font-medium text-violet-ink">Generar documento con IA para esta postulación</span>
+              <span className="flex-1 text-sm font-medium text-pri-text">Generar documento con IA para esta postulación</span>
             </button>
           ) : (
             <div className="mt-3 rounded-lg border border-dashed border-line px-4 py-3">
@@ -374,10 +374,10 @@ export function DetallePostulacion({
                     </option>
                   ))}
                 </select>
-                <Button variant="ai" size="sm" onClick={vincularYContinuar} disabled={!proyectoParaVincular || ocupado}>
+                <Button variant="primary" size="sm" onClick={vincularYContinuar} disabled={!proyectoParaVincular || ocupado}>
                   Vincular y generar
                 </Button>
-                <Button variant="consultor" size="sm" onClick={vincularYSolicitarConsultor} disabled={!proyectoParaVincular || ocupado}>
+                <Button variant="primary" size="sm" onClick={vincularYSolicitarConsultor} disabled={!proyectoParaVincular || ocupado}>
                   Vincular y solicitar consultor
                 </Button>
               </div>

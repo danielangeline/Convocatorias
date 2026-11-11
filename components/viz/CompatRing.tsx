@@ -15,7 +15,7 @@ export function CompatRing({
   etiqueta?: string;
 }) {
   const valor = Math.max(0, Math.min(100, Math.round(porcentaje)));
-  const color = valor >= 80 ? "var(--pri)" : "var(--amber)";
+  const color = valor >= 80 ? "var(--pri)" : "#f2a93b";
   const grosor = tamano >= 70 ? 8 : 6;
   return (
     <div
@@ -25,7 +25,7 @@ export function CompatRing({
       style={{
         width: tamano,
         height: tamano,
-        background: `conic-gradient(${color} ${valor * 3.6}deg, var(--surface-2) 0)`,
+        background: `conic-gradient(${color} ${valor * 3.6}deg, var(--line-2) 0)`,
       }}
     >
       <div

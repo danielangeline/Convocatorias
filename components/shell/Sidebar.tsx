@@ -6,6 +6,7 @@ import { useAppStore } from "@/lib/store";
 import { useCreditos } from "@/lib/hooks";
 import { cerrarSesion } from "@/lib/acciones/auth";
 import { cn } from "@/lib/utils";
+import { Logo, LogoMarca } from "./Logo";
 import { CreditMeter } from "@/components/viz/CreditMeter";
 import { itemActivo, PORTAL, type GrupoMenu, type RolShell } from "./menus";
 import { useAlmacenLocal } from "./useAlmacenLocal";
@@ -85,23 +86,15 @@ export function Sidebar({
   const subtitulo = sesion ? (sesion.nombreEmpresa ? sesion.nombre : sesion.rol === "administrador" ? "Administrador" : "Consultor") : "";
 
   return (
-    <div className="flex h-full flex-col bg-side">
+    <div className="flex h-full flex-col bg-surface">
       <div className="flex min-h-[70px] items-center gap-2.5 px-4 pb-4 pt-[18px]">
         <Link
           href={grupos[0]?.items[0]?.href ?? "/"}
           onClick={alNavegar}
-          className="relative grid h-[34px] w-[34px] flex-none place-items-center overflow-hidden rounded-[10px] bg-pri text-on-pri"
-          aria-label="Convocatorias"
+          aria-label="FundRadar"
         >
-          <span className="absolute left-1.5 top-1.5 h-[22px] w-[22px] rounded-full border-[3px] border-current opacity-95" />
-          <span className="absolute right-[5px] top-[5px] h-[9px] w-[9px] rounded-full bg-current" />
+          {contraido ? <LogoMarca /> : <Logo subtitulo={PORTAL[rol]} />}
         </Link>
-        {!contraido && (
-          <div className="min-w-0 flex-1">
-            <div className="text-[15px] font-extrabold leading-[1.1] tracking-[-0.01em]">Convocatorias</div>
-            <div className="mt-[3px] text-[11.5px] text-ink-3">{PORTAL[rol]}</div>
-          </div>
-        )}
       </div>
 
       <nav aria-label="Menú principal" className="flex flex-1 flex-col gap-0.5 overflow-y-auto pb-3 pt-1 [scrollbar-color:var(--line)_transparent] [scrollbar-width:thin]">
@@ -169,7 +162,7 @@ export function Sidebar({
             onClick={() => useAppStore.getState().abrirModalCreditos()}
             title="Créditos de IA"
             data-recorrido="creditos"
-            className="mx-auto grid h-[38px] w-[38px] cursor-pointer place-items-center rounded-[10px] bg-surface-2 text-violet"
+            className="mx-auto grid h-[38px] w-[38px] cursor-pointer place-items-center rounded-[10px] bg-surface-2 text-pri"
           >
             <Sparkles className="h-4 w-4" />
           </button>

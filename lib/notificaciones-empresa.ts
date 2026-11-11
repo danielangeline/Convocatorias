@@ -11,7 +11,7 @@ export interface Notificacion {
   id: string;
   texto: string;
   href: string;
-  tono: "amber" | "rose" | "sky" | "pri";
+  tono: "amber" | "rose" | "pri" | "pri";
 }
 
 const DIAS_AVISO = 7;
@@ -70,7 +70,7 @@ export function notificacionesEmpresa({
         id: `propuestas-${e.id}-${e.propuestas.filter((p) => p.estado === "propuesta").length}`,
         texto: `Tienes convocatorias propuestas por revisar en «${e.tituloTarea}».`,
         href: "/encargos",
-        tono: "sky",
+        tono: "pri",
       });
     }
   }

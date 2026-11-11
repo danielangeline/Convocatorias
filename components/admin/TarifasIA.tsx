@@ -40,9 +40,9 @@ export function TarifasIA({ tarifas }: { tarifas: Tarifas }) {
   };
 
   return (
-    <div className="mt-10 rounded-2xl border border-violet/30 bg-violet/10 p-4 sm:p-6">
+    <div className="mt-10 rounded-2xl border border-pri/30 bg-pri-soft p-4 sm:p-6">
       <h2 className="flex items-center gap-2 font-display text-base font-semibold text-ink">
-        <Sparkles className="h-4 w-4 text-violet-ink" /> Cuánto cuesta cada uso de la IA
+        <Sparkles className="h-4 w-4 text-pri-text" /> Cuánto cuesta cada uso de la IA
       </h2>
       <p className="mt-1 text-sm text-ink-2">
         En créditos. Rige desde el siguiente uso, para todas las empresas. Dictar y editar a mano no cuestan; un uso fallido no cobra.
@@ -62,11 +62,11 @@ export function TarifasIA({ tarifas }: { tarifas: Tarifas }) {
                 inputMode="numeric"
                 value={valores[a.clave]}
                 onChange={(e) => setValores({ ...valores, [a.clave]: e.target.value })}
-                className="w-40 rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-violet bg-surface text-ink"
+                className="w-40 rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
               />
             </label>
             <Button
-              variant="ai"
+              variant="primary"
               size="sm"
               onClick={() => guardar(a.clave)}
               disabled={ocupado !== null || Number(valores[a.clave]) === tarifas[a.clave]}

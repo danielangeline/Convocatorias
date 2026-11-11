@@ -111,10 +111,10 @@ export function FichaProyecto({
             </p>
           </div>
           <div className="flex shrink-0 flex-col gap-2 sm:flex-row">
-            <Button variant="ai" size="lg" onClick={abrirSelectorGenerar}>
+            <Button variant="primary" size="lg" onClick={abrirSelectorGenerar}>
               <Sparkles className="h-4 w-4" /> Generar documento para una convocatoria...
             </Button>
-            <Button variant="consultor" size="lg" onClick={abrirFlujo}>
+            <Button variant="primary" size="lg" onClick={abrirFlujo}>
               <UserPlus className="h-4 w-4" /> Solicitar consultor
             </Button>
             <Button variant="ghost" size="lg" onClick={() => abrirEdicion()}>
@@ -217,7 +217,7 @@ export function FichaProyecto({
       {encargos.length > 0 && (
         <div className="mt-6 rounded-2xl border border-line p-6 bg-surface shadow-card">
           <h2 className="flex items-center gap-2 font-display text-base font-semibold text-ink">
-            <Users className="h-4 w-4 text-sky-ink" /> Consultores en este proyecto
+            <Users className="h-4 w-4 text-pri-text" /> Consultores en este proyecto
           </h2>
           <ul className="mt-3 divide-y divide-line-2">
             {encargos.map((e) => (
@@ -263,9 +263,9 @@ export function FichaProyecto({
                   <li key={c.id}>
                     <button
                       onClick={() => elegirConvocatoriaParaGenerar(c.id)}
-                      className="flex w-full items-center gap-3 rounded-lg border border-line p-3 text-left transition-colors hover:border-violet/30 hover:bg-violet/10"
+                      className="flex w-full items-center gap-3 rounded-lg border border-line p-3 text-left transition-colors hover:border-pri/30 hover:bg-pri-soft"
                     >
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-violet/10 text-violet-ink">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-pri-soft text-pri-text">
                         <FileStack className="h-4 w-4" />
                       </span>
                       <span>

@@ -82,14 +82,14 @@ export function DirectorioConsultores({ consultores }: { consultores: ConsultorD
       </div>
 
       {solicitud && (
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sky/30 bg-sky/10 px-5 py-4">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-pri/30 bg-pri-soft px-5 py-4">
           <div>
-            <p className="text-sm font-semibold text-sky-ink">Buscando consultor para: {solicitud.tituloTarea}</p>
-            <p className="text-xs text-sky-ink/80">
+            <p className="text-sm font-semibold text-pri-text">Buscando consultor para: {solicitud.tituloTarea}</p>
+            <p className="text-xs text-pri-text/80">
               Elige un perfil y usa &ldquo;Solicitar para mi tarea&rdquo; en su ficha completa.
             </p>
           </div>
-          <button onClick={cancelarSolicitud} className="text-xs font-semibold text-sky-ink hover:underline">
+          <button onClick={cancelarSolicitud} className="text-xs font-semibold text-pri-text hover:underline">
             Cancelar solicitud
           </button>
         </div>
@@ -202,7 +202,7 @@ export function DirectorioConsultores({ consultores }: { consultores: ConsultorD
                     <Link
                       key={c.id}
                       href={`/consultores/${c.id}`}
-                      className="flex flex-col rounded-2xl border border-line bg-surface shadow-card p-5 transition-colors hover:border-sky/30 hover:bg-sky/10"
+                      className="flex flex-col rounded-2xl border border-line bg-surface shadow-card p-5 transition-colors hover:border-pri/30 hover:bg-pri-soft"
                     >
                       <div className="flex items-center gap-3">
                         {c.fotoUrl ? (

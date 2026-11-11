@@ -4,7 +4,7 @@ import { obtenerSesion } from "@/lib/auth";
 import { puertaDeParametro, rutaInicioDeRol } from "@/lib/rutas";
 import { FormularioRegistro } from "@/components/identidad/FormularioRegistro";
 
-export const metadata = { title: "Crear cuenta · Gestión de Convocatorias" };
+export const metadata = { title: "Crear cuenta · FundRadar" };
 
 export default async function RegistroPage({ searchParams }: PageProps<"/registro">) {
   const datos = await obtenerSesion();

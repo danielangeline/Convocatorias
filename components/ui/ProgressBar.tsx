@@ -1,11 +1,9 @@
 import { cn } from "@/lib/utils";
 
-type Tono = "pri" | "sky" | "violet" | "amber" | "rose";
+type Tono = "pri" | "amber" | "rose";
 
 const relleno: Record<Tono, string> = {
   pri: "bg-pri",
-  sky: "bg-sky",
-  violet: "bg-violet",
   amber: "bg-amber",
   rose: "bg-rose",
 };

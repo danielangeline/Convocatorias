@@ -20,7 +20,7 @@ export function CreditMeter({
           {usados}/{total}
         </span>
       </div>
-      <ProgressBar porcentaje={total > 0 ? (usados / total) * 100 : 0} tono="violet" />
+      <ProgressBar porcentaje={total > 0 ? (usados / total) * 100 : 0} tono="pri" />
       {nota && <div className="text-[11.5px] text-ink-3">{nota}</div>}
     </div>
   );

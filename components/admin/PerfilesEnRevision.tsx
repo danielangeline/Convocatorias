@@ -67,7 +67,7 @@ export function PerfilesEnRevision({ perfiles }: { perfiles: ConsultorAdmin[] })
       ) : (
         perfiles.slice(0, 5).map((c) => (
           <div key={c.id} className="flex items-center gap-3 border-b border-line-2 py-2.5 last:border-b-0">
-            <span className={`grid h-[38px] w-[38px] flex-none place-items-center rounded-full text-xs font-extrabold ${TONO_CLASE.sky}`}>
+            <span className={`grid h-[38px] w-[38px] flex-none place-items-center rounded-full text-xs font-extrabold ${TONO_CLASE.pri}`}>
               {iniciales(c.nombreProfesional || "?")}
             </span>
             <Link href="/admin/consultores/revision" className="min-w-0 flex-1">

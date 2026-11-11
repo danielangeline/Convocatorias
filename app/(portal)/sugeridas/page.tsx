@@ -55,7 +55,7 @@ export default async function SugeridasPage() {
               >
                 <div className="flex items-start justify-between gap-2.5">
                   <CompatRing porcentaje={s.porcentaje} />
-                  <Badge tono={tributario ? "violet" : "pri"}>{tributario ? "Tributario" : "Fondos"}</Badge>
+                  <Badge tono={tributario ? "pri" : "pri"}>{tributario ? "Tributario" : "Fondos"}</Badge>
                 </div>
                 <div>
                   <h2 className="text-[15px] font-extrabold leading-snug [text-wrap:pretty]">{c.nombre}</h2>

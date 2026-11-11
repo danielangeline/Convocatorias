@@ -144,7 +144,7 @@ export function FichaConvocatoria({
           <Badge className={ESTADO_CONVOCATORIA_ESTILO[convocatoria.estado]}>
             {ESTADO_CONVOCATORIA_LABEL[convocatoria.estado]}
           </Badge>
-          {noElegible && <Badge className="bg-sky/10 text-sky-ink ring-sky/30">Tu país no es elegible</Badge>}
+          {noElegible && <Badge className="bg-pri-soft text-pri-text ring-pri/30">Tu país no es elegible</Badge>}
           {!cerrada && dias < 15 && (
             <Badge className="bg-amber/10 text-amber-ink ring-amber/30">
               Cierra en {dias} {dias === 1 ? "día" : "días"}
@@ -224,7 +224,7 @@ export function FichaConvocatoria({
         <div className="mt-8">
           <h2 className="font-display text-base font-semibold text-ink">Documentos de la convocatoria</h2>
           {errorDescarga && (
-            <p role="alert" className="mt-3 rounded-lg bg-sky/10 px-4 py-2.5 text-sm text-sky-ink">
+            <p role="alert" className="mt-3 rounded-lg bg-pri-soft px-4 py-2.5 text-sm text-pri-text">
               {errorDescarga}
             </p>
           )}
@@ -288,7 +288,7 @@ export function FichaConvocatoria({
               )}
               {guardada !== undefined && !cerrada && <BotonGuardar convocatoriaId={convocatoria.id} inicial={guardada} />}
               <Button
-                variant="ai"
+                variant="primary"
                 size="lg"
                 disabled={bloqueada}
                 onClick={() => {
@@ -345,7 +345,7 @@ export function FichaConvocatoria({
               ))}
             </select>
             {errorPostular && (
-              <p role="alert" className="mt-4 rounded-lg bg-sky/10 px-3 py-2 text-sm text-sky-ink">
+              <p role="alert" className="mt-4 rounded-lg bg-pri-soft px-3 py-2 text-sm text-pri-text">
                 {errorPostular}
               </p>
             )}

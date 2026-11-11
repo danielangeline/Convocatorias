@@ -33,7 +33,7 @@ export interface ItemTablero {
 
 const TONO_ETAPA: Record<EtapaPostulacion, Tono> = {
   preparacion: "neutro",
-  documentos: "sky",
+  documentos: "pri",
   lista: "amber",
   radicada: "pri",
   resuelta: "neutro",
@@ -136,7 +136,7 @@ export function TableroPostulaciones({ items }: { items: ItemTablero[] }) {
                   <ProgressBar
                     altura={5}
                     porcentaje={i.total > 0 ? (i.hechos / i.total) * 100 : 0}
-                    tono={i.total > 0 && i.hechos >= i.total ? "pri" : "sky"}
+                    tono={i.total > 0 && i.hechos >= i.total ? "pri" : "pri"}
                   />
                   <span className="font-tabular text-[11.5px] text-ink-3">
                     {i.hechos}/{i.total} requisitos

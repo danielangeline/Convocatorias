@@ -61,7 +61,7 @@ export function KanbanBoard({
                 <ProgressBar
                   altura={5}
                   porcentaje={t.total > 0 ? (t.hechos / t.total) * 100 : 0}
-                  tono={t.total > 0 && t.hechos >= t.total ? "pri" : "sky"}
+                  tono={t.total > 0 && t.hechos >= t.total ? "pri" : "pri"}
                 />
                 <div className="flex items-center justify-between text-[11.5px]">
                   <span className="font-tabular text-ink-3">
@@ -78,7 +78,7 @@ export function KanbanBoard({
                 {t.consultor && (
                   <div className="flex items-center gap-2 border-t border-line-2 pt-2.5 text-xs text-ink-2">
                     <span
-                      className={`grid h-[22px] w-[22px] place-items-center rounded-full text-[9.5px] font-extrabold ${TONO_CLASE.sky}`}
+                      className={`grid h-[22px] w-[22px] place-items-center rounded-full text-[9.5px] font-extrabold ${TONO_CLASE.pri}`}
                     >
                       {iniciales(t.consultor)}
                     </span>

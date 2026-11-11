@@ -21,7 +21,7 @@ export function ProgressRow({
         <span className="truncate font-bold">{nombre}</span>
         <span className="whitespace-nowrap text-ink-3">{etapa}</span>
       </div>
-      <ProgressBar porcentaje={pct} tono={hechos >= total && total > 0 ? "pri" : "sky"} />
+      <ProgressBar porcentaje={pct} tono={hechos >= total && total > 0 ? "pri" : "pri"} />
       <div className="font-tabular text-[11.5px] text-ink-3">
         {hechos}/{total} requisitos
         {dias !== undefined && ` · cierra en ${dias} d`}

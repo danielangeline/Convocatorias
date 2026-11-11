@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { FormularioRecuperar } from "@/components/identidad/FormularioRecuperar";
 
-export const metadata = { title: "Recuperar contraseña · Gestión de Convocatorias" };
+export const metadata = { title: "Recuperar contraseña · FundRadar" };
 
 // RF-03, CU-14 paso 5.
 export default function RecuperarPage() {

@@ -159,8 +159,8 @@ export function GestionSuscripciones({
             ))}
           </dl>
         </div>
-        <div className="rounded-2xl border border-violet/30 bg-violet/10 p-5">
-          <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-violet-ink">
+        <div className="rounded-2xl border border-pri/30 bg-pri-soft p-5">
+          <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-pri-text">
             <Sparkles className="h-3.5 w-3.5" /> Consumo de IA de este mes
           </p>
           <dl className="mt-3 grid grid-cols-4 gap-2 text-center">
@@ -173,7 +173,7 @@ export function GestionSuscripciones({
               ] as const
             ).map(([t, v]) => (
               <div key={t}>
-                <dd className="font-tabular text-lg font-bold text-violet-ink">{v}</dd>
+                <dd className="font-tabular text-lg font-bold text-pri-text">{v}</dd>
                 <dt className="text-xs text-ink-3">{t}</dt>
               </div>
             ))}
@@ -246,7 +246,7 @@ export function GestionSuscripciones({
                     ) : (
                       <span title="Usados del plan / incluidos · más los de paquetes">
                         {c.creditosUsados}/{c.creditosIncluidos}
-                        {c.creditosExtra > 0 && <span className="text-violet-ink"> +{c.creditosExtra}</span>}
+                        {c.creditosExtra > 0 && <span className="text-pri-text"> +{c.creditosExtra}</span>}
                       </span>
                     )}
                   </td>
@@ -262,7 +262,7 @@ export function GestionSuscripciones({
                             setCreditosDe(c);
                           }}
                         >
-                          <Sparkles className="h-3.5 w-3.5 text-violet-ink" /> Créditos
+                          <Sparkles className="h-3.5 w-3.5 text-pri-text" /> Créditos
                         </Button>
                       )}
                       {c.estado && CON_ACCESO.has(c.estado) && (
@@ -378,7 +378,7 @@ export function GestionSuscripciones({
             {errorModal && <div className="mt-4"><Aviso tipo="error">{errorModal}</Aviso></div>}
             <div className="mt-6 flex justify-end gap-3">
               <Button type="button" variant="ghost" onClick={() => setCreditosDe(null)}>Cancelar</Button>
-              <Button type="submit" variant="ai" disabled={ocupado}>Otorgar créditos</Button>
+              <Button type="submit" variant="primary" disabled={ocupado}>Otorgar créditos</Button>
             </div>
           </form>
         </div>

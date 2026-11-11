@@ -1,14 +1,17 @@
 import { cn } from "@/lib/utils";
 
-export type TonoBadge = "pri" | "amber" | "violet" | "sky" | "rose" | "neutro";
+// ok/aviso/error/neutro son los tonos del rediseño; pri, amber y rose se conservan
+// como alias para los usos existentes.
+export type TonoBadge = "ok" | "aviso" | "error" | "neutro" | "pri" | "amber" | "rose";
 
 const tonos: Record<TonoBadge, string> = {
-  pri: "bg-pri-soft text-pri-text",
-  amber: "bg-[color-mix(in_oklch,var(--amber)_16%,transparent)] text-[color-mix(in_oklch,var(--amber)_62%,var(--ink))]",
-  violet: "bg-[color-mix(in_oklch,var(--violet)_16%,transparent)] text-[color-mix(in_oklch,var(--violet)_65%,var(--ink))]",
-  sky: "bg-[color-mix(in_oklch,var(--sky)_16%,transparent)] text-[color-mix(in_oklch,var(--sky)_65%,var(--ink))]",
-  rose: "bg-[color-mix(in_oklch,var(--rose)_16%,transparent)] text-[color-mix(in_oklch,var(--rose)_65%,var(--ink))]",
+  ok: "bg-pri-soft text-pri-text",
+  aviso: "bg-amber-soft text-ink",
+  error: "bg-rose-soft text-rose",
   neutro: "bg-surface-2 text-ink-2",
+  pri: "bg-pri-soft text-pri-text",
+  amber: "bg-amber-soft text-ink",
+  rose: "bg-rose-soft text-rose",
 };
 
 // `tono` es opcional: los usos existentes pasan clases de estado (lib/utils.ts)
@@ -25,7 +28,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold whitespace-nowrap",
+        "inline-flex items-center gap-1 rounded-[3px] px-2 py-1 text-[11px] font-semibold whitespace-nowrap",
         tono && tonos[tono],
         className
       )}

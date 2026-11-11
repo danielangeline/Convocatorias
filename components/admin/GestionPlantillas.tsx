@@ -111,12 +111,12 @@ export function GestionPlantillas({ plantillas, tipo = "documento" }: { plantill
     router.refresh();
   };
 
-  const campo = "w-full rounded-lg border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-violet";
+  const campo = "w-full rounded-lg border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri";
 
   return (
     <div>
       <div className="mb-6">
-        <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-violet-ink">
+        <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-pri-text">
           <Sparkles className="h-3.5 w-3.5" /> Módulo de IA
         </p>
         <h1 className="mt-1 text-[26px] font-extrabold tracking-[-0.025em] text-ink">Plantillas de la IA</h1>
@@ -136,7 +136,7 @@ export function GestionPlantillas({ plantillas, tipo = "documento" }: { plantill
             aria-current={tipo === clave ? "page" : undefined}
             className={cn(
               "-mb-px border-b-2 px-3 py-2 text-sm font-semibold transition-colors",
-              tipo === clave ? "border-violet text-violet-ink" : "border-transparent text-ink-2 hover:text-ink"
+              tipo === clave ? "border-pri text-pri-text" : "border-transparent text-ink-2 hover:text-ink"
             )}
           >
             {nombre}
@@ -164,12 +164,12 @@ export function GestionPlantillas({ plantillas, tipo = "documento" }: { plantill
               onClick={() => elegir(p)}
               className={cn(
                 "block w-full rounded-xl border p-4 text-left transition-colors",
-                seleccionada?.id === p.id ? "border-violet/30 bg-violet/10" : "border-line hover:border-violet/30"
+                seleccionada?.id === p.id ? "border-pri/30 bg-pri-soft" : "border-line hover:border-pri/30"
               )}
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="font-display text-sm font-semibold text-ink">Versión {p.version}</span>
-                {p.activa && <Badge className="bg-violet/10 text-violet-ink ring-violet/30">Activa</Badge>}
+                {p.activa && <Badge className="bg-pri-soft text-pri-text ring-pri/30">Activa</Badge>}
               </div>
               <p className="mt-1 break-words text-xs text-ink-3">
                 {p.modelo} · creada el {fechaHoraColombia(p.creadoAt)}
@@ -207,7 +207,7 @@ export function GestionPlantillas({ plantillas, tipo = "documento" }: { plantill
             value={borrador.contenido}
             onChange={(e) => setBorrador({ ...borrador, contenido: e.target.value })}
             rows={18}
-            className="w-full resize-y rounded-lg border border-line px-4 py-3 font-mono text-sm leading-relaxed outline-none focus:border-violet bg-surface text-ink"
+            className="w-full resize-y rounded-lg border border-line px-4 py-3 font-mono text-sm leading-relaxed outline-none focus:border-pri bg-surface text-ink"
           />
           <p className="mt-1 text-right text-xs text-ink-3">{borrador.contenido.trim().length.toLocaleString("es-CO")} caracteres</p>
 
@@ -239,7 +239,7 @@ export function GestionPlantillas({ plantillas, tipo = "documento" }: { plantill
                 <Check className="h-4 w-4" /> Activar la versión {seleccionada.version}
               </Button>
             )}
-            <Button variant="ai" onClick={guardar} disabled={ocupado || sinCambios}>
+            <Button variant="primary" onClick={guardar} disabled={ocupado || sinCambios}>
               Guardar como versión nueva
             </Button>
           </div>

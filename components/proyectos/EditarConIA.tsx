@@ -67,16 +67,16 @@ export function EditarConIA({
 
   if (!abierto) {
     return (
-      <Button type="button" variant="ai" size="sm" onClick={() => setAbierto(true)}>
+      <Button type="button" variant="primary" size="sm" onClick={() => setAbierto(true)}>
         <Sparkles className="h-3.5 w-3.5" /> Editar con IA
       </Button>
     );
   }
 
   return (
-    <div className="mt-3 rounded-xl border border-violet/30 bg-violet/5 p-4">
+    <div className="mt-3 rounded-xl border border-pri/30 bg-pri-soft p-4">
       <div className="flex items-center justify-between gap-2">
-        <p className="flex items-center gap-1.5 text-[13px] font-bold text-violet-ink">
+        <p className="flex items-center gap-1.5 text-[13px] font-bold text-pri-text">
           <Sparkles className="h-4 w-4" /> ¿Qué quieres cambiar?
         </p>
         <button
@@ -92,7 +92,7 @@ export function EditarConIA({
 
       {!propuesta ? (
         <>
-          <div className="mt-2 rounded-xl border border-line bg-surface focus-within:border-violet">
+          <div className="mt-2 rounded-xl border border-line bg-surface focus-within:border-pri">
             <textarea
               value={parcial ? `${instruccion ? `${instruccion.trimEnd()} ` : ""}${parcial}` : instruccion}
               onChange={(e) => setInstruccion(e.target.value.slice(0, 2000))}
@@ -125,7 +125,7 @@ export function EditarConIA({
             </p>
           )}
           <div className="mt-3 flex justify-end">
-            <Button type="button" variant="ai" onClick={pedir} disabled={ocupado || sinCredito || !instruccion.trim()}>
+            <Button type="button" variant="primary" onClick={pedir} disabled={ocupado || sinCredito || !instruccion.trim()}>
               {ocupado ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" /> Proponiendo…

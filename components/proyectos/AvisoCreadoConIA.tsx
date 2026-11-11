@@ -43,7 +43,7 @@ export function AvisoCreadoConIA({ proyectoId }: { proyectoId: string }) {
   return (
     <div
       role="status"
-      className="relative mb-5 rounded-2xl border border-violet/30 bg-violet/10 p-5 pr-12"
+      className="relative mb-5 rounded-2xl border border-pri/30 bg-pri-soft p-5 pr-12"
     >
       <button
         type="button"
@@ -53,7 +53,7 @@ export function AvisoCreadoConIA({ proyectoId }: { proyectoId: string }) {
       >
         <X className="h-4 w-4" />
       </button>
-      <p className="flex items-center gap-2 text-[15px] font-extrabold text-violet-ink">
+      <p className="flex items-center gap-2 text-[15px] font-extrabold text-pri-text">
         <Sparkles className="h-4 w-4" /> Creamos tu proyecto con IA
       </p>
       <p className="mt-1.5 max-w-2xl text-[13.5px] text-ink-2">

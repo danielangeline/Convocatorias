@@ -111,7 +111,7 @@ export default async function LandingPage() {
                     className={
                       tono === "primary"
                         ? "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-pri text-on-pri"
-                        : "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky text-white"
+                        : "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-pri text-white"
                     }
                   >
                     <Icono className="h-5 w-5" strokeWidth={1.75} />
@@ -120,7 +120,7 @@ export default async function LandingPage() {
                 </div>
                 <p className="mt-3 text-sm text-ink-2">{texto}</p>
                 <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
-                  <LinkButton href={`/registro?puerta=${puerta}`} variant={tono === "primary" ? "primary" : "consultor"}>
+                  <LinkButton href={`/registro?puerta=${puerta}`} variant="primary">
                     Crear cuenta <ArrowRight className="h-4 w-4" />
                   </LinkButton>
                   <Link
@@ -128,7 +128,7 @@ export default async function LandingPage() {
                     className={
                       tono === "primary"
                         ? "text-sm font-semibold text-pri-text hover:underline"
-                        : "text-sm font-semibold text-sky-ink hover:underline"
+                        : "text-sm font-semibold text-pri-text hover:underline"
                     }
                   >
                     Ya tengo cuenta
@@ -186,7 +186,7 @@ export default async function LandingPage() {
             postulaciones, o como consultor para acompañarlas.
           </p>
           <div className="mt-2 flex flex-wrap justify-center gap-3">
-            <LinkButton href="/registro?puerta=empresa" variant="outline-amber" size="lg">
+            <LinkButton href="/registro?puerta=empresa" variant="outline" size="lg">
               Soy empresa o entidad
             </LinkButton>
             <LinkButton
@@ -201,7 +201,7 @@ export default async function LandingPage() {
       </section>
 
       <footer className="border-t border-line-2 py-6 text-center text-xs text-ink-3">
-        Plataforma de Gestión de Convocatorias — las cifras del catálogo se calculan en vivo.
+        FundRadar — las cifras del catálogo se calculan en vivo.
       </footer>
     </div>
   );

@@ -4,7 +4,7 @@ import { obtenerSesion } from "@/lib/auth";
 import { puertaDeParametro, rutaInicioDeRol } from "@/lib/rutas";
 import { FormularioLogin } from "@/components/identidad/FormularioLogin";
 
-export const metadata = { title: "Iniciar sesión · Gestión de Convocatorias" };
+export const metadata = { title: "Iniciar sesión · FundRadar" };
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const datos = await obtenerSesion();

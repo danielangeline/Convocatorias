@@ -136,11 +136,11 @@ function ContenidoSolicitud({ proyecto, onClose, convocatoriaFijaId }: Solicitar
                 className={cn(
                   "flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-colors",
                   tipoAyuda === "convocatoria_especifica"
-                    ? "border-violet bg-violet/10"
-                    : "border-line hover:border-violet/30"
+                    ? "border-pri bg-pri-soft"
+                    : "border-line hover:border-pri/30"
                 )}
               >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet/10 text-violet-ink">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-pri-soft text-pri-text">
                   <Target className="h-5 w-5" />
                 </span>
                 <span>
@@ -155,11 +155,11 @@ function ContenidoSolicitud({ proyecto, onClose, convocatoriaFijaId }: Solicitar
                 className={cn(
                   "flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-colors",
                   tipoAyuda === "buscar_convocatoria"
-                    ? "border-sky bg-sky/10"
-                    : "border-line hover:border-sky/30"
+                    ? "border-pri bg-pri-soft"
+                    : "border-line hover:border-pri/30"
                 )}
               >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky/10 text-sky-ink">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-pri-soft text-pri-text">
                   <Compass className="h-5 w-5" />
                 </span>
                 <span>
@@ -252,9 +252,9 @@ function ContenidoSolicitud({ proyecto, onClose, convocatoriaFijaId }: Solicitar
             )}
             <button
                 onClick={buscarEnDirectorio}
-                className="flex w-full items-center gap-4 rounded-xl border border-line p-4 text-left transition-colors hover:border-sky hover:bg-sky/10"
+                className="flex w-full items-center gap-4 rounded-xl border border-line p-4 text-left transition-colors hover:border-pri hover:bg-pri-soft"
               >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky/10 text-sky-ink">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-pri-soft text-pri-text">
                   <Search className="h-5 w-5" />
                 </span>
                 <span>

@@ -151,7 +151,7 @@ export default async function InicioPage() {
           valor={activas.length}
           nota={listas > 0 ? `${listas} ${listas === 1 ? "lista" : "listas"} para radicar` : "En preparación o radicadas"}
           icono={KanbanSquare}
-          tono="sky"
+          tono="pri"
         />
         <KpiCard
           etiqueta="Monto en juego"
@@ -254,7 +254,7 @@ export default async function InicioPage() {
                   >
                     <div className="flex items-center justify-between">
                       <CompatRing porcentaje={s.porcentaje} fondo="var(--bg)" />
-                      <Badge tono={tributario ? "violet" : "pri"}>{tributario ? "Tributario" : "Fondos"}</Badge>
+                      <Badge tono={tributario ? "pri" : "pri"}>{tributario ? "Tributario" : "Fondos"}</Badge>
                     </div>
                     <div className="text-[13.5px] font-bold leading-snug [text-wrap:pretty]">{s.convocatoria.nombre}</div>
                     <div className="mt-auto text-xs text-ink-3">{s.convocatoria.entidadConvocante}</div>

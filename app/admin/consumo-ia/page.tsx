@@ -16,8 +16,8 @@ export default async function ConsumoIAPage() {
     <div className="flex flex-col gap-5">
       <PageHeader titulo="Consumo de IA" descripcion={`Uso del mes de ${mes} y los últimos ${consumos.length} consumos registrados.`} />
       <KpiGrid>
-        <KpiCard etiqueta="Generaciones" valor={t.generacionesExitosas.toLocaleString("es-CO")} nota="Documentos generados este mes" icono={Sparkles} tono="violet" />
-        <KpiCard etiqueta="Ajustes" valor={t.ajustes.toLocaleString("es-CO")} nota="Pedidos sobre documentos" icono={Wand2} tono="sky" />
+        <KpiCard etiqueta="Generaciones" valor={t.generacionesExitosas.toLocaleString("es-CO")} nota="Documentos generados este mes" icono={Sparkles} tono="pri" />
+        <KpiCard etiqueta="Ajustes" valor={t.ajustes.toLocaleString("es-CO")} nota="Pedidos sobre documentos" icono={Wand2} tono="pri" />
         <KpiCard etiqueta="Fallidas" valor={t.generacionesFallidas.toLocaleString("es-CO")} nota="No consumen créditos (RN-17)" icono={AlertTriangle} tono="rose" />
         <KpiCard
           etiqueta="Costo estimado"

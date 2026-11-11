@@ -4,7 +4,7 @@ import { FormularioMfa } from "@/components/identidad/FormularioMfa";
 import { MenuUsuario } from "@/components/MenuUsuario";
 import { SincronizarSesion } from "@/components/SincronizarSesion";
 
-export const metadata = { title: "Verificación en dos pasos · Gestión de Convocatorias", robots: { index: false, follow: false } };
+export const metadata = { title: "Verificación en dos pasos · FundRadar", robots: { index: false, follow: false } };
 
 // CU-38, RF-64, RNF-28: toda sesión de administrador sin aal2 termina aquí.
 // Para cualquier otro usuario la ruta no existe (RF-85).

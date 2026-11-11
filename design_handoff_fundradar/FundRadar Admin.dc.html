@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#E9E6DF}
+.fr{--bg:#F4F1EA;--surface:#FFFFFF;--surface-2:#F8F6F1;--line:#DAD6CC;--line-2:#E9E6DF;--line-strong:#8A949A;--ink:#0A1A22;--ink-2:#2B3A42;--ink-3:#5A666C;--pri:#0F4C5C;--pri-hover:#0A3A47;--pri-soft:#E3EEF0;--pri-text:#0F4C5C;--on-pri:#FFFFFF;--amber-soft:#FBEBD0;--rose:#A63D2A;--rose-soft:#F6E3DE;--topbar:rgba(244,241,234,.88);--overlay:rgba(10,26,34,.45);--shadow:0 20px 50px rgba(10,26,34,.12)}
+.fr[data-theme="dark"]{--bg:#0A1519;--surface:#10212A;--surface-2:#142931;--line:#20363F;--line-2:#1A2E36;--line-strong:#4A6069;--ink:#EEF1EE;--ink-2:#BFCBCF;--ink-3:#8A9AA0;--pri:#5DB0C2;--pri-hover:#7CC3D2;--pri-soft:#123843;--pri-text:#8FD3E0;--on-pri:#06161B;--amber-soft:#3A2C14;--rose:#F09A86;--rose-soft:#3A1E19;--topbar:rgba(10,21,25,.88);--overlay:rgba(0,0,0,.6);--shadow:0 20px 50px rgba(0,0,0,.5)}
+.fr a{color:var(--pri-text)}.fr a:hover{color:var(--ink)}
+.fr *{box-sizing:border-box;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.fr input::placeholder,.fr textarea::placeholder{color:var(--ink-3)}
+</style>
+</helmet>
+<div style="display: flex; justify-content: center; height: {{ outerH }}; overflow: {{ outerOv }}; padding: {{ framePad }}">
+<div data-fr-root="admin" class="fr" data-theme="{{ theme }}" style="position: relative; transform: translateZ(0); width: 100%; max-width: {{ frameW }}; height: {{ frameH }}; overflow-x: hidden; overflow-y: auto; border-radius: {{ frameRadius }}; box-shadow: {{ frameShadow }}; background: var(--bg); color: var(--ink); font-family: Inter, system-ui, sans-serif; font-size: 14px; display: flex">
+
+<sc-if value="{{ showAside }}" hint-placeholder-val="{{ true }}">
+<sc-if value="{{ mobile }}" hint-placeholder-val="{{ false }}"><div onClick="{{ closeMenu }}" style="position: fixed; inset: 0; z-index: 39; background: var(--overlay)"></div></sc-if>
+<aside style="position: {{ asidePos }}; top: 0; left: 0; z-index: 40; height: 100%; width: 260px; max-width: 85%; flex: none; background: var(--surface); border-right: 1px solid var(--line); display: flex; flex-direction: column">
+<div style="display: flex; align-items: center; gap: 10px; padding: 20px 20px 12px">
+<svg width="32" height="32" viewBox="0 0 34 34" aria-hidden="true"><circle cx="17" cy="17" r="15" fill="none" stroke="var(--pri)" stroke-width="2"></circle><circle cx="17" cy="17" r="9" fill="none" stroke="var(--pri)" stroke-width="2" opacity="0.5"></circle><circle cx="17" cy="17" r="4" fill="#F2A93B"></circle></svg>
+<div style="display: flex; flex-direction: column; gap: 2px"><div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 22px; line-height: 1"><span>Fund</span><span style="color: var(--pri-text)">Radar</span></div><div style="font-size: 12px; color: var(--ink-3)">Panel administrativo</div></div>
+</div>
+<nav aria-label="Menú del panel" style="flex: 1; overflow-y: auto; padding: 0 12px 12px">
+<sc-for list="{{ navGroups }}" as="g" hint-placeholder-count="6">
+<div style="display: flex; flex-direction: column; gap: 2px; padding-top: 12px">
+<sc-if value="{{ g.hasTitle }}" hint-placeholder-val="{{ true }}"><div style="font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); padding: 0 10px 6px">{{ g.t }}</div></sc-if>
+<sc-for list="{{ g.items }}" as="it" hint-placeholder-count="2">
+<button onClick="{{ it.go }}" style="display: flex; align-items: center; gap: 10px; min-height: 38px; padding: 0 10px; border: 0; border-radius: 4px; background: {{ it.bg }}; color: {{ it.fg }}; font-family: Inter, sans-serif; font-size: 13.5px; font-weight: {{ it.fw }}; cursor: pointer; text-align: left; width: 100%">
+<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ it.d }}"></path></svg>
+<span style="flex: 1">{{ it.label }}</span>
+<sc-if value="{{ it.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: #0A1A22; background: #F2A93B; border-radius: 3px; padding: 1px 6px">{{ it.badge }}</span></sc-if>
+</button>
+</sc-for>
+</div>
+</sc-for>
+</nav>
+<div style="border-top: 1px solid var(--line); padding: 14px; display: flex; align-items: center; gap: 10px">
+<div style="width: 34px; height: 34px; flex: none; border-radius: 50%; background: var(--pri-soft); color: var(--pri-text); display: grid; place-items: center; font-size: 12px; font-weight: 700">DB</div>
+<div style="flex: 1; min-width: 0"><div style="font-size: 13px; font-weight: 600">Daniel Bohórquez</div><div style="font-size: 12px; color: var(--ink-3)">Propietario · 2 pasos activo</div></div>
+<a href="FundRadar Acceso.dc.html" aria-label="Cerrar sesión" style="width: 32px; height: 32px; display: grid; place-items: center; color: var(--ink-3)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5V3h4M16 17l5-5-5-5M21 12H9"></path></svg></a>
+</div>
+</aside>
+</sc-if>
+
+<div style="flex: 1; min-width: 0; display: flex; flex-direction: column">
+<header style="position: sticky; top: 0; z-index: 20; height: 60px; flex: none; display: flex; align-items: center; gap: 12px; padding: 0 {{ padX }}; background: var(--topbar); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line)">
+<sc-if value="{{ mobile }}" hint-placeholder-val="{{ false }}"><button onClick="{{ openMenu }}" aria-label="Abrir menú" style="width: 40px; height: 40px; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--ink-2); cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"></path></svg></button></sc-if>
+<div style="font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"><span style="color: var(--ink-3)">{{ crumb.g }}</span><span style="color: var(--line-strong)"> / </span><span style="font-weight: 600">{{ crumb.p }}</span></div>
+<div style="flex: 1"></div>
+<button onClick="{{ toggleTheme }}" aria-label="Cambiar tema" style="width: 38px; height: 38px; flex: none; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--ink-2); cursor: pointer"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ themeIcon }}"></path></svg></button>
+</header>
+<main style="flex: 1; width: 100%; max-width: 1240px; margin: 0 auto; padding: {{ mainPad }}; display: flex; flex-direction: column; gap: 20px">
+
+<sc-if value="{{ s.panel }}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 8px"><div style="font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pri-text)">Martes, 10 de noviembre</div><h1 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 30px; line-height: 1.1">Panel general</h1></div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 13px; font-weight: 600; color: var(--ink-3)">Requiere tu atención</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 10px">
+<sc-for list="{{ pend }}" as="p" hint-placeholder-count="3">
+<button onClick="{{ p.go }}" style="display: flex; align-items: center; gap: 14px; padding: 16px; background: var(--surface); border: 1px solid var(--line); border-left: 3px solid #F2A93B; border-radius: 4px; color: var(--ink); text-align: left; cursor: pointer; font-family: Inter, sans-serif" style-hover="border-color: var(--pri)">
+<span style="font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 500; min-width: 32px">{{ p.n }}</span>
+<span style="flex: 1; font-size: 14px; font-weight: 600; line-height: 1.35">{{ p.t }}</span>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink-3)" stroke-width="2" stroke-linecap="round"><path d="M9 18l6-6-6-6"></path></svg>
+</button>
+</sc-for>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; overflow: hidden">
+<sc-for list="{{ kpis }}" as="k" hint-placeholder-count="4"><div style="padding: 18px 20px; border-right: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); margin: 0 -1px -1px 0; display: flex; flex-direction: column; gap: 6px"><div style="font-size: 12.5px; font-weight: 600; color: var(--ink-3)">{{ k.l }}</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 28px; font-weight: 500; line-height: 1.1">{{ k.v }}</div><div style="font-size: 12.5px; color: var(--ink-2)">{{ k.n }}</div></div></sc-for>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px">
+<section style="background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px"><div><h2 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 19px">Postulaciones iniciadas</h2><div style="font-size: 12.5px; color: var(--ink-3); margin-top: 2px">Últimas 12 semanas</div></div><span style="font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: var(--pri-text)">+18 % vs. trimestre anterior</span></div>
+<div style="display: flex; align-items: flex-end; gap: 6px; height: 160px; border-bottom: 1px solid var(--line)">
+<sc-for list="{{ semanas }}" as="w" hint-placeholder-count="12"><div title="{{ w.v }}" style="flex: 1; height: {{ w.h }}; background: {{ w.c }}; border-radius: 2px 2px 0 0"></div></sc-for>
+</div>
+<div style="display: flex; justify-content: space-between; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--ink-3)"><span>18 ago</span><span>29 sep</span><span>3 nov</span></div>
+</section>
+<section style="background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; justify-content: space-between; align-items: baseline"><h2 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 19px">Suscripciones por estado</h2><button onClick="{{ goSusc }}" style="border: 0; background: none; padding: 0; font-family: Inter, sans-serif; font-size: 13px; font-weight: 600; color: var(--pri-text); cursor: pointer">Ver todas</button></div>
+<div style="display: flex; height: 14px; border-radius: 3px; overflow: hidden; gap: 2px"><sc-for list="{{ susc }}" as="x" hint-placeholder-count="5"><div style="flex: {{ x.v }}; background: {{ x.c }}"></div></sc-for></div>
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px"><sc-for list="{{ susc }}" as="x" hint-placeholder-count="5"><div style="display: flex; align-items: center; gap: 8px"><span style="width: 10px; height: 10px; border-radius: 2px; background: {{ x.c }}"></span><span style="font-size: 13px; color: var(--ink-2); flex: 1">{{ x.l }}</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px">{{ x.v }}</span></div></sc-for></div>
+</section>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.tabla }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 8px; max-width: 680px"><h1 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 30px; line-height: 1.1">{{ tbl.titulo }}</h1><p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink-2)">{{ tbl.desc }}</p></div>
+<sc-if value="{{ tbl.hasCta }}" hint-placeholder-val="{{ true }}"><button onClick="{{ tbl.ctaGo }}" style="min-height: 44px; padding: 0 18px; display: inline-flex; align-items: center; gap: 8px; border: 0; border-radius: 4px; background: var(--pri); color: var(--on-pri); font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>{{ tbl.cta }}</button></sc-if>
+</div>
+<sc-if value="{{ tbl.hasFilters }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; gap: 8px; overflow-x: auto"><sc-for list="{{ tbl.filters }}" as="f" hint-placeholder-count="4"><button onClick="{{ f.go }}" style="min-height: 36px; padding: 0 14px; border: 1px solid {{ f.bd }}; border-radius: 999px; background: {{ f.bg }}; color: {{ f.fg }}; font-family: Inter, sans-serif; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer">{{ f.t }} · {{ f.n }}</button></sc-for></div>
+</sc-if>
+<div style="background: var(--surface); border: 1px solid var(--line); border-radius: 6px; overflow: hidden">
+<sc-if value="{{ desktop }}" hint-placeholder-val="{{ true }}">
+<div style="display: grid; grid-template-columns: {{ tbl.cols }}; gap: 16px; padding: 12px 20px; background: var(--surface-2); border-bottom: 1px solid var(--line); font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-3)"><sc-for list="{{ tbl.head }}" as="h" hint-placeholder-count="4"><div>{{ h.t }}</div></sc-for><div></div></div>
+<sc-for list="{{ tbl.rows }}" as="r" hint-placeholder-count="5">
+<div style="display: grid; grid-template-columns: {{ tbl.cols }}; gap: 16px; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--line-2)">
+<sc-for list="{{ r.cells }}" as="c" hint-placeholder-count="4"><div style="min-width: 0; font-size: 13.5px; font-weight: {{ c.fw }}; font-family: {{ c.ff }}; color: {{ c.fg }}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis"><sc-if value="{{ c.tag }}" hint-placeholder-val="{{ false }}"><span style="font-family: Inter, sans-serif; font-size: 12px; font-weight: 600; background: {{ c.tbg }}; color: {{ c.tfg }}; border-radius: 3px; padding: 3px 8px">{{ c.v }}</span></sc-if><sc-if value="{{ c.plain }}" hint-placeholder-val="{{ true }}">{{ c.v }}</sc-if></div></sc-for>
+<button onClick="{{ r.go }}" style="justify-self: end; min-height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--pri-text); font-family: Inter, sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap">{{ tbl.rowAction }}</button>
+</div>
+</sc-for>
+</sc-if>
+<sc-if value="{{ mobile }}" hint-placeholder-val="{{ false }}">
+<sc-for list="{{ tbl.rows }}" as="r" hint-placeholder-count="4">
+<button onClick="{{ r.go }}" style="width: 100%; display: flex; flex-direction: column; gap: 6px; padding: 16px; border: 0; border-bottom: 1px solid var(--line-2); background: transparent; color: var(--ink); text-align: left; cursor: pointer; font-family: Inter, sans-serif">
+<div style="font-size: 14.5px; font-weight: 600">{{ r.first }}</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px 14px"><sc-for list="{{ r.rest }}" as="c" hint-placeholder-count="3"><span style="font-size: 12.5px; color: var(--ink-3)">{{ c.h }}: <span style="color: var(--ink-2); font-weight: 600">{{ c.v }}</span></span></sc-for></div>
+</button>
+</sc-for>
+</sc-if>
+</div>
+</sc-if>
+<sc-if value="{{ s.revision }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 8px; max-width: 680px"><h1 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 30px; line-height: 1.1">Perfiles en revisión</h1><p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink-2)">Revisa cada perfil contra la lista y apruébalo o explica qué falta. El consultor recibe tu motivo por correo.</p></div>
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+<div style="flex: 1 1 280px; display: flex; flex-direction: column; gap: 8px">
+<sc-for list="{{ perfiles }}" as="p" hint-placeholder-count="3">
+<button onClick="{{ p.go }}" style="display: flex; align-items: center; gap: 12px; padding: 14px; border: 1px solid {{ p.bd }}; border-radius: 4px; background: {{ p.bg }}; color: var(--ink); text-align: left; cursor: pointer; font-family: Inter, sans-serif">
+<div style="width: 40px; height: 40px; flex: none; border-radius: 50%; background: var(--pri); color: var(--on-pri); display: grid; place-items: center; font-size: 13px; font-weight: 700">{{ p.ini }}</div>
+<div style="flex: 1; min-width: 0"><div style="font-size: 14px; font-weight: 600">{{ p.n }}</div><div style="font-size: 12.5px; color: var(--ink-3)">{{ p.esp }}</div></div>
+<span style="font-size: 12px; color: var(--ink-3)">{{ p.hace }}</span>
+</button>
+</sc-for>
+</div>
+<section style="flex: 2 1 420px; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 22px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; align-items: center; gap: 14px"><div style="width: 56px; height: 56px; border-radius: 50%; background: var(--pri); color: var(--on-pri); display: grid; place-items: center; font-size: 17px; font-weight: 700">{{ sel.ini }}</div><div><div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 21px">{{ sel.n }}</div><div style="font-size: 13px; color: var(--ink-3)">{{ sel.c }} · {{ sel.esp }}</div></div></div>
+<div style="font-size: 14.5px; line-height: 1.6; color: var(--ink-2)">{{ sel.bio }}</div>
+<div style="display: flex; flex-direction: column">
+<sc-for list="{{ sel.cl }}" as="k" hint-placeholder-count="4"><div style="display: flex; align-items: center; gap: 12px; min-height: 44px; border-top: 1px solid var(--line-2)"><span style="width: 24px; height: 24px; border-radius: 50%; background: {{ k.bg }}; color: {{ k.fg }}; display: grid; place-items: center"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="{{ k.d }}"></path></svg></span><span style="font-size: 14px">{{ k.t }}</span></div></sc-for>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; border-top: 1px solid var(--line); padding-top: 16px">
+<button style="min-height: 44px; padding: 0 18px; border: 0; border-radius: 4px; background: var(--pri); color: var(--on-pri); font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer">Aprobar y publicar</button>
+<button style="min-height: 44px; padding: 0 16px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer">Pedir cambios</button>
+<button style="min-height: 44px; padding: 0 16px; border: 0; border-radius: 4px; background: transparent; color: var(--rose); font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer">Rechazar</button>
+</div>
+</section>
+</div>
+</sc-if>
+
+<sc-if value="{{ s.consumo }}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-direction: column; gap: 8px; max-width: 680px"><h1 style="margin: 0; font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 30px; line-height: 1.1">Consumo de IA</h1><p style="margin: 0; font-size: 15px; line-height: 1.55; color: var(--ink-2)">Noviembre de 2026. Las generaciones fallidas no descuentan créditos.</p></div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; overflow: hidden">
+<sc-for list="{{ consumoKpis }}" as="k" hint-placeholder-count="4"><div style="padding: 18px 20px; border-right: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); margin: 0 -1px -1px 0"><div style="font-size: 12.5px; font-weight: 600; color: var(--ink-3)">{{ k.l }}</div><div style="font-family: 'IBM Plex Mono', monospace; font-size: 26px; font-weight: 500; margin-top: 6px">{{ k.v }}</div></div></sc-for>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start">
+<section style="flex: 2 1 480px; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; overflow: hidden">
+<div style="padding: 16px 20px; border-bottom: 1px solid var(--line); font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 18px">Últimos consumos</div>
+<sc-for list="{{ consumoRows }}" as="r" hint-placeholder-count="4"><div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; padding: 14px 20px; border-bottom: 1px solid var(--line-2)"><div style="flex: 1 1 220px; min-width: 0"><div style="font-size: 14px; font-weight: 600">{{ r.a }}</div><div style="font-size: 12.5px; color: var(--ink-3)">{{ r.b }}</div></div><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px">{{ r.c }} cr</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--ink-3)">{{ r.d }}</span><span style="font-size: 12px; font-weight: 600; background: {{ r.ebg }}; color: {{ r.efg }}; border-radius: 3px; padding: 3px 8px">{{ r.e }}</span></div></sc-for>
+</section>
+<section style="flex: 1 1 260px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 20px; display: flex; flex-direction: column; gap: 4px">
+<div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 18px; margin-bottom: 8px">Tarifas en créditos</div>
+<sc-for list="{{ tarifas }}" as="t" hint-placeholder-count="3"><div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; min-height: 48px; border-top: 1px solid var(--line-2)"><span style="font-size: 14px">{{ t.t }}</span><span style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; border: 1px solid var(--line-strong); border-radius: 4px; padding: 6px 10px; min-width: 64px; text-align: right">{{ t.c }}</span></div></sc-for>
+<button style="margin-top: 10px; min-height: 44px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer">Guardar tarifas</button>
+</section>
+</div>
+</sc-if>
+</main>
+</div>
+<sc-if value="{{ editorOpen }}" hint-placeholder-val="{{ false }}">
+<div onClick="{{ closeEditor }}" style="position: fixed; inset: 0; z-index: 40; background: var(--overlay)"></div>
+<div role="dialog" aria-label="Editar convocatoria" style="position: fixed; z-index: 41; top: 0; right: 0; bottom: 0; width: {{ edW }}; background: var(--surface); display: flex; flex-direction: column; box-shadow: var(--shadow)">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 22px; border-bottom: 1px solid var(--line)"><div><div style="font-family: 'Source Serif 4', Georgia, serif; font-weight: 600; font-size: 20px">Colombia Inteligente: I+D+i empresarial 2026</div><div style="font-size: 12.5px; color: var(--ink-3); margin-top: 2px">Publicada · guardado hace 1 min</div></div><button onClick="{{ closeEditor }}" aria-label="Cerrar" style="width: 40px; height: 40px; flex: none; display: grid; place-items: center; border: 0; background: transparent; color: var(--ink-2); cursor: pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"></path></svg></button></div>
+<div style="display: flex; gap: 6px; padding: 12px 22px; border-bottom: 1px solid var(--line-2); overflow-x: auto">
+<sc-for list="{{ edSecciones }}" as="e" hint-placeholder-count="5"><div style="display: flex; align-items: center; gap: 8px; padding-right: 10px; white-space: nowrap"><span style="width: 22px; height: 22px; border-radius: 50%; border: 2px solid {{ e.bd }}; background: {{ e.bg }}; color: {{ e.fg }}; display: grid; place-items: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px">{{ e.n }}</span><span style="font-size: 13px; font-weight: 500">{{ e.t }}</span></div></sc-for>
+</div>
+<div style="flex: 1; overflow-y: auto; padding: 22px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px"><label style="font-size: 14px; font-weight: 600">Nombre de la convocatoria</label><input value="Colombia Inteligente: I+D+i empresarial 2026" readOnly="{{ true }}" style="min-height: 46px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 15px"></div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px">
+<div style="display: flex; flex-direction: column; gap: 6px"><label style="font-size: 14px; font-weight: 600">Entidad convocante</label><input value="Minciencias" readOnly="{{ true }}" style="min-height: 46px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 15px"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label style="font-size: 14px; font-weight: 600">Tipo</label><input value="Cofinanciación" readOnly="{{ true }}" style="min-height: 46px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 15px"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label style="font-size: 14px; font-weight: 600">Monto máximo (COP)</label><input value="1.500.000.000" readOnly="{{ true }}" style="min-height: 46px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: 'IBM Plex Mono', monospace; font-size: 15px"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label style="font-size: 14px; font-weight: 600">Fecha de cierre</label><input value="18/11/2026" readOnly="{{ true }}" style="min-height: 46px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: 'IBM Plex Mono', monospace; font-size: 15px"></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label style="font-size: 14px; font-weight: 600">Enlace oficial de postulación</label><input value="https://minciencias.gov.co/convocatorias/colombia-inteligente-2026" readOnly="{{ true }}" style="min-height: 46px; padding: 0 12px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 14px"></div>
+<div style="padding: 14px 16px; background: var(--pri-soft); border-radius: 4px; font-size: 13.5px; line-height: 1.5; color: var(--ink-2)">Siguiente: elige las categorías. Son las que usamos para sugerirla a las empresas compatibles.</div>
+</div>
+<div style="display: flex; gap: 10px; padding: 14px 22px; border-top: 1px solid var(--line)"><button onClick="{{ closeEditor }}" style="min-height: 46px; padding: 0 18px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: var(--ink); font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer">Cerrar</button><button style="flex: 1; min-height: 46px; border: 0; border-radius: 4px; background: var(--pri); color: var(--on-pri); font-family: Inter, sans-serif; font-size: 14px; font-weight: 600; cursor: pointer">Guardar y seguir</button></div>
+</div>
+</sc-if>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;vista&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;auto&quot;, &quot;movil&quot;], &quot;default&quot;: &quot;auto&quot;, &quot;tsType&quot;: &quot;'auto' | 'movil'&quot;, &quot;section&quot;: &quot;Vista&quot;}, &quot;tema&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;options&quot;: [&quot;claro&quot;, &quot;oscuro&quot;], &quot;default&quot;: &quot;claro&quot;, &quot;tsType&quot;: &quot;'claro' | 'oscuro'&quot;, &quot;section&quot;: &quot;Vista&quot;}}">
+class Component extends DCLogic {
+  state = { screen: 'panel', dark: null, mobile: false, menu: false, filt: {}, editor: false, revSel: 0 };
+  checkW = () => { const el = document.querySelector('[data-fr-root="admin"]'); if (!el) return; const m = el.clientWidth < 900; if (m !== this.state.mobile) this.setState({ mobile: m }); };
+  componentDidMount() { this.timer = setInterval(this.checkW, 250); this.checkW(); try { const s = localStorage.getItem('fr-adm-screen'); if (s) this.setState({ screen: s }); } catch (e) {} }
+  componentWillUnmount() { clearInterval(this.timer); }
+  go(screen, extra) { this.setState({ screen, menu: false, ...(extra || {}) }); try { localStorage.setItem('fr-adm-screen', screen); } catch (e) {} const el = document.querySelector('[data-fr-root="admin"]'); if (el) el.scrollTop = 0; }
+  tag(v, t) { const m = { ok: ['var(--pri-soft)', 'var(--pri-text)'], warn: ['var(--amber-soft)', 'var(--ink)'], bad: ['var(--rose-soft)', 'var(--rose)'], neu: ['var(--surface-2)', 'var(--ink-2)'] }[t]; return { v, tag: true, plain: false, tbg: m[0], tfg: m[1], fw: 400, ff: 'Inter, sans-serif', fg: 'var(--ink)' }; }
+  tables() {
+    const T = this.tag.bind(this);
+    return {
+      convocatorias: { titulo: 'Convocatorias', desc: 'Publica, edita y revisa la vigencia del catálogo. Las que cierran pronto aparecen primero.', cta: 'Nueva convocatoria', ctaKey: 'editor', rowAction: 'Editar', cols: 'minmax(0,3fr) minmax(0,1.4fr) 110px 120px 90px', head: ['Convocatoria', 'Entidad', 'Cierre', 'Estado'],
+        filters: [['todas', 'Todas', 34], ['publicada', 'Publicadas', 20], ['borrador', 'Borradores', 9], ['cerrada', 'Cerradas', 5]],
+        rows: [['Colombia Inteligente: I+D+i empresarial 2026', 'Minciencias', '18 nov', T('Publicada', 'ok')], ['Economía circular en el agro', 'Fundación Bolívar Davivienda', '19 nov', T('Publicada', 'ok')], ['Innova Región Pacífico', 'iNNpulsa Colombia', '22 nov', T('Publicada', 'ok')], ['Becas de movilidad Andina', 'CAF', '—', T('Borrador · sin documentos', 'warn')], ['Fondo Emprender: convocatoria nacional', 'SENA', '1 dic', T('Publicada', 'ok')], ['Reactivación turística 2026', 'Fontur', '30 oct', T('Cerrada', 'neu')]] },
+      fuentes: { titulo: 'Fuentes', desc: 'Portales que el rastreo revisa a diario. Si una falla tres veces, te avisamos aquí.', cta: 'Agregar fuente', rowAction: 'Editar', cols: 'minmax(0,2fr) minmax(0,2fr) 140px 130px 90px', head: ['Fuente', 'Dirección', 'Última revisión', 'Estado'],
+        rows: [['Minciencias', 'minciencias.gov.co/convocatorias', 'Hoy 6:00 a. m.', T('Activa', 'ok')], ['iNNpulsa Colombia', 'innpulsacolombia.com/convocatorias', 'Hoy 6:02 a. m.', T('Activa', 'ok')], ['SENA · Fondo Emprender', 'fondoemprender.com', 'Hoy 6:04 a. m.', T('Activa', 'ok')], ['APC Colombia', 'apccolombia.gov.co', 'Ayer', T('Falló 2 veces', 'warn')], ['Bancóldex', 'bancoldex.com/lineas', 'Hoy 6:07 a. m.', T('Activa', 'ok')]] },
+      categorias: { titulo: 'Categorías', desc: 'Las etiquetas con que se filtra el catálogo y se cruzan los proyectos.', cta: 'Nueva categoría', rowAction: 'Editar', cols: 'minmax(0,2fr) minmax(0,1.5fr) 140px 90px', head: ['Nombre', 'Grupo', 'Convocatorias'],
+        rows: [['Innovación', 'Tipo de proyecto', '14'], ['Investigación', 'Tipo de proyecto', '9'], ['Agro', 'Sector', '11'], ['Manufactura', 'Sector', '6'], ['Empresa', 'Quién puede postular', '22'], ['Fundación / ONG', 'Quién puede postular', '8']] },
+      tasas: { titulo: 'Tasas de referencia', desc: 'Para convertir a pesos los montos en otras monedas y poder compararlos.', cta: 'Actualizar tasas', rowAction: 'Editar', cols: 'minmax(0,1fr) minmax(0,1.4fr) minmax(0,1.4fr) 90px', head: ['Moneda', 'Tasa en COP', 'Actualizada'],
+        rows: [['USD · Dólar', '$4.012,50', '10 nov 2026'], ['EUR · Euro', '$4.356,10', '10 nov 2026'], ['GBP · Libra', '$5.120,80', '3 nov 2026']] },
+      consultores: { titulo: 'Consultores', desc: 'Perfiles aprobados en el directorio y su actividad.', rowAction: 'Ver', cols: 'minmax(0,2fr) minmax(0,1.6fr) 110px 110px 120px 90px', head: ['Consultor', 'Especialidades', 'Encargos', 'Calificación', 'Estado'],
+        rows: [['Andrés Rojas', 'I+D+i, Minciencias', '32', '4,9', T('Activo', 'ok')], ['María Camila Ortiz', 'Cooperación', '21', '4,8', T('Activo', 'ok')], ['Julián Pardo', 'Tributario', '17', '4,7', T('Activo', 'ok')], ['Carlos Mejía', 'Emprendimiento', '3', '3,1', T('Suspendido', 'bad')]] },
+      solicitudes: { titulo: 'Solicitudes al equipo', desc: 'Encargos que las empresas pidieron directamente a FundRadar.', rowAction: 'Atender', cols: 'minmax(0,1.6fr) minmax(0,2fr) 120px 140px 90px', head: ['Empresa', 'Pide', 'Recibida', 'Estado'],
+        rows: [['Café del Macizo', 'Revisión de propuesta para Colombia Inteligente', 'Hoy', T('Sin asignar', 'warn')], ['Fundación Mar Vivo', 'Buscar convocatorias de cooperación', 'Ayer', T('Sin asignar', 'warn')], ['Agroinnova S.A.S.', 'Asesoría en beneficio tributario', '4 nov', T('Atendida', 'ok')]] },
+      planes: { titulo: 'Planes', desc: 'Los beneficios de cada plan se derivan de sus cupos; cambiarlos aquí actualiza el comparador.', cta: 'Nuevo plan', rowAction: 'Editar', cols: 'minmax(0,1.6fr) 110px minmax(0,1fr) minmax(0,1.4fr) 90px', head: ['Plan', 'Rol', 'Precio mensual', 'Créditos de IA'],
+        rows: [['Esencial', 'Empresa', '$290.000', '300'], ['Profesional', 'Empresa', '$590.000', '1.000'], ['Empresarial', 'Empresa', '$1.190.000', '3.000'], ['Consultor', 'Consultor', '$120.000', '—']] },
+      suscripciones: { titulo: 'Suscripciones', desc: 'Activa planes, registra pagos y asigna créditos. Durante el piloto los pagos se acuerdan por fuera.', rowAction: 'Gestionar', cols: 'minmax(0,2fr) minmax(0,1fr) 130px 140px 100px', head: ['Cuenta', 'Plan', 'Vence', 'Estado'],
+        filters: [['todas', 'Todas', 51], ['activa', 'Activas', 28], ['trial', 'En prueba', 14], ['gracia', 'En gracia', 4], ['vencida', 'Vencidas', 5]],
+        rows: [['Agroinnova S.A.S.', 'Prueba', '15 nov 2026', T('En prueba', 'neu')], ['Lácteos del Norte', 'Profesional', '2 dic 2026', T('Activa', 'ok')], ['Biotec Andina', 'Esencial', '8 nov 2026', T('En gracia', 'warn')], ['Fundación Mar Vivo', 'Esencial', '20 oct 2026', T('Vencida', 'bad')]] },
+      plantillas: { titulo: 'Plantillas', desc: 'Las instrucciones con que la IA escribe cada tipo de documento.', cta: 'Nueva plantilla', rowAction: 'Editar', cols: 'minmax(0,2fr) minmax(0,1.4fr) 100px 140px 90px', head: ['Plantilla', 'Tipo de convocatoria', 'Versión', 'Estado'],
+        rows: [['Propuesta técnica I+D+i', 'Cofinanciación', 'v6', T('En uso', 'ok')], ['Marco lógico de cooperación', 'Cooperación', 'v3', T('En uso', 'ok')], ['Plan de negocio', 'Capital semilla', 'v2', T('Borrador', 'warn')]] },
+      seguridad: { titulo: 'Eventos y bloqueos', desc: 'Accesos fallidos, bloqueos por intentos y cambios de permisos.', rowAction: 'Detalle', cols: 'minmax(0,1.6fr) minmax(0,2fr) 140px 120px 90px', head: ['Evento', 'Cuenta', 'Cuándo', 'Resultado'],
+        filters: [['todos', 'Todos', 42], ['fallido', 'Accesos fallidos', 31], ['bloqueo', 'Bloqueos', 3], ['permisos', 'Permisos', 8]],
+        rows: [['Acceso fallido', 'j.perez@biotecandina.co', 'Hoy 9:14 a. m.', T('Fallido', 'warn')], ['Bloqueo por intentos', 'contacto@marvivo.org', 'Ayer', T('Bloqueada', 'bad')], ['Código 2 pasos', 'admin2@fundradar.co', 'Ayer', T('Correcto', 'ok')], ['Cambio de rol', 'admin2@fundradar.co', '5 nov', T('Registrado', 'neu')]] },
+      administradores: { titulo: 'Administradores', desc: 'Solo el Propietario ve esta sección. Cada invitación se acepta desde el correo.', cta: 'Invitar administrador', rowAction: 'Gestionar', cols: 'minmax(0,1.6fr) minmax(0,2fr) 140px 130px 100px', head: ['Nombre', 'Correo', 'Rol', 'Estado'],
+        rows: [['Daniel Bohórquez', 'daniel@fundradar.co', 'Propietario', T('Activo', 'ok')], ['Paula Gómez', 'paula@fundradar.co', 'Administradora', T('Activo', 'ok')], ['Sergio Lara', 'sergio@fundradar.co', 'Administrador', T('Invitación enviada', 'warn')]] }
+    };
+  }
+  renderVals() {
+    const st = this.state, mobile = st.mobile;
+    const dark = st.dark ?? (this.props.tema === 'oscuro');
+    const movil = this.props.vista === 'movil';
+    const P = { panel: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z', file: 'M7 3h7l4 4v14H7zM14 3v4h4M10 12h5M10 16h5', rss: 'M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16M5 19h.01', tag: 'M3 12V3h9l9 9-9 9zM7.5 7.5h.01', swap: 'M7 4L3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7', check: 'M16 11l2 2 4-4M9 3a4 4 0 1 0 0 8a4 4 0 1 0 0-8zM2 21v-1a6 6 0 0 1 6-6h2', users: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 3a4 4 0 1 0 0 8a4 4 0 1 0 0-8zM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8', clip: 'M9 3h6v3H9zM7 4.5H5V21h14V4.5h-2M9 12h6M9 16h4', layers: 'M12 3l9 5-9 5-9-5zM3 13l9 5 9-5', card: 'M2 5h20v14H2zM2 10h20', spark: 'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z', gauge: 'M12 14l4-4M3.5 18a10 10 0 1 1 17 0', shield: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z', cog: 'M12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6zM4 21v-1a6 6 0 0 1 6-6M17 14v2M17 20v2M14 18h-2M22 18h-2' };
+    const groups = [
+      ['', [['panel', 'Panel general', P.panel]]],
+      ['Catálogo', [['convocatorias', 'Convocatorias', P.file], ['fuentes', 'Fuentes', P.rss, '1'], ['categorias', 'Categorías', P.tag], ['tasas', 'Tasas de referencia', P.swap]]],
+      ['Consultores', [['revision', 'Perfiles en revisión', P.check, '3'], ['consultores', 'Consultores', P.users], ['solicitudes', 'Solicitudes al equipo', P.clip, '2']]],
+      ['Suscripciones', [['planes', 'Planes', P.layers], ['suscripciones', 'Suscripciones', P.card]]],
+      ['Inteligencia artificial', [['plantillas', 'Plantillas', P.spark], ['consumo', 'Consumo de IA', P.gauge]]],
+      ['Seguridad', [['seguridad', 'Eventos y bloqueos', P.shield]]],
+      ['Propietario', [['administradores', 'Administradores', P.cog]]]
+    ];
+    const navGroups = groups.map(([t, items]) => ({ t, hasTitle: !!t, items: items.map(([k, label, d, badge]) => { const on = st.screen === k; return { label, d, badge, hasBadge: !!badge, go: () => this.go(k), bg: on ? 'var(--pri-soft)' : 'transparent', fg: on ? 'var(--pri-text)' : 'var(--ink-2)', fw: on ? 600 : 500 }; }) }));
+    const cg = groups.find(g => g[1].some(i => i[0] === st.screen)) || groups[0];
+    const ci = cg[1].find(i => i[0] === st.screen) || cg[1][0];
+    const tables = this.tables();
+    const tdef = tables[st.screen];
+    let tbl = null;
+    if (tdef) {
+      const fk = st.filt[st.screen] || (tdef.filters && tdef.filters[0][0]);
+      const cellOf = (v, i) => typeof v === 'object' ? v : { v, tag: false, plain: true, fw: i === 0 ? 600 : 400, ff: /^[\d$—]/.test(v) ? "'IBM Plex Mono', monospace" : 'Inter, sans-serif', fg: i === 0 ? 'var(--ink)' : 'var(--ink-2)' };
+      tbl = { titulo: tdef.titulo, desc: tdef.desc, cta: tdef.cta, hasCta: !!tdef.cta, ctaGo: () => tdef.ctaKey === 'editor' ? this.setState({ editor: true }) : null, rowAction: tdef.rowAction, cols: tdef.cols, head: tdef.head.map(t => ({ t })),
+        hasFilters: !!tdef.filters, filters: (tdef.filters || []).map(([k, t, n]) => { const on = fk === k; return { t, n, go: () => this.setState(s => ({ filt: { ...s.filt, [st.screen]: k } })), bg: on ? 'var(--pri)' : 'var(--surface)', fg: on ? 'var(--on-pri)' : 'var(--ink-2)', bd: on ? 'var(--pri)' : 'var(--line)' }; }),
+        rows: tdef.rows.map(r => ({ cells: r.map(cellOf), first: typeof r[0] === 'object' ? r[0].v : r[0], rest: r.slice(1).map((v, i) => ({ h: tdef.head[i + 1], v: typeof v === 'object' ? v.v : v })), go: () => st.screen === 'convocatorias' ? this.setState({ editor: true }) : null })) };
+    }
+    const sem = [22, 28, 25, 31, 27, 35, 33, 38, 41, 36, 44, 47];
+    return {
+      theme: dark ? 'dark' : 'light', mobile, desktop: !mobile,
+      framePad: movil ? '24px' : '0', outerH: movil ? 'auto' : '100vh', outerOv: movil ? 'visible' : 'hidden', frameW: movil ? '390px' : 'none', frameH: movil ? '844px' : '100vh', frameRadius: movil ? '28px' : '0', frameShadow: movil ? '0 0 0 10px #0A1A22, 0 30px 60px rgba(0,0,0,.3)' : 'none',
+      padX: mobile ? '16px' : '28px', mainPad: mobile ? '20px 16px 32px' : '28px 28px 56px',
+      showAside: !mobile || st.menu, asidePos: mobile ? 'fixed' : 'sticky', openMenu: () => this.setState({ menu: true }), closeMenu: () => this.setState({ menu: false }),
+      navGroups, crumb: { g: cg[0] || 'General', p: ci[1] },
+      s: { panel: st.screen === 'panel', tabla: !!tdef, revision: st.screen === 'revision', consumo: st.screen === 'consumo' },
+      tbl: tbl || { head: [], rows: [], filters: [] },
+      toggleTheme: () => this.setState({ dark: !dark }), themeIcon: dark ? 'M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8zM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4' : 'M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z',
+      pend: [{ n: 3, t: 'Perfiles de consultor esperan revisión', go: () => this.go('revision') }, { n: 2, t: 'Solicitudes de empresas sin asignar', go: () => this.go('solicitudes') }, { n: 4, t: 'Borradores sin documentos adjuntos', go: () => this.go('convocatorias') }],
+      kpis: [{ l: 'Publicadas', v: '20', n: '+6 este mes' }, { l: 'Cierran en menos de 15 días', v: '5', n: 'Revisa vigencias' }, { l: 'Suscripciones activas', v: '28', n: 'Conversión de prueba: 34 %' }, { l: 'Consumo de IA · noviembre', v: 'USD 41,20', n: '212 generaciones' }],
+      semanas: sem.map((v, i) => ({ v, h: Math.round(v / 50 * 100) + '%', c: i === sem.length - 1 ? 'var(--pri)' : 'var(--pri-soft)' })),
+      susc: [['Activa', 28, 'var(--pri)'], ['Prueba', 14, '#7CC3D2'], ['En gracia', 4, '#F2A93B'], ['Vencida', 5, 'var(--rose)'], ['Suspendida', 0, 'var(--line-strong)']].map(([l, v, c]) => ({ l, v, c })),
+      goSusc: () => this.go('suscripciones'),
+      ...this.extra(st, mobile)
+    };
+  }
+  extra(st, mobile) {
+    const perfiles = [
+      { ini: 'LC', n: 'Lucía Cárdenas', c: 'Pereira', esp: 'Cooperación internacional · ONG', hace: 'hace 1 día', bio: 'Ocho años en proyectos de cooperación con la Unión Europea y USAID para fundaciones del Eje Cafetero.', checks: [['Hoja de vida en PDF', true], ['Al menos 3 especialidades', true], ['Portafolio con casos', true], ['Sitio web o red profesional', false]] },
+      { ini: 'RM', n: 'Ricardo Mora', c: 'Bucaramanga', esp: 'Beneficios tributarios', hace: 'hace 2 días', bio: 'Contador público con experiencia en deducciones por CTeI ante el CNBT.', checks: [['Hoja de vida en PDF', true], ['Al menos 3 especialidades', false], ['Portafolio con casos', true], ['Sitio web o red profesional', true]] },
+      { ini: 'AT', n: 'Ana Torres', c: 'Bogotá', esp: 'Emprendimiento · Pitch', hace: 'hace 4 días', bio: 'Mentora de aceleradoras y jurado de capital semilla.', checks: [['Hoja de vida en PDF', true], ['Al menos 3 especialidades', true], ['Portafolio con casos', false], ['Sitio web o red profesional', true]] }
+    ];
+    const sel = perfiles[st.revSel] || perfiles[0];
+    return {
+      perfiles: perfiles.map((p, i) => ({ ...p, go: () => this.setState({ revSel: i }), bg: i === st.revSel ? 'var(--pri-soft)' : 'var(--surface)', bd: i === st.revSel ? 'var(--pri)' : 'var(--line)' })),
+      sel: { ...sel, cl: sel.checks.map(([t, ok]) => ({ t, ok, fg: ok ? 'var(--pri-text)' : 'var(--rose)', bg: ok ? 'var(--pri-soft)' : 'var(--rose-soft)', d: ok ? 'M20 6L9 17l-5-5' : 'M18 6L6 18M6 6l12 12' })) },
+      consumoKpis: [{ l: 'Generaciones', v: '212' }, { l: 'Ajustes', v: '486' }, { l: 'Fallidas (sin costo)', v: '7' }, { l: 'Costo estimado', v: 'USD 41,20' }],
+      consumoRows: [['Agroinnova S.A.S.', 'Documento de propuesta', '100', 'USD 0,21', 'Correcta'], ['Lácteos del Norte', 'Ajuste de apartado', '10', 'USD 0,02', 'Correcta'], ['Biotec Andina', 'Documento de propuesta', '0', 'USD 0,00', 'Fallida'], ['Café del Macizo', 'Proyecto desde texto', '20', 'USD 0,04', 'Correcta']].map(r => ({ a: r[0], b: r[1], c: r[2], d: r[3], e: r[4], ok: r[4] === 'Correcta', ebg: r[4] === 'Correcta' ? 'var(--pri-soft)' : 'var(--rose-soft)', efg: r[4] === 'Correcta' ? 'var(--pri-text)' : 'var(--rose)' })),
+      tarifas: [{ t: 'Documento de propuesta', c: '100' }, { t: 'Ajuste de un apartado', c: '10' }, { t: 'Proyecto desde texto o voz', c: '20' }],
+      editorOpen: st.editor, closeEditor: () => this.setState({ editor: false }),
+      edW: mobile ? '100%' : '640px',
+      edSecciones: ['Datos generales', 'Montos y fechas', 'Categorías', 'Requisitos', 'Documentos'].map((t, i) => ({ t, n: i + 1, done: i < 2, bg: i < 2 ? 'var(--pri)' : 'var(--surface)', fg: i < 2 ? 'var(--on-pri)' : 'var(--ink-3)', bd: i < 2 ? 'var(--pri)' : 'var(--line-strong)' }))
+    };
+  }
+}
+</script>
+</body>
+</html>

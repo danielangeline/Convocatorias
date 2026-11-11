@@ -123,7 +123,7 @@ export function VistaSuscripcion({ rol, pagos }: { rol: RolPlan; pagos: Pago[] }
                   )}
                   <ul className="mt-4 flex-1 space-y-2 text-sm text-ink-2">
                     {beneficiosDePlan(plan, tarifaDocumento).map((b) => (
-                      <li key={b.texto} className={cn("flex items-start gap-2", b.destacado && "font-semibold text-violet-ink")}>
+                      <li key={b.texto} className={cn("flex items-start gap-2", b.destacado && "font-semibold text-pri-text")}>
                         {b.destacado ? <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0" /> : <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-pri-text" />}
                         {b.texto}
                       </li>

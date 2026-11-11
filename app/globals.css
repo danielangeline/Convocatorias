@@ -3,62 +3,70 @@
 /* Modo oscuro por clase (next-themes, attribute="class"). */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* ── Tokens semánticos del rediseño (docs/diseno/convocatorias-app.html) ── */
+/* ── Tokens FundRadar (design_handoff_fundradar/README.md): hueso, teal y un solo acento ── */
 :root {
-  --bg: #f4f5f3;
+  --bg: #f4f1ea;
   --surface: #ffffff;
-  --surface-2: #eff1ee;
-  --side: #fafbfa;
-  --line: #e3e6e2;
-  --line-2: #eceeeb;
-  --ink: #111513;
-  --ink-2: #4b544f;
-  --ink-3: #7c8580;
-  --pri: oklch(0.55 0.13 162);
-  --pri-hover: oklch(0.49 0.13 162);
-  --pri-soft: oklch(0.95 0.035 162);
-  --pri-text: oklch(0.43 0.11 162);
+  --surface-2: #f8f6f1;
+  --line: #dad6cc;
+  --line-2: #e9e6df;
+  --line-strong: #8a949a;
+  --ink: #0a1a22;
+  --ink-2: #2b3a42;
+  --ink-3: #5a666c;
+  --pri: #0f4c5c;
+  --pri-hover: #0a3a47;
+  --pri-soft: #e3eef0;
+  --pri-text: #0f4c5c;
   --on-pri: #ffffff;
-  --amber: oklch(0.7 0.15 65);
-  --violet: oklch(0.58 0.16 292);
-  --sky: oklch(0.6 0.12 235);
-  --rose: oklch(0.6 0.18 22);
-  --shadow: 0 1px 2px rgba(16, 24, 20, 0.04), 0 10px 28px -14px rgba(16, 24, 20, 0.12);
+  /* El ámbar es solo el "ping": nunca como texto sobre fondo claro. */
+  --amber: #f2a93b;
+  --amber-soft: #fbebd0;
+  --rose: #a63d2a;
+  --rose-soft: #f6e3de;
+  --topbar: rgba(244, 241, 234, 0.88);
+  --overlay: rgba(10, 26, 34, 0.45);
+  --shadow: 0 20px 50px rgba(10, 26, 34, 0.12);
   color-scheme: light;
 }
 
 .dark {
-  --bg: #0b0d0c;
-  --surface: #121514;
-  --surface-2: #1a1e1c;
-  --side: #0f1211;
-  --line: #242927;
-  --line-2: #1c201e;
-  --ink: #ecefed;
-  --ink-2: #a3aca7;
-  --ink-3: #6f7974;
-  --pri: oklch(0.7 0.14 162);
-  --pri-hover: oklch(0.76 0.14 162);
-  --pri-soft: oklch(0.29 0.06 162);
-  --pri-text: oklch(0.82 0.12 162);
-  --on-pri: #06110c;
-  --shadow: 0 1px 0 rgba(255, 255, 255, 0.02), 0 14px 34px -18px rgba(0, 0, 0, 0.7);
+  --bg: #0a1519;
+  --surface: #10212a;
+  --surface-2: #142931;
+  --line: #20363f;
+  --line-2: #1a2e36;
+  --line-strong: #4a6069;
+  --ink: #eef1ee;
+  --ink-2: #bfcbcf;
+  --ink-3: #8a9aa0;
+  --pri: #5db0c2;
+  --pri-hover: #7cc3d2;
+  --pri-soft: #123843;
+  --pri-text: #8fd3e0;
+  --on-pri: #06161b;
+  --amber-soft: #3a2c14;
+  --rose: #f09a86;
+  --rose-soft: #3a1e19;
+  --topbar: rgba(10, 21, 25, 0.88);
+  --overlay: rgba(0, 0, 0, 0.6);
+  --shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
   color-scheme: dark;
 }
 
 /* `inline` hace que las utilidades lean la variable en el elemento, de modo
    que el cambio de tema no necesita regenerar clases. */
 @theme inline {
-  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-serif), Georgia, "Times New Roman", serif;
   --font-mono: var(--font-plex-mono), ui-monospace, "SFMono-Regular", monospace;
 
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
-  --color-side: var(--side);
   --color-line: var(--line);
   --color-line-2: var(--line-2);
+  --color-line-strong: var(--line-strong);
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-ink-3: var(--ink-3);
@@ -68,15 +76,15 @@
   --color-pri-text: var(--pri-text);
   --color-on-pri: var(--on-pri);
   --color-amber: var(--amber);
-  --color-violet: var(--violet);
-  --color-sky: var(--sky);
+  --color-amber-soft: var(--amber-soft);
   --color-rose: var(--rose);
+  --color-rose-soft: var(--rose-soft);
+  --color-topbar: var(--topbar);
+  --color-overlay: var(--overlay);
 
-  /* Texto tonal legible en claro y oscuro (mezcla del tono con la tinta). */
-  --color-amber-ink: color-mix(in oklch, var(--amber) 62%, var(--ink));
-  --color-violet-ink: color-mix(in oklch, var(--violet) 65%, var(--ink));
-  --color-sky-ink: color-mix(in oklch, var(--sky) 65%, var(--ink));
-  --color-rose-ink: color-mix(in oklch, var(--rose) 65%, var(--ink));
+  /* Texto sobre ámbar o tinte ámbar: siempre tinta, nunca ámbar. */
+  --color-amber-ink: var(--ink);
+  --color-rose-ink: var(--rose);
 
   --shadow-card: var(--shadow);
 }
@@ -90,8 +98,6 @@ body {
 
 h1,
 h2,
-h3,
-h4,
 .font-display {
   font-family: var(--font-display);
 }
@@ -169,7 +175,24 @@ textarea::placeholder {
   animation: crece-ancho 400ms ease-out both;
 }
 
+/* "Ping": marca lo nuevo (campana, próximo paso, nuevas de la semana). */
+@keyframes ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+
+.ping-ring {
+  animation: ping 2.2s ease-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .ping-ring,
   .animar-entrada,
   .crece-alto,
   .crece-ancho {

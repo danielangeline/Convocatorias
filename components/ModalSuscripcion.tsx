@@ -33,7 +33,7 @@ export function ModalSuscripcion() {
       <div role="dialog" aria-modal="true" aria-labelledby="titulo-suscribete" className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-line bg-surface p-6 shadow-2xl sm:p-8">
         <div className="mb-2 flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-sky/10 text-sky-ink">
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-pri-soft text-pri-text">
               <Lock className="h-5 w-5" />
             </span>
             <div>
@@ -72,7 +72,7 @@ export function ModalSuscripcion() {
                 </p>
                 <ul className="mt-4 flex-1 space-y-2 text-sm text-ink-2">
                   {beneficiosDePlan(plan, tarifaDocumento).map((b) => (
-                    <li key={b.texto} className={cn("flex items-start gap-2", b.destacado && "font-semibold text-violet-ink")}>
+                    <li key={b.texto} className={cn("flex items-start gap-2", b.destacado && "font-semibold text-pri-text")}>
                       {b.destacado ? <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0" /> : <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-pri-text" />}
                       {b.texto}
                     </li>
