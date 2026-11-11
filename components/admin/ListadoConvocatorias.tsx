@@ -27,7 +27,7 @@ const filtros: Array<{ valor: EstadoConvocatoria | "todas"; etiqueta: string }> 
 ];
 
 const claseCampo =
-  "w-full rounded-lg border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri";
+  "w-full rounded-[4px] border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri";
 const claseEtiqueta = "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3";
 
 // En la moneda de la convocatoria (RN-40).
@@ -193,13 +193,13 @@ export function ListadoConvocatorias({
       />
 
       {modalAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
           <form
             onSubmit={crear}
             role="dialog"
             aria-modal="true"
             aria-labelledby="titulo-nueva"
-            className="w-full max-w-md rounded-2xl border border-line bg-surface p-6 shadow-xl"
+            className="w-full max-w-md rounded-md border border-line bg-surface p-6 shadow-card"
           >
             <div className="mb-4 flex items-center justify-between">
               <h3 id="titulo-nueva" className="font-display text-lg font-semibold text-ink">

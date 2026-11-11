@@ -122,27 +122,27 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
         <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-pri-text">
           <Sparkles className="h-3.5 w-3.5" /> Generar documento con IA
         </p>
-        <h1 className="mt-1 text-[26px] font-extrabold tracking-[-0.025em] text-ink">{convocatoria.nombre}</h1>
+        <h1 className="mt-1 font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.01em] text-ink sm:text-[32px]">{convocatoria.nombre}</h1>
         <p className="mt-1 text-sm text-ink-2">{convocatoria.entidadConvocante}</p>
       </div>
 
-      <div className="mb-6 flex items-center justify-between gap-3 rounded-xl border border-pri/30 bg-pri-soft px-5 py-3">
+      <div className="mb-6 flex items-center justify-between gap-3 rounded-md border border-pri/30 bg-pri-soft px-5 py-3">
         <p className="text-sm text-pri-text">
           Te quedan <strong>{textoCreditos(disponibles)}</strong>. Generar consumirá {textoCreditos(costo)}.
         </p>
       </div>
 
       {generando ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-pri/30 bg-pri-soft px-6 py-20 text-center">
+        <div className="flex flex-col items-center justify-center rounded-md border border-pri/30 bg-pri-soft px-6 py-20 text-center">
           <div className="h-10 w-10 animate-spin rounded-full border-4 border-pri/30 border-t-pri" />
           <p className="mt-5 font-display text-base font-semibold text-ink">Generando tu documento…</p>
           <p className="mt-1.5 text-sm text-ink-2">{MENSAJES_CARGA[mensajeIndex]}</p>
         </div>
       ) : error ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-rose/30 bg-rose/10 px-6 py-16 text-center">
-          <XCircle className="h-10 w-10 text-rose-ink" />
-          <p className="mt-4 font-display text-base font-semibold text-rose-ink">No pudimos generar el documento</p>
-          <p className="mt-1.5 max-w-sm text-sm text-rose-ink">
+        <div className="flex flex-col items-center justify-center rounded-md border border-rose/30 bg-rose-soft px-6 py-16 text-center">
+          <XCircle className="h-10 w-10 text-rose" />
+          <p className="mt-4 font-display text-base font-semibold text-rose">No pudimos generar el documento</p>
+          <p className="mt-1.5 max-w-sm text-sm text-rose">
             {error}
           </p>
           <Button variant="danger" className="mt-5" onClick={iniciarGeneracion}>
@@ -171,7 +171,7 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
                   key={p.id}
                   onClick={() => setSeleccionId(p.id)}
                   className={cn(
-                    "flex flex-col rounded-2xl border p-5 text-left transition-colors",
+                    "flex flex-col rounded-md border p-5 text-left transition-colors",
                     activo ? "border-pri bg-pri-soft ring-1 ring-pri/30" : "border-line hover:border-pri/30"
                   )}
                 >
@@ -195,7 +195,7 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
           </div>
 
           {documentoExistente && (
-            <div className="mt-5 flex items-start gap-3 rounded-xl border border-pri/30 bg-pri-soft px-4 py-3">
+            <div className="mt-5 flex items-start gap-3 rounded-md border border-pri/30 bg-pri-soft px-4 py-3">
               <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-pri-text" />
               <p className="text-sm text-pri-text">
                 Ya tienes un documento de este proyecto para esta convocatoria (versión {documentoExistente.version}).{" "}
@@ -208,7 +208,7 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
           )}
 
           {proyectoSeleccionado && completitudSeleccionado && completitudSeleccionado.porcentaje < 50 && (
-            <div className="mt-5 flex items-start gap-3 rounded-xl border border-amber/30 bg-amber/10 px-4 py-3">
+            <div className="mt-5 flex items-start gap-3 rounded-md border border-amber/30 bg-amber/10 px-4 py-3">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-ink" />
               <p className="text-sm text-amber-ink">
                 Este proyecto tiene poco contenido diligenciado ({completitudSeleccionado.porcentaje}%). El documento

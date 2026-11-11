@@ -17,6 +17,7 @@ import {
   TIPO_AYUDA_ESTILO,
 } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { RatingStars } from "@/components/RatingStars";
@@ -27,6 +28,16 @@ import { RatingStars } from "@/components/RatingStars";
  * base, y la pantalla se recarga con `router.refresh()`. El correo del
  * consultor solo llega del servidor tras la aceptación (RF-70, RN-26).
  */
+const TRAMOS_ENCARGO = ["Solicitado", "Aceptado", "En curso", "Completado"] as const;
+
+/** Tramo alcanzado (0 a 3) según el estado real del encargo (CU-21, CU-22). */
+function tramoDe(e: { estado: string; avances: unknown[] }): number {
+  if (e.estado === "completado" || e.estado === "calificado") return 3;
+  if (e.estado === "en_curso") return e.avances.length > 0 ? 2 : 1;
+  if (e.estado === "atendido") return 1;
+  return 0;
+}
+
 export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -67,14 +78,11 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
   };
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Mis encargos</h1>
-        <p className="text-sm text-ink-2">Consultores contratados o solicitados para tus proyectos.</p>
-      </div>
+    <div className="flex flex-col gap-5">
+      <PageHeader titulo="Mis encargos" descripcion="Consultores contratados o solicitados para tus proyectos." />
 
       {error && (
-        <p role="alert" className="mb-5 flex items-start gap-2 rounded-lg bg-rose/10 px-4 py-3 text-sm text-rose-ink">
+        <p role="alert" className="flex items-start gap-2 rounded-[4px] bg-rose-soft px-4 py-3 text-sm text-rose">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {error}
         </p>
       )}
@@ -86,9 +94,9 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
           descripcion="Desde la página de un proyecto puedes solicitar un consultor para una tarea específica."
         />
       ) : (
-        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,380px),1fr))] gap-4">
           {encargos.map((e) => (
-            <div key={e.id} className="flex flex-col rounded-2xl border border-line p-5 bg-surface shadow-card">
+            <div key={e.id} className="flex flex-col rounded-md border border-line bg-surface p-5">
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <Badge className={ESTADO_ENCARGO_ESTILO[e.estado]}>{ESTADO_ENCARGO_LABEL[e.estado]}</Badge>
                 <Badge className={TIPO_AYUDA_ESTILO[e.tipoAyuda]}>
@@ -97,7 +105,7 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
                 </Badge>
               </div>
 
-              <h3 className="mt-3 font-display text-base font-semibold leading-snug text-ink">{e.tituloTarea}</h3>
+              <h3 className="mt-3 font-display text-lg font-semibold leading-snug text-ink">{e.tituloTarea}</h3>
               <p className="mt-1 text-xs text-ink-3">
                 Proyecto:{" "}
                 <Link href={`/proyectos/${e.proyectoId}`} className="font-medium text-pri-text hover:underline">
@@ -113,6 +121,24 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
                 )}
               </p>
               {e.descripcionTarea && <p className="mt-2 line-clamp-2 text-sm text-ink-2">{e.descripcionTarea}</p>}
+
+              {/* Cuatro tramos: los alcanzados en `pri`. En curso con avances = tramo 3. */}
+              {e.estado !== "cancelado" && (
+                <div className="mt-4" aria-label={`Avance del encargo: ${TRAMOS_ENCARGO[tramoDe(e)]}`}>
+                  <div className="grid grid-cols-4 gap-1">
+                    {TRAMOS_ENCARGO.map((t, i) => (
+                      <span key={t} className={cn("h-1.5 rounded-full", i <= tramoDe(e) ? "bg-pri" : "bg-line-2")} />
+                    ))}
+                  </div>
+                  <div className="mt-1.5 grid grid-cols-4 gap-1 text-[11px] text-ink-3">
+                    {TRAMOS_ENCARGO.map((t, i) => (
+                      <span key={t} className={cn(i === tramoDe(e) && "font-semibold text-ink")}>
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="mt-4 flex items-center gap-2 border-t border-line-2 pt-4">
                 {e.consultor ? (
@@ -164,7 +190,7 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
               )}
 
               {e.avances.length > 0 && (
-                <details className="mt-3 rounded-lg bg-surface-2 px-3 py-2 text-xs">
+                <details className="mt-3 rounded-[4px] bg-surface-2 px-3 py-2 text-xs">
                   <summary className="cursor-pointer font-medium text-ink-2">
                     {e.avances.length} nota(s) de avance
                   </summary>
@@ -183,7 +209,7 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
               )}
 
               {e.estado === "cancelado" && e.motivoCancelacion && (
-                <p className="mt-3 flex items-start gap-1.5 rounded-lg bg-surface-2 px-3 py-2 text-xs text-ink-3">
+                <p className="mt-3 flex items-start gap-1.5 rounded-[4px] bg-surface-2 px-3 py-2 text-xs text-ink-3">
                   <Ban className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {e.motivoCancelacion}
                 </p>
               )}
@@ -197,7 +223,7 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
                     disabled={ocupado === e.id}
                     onClick={() => retirar(e)}
                   >
-                    <Undo2 className="h-3.5 w-3.5" /> Retirar solicitud
+                    <Undo2 className="h-3.5 w-3.5" /> Cancelar solicitud
                   </Button>
                 )}
 
@@ -208,7 +234,7 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
                 )}
 
                 {e.estado === "calificado" && e.calificacion && (
-                  <div className="rounded-lg bg-surface-2 p-3">
+                  <div className="rounded-[4px] bg-surface-2 p-3">
                     <RatingStars valor={e.calificacion.estrellas} />
                     {e.calificacion.comentario && <p className="mt-1.5 text-xs text-ink-2">{e.calificacion.comentario}</p>}
                   </div>
@@ -220,8 +246,8 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
       )}
 
       {aCalificar && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div role="dialog" aria-modal="true" aria-labelledby="titulo-calificar" className="w-full max-w-md rounded-2xl border border-line bg-surface p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
+          <div role="dialog" aria-modal="true" aria-labelledby="titulo-calificar" className="w-full max-w-md rounded-md border border-line bg-surface p-6 shadow-card">
             <div className="mb-4 flex items-center justify-between">
               <h3 id="titulo-calificar" className="font-display text-lg font-semibold text-ink">
                 Calificar a {aCalificar.consultor?.nombre ?? "el consultor"}
@@ -236,7 +262,7 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
               {[1, 2, 3, 4, 5].map((n) => (
                 <button key={n} onClick={() => setEstrellas(n)} aria-label={`${n} estrellas`} aria-pressed={n === estrellas}>
                   <Star
-                    className={cn("h-7 w-7", n <= estrellas ? "fill-amber text-amber-ink" : "fill-transparent text-line")}
+                    className={cn("h-7 w-7", n <= estrellas ? "fill-pri text-pri" : "fill-transparent text-line-strong")}
                     strokeWidth={1.5}
                   />
                 </button>
@@ -253,7 +279,7 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
               rows={3}
               maxLength={1000}
               placeholder="Cuéntanos cómo fue tu experiencia con este consultor"
-              className="w-full resize-none rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
+              className="w-full resize-none rounded-[4px] border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
             />
             <p className="mt-1 text-xs text-ink-3">La calificación no se puede cambiar después de enviarla.</p>
 
@@ -310,7 +336,7 @@ function Propuestas({ e, onError }: { e: EncargoDetalle; onError: (error: string
   };
 
   return (
-    <div className="mt-3 rounded-lg border border-pri/30 bg-pri-soft p-3">
+    <div className="mt-3 rounded-[4px] border border-pri/30 bg-pri-soft p-3">
       <p className="text-xs font-semibold uppercase tracking-wide text-pri-text">
         {elegida ? "Convocatoria elegida" : `Propuestas del consultor (${abiertas.length})`}
       </p>

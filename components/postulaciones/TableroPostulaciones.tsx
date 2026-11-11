@@ -7,8 +7,9 @@ import { LayoutGrid, List } from "lucide-react";
 import { Segmented } from "@/components/ui/Segmented";
 import { DataTable } from "@/components/ui/DataTable";
 import { Badge } from "@/components/ui/Badge";
+import { cn } from "@/lib/utils";
 import { ProgressBar } from "@/components/ui/ProgressBar";
-import { KanbanBoard, type ColumnaKanban } from "@/components/viz/KanbanBoard";
+import { KanbanBoard, TarjetaPostulacionContenido, type ColumnaKanban } from "@/components/viz/KanbanBoard";
 import type { Tono } from "@/components/viz/tonos";
 import { ETAPAS_TABLERO, ETAPA_LABEL, type EtapaPostulacion } from "@/lib/etapas-postulacion";
 import { ESTADO_POSTULACION_ESTILO, ESTADO_POSTULACION_LABEL, formatFecha } from "@/lib/utils";
@@ -65,16 +66,46 @@ export function TableroPostulaciones({ items }: { items: ItemTablero[] }) {
           i.etapa === "radicada" && i.radicadaHace !== null
             ? i.radicadaHace === 0
               ? "Radicada hoy"
-              : `Radicada hace ${i.radicadaHace} d`
+              : `Radicada hace ${i.radicadaHace} ${i.radicadaHace === 1 ? "día" : "días"}`
             : i.etapa === "resuelta"
               ? ESTADO_POSTULACION_LABEL[i.estado]
               : undefined,
       })),
   }));
 
+  // Móvil: chips de etapa («Documentos · 1») y las tarjetas de la etapa elegida.
+  const primeraConItems = columnas.find((c) => c.tarjetas.length > 0)?.clave ?? columnas[0]?.clave ?? "";
+  const [etapaMovil, setEtapaMovil] = useState<string>(primeraConItems);
+  const columnaMovil = columnas.find((c) => c.clave === etapaMovil) ?? columnas[0];
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex justify-end">
+      <div className="flex flex-col gap-3.5 lg:hidden">
+        <div role="group" aria-label="Etapa" className="barra-desplazable -mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+          {columnas.map((c) => (
+            <button
+              key={c.clave}
+              type="button"
+              aria-pressed={c.clave === etapaMovil}
+              onClick={() => setEtapaMovil(c.clave)}
+              className={cn(
+                "min-h-11 shrink-0 cursor-pointer whitespace-nowrap rounded-full border px-4 text-[13px] font-semibold",
+                c.clave === etapaMovil ? "border-pri bg-pri text-on-pri" : "border-line-strong bg-surface text-ink-2"
+              )}
+            >
+              {c.titulo} · <span className="font-tabular">{c.tarjetas.length}</span>
+            </button>
+          ))}
+        </div>
+        {columnaMovil && columnaMovil.tarjetas.length === 0 && <p className="text-sm text-ink-3">Nada en esta etapa.</p>}
+        {columnaMovil?.tarjetas.map((t) => (
+          <Link key={t.id} href={`/postulaciones/${t.id}`} className="block hover:[&>div]:border-pri">
+            <TarjetaPostulacionContenido t={t} />
+          </Link>
+        ))}
+      </div>
+
+      <div className="hidden justify-end lg:flex">
         <Segmented
           etiqueta="Vista"
           valor={vista}
@@ -86,11 +117,12 @@ export function TableroPostulaciones({ items }: { items: ItemTablero[] }) {
         />
       </div>
 
+      <div className="hidden lg:block">
       {vista === "tablero" ? (
         <KanbanBoard
           columnas={columnas}
           renderTarjeta={(t, contenido) => (
-            <Link href={`/postulaciones/${t.id}`} className="block rounded-xl hover:[&>div]:border-pri">
+            <Link href={`/postulaciones/${t.id}`} className="block hover:[&>div]:border-pri">
               {contenido}
             </Link>
           )}
@@ -108,7 +140,7 @@ export function TableroPostulaciones({ items }: { items: ItemTablero[] }) {
               ancho: "minmax(0,3fr)",
               celda: (i) => (
                 <>
-                  <span className="block truncate font-bold">{i.nombre}</span>
+                  <span className="block truncate font-display text-base font-semibold">{i.nombre}</span>
                   <span className="mt-0.5 block truncate text-xs text-ink-3">
                     {i.entidad} · {i.proyecto}
                   </span>
@@ -136,7 +168,7 @@ export function TableroPostulaciones({ items }: { items: ItemTablero[] }) {
                   <ProgressBar
                     altura={5}
                     porcentaje={i.total > 0 ? (i.hechos / i.total) * 100 : 0}
-                    tono={i.total > 0 && i.hechos >= i.total ? "pri" : "pri"}
+                    tono="pri"
                   />
                   <span className="font-tabular text-[11.5px] text-ink-3">
                     {i.hechos}/{i.total} requisitos
@@ -153,6 +185,7 @@ export function TableroPostulaciones({ items }: { items: ItemTablero[] }) {
           ]}
         />
       )}
+      </div>
     </div>
   );
 }

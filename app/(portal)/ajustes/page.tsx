@@ -19,12 +19,12 @@ export default async function AjustesPage() {
   const fila = (etiqueta: string, valor: string) => (
     <div className="flex flex-wrap items-baseline justify-between gap-2 border-t border-line-2 py-3 first:border-t-0 first:pt-0">
       <dt className="text-[13px] text-ink-3">{etiqueta}</dt>
-      <dd className="m-0 text-[13.5px] font-semibold">{valor}</dd>
+      <dd className="m-0 text-sm font-semibold">{valor}</dd>
     </div>
   );
 
   return (
-    <div className="flex max-w-3xl flex-col gap-5">
+    <div className="flex max-w-3xl flex-col gap-4">
       <PageHeader titulo="Ajustes" descripcion="Tu cuenta y cómo se ve la plataforma en este navegador." />
 
       <Card className="flex flex-col gap-4">
@@ -40,7 +40,7 @@ export default async function AjustesPage() {
         <CardHeader titulo="Seguridad" />
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <div className="text-[13.5px] font-bold">Contraseña</div>
+            <div className="text-sm font-semibold">Contraseña</div>
             <div className="text-xs text-ink-3">Te enviamos un enlace a tu correo para definir una nueva.</div>
           </div>
           <LinkButton href="/auth/recuperar" variant="secondary">
@@ -49,7 +49,7 @@ export default async function AjustesPage() {
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line-2 pt-4">
           <div>
-            <div className="text-[13.5px] font-bold">Sesión</div>
+            <div className="text-sm font-semibold">Sesión</div>
             <div className="text-xs text-ink-3">Cierra la sesión en este navegador.</div>
           </div>
           <form action={cerrarSesion}>

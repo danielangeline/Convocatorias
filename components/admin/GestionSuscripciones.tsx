@@ -129,18 +129,18 @@ export function GestionSuscripciones({
     router.refresh();
   };
 
-  const campo = "w-full rounded-lg border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri";
+  const campo = "w-full rounded-[4px] border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri";
   const etiqueta = "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3";
 
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Suscripciones</h1>
+        <h1 className="font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.01em] text-ink sm:text-[32px]">Suscripciones</h1>
         <p className="text-sm text-ink-2">Empresas y consultores aprobados, su plan y el consumo de IA del mes.</p>
       </div>
 
       <div className="mb-6 grid gap-4 lg:grid-cols-2">
-        <div className="rounded-2xl border border-line bg-surface p-5">
+        <div className="rounded-md border border-line bg-surface p-5">
           <p className="text-xs font-semibold uppercase tracking-wide text-ink-3">Suscripciones por estado</p>
           <dl className="mt-3 grid grid-cols-5 gap-2 text-center">
             {(
@@ -159,7 +159,7 @@ export function GestionSuscripciones({
             ))}
           </dl>
         </div>
-        <div className="rounded-2xl border border-pri/30 bg-pri-soft p-5">
+        <div className="rounded-md border border-pri/30 bg-pri-soft p-5">
           <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-pri-text">
             <Sparkles className="h-3.5 w-3.5" /> Consumo de IA de este mes
           </p>
@@ -207,7 +207,7 @@ export function GestionSuscripciones({
       {filtradas.length === 0 ? (
         <EmptyState icon={CreditCard} titulo="No hay cuentas en este estado" descripcion="Cambia el filtro para ver otras." />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
+        <div className="overflow-x-auto rounded-md border border-line bg-surface">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-line bg-surface-2 text-left text-xs font-semibold uppercase tracking-wide text-ink-3">
@@ -266,7 +266,7 @@ export function GestionSuscripciones({
                         </Button>
                       )}
                       {c.estado && CON_ACCESO.has(c.estado) && (
-                        <Button variant="ghost" size="sm" className="text-rose-ink hover:bg-rose/10" onClick={() => suspender(c)} disabled={ocupado}>
+                        <Button variant="ghost" size="sm" className="text-rose hover:bg-rose-soft" onClick={() => suspender(c)} disabled={ocupado}>
                           Suspender
                         </Button>
                       )}
@@ -283,8 +283,8 @@ export function GestionSuscripciones({
       )}
 
       {pagoDe && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <form onSubmit={confirmarPago} role="dialog" aria-modal="true" aria-labelledby="titulo-pago" className="w-full max-w-md rounded-2xl border border-line bg-surface p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
+          <form onSubmit={confirmarPago} role="dialog" aria-modal="true" aria-labelledby="titulo-pago" className="w-full max-w-md rounded-md border border-line bg-surface p-6 shadow-card">
             <div className="mb-4 flex items-center justify-between">
               <h3 id="titulo-pago" className="font-display text-lg font-semibold text-ink">Registrar pago y activar</h3>
               <button type="button" onClick={() => setPagoDe(null)} className="text-ink-3 hover:text-ink" aria-label="Cerrar">
@@ -353,8 +353,8 @@ export function GestionSuscripciones({
       )}
 
       {creditosDe && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <form onSubmit={confirmarCreditos} role="dialog" aria-modal="true" aria-labelledby="titulo-creditos" className="w-full max-w-md rounded-2xl border border-line bg-surface p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
+          <form onSubmit={confirmarCreditos} role="dialog" aria-modal="true" aria-labelledby="titulo-creditos" className="w-full max-w-md rounded-md border border-line bg-surface p-6 shadow-card">
             <div className="mb-4 flex items-center justify-between">
               <h3 id="titulo-creditos" className="font-display text-lg font-semibold text-ink">Otorgar créditos adicionales</h3>
               <button type="button" onClick={() => setCreditosDe(null)} className="text-ink-3 hover:text-ink" aria-label="Cerrar">

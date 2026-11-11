@@ -19,7 +19,7 @@ export default async function DocumentosConsultorPage() {
           <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-pri-text">
             <Sparkles className="h-3.5 w-3.5" /> Módulo de IA
           </p>
-          <h1 className="mt-1 text-[26px] font-extrabold tracking-[-0.025em] text-ink">Documentos</h1>
+          <h1 className="mt-1 font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.01em] text-ink sm:text-[32px]">Documentos</h1>
           <p className="text-sm text-ink-2">
             Borradores generados con IA que una empresa te autorizó para un encargo en curso. Puedes leerlos, editarlos
             y pedir ajustes con IA, pero no descargarlos. Al terminar el encargo dejas de verlos.
@@ -38,7 +38,7 @@ export default async function DocumentosConsultorPage() {
               <Link
                 key={doc.id}
                 href={`/consultor/documentos/${doc.id}`}
-                className="flex flex-col rounded-2xl border border-line bg-surface p-5 shadow-card transition-colors hover:border-pri/30 hover:bg-pri-soft"
+                className="flex flex-col rounded-md border border-line bg-surface p-5 transition-colors hover:border-pri/30 hover:bg-pri-soft"
               >
                 <div className="flex items-start justify-between gap-2">
                   <Badge className={ESTADO_DOCUMENTO_ESTILO[doc.estado]}>{ESTADO_DOCUMENTO_LABEL[doc.estado]}</Badge>

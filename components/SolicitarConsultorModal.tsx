@@ -102,8 +102,8 @@ function ContenidoSolicitud({ proyecto, onClose, convocatoriaFijaId }: Solicitar
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div role="dialog" aria-modal="true" aria-labelledby="titulo-solicitud" className="w-full max-w-lg rounded-2xl border border-line bg-surface p-6 shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
+      <div role="dialog" aria-modal="true" aria-labelledby="titulo-solicitud" className="w-full max-w-lg rounded-md border border-line bg-surface p-6 shadow-card">
         <div className="mb-4 flex items-center justify-between">
           <h3 id="titulo-solicitud" className="font-display text-lg font-semibold text-ink">
             {confirmacion ? "Solicitud enviada" : `Solicitar consultor · Paso ${paso} de 3`}
@@ -134,13 +134,13 @@ function ContenidoSolicitud({ proyecto, onClose, convocatoriaFijaId }: Solicitar
               <button
                 onClick={() => setTipoAyuda("convocatoria_especifica")}
                 className={cn(
-                  "flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-colors",
+                  "flex w-full items-center gap-4 rounded-md border p-4 text-left transition-colors",
                   tipoAyuda === "convocatoria_especifica"
                     ? "border-pri bg-pri-soft"
                     : "border-line hover:border-pri/30"
                 )}
               >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-pri-soft text-pri-text">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] bg-pri-soft text-pri-text">
                   <Target className="h-5 w-5" />
                 </span>
                 <span>
@@ -153,13 +153,13 @@ function ContenidoSolicitud({ proyecto, onClose, convocatoriaFijaId }: Solicitar
               <button
                 onClick={() => setTipoAyuda("buscar_convocatoria")}
                 className={cn(
-                  "flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-colors",
+                  "flex w-full items-center gap-4 rounded-md border p-4 text-left transition-colors",
                   tipoAyuda === "buscar_convocatoria"
                     ? "border-pri bg-pri-soft"
                     : "border-line hover:border-pri/30"
                 )}
               >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-pri-soft text-pri-text">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] bg-pri-soft text-pri-text">
                   <Compass className="h-5 w-5" />
                 </span>
                 <span>
@@ -213,7 +213,7 @@ function ContenidoSolicitud({ proyecto, onClose, convocatoriaFijaId }: Solicitar
                 value={titulo}
                 onChange={(e) => setTitulo(e.target.value)}
                 placeholder="Ej. Estructuración financiera de la postulación"
-                className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
+                className="w-full rounded-[4px] border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
               />
             </div>
             <div>
@@ -225,10 +225,10 @@ function ContenidoSolicitud({ proyecto, onClose, convocatoriaFijaId }: Solicitar
                 onChange={(e) => setDescripcion(e.target.value)}
                 rows={4}
                 placeholder="Cuéntanos qué necesitas resolver para este proyecto"
-                className="w-full resize-none rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
+                className="w-full resize-none rounded-[4px] border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
               />
             </div>
-            <p className="rounded-lg bg-surface-2 px-3 py-2 text-xs text-ink-3">
+            <p className="rounded-[4px] bg-surface-2 px-3 py-2 text-xs text-ink-3">
               {tipoAyuda === "convocatoria_especifica"
                 ? "El contenido completo del proyecto y los datos de la convocatoria elegida se adjuntan automáticamente — no necesitas repetirlos aquí."
                 : "El contenido completo del proyecto se adjunta automáticamente — no necesitas repetirlo aquí."}
@@ -246,15 +246,15 @@ function ContenidoSolicitud({ proyecto, onClose, convocatoriaFijaId }: Solicitar
           <div className="space-y-3">
             <p className="text-sm text-ink-2">Elige cómo quieres encontrar un consultor para esta tarea.</p>
             {error && (
-              <p role="alert" className="flex items-start gap-2 rounded-lg bg-rose/10 px-3 py-2 text-sm text-rose-ink">
+              <p role="alert" className="flex items-start gap-2 rounded-[4px] bg-rose-soft px-3 py-2 text-sm text-rose">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {error}
               </p>
             )}
             <button
                 onClick={buscarEnDirectorio}
-                className="flex w-full items-center gap-4 rounded-xl border border-line p-4 text-left transition-colors hover:border-pri hover:bg-pri-soft"
+                className="flex w-full items-center gap-4 rounded-md border border-line p-4 text-left transition-colors hover:border-pri hover:bg-pri-soft"
               >
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-pri-soft text-pri-text">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] bg-pri-soft text-pri-text">
                   <Search className="h-5 w-5" />
                 </span>
                 <span>
@@ -267,9 +267,9 @@ function ContenidoSolicitud({ proyecto, onClose, convocatoriaFijaId }: Solicitar
             <button
               onClick={pedirAyudaAlEquipo}
               disabled={enviando}
-              className="flex w-full items-center gap-4 rounded-xl border border-line p-4 text-left transition-colors hover:border-pri hover:bg-pri-soft/40"
+              className="flex w-full items-center gap-4 rounded-md border border-line p-4 text-left transition-colors hover:border-pri hover:bg-pri-soft/40"
             >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-pri-soft text-pri-text">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] bg-pri-soft text-pri-text">
                 <Users className="h-5 w-5" />
               </span>
               <span>

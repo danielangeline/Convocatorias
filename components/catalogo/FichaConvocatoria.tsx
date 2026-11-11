@@ -391,7 +391,7 @@ export function FichaConvocatoria({
             role="dialog"
             aria-modal="true"
             aria-labelledby="titulo-postular"
-            className="w-full max-w-md rounded-md border border-line bg-surface p-6 shadow-card"
+            className="w-full max-w-md rounded-md border border-line bg-surface p-6"
           >
             <div className="mb-4 flex items-center justify-between">
               <h3 id="titulo-postular" className="font-display text-xl font-semibold text-ink">

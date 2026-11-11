@@ -111,7 +111,7 @@ export function GestionPlantillas({ plantillas, tipo = "documento" }: { plantill
     router.refresh();
   };
 
-  const campo = "w-full rounded-lg border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri";
+  const campo = "w-full rounded-[4px] border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri";
 
   return (
     <div>
@@ -119,7 +119,7 @@ export function GestionPlantillas({ plantillas, tipo = "documento" }: { plantill
         <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-pri-text">
           <Sparkles className="h-3.5 w-3.5" /> Módulo de IA
         </p>
-        <h1 className="mt-1 text-[26px] font-extrabold tracking-[-0.025em] text-ink">Plantillas de la IA</h1>
+        <h1 className="mt-1 font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.01em] text-ink sm:text-[32px]">Plantillas de la IA</h1>
         <p className="text-sm text-ink-2">{textos.descripcion}</p>
       </div>
 
@@ -144,7 +144,7 @@ export function GestionPlantillas({ plantillas, tipo = "documento" }: { plantill
         ))}
       </nav>
 
-      <div className="mb-6 flex items-start gap-2 rounded-xl border border-line-2 bg-surface-2 px-4 py-3 text-xs text-ink-3">
+      <div className="mb-6 flex items-start gap-2 rounded-md border border-line-2 bg-surface-2 px-4 py-3 text-xs text-ink-3">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
         {textos.aviso}
       </div>
@@ -163,7 +163,7 @@ export function GestionPlantillas({ plantillas, tipo = "documento" }: { plantill
               type="button"
               onClick={() => elegir(p)}
               className={cn(
-                "block w-full rounded-xl border p-4 text-left transition-colors",
+                "block w-full rounded-md border p-4 text-left transition-colors",
                 seleccionada?.id === p.id ? "border-pri/30 bg-pri-soft" : "border-line hover:border-pri/30"
               )}
             >
@@ -198,7 +198,7 @@ export function GestionPlantillas({ plantillas, tipo = "documento" }: { plantill
           ))}
         </div>
 
-        <div className="min-w-0 rounded-2xl border border-line bg-surface p-4 sm:p-6">
+        <div className="min-w-0 rounded-md border border-line bg-surface p-4 sm:p-6">
           <label htmlFor="plantilla-contenido" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3">
             Instrucción {seleccionada && `(a partir de la versión ${seleccionada.version})`}
           </label>
@@ -207,7 +207,7 @@ export function GestionPlantillas({ plantillas, tipo = "documento" }: { plantill
             value={borrador.contenido}
             onChange={(e) => setBorrador({ ...borrador, contenido: e.target.value })}
             rows={18}
-            className="w-full resize-y rounded-lg border border-line px-4 py-3 font-mono text-sm leading-relaxed outline-none focus:border-pri bg-surface text-ink"
+            className="w-full resize-y rounded-[4px] border border-line px-4 py-3 font-mono text-sm leading-relaxed outline-none focus:border-pri bg-surface text-ink"
           />
           <p className="mt-1 text-right text-xs text-ink-3">{borrador.contenido.trim().length.toLocaleString("es-CO")} caracteres</p>
 

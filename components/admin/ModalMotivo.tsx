@@ -30,9 +30,9 @@ export function ModalMotivo({
   const [motivo, setMotivo] = useState("");
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
       <form role="dialog" aria-modal="true" aria-labelledby="titulo-motivo"
-        className="w-full max-w-md rounded-2xl border border-line bg-surface p-6 shadow-xl"
+        className="w-full max-w-md rounded-md border border-line bg-surface p-6 shadow-card"
         onSubmit={(evento) => {
           evento.preventDefault();
           if (motivo.trim()) onConfirmar(motivo.trim());
@@ -56,7 +56,7 @@ export function ModalMotivo({
           maxLength={1000}
           autoFocus
           placeholder="El consultor verá este texto."
-          className="w-full resize-none rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
+          className="w-full resize-none rounded-[4px] border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
         />
         {error && (
           <div className="mt-3">

@@ -131,7 +131,7 @@ export function TarjetaSugerencia({ s, href }: { s: Sugerencia; href?: string })
   return (
     <Link
       href={href ?? `/convocatorias/${convocatoria.id}`}
-      className="block rounded-2xl border border-line bg-surface shadow-card p-5 transition-colors hover:border-line hover:bg-pri-soft/30"
+      className="block rounded-md border border-line bg-surface p-5 transition-colors hover:border-line hover:bg-pri-soft/30"
     >
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-start gap-4">
@@ -228,7 +228,7 @@ export function SugerenciasProyecto({ resultado, error }: { resultado: Resultado
         <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-amber-ink">
           <Sparkles className="h-3.5 w-3.5" /> Sugerencias para
         </p>
-        <h1 className="mt-1 text-[26px] font-extrabold tracking-[-0.025em] text-ink">{proyecto.nombre}</h1>
+        <h1 className="mt-1 font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.01em] text-ink sm:text-[32px]">{proyecto.nombre}</h1>
         <p className="mt-1 text-sm text-ink-2">
           Comparamos las categorías, el monto y el departamento de tu proyecto contra cada convocatoria vigente.
         </p>

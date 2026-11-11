@@ -21,7 +21,7 @@ type Opcion = { codigo: string; nombre: string };
 const MONEDAS_FRECUENTES = ["COP", "USD", "EUR", "GBP", "CHF", "CAD"];
 
 const claseCampo =
-  "w-full rounded-lg border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri";
+  "w-full rounded-[4px] border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri";
 const tiposCategoria: TipoCategoria[] = ["tipo_proyecto", "sector", "tipo_entidad"];
 
 // Clave local para la lista: los requisitos nuevos aún no tienen id.
@@ -219,7 +219,7 @@ export function EditorConvocatoria({
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
           <Badge className={ESTADO_CONVOCATORIA_ESTILO[estado]}>{ESTADO_CONVOCATORIA_LABEL[estado]}</Badge>
-          <h1 className="mt-2 text-[26px] font-extrabold tracking-[-0.025em] text-ink">{form.nombre || "Convocatoria sin nombre"}</h1>
+          <h1 className="mt-2 font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.01em] text-ink sm:text-[32px]">{form.nombre || "Convocatoria sin nombre"}</h1>
         </div>
         <div className="flex items-center gap-2">
           {estado === "publicada" ? (
@@ -523,7 +523,7 @@ export function EditorConvocatoria({
           ) : (
             <ol className="space-y-2">
               {requisitos.map((req, indice) => (
-                <li key={req.clave} className="flex flex-wrap items-center gap-2 rounded-lg border border-line-2 px-3 py-2.5">
+                <li key={req.clave} className="flex flex-wrap items-center gap-2 rounded-[4px] border border-line-2 px-3 py-2.5">
                   <span className="w-5 text-right font-tabular text-xs text-ink-3">{indice + 1}.</span>
                   <input
                     value={req.descripcion}
@@ -531,13 +531,13 @@ export function EditorConvocatoria({
                     placeholder="Ej. Certificado de existencia y representación legal"
                     aria-label={`Descripción del requisito ${indice + 1}`}
                     maxLength={1000}
-                    className="min-w-48 flex-1 rounded-lg border border-line px-3 py-1.5 text-sm outline-none focus:border-pri bg-surface text-ink"
+                    className="min-w-48 flex-1 rounded-[4px] border border-line px-3 py-1.5 text-sm outline-none focus:border-pri bg-surface text-ink"
                   />
                   <select
                     value={req.tipo}
                     onChange={(e) => actualizarRequisito(req.clave, { tipo: e.target.value as TipoRequisito })}
                     aria-label={`Tipo del requisito ${indice + 1}`}
-                    className="rounded-lg border border-line px-2 py-1.5 text-sm outline-none focus:border-pri bg-surface text-ink"
+                    className="rounded-[4px] border border-line px-2 py-1.5 text-sm outline-none focus:border-pri bg-surface text-ink"
                   >
                     <option value="documento">Documento</option>
                     <option value="condicion">Condición</option>
@@ -574,7 +574,7 @@ export function EditorConvocatoria({
                       variant="ghost"
                       size="sm"
                       onClick={() => setRequisitos((prev) => prev.filter((r) => r.clave !== req.clave))}
-                      className="text-rose-ink hover:bg-rose/10"
+                      className="text-rose hover:bg-rose-soft"
                       aria-label={`Quitar el requisito ${indice + 1}`}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -601,7 +601,7 @@ export function EditorConvocatoria({
 
 function Seccion({ titulo, children, accion }: { titulo: string; children: React.ReactNode; accion?: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-line bg-surface p-6">
+    <div className="rounded-md border border-line bg-surface p-6">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="font-display text-base font-semibold text-ink">{titulo}</h2>
         {accion}

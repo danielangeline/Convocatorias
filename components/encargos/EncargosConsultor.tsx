@@ -126,7 +126,7 @@ export function EncargosConsultor({
       </div>
 
       {error && (
-        <p role="alert" className="mb-5 flex items-start gap-2 rounded-lg bg-rose/10 px-4 py-3 text-sm text-rose-ink">
+        <p role="alert" className="mb-5 flex items-start gap-2 rounded-[4px] bg-rose-soft px-4 py-3 text-sm text-rose">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {error}
         </p>
       )}
@@ -145,7 +145,7 @@ export function EncargosConsultor({
         ) : (
           <div className="space-y-4">
             {solicitudes.map((e) => (
-              <div key={e.id} className="rounded-2xl border border-line p-5 bg-surface shadow-card">
+              <div key={e.id} className="rounded-md border border-line p-5 bg-surface">
                 <Encabezado e={e} />
                 {e.descripcionTarea && <p className="mt-1.5 whitespace-pre-line text-sm text-ink-2">{e.descripcionTarea}</p>}
                 <p className="mt-2 text-xs text-ink-3">
@@ -161,7 +161,7 @@ export function EncargosConsultor({
                     size="sm"
                     onClick={() => responder(e, false)}
                     disabled={ocupado === e.id}
-                    className="text-rose-ink hover:bg-rose/10"
+                    className="text-rose hover:bg-rose-soft"
                   >
                     <XIcon className="h-3.5 w-3.5" /> Rechazar
                   </Button>
@@ -177,7 +177,7 @@ export function EncargosConsultor({
         ) : (
           <div className="space-y-4">
             {enCurso.map((e) => (
-              <div key={e.id} className="rounded-2xl border border-line p-5 bg-surface shadow-card">
+              <div key={e.id} className="rounded-md border border-line p-5 bg-surface">
                 <Encabezado e={e} />
                 {e.correoContraparte && (
                   <p className="mt-1.5 flex items-center gap-1.5 text-xs text-ink-2">
@@ -211,7 +211,7 @@ export function EncargosConsultor({
                     onChange={(ev) => setNotas((n) => ({ ...n, [e.id]: ev.target.value }))}
                     maxLength={2000}
                     placeholder="Escribe una nota de avance..."
-                    className="flex-1 rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
+                    className="flex-1 rounded-[4px] border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
                   />
                   <Button
                     variant="secondary"
@@ -237,7 +237,7 @@ export function EncargosConsultor({
         ) : (
           <div className="space-y-4">
             {historial.map((e) => (
-              <div key={e.id} className="rounded-2xl border border-line p-5 bg-surface shadow-card">
+              <div key={e.id} className="rounded-md border border-line p-5 bg-surface">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-xs text-ink-3">
@@ -257,13 +257,13 @@ export function EncargosConsultor({
                 )}
                 {e.fechas.completado && <p className="mt-1.5 text-xs text-ink-3">Completado el {formatFecha(e.fechas.completado)}</p>}
                 {e.calificacion && (
-                  <div className="mt-3 rounded-lg bg-surface-2 p-3">
+                  <div className="mt-3 rounded-[4px] bg-surface-2 p-3">
                     <RatingStars valor={e.calificacion.estrellas} />
                     {e.calificacion.comentario && <p className="mt-1.5 text-xs text-ink-2">{e.calificacion.comentario}</p>}
                   </div>
                 )}
                 {e.estado === "cancelado" && e.motivoCancelacion && (
-                  <p className="mt-3 flex items-start gap-1.5 rounded-lg bg-surface-2 px-3 py-2 text-xs text-ink-3">
+                  <p className="mt-3 flex items-start gap-1.5 rounded-[4px] bg-surface-2 px-3 py-2 text-xs text-ink-3">
                     <Ban className="mt-0.5 h-3.5 w-3.5 shrink-0" /> {e.motivoCancelacion}
                   </p>
                 )}
@@ -280,7 +280,7 @@ function BusquedaResumen({ e }: { e: EncargoConsultor }) {
   const elegida = e.propuestas.find((p) => p.estado === "elegida");
   const abiertas = e.propuestas.filter((p) => p.estado === "propuesta").length;
   return (
-    <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-pri-soft px-3 py-2.5">
+    <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-[4px] bg-pri-soft px-3 py-2.5">
       <p className="flex items-start gap-1.5 text-xs text-pri-text">
         <Compass className="mt-0.5 h-3.5 w-3.5 shrink-0" />
         {elegida
@@ -291,7 +291,7 @@ function BusquedaResumen({ e }: { e: EncargoConsultor }) {
       </p>
       <Link
         href={`/consultor/encargos/${e.id}/convocatorias`}
-        className="inline-flex items-center gap-1.5 rounded-lg bg-surface px-3 py-1.5 text-xs font-semibold text-pri-text ring-1 ring-pri/30 hover:bg-pri-soft"
+        className="inline-flex items-center gap-1.5 rounded-[4px] bg-surface px-3 py-1.5 text-xs font-semibold text-pri-text ring-1 ring-pri/30 hover:bg-pri-soft"
       >
         <Search className="h-3.5 w-3.5" /> {elegida ? "Ver la búsqueda" : "Buscar y proponer"}
       </Link>
@@ -336,7 +336,7 @@ const CAMPOS: Array<{ clave: "problema" | "objetivoGeneral" | "poblacionBenefici
 function Contexto({ contexto, abierto = false }: { contexto: ContextoEncargo; abierto?: boolean }) {
   const { proyecto: p, convocatoria: c, checklist } = contexto;
   return (
-    <details open={abierto} className="mt-3 rounded-xl border border-line-2 bg-surface-2/60 px-4 py-3 text-sm">
+    <details open={abierto} className="mt-3 rounded-md border border-line-2 bg-surface-2/60 px-4 py-3 text-sm">
       <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wide text-ink-3">Contexto de la solicitud</summary>
 
       {/* RF-69: datos de clasificación, sobre todo para "buscar convocatoria" */}

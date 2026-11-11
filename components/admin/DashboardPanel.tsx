@@ -32,7 +32,7 @@ export function DashboardPanel({ datos, solicitudesEquipo }: { datos: DatosTable
       {solicitudesEquipo > 0 && (
         <Link
           href="/admin/encargos"
-          className={`flex items-center gap-2 self-start rounded-xl px-3.5 py-2 text-[13px] font-bold ${TONO_CLASE.rose}`}
+          className={`flex items-center gap-2 self-start rounded-md px-3.5 py-2 text-[13px] font-bold ${TONO_CLASE.rose}`}
         >
           <ClipboardList className="h-4 w-4" />
           {solicitudesEquipo} {solicitudesEquipo === 1 ? "solicitud espera" : "solicitudes esperan"} al equipo

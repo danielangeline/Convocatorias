@@ -107,7 +107,7 @@ export function GestionPlanes({ planes }: { planes: Plan[] }) {
     router.refresh();
   };
 
-  const campo = "w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri disabled:bg-surface-2 disabled:text-ink-3";
+  const campo = "w-full rounded-[4px] border border-line px-3 py-2 text-sm outline-none focus:border-pri disabled:bg-surface-2 disabled:text-ink-3";
   const etiqueta = "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3";
   const esTrial = editando?.esTrial === true;
 
@@ -115,7 +115,7 @@ export function GestionPlanes({ planes }: { planes: Plan[] }) {
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Planes</h1>
+          <h1 className="font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.01em] text-ink sm:text-[32px]">Planes</h1>
           <p className="text-sm text-ink-2">Planes de suscripción para empresas y consultores.</p>
         </div>
         <Button variant="primary" onClick={() => abrir(null)}>
@@ -123,7 +123,7 @@ export function GestionPlanes({ planes }: { planes: Plan[] }) {
         </Button>
       </div>
 
-      <div className="mb-6 flex items-start gap-2 rounded-xl border border-line-2 bg-surface-2 px-4 py-3 text-xs text-ink-3">
+      <div className="mb-6 flex items-start gap-2 rounded-md border border-line-2 bg-surface-2 px-4 py-3 text-xs text-ink-3">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
         Los cambios rigen sin desplegar: un cambio de créditos alcanza desde ya a todos los suscriptores del plan. Un plan
         no se borra; al desactivarlo sale del comparador y sus suscripciones actuales siguen igual. El plan de consultor no
@@ -135,7 +135,7 @@ export function GestionPlanes({ planes }: { planes: Plan[] }) {
       {planes.length === 0 ? (
         <EmptyState icon={Layers} titulo="No hay planes" descripcion="Crea el primer plan de suscripción." />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
+        <div className="overflow-x-auto rounded-md border border-line bg-surface">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-line bg-surface-2 text-left text-xs font-semibold uppercase tracking-wide text-ink-3">
@@ -190,13 +190,13 @@ export function GestionPlanes({ planes }: { planes: Plan[] }) {
       )}
 
       {abierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
           <form
             onSubmit={guardar}
             role="dialog"
             aria-modal="true"
             aria-labelledby="titulo-plan"
-            className="w-full max-w-md rounded-2xl border border-line bg-surface p-6 shadow-xl"
+            className="w-full max-w-md rounded-md border border-line bg-surface p-6 shadow-card"
           >
             <div className="mb-4 flex items-center justify-between">
               <h3 id="titulo-plan" className="font-display text-lg font-semibold text-ink">

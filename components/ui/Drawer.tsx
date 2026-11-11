@@ -60,12 +60,12 @@ export function Drawer({
         )}
       >
         <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
-          <h2 className="text-[15px] font-extrabold text-ink">{titulo}</h2>
+          <h2 className="text-[15px] font-bold text-ink">{titulo}</h2>
           <button
             type="button"
             onClick={onCerrar}
             aria-label="Cerrar"
-            className="grid h-10 w-10 cursor-pointer place-items-center rounded-[10px] text-ink-3 hover:bg-surface-2 hover:text-ink"
+            className="grid h-10 w-10 cursor-pointer place-items-center rounded-[4px] text-ink-3 hover:bg-surface-2 hover:text-ink"
           >
             <X className="h-4 w-4" />
           </button>

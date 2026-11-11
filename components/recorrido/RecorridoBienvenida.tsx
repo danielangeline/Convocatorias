@@ -140,7 +140,7 @@ export function RecorridoBienvenida({ abrirAlInicio }: { abrirAlInicio: boolean 
   return (
     <div className="fixed inset-0 z-[60]">
       {/* Bloquea los clics en la página mientras dura el recorrido. */}
-      <div className={cn("absolute inset-0", !caja && "bg-black/55")} aria-hidden />
+      <div className={cn("absolute inset-0", !caja && "bg-overlay")} aria-hidden />
       {caja && (
         <div
           aria-hidden
@@ -161,7 +161,7 @@ export function RecorridoBienvenida({ abrirAlInicio }: { abrirAlInicio: boolean 
         aria-modal="true"
         aria-labelledby="recorrido-titulo"
         aria-describedby="recorrido-texto"
-        className="fixed flex flex-col gap-3 rounded-[14px] border border-line bg-surface p-4 text-ink shadow-[var(--shadow)] motion-safe:transition-[top,left] motion-safe:duration-200"
+        className="fixed flex flex-col gap-3 rounded-md border border-line bg-surface p-4 text-ink shadow-[var(--shadow)] motion-safe:transition-[top,left] motion-safe:duration-200"
         style={{
           width: `min(${ANCHO}px, calc(100vw - ${MARGEN * 2}px))`,
           top: pos?.top ?? MARGEN,
@@ -184,7 +184,7 @@ export function RecorridoBienvenida({ abrirAlInicio }: { abrirAlInicio: boolean 
           )}
         </div>
         <div>
-          <h2 id="recorrido-titulo" className="m-0 text-[15px] font-extrabold leading-tight">
+          <h2 id="recorrido-titulo" className="m-0 text-[15px] font-bold leading-tight">
             {paso.titulo}
           </h2>
           <p id="recorrido-texto" className="m-0 mt-1.5 text-[13px] leading-relaxed text-ink-2">

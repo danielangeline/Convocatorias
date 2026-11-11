@@ -3,7 +3,6 @@
 import { Sparkles } from "lucide-react";
 import { useCreditos, useTarifas } from "@/lib/hooks";
 import { formatFecha } from "@/lib/utils";
-import { ProgressBar } from "./ui/ProgressBar";
 
 /**
  * CU-30 paso 2 · RF-41 · Créditos de IA del periodo: incluidos, usados,
@@ -11,28 +10,20 @@ import { ProgressBar } from "./ui/ProgressBar";
  * tiene, RN-28). Los paquetes adicionales los otorga el administrador (RF-51).
  */
 export function BloqueCreditos() {
-  const { suscripcion, vigente, disponibles, usados, incluidos, extra, fechaReinicio } = useCreditos();
+  const { suscripcion, vigente, usados, incluidos, extra, fechaReinicio } = useCreditos();
   const tarifas = useTarifas();
   const n = (v: number) => v.toLocaleString("es-CO");
 
   if (!suscripcion || incluidos + extra === 0) return null;
 
-  const cupoTotal = incluidos + extra;
-  const porcentajeUsado = cupoTotal > 0 ? Math.round((Math.min(usados, incluidos) / cupoTotal) * 100) : 0;
-
   return (
-    <div className="mt-8 rounded-2xl border border-pri/30 bg-pri-soft p-6">
-      <h2 className="flex items-center gap-2 font-display text-base font-semibold text-ink">
-        <Sparkles className="h-4 w-4 text-pri-text" /> Créditos de IA
+    <div className="rounded-md border border-line bg-surface p-6">
+      <h2 className="flex items-center gap-2 font-display text-xl font-semibold text-ink">
+        <Sparkles className="h-4 w-4 text-pri-text" aria-hidden /> Cómo se usan tus créditos
       </h2>
 
-      <div className="mt-4 flex items-center justify-between text-sm">
-        <span className="text-ink-2">Disponibles este periodo</span>
-        <span className="font-tabular text-lg font-bold text-ink">{n(disponibles)}</span>
-      </div>
-      <ProgressBar porcentaje={porcentajeUsado} tono="pri" className="mt-2" />
       {!vigente && (
-        <p className="mt-2 text-xs text-rose-ink">Sin una suscripción vigente no puedes generar ni ajustar documentos con IA.</p>
+        <p className="mt-2 text-xs text-rose">Sin una suscripción vigente no puedes generar ni ajustar documentos con IA.</p>
       )}
 
       <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
@@ -55,8 +46,8 @@ export function BloqueCreditos() {
       </div>
 
       {/* RN-17: cuánto cuesta cada uso (tarifas vigentes, RF-100). */}
-      <div className="mt-5 border-t border-pri/30 pt-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-ink-3">Cuánto cuesta cada uso</p>
+      <div className="mt-5 border-t border-line-2 pt-4">
+        <p className="text-xs font-semibold uppercase tracking-[.08em] text-ink-3">Cuánto cuesta cada uso</p>
         <ul className="mt-2 grid gap-1.5 text-sm text-ink-2 sm:grid-cols-2">
           <li className="flex justify-between gap-3"><span>Generar o regenerar un documento</span><span className="font-tabular font-semibold text-ink">{n(tarifas.generacion)}</span></li>
           <li className="flex justify-between gap-3"><span>Crear un proyecto con IA</span><span className="font-tabular font-semibold text-ink">{n(tarifas.estructuracion)}</span></li>

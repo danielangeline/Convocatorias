@@ -22,8 +22,8 @@ export function ModalCreditos() {
   if (!abierto) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
-      <div role="dialog" aria-modal="true" aria-labelledby="titulo-sin-creditos" className="w-full max-w-md rounded-2xl border border-line bg-surface p-6 shadow-2xl">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-overlay p-4">
+      <div role="dialog" aria-modal="true" aria-labelledby="titulo-sin-creditos" className="w-full max-w-md rounded-md border border-line bg-surface p-6 shadow-2xl">
         <div className="mb-2 flex items-start justify-between">
           <div className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-pri-soft text-pri-text">
@@ -39,7 +39,7 @@ export function ModalCreditos() {
           </button>
         </div>
 
-        <div className="mt-4 rounded-xl bg-surface-2 p-4 text-sm">
+        <div className="mt-4 rounded-md bg-surface-2 p-4 text-sm">
           <div className="flex items-center justify-between">
             <span className="text-ink-2">Créditos disponibles</span>
             <span className="font-tabular font-bold text-ink">{disponibles.toLocaleString("es-CO")}</span>
@@ -54,7 +54,7 @@ export function ModalCreditos() {
         <p className="mt-4 text-sm text-ink-2">
           Puedes pedir un <strong>paquete de créditos adicionales</strong>, que no expiran, o pasar a un plan con más créditos al mes.
         </p>
-        <p className="mt-3 flex items-start gap-2 rounded-lg bg-surface-2 px-3 py-2 text-xs text-ink-2">
+        <p className="mt-3 flex items-start gap-2 rounded-[4px] bg-surface-2 px-3 py-2 text-xs text-ink-2">
           <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           {CONTRATAR_EN_PILOTO}
         </p>

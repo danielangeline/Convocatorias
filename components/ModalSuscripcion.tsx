@@ -29,8 +29,8 @@ export function ModalSuscripcion() {
   const planesRol = planes.filter((p) => p.rol === rolPlan && !p.esTrial && p.activo !== false);
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
-      <div role="dialog" aria-modal="true" aria-labelledby="titulo-suscribete" className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-line bg-surface p-6 shadow-2xl sm:p-8">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-overlay p-4">
+      <div role="dialog" aria-modal="true" aria-labelledby="titulo-suscribete" className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-md border border-line bg-surface p-6 shadow-2xl sm:p-8">
         <div className="mb-2 flex items-start justify-between">
           <div className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-full bg-pri-soft text-pri-text">
@@ -46,7 +46,7 @@ export function ModalSuscripcion() {
           </button>
         </div>
 
-        <div className="mt-5 flex items-center justify-center gap-1 rounded-lg bg-surface-2 p-1 text-sm font-semibold" role="group" aria-label="Modalidad">
+        <div className="mt-5 flex items-center justify-center gap-1 rounded-[4px] bg-surface-2 p-1 text-sm font-semibold" role="group" aria-label="Modalidad">
           {(["mensual", "anual"] as const).map((m) => (
             <button
               key={m}
@@ -64,7 +64,7 @@ export function ModalSuscripcion() {
           {planesRol.map((plan) => {
             const precio = modalidad === "anual" ? plan.precioAnual : plan.precioMensual;
             return (
-              <div key={plan.id} className="flex flex-col rounded-2xl border border-line p-5 bg-surface shadow-card">
+              <div key={plan.id} className="flex flex-col rounded-md border border-line p-5 bg-surface">
                 <h3 className="font-display text-base font-semibold text-ink">{plan.nombre}</h3>
                 <p className="mt-2">
                   <span className="font-tabular text-2xl font-bold text-pri-text">{formatCOP(precio)}</span>
@@ -83,7 +83,7 @@ export function ModalSuscripcion() {
           })}
         </div>
 
-        <p className="mt-5 flex items-start gap-2 rounded-lg bg-surface-2 px-4 py-3 text-sm text-ink-2">
+        <p className="mt-5 flex items-start gap-2 rounded-[4px] bg-surface-2 px-4 py-3 text-sm text-ink-2">
           <Info className="mt-0.5 h-4 w-4 shrink-0" />
           {CONTRATAR_EN_PILOTO}
         </p>

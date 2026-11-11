@@ -24,7 +24,7 @@ export function RatingStars({
             key={i}
             className={cn(
               tamanoIcono,
-              i < redondeado ? "fill-amber text-amber-ink" : "fill-transparent text-line"
+              i < redondeado ? "fill-pri text-pri" : "fill-transparent text-line-strong"
             )}
             strokeWidth={1.5}
           />

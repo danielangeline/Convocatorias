@@ -24,13 +24,16 @@ export interface Compatibilidad {
 const MAXIMO_PROYECTOS = 8;
 const DIAS_NUEVA = 7;
 
-export const compatibilidadEmpresa = cache(async (): Promise<{ porConvocatoria: Map<string, Compatibilidad>; proyectos: number }> => {
+export const compatibilidadEmpresa = cache(async (): Promise<{ porConvocatoria: Map<string, Compatibilidad>; proyectos: number; compatiblesPorProyecto: Record<string, number> }> => {
   const proyectos = await listarProyectos();
   const elegidos = proyectos.slice(0, MAXIMO_PROYECTOS);
   const resultados = await Promise.all(elegidos.map((p) => sugerenciasDeProyecto(p.id)));
   const porConvocatoria = new Map<string, Compatibilidad>();
+  // Cuántas convocatorias vigentes coinciden con cada proyecto (CU-10), para su tarjeta.
+  const compatiblesPorProyecto: Record<string, number> = {};
   resultados.forEach((r, i) => {
     if (!r.ok) return;
+    compatiblesPorProyecto[elegidos[i].id] = r.datos.sugerencias.filter((s) => diasRestantes(s.convocatoria.fechaCierre) >= 0).length;
     for (const s of r.datos.sugerencias) {
       if (diasRestantes(s.convocatoria.fechaCierre) < 0) continue;
       const actual = porConvocatoria.get(s.convocatoria.id);
@@ -45,7 +48,7 @@ export const compatibilidadEmpresa = cache(async (): Promise<{ porConvocatoria: 
       }
     }
   });
-  return { porConvocatoria, proyectos: proyectos.length };
+  return { porConvocatoria, proyectos: proyectos.length, compatiblesPorProyecto };
 });
 
 /** Compatibles publicadas en los últimos 7 días (para «nuevas esta semana» y el contador del menú). */

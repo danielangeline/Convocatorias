@@ -3,14 +3,22 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, X, Briefcase, UserRound, Users } from "lucide-react";
+import { Search, X, Users } from "lucide-react";
 import type { ConsultorDirectorio } from "@/lib/types";
 import { useAppStore } from "@/lib/store";
-import { RatingStars } from "@/components/RatingStars";
-import { Chip } from "@/components/ui/Chip";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { pedir } from "@/lib/pedir";
+
+const iniciales = (n: string) =>
+  n
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0])
+    .join("")
+    .toUpperCase();
 
 const normalizar = (t: string) =>
   t.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
@@ -73,23 +81,21 @@ export function DirectorioConsultores({ consultores }: { consultores: ConsultorD
   };
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Directorio de consultores</h1>
-        <p className="text-sm text-ink-2">
-          Encuentra consultores verificados para tareas específicas de tus proyectos.
-        </p>
-      </div>
+    <div className="flex flex-col gap-5">
+      <PageHeader
+        titulo="Directorio de consultores"
+        descripcion="Consultores verificados para tareas específicas de tus proyectos."
+      />
 
       {solicitud && (
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-pri/30 bg-pri-soft px-5 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-pri-soft px-5 py-4">
           <div>
             <p className="text-sm font-semibold text-pri-text">Buscando consultor para: {solicitud.tituloTarea}</p>
             <p className="text-xs text-pri-text/80">
               Elige un perfil y usa &ldquo;Solicitar para mi tarea&rdquo; en su ficha completa.
             </p>
           </div>
-          <button onClick={cancelarSolicitud} className="text-xs font-semibold text-pri-text hover:underline">
+          <button onClick={cancelarSolicitud} className="min-h-11 cursor-pointer text-xs font-semibold text-pri-text hover:underline">
             Cancelar solicitud
           </button>
         </div>
@@ -111,7 +117,7 @@ export function DirectorioConsultores({ consultores }: { consultores: ConsultorD
                   {enviandoAlEquipo ? "Enviando…" : "Pedir ayuda a nuestro equipo"}
                 </Button>
                 {errorEquipo && (
-                  <p role="alert" className="max-w-sm text-xs text-rose-ink">
+                  <p role="alert" className="max-w-sm text-xs text-rose">
                     {errorEquipo}
                   </p>
                 )}
@@ -125,121 +131,117 @@ export function DirectorioConsultores({ consultores }: { consultores: ConsultorD
         />
       ) : (
         <>
-          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="flex flex-col gap-3 sm:flex-row">
             <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" />
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" aria-hidden />
               <input
                 value={busqueda}
                 onChange={(e) => setBusqueda(e.target.value)}
                 placeholder="Buscar por nombre..."
                 aria-label="Buscar por nombre"
-                className="w-full rounded-lg border border-line py-2.5 pl-9 pr-4 text-sm outline-none placeholder:text-ink-3 focus:border-pri focus:ring-2 focus:ring-pri-soft bg-surface text-ink"
+                className="h-12 w-full rounded-[4px] border border-line-strong bg-surface pl-10 pr-4 text-[15px] text-ink outline-none placeholder:text-ink-3 focus:border-pri focus:ring-2 focus:ring-pri-soft"
               />
             </div>
+            <label className="flex items-center gap-2 text-[13px] font-semibold text-ink-2">
+              Calificación mínima
+              <select
+                value={ratingMin}
+                onChange={(e) => setRatingMin(Number(e.target.value))}
+                className="min-h-12 rounded-[4px] border border-line-strong bg-surface px-3 text-sm text-ink outline-none focus:border-pri"
+              >
+                {[0, 3, 3.5, 4, 4.5].map((v) => (
+                  <option key={v} value={v}>
+                    {v === 0 ? "Cualquiera" : `${v.toString().replace(".", ",")} o más`}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
 
-          <div className="grid gap-8 lg:grid-cols-[260px_1fr]">
-            <aside className="h-max rounded-2xl border border-line p-5 bg-surface shadow-card">
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="font-display text-sm font-semibold text-ink">Filtros</h2>
-                {(especialidadSel.length > 0 || ratingMin > 0) && (
-                  <button
-                    onClick={() => {
-                      setEspecialidadSel([]);
-                      setRatingMin(0);
-                    }}
-                    className="flex items-center gap-1 text-xs font-semibold text-pri-text hover:underline"
-                  >
-                    <X className="h-3 w-3" /> Limpiar
-                  </button>
-                )}
-              </div>
+          {/* Chips de especialidad (las que tienen los consultores del directorio). */}
+          <div role="group" aria-label="Especialidad" className="barra-desplazable -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0">
+            {especialidades.map((cat) => {
+              const activa = especialidadSel.includes(cat.id);
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  aria-pressed={activa}
+                  onClick={() => toggleEspecialidad(cat.id)}
+                  className={`min-h-11 shrink-0 cursor-pointer whitespace-nowrap rounded-full border px-4 text-[13px] font-semibold transition-colors ${
+                    activa ? "border-pri bg-pri text-on-pri" : "border-line-strong bg-surface text-ink-2 hover:bg-surface-2"
+                  }`}
+                >
+                  {cat.nombre}
+                </button>
+              );
+            })}
+            {(especialidadSel.length > 0 || ratingMin > 0) && (
+              <button
+                onClick={() => {
+                  setEspecialidadSel([]);
+                  setRatingMin(0);
+                }}
+                className="flex min-h-11 shrink-0 cursor-pointer items-center gap-1 px-2 text-xs font-semibold text-pri-text hover:underline"
+              >
+                <X className="h-3 w-3" /> Limpiar
+              </button>
+            )}
+          </div>
 
-              <div className="mb-4 border-b border-line-2 pb-4">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-3">Especialidad</p>
-                <div className="max-h-64 space-y-2 overflow-y-auto">
-                  {especialidades.map((cat) => (
-                    <label key={cat.id} className="flex cursor-pointer items-center gap-2 text-sm text-ink-2">
-                      <input
-                        type="checkbox"
-                        checked={especialidadSel.includes(cat.id)}
-                        onChange={() => toggleEspecialidad(cat.id)}
-                        className="h-4 w-4 rounded border-line text-pri-text focus:ring-pri bg-surface text-ink"
-                      />
-                      {cat.nombre}
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label htmlFor="rating-min" className="mb-2 block text-xs font-semibold uppercase tracking-wide text-ink-3">
-                  Rating mínimo: {ratingMin.toFixed(1)}
-                </label>
-                <input
-                  id="rating-min"
-                  type="range"
-                  min={0}
-                  max={5}
-                  step={0.5}
-                  value={ratingMin}
-                  onChange={(e) => setRatingMin(Number(e.target.value))}
-                  className="w-full accent-pri"
-                />
-              </div>
-            </aside>
-
-            <div>
-              {resultados.length === 0 ? (
-                <EmptyState
-                  icon={Search}
-                  titulo="No encontramos consultores con esos filtros"
-                  descripcion="Ajusta los filtros o la búsqueda para ver más resultados."
-                />
-              ) : (
-                <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                  {resultados.map((c) => (
-                    <Link
-                      key={c.id}
-                      href={`/consultores/${c.id}`}
-                      className="flex flex-col rounded-2xl border border-line bg-surface shadow-card p-5 transition-colors hover:border-pri/30 hover:bg-pri-soft"
-                    >
-                      <div className="flex items-center gap-3">
-                        {c.fotoUrl ? (
-                          // eslint-disable-next-line @next/next/no-img-element -- URL firmada de Storage
-                          <img src={c.fotoUrl} alt="" className="h-14 w-14 rounded-full object-cover ring-1 ring-line" />
-                        ) : (
-                          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-surface-2 text-ink-3 ring-1 ring-line">
-                            <UserRound className="h-6 w-6" />
-                          </span>
-                        )}
-                        <div>
-                          <h3 className="font-display text-sm font-semibold text-ink">{c.nombreProfesional}</h3>
-                          <RatingStars valor={c.ratingPromedio} />
-                        </div>
-                      </div>
-
-                      <div className="mt-4 flex flex-wrap gap-1.5">
-                        {c.especialidades.slice(0, 3).map((e) => (
-                          <Chip key={e.id} tono={e.tipo}>
-                            {e.nombre}
-                          </Chip>
-                        ))}
-                      </div>
-
-                      <div className="mt-4 flex items-center gap-1.5 border-t border-line-2 pt-4 text-xs text-ink-3">
-                        <Briefcase className="h-3.5 w-3.5" /> {c.totalEncargosCompletados} encargos completados
-                      </div>
-
-                      <span className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-surface px-3 py-1.5 text-sm font-semibold text-amber-ink ring-1 ring-inset ring-amber/30">
-                        Ver perfil y solicitar
+          {resultados.length === 0 ? (
+            <EmptyState
+              icon={Search}
+              titulo="No encontramos consultores con esos filtros"
+              descripcion="Ajusta los filtros o la búsqueda para ver más resultados."
+            />
+          ) : (
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,320px),1fr))] gap-4">
+              {resultados.map((c) => (
+                <article key={c.id} className="flex flex-col rounded-md border border-line bg-surface p-5 transition-colors hover:border-pri">
+                  <div className="flex items-center gap-3.5">
+                    {c.fotoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element -- URL firmada de Storage
+                      <img src={c.fotoUrl} alt="" className="h-12 w-12 flex-none rounded-full object-cover" />
+                    ) : (
+                      <span aria-hidden className="grid h-12 w-12 flex-none place-items-center rounded-full bg-pri text-base font-semibold text-on-pri">
+                        {iniciales(c.nombreProfesional)}
                       </span>
-                    </Link>
-                  ))}
-                </div>
-              )}
+                    )}
+                    <div className="min-w-0">
+                      <h3 className="font-display text-lg font-semibold leading-snug text-ink">
+                        <Link href={`/consultores/${c.id}`} className="hover:text-pri-text hover:underline">
+                          {c.nombreProfesional}
+                        </Link>
+                      </h3>
+                      <p className="font-tabular flex items-center gap-2 text-[13px] text-ink-3">
+                        <span className="font-medium text-ink-2">★ {c.ratingPromedio.toFixed(1).replace(".", ",")}</span>
+                        <span>·</span>
+                        <span>
+                          {c.totalEncargosCompletados} {c.totalEncargosCompletados === 1 ? "encargo" : "encargos"}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    {c.especialidades.slice(0, 3).map((e) => (
+                      <span key={e.id} className="rounded-[3px] bg-pri-soft px-2 py-1 text-xs font-semibold text-pri-text">
+                        {e.nombre}
+                      </span>
+                    ))}
+                  </div>
+
+                  <Link
+                    href={`/consultores/${c.id}`}
+                    className="mt-5 inline-flex min-h-11 items-center justify-center rounded-[4px] bg-pri px-4 text-sm font-semibold text-on-pri hover:bg-pri-hover"
+                  >
+                    Ver perfil y solicitar
+                  </Link>
+                </article>
+              ))}
             </div>
-          </div>
+          )}
         </>
       )}
     </div>

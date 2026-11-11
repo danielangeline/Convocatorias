@@ -200,7 +200,7 @@ export function EditorDocumento({
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {esConsultor ? (
-            <span className="flex items-center gap-1.5 rounded-lg bg-surface-2 px-3 py-2 text-xs text-ink-3 ring-1 ring-inset ring-line">
+            <span className="flex items-center gap-1.5 rounded-[4px] bg-surface-2 px-3 py-2 text-xs text-ink-3 ring-1 ring-inset ring-line">
               <Lock className="h-3.5 w-3.5" /> Puedes editar y pedir ajustes, pero no descargar ni regenerar
             </span>
           ) : (
@@ -230,20 +230,20 @@ export function EditorDocumento({
       </div>
 
       {!esConsultor && compartidoConEncargo && consultorEncargo && (
-        <p className="mb-4 flex items-center gap-1.5 rounded-lg bg-amber/10 px-3 py-2 text-xs text-amber-ink ring-1 ring-inset ring-amber/30">
+        <p className="mb-4 flex items-center gap-1.5 rounded-[4px] bg-amber/10 px-3 py-2 text-xs text-amber-ink ring-1 ring-inset ring-amber/30">
           <Share2 className="h-3.5 w-3.5 shrink-0" /> Compartido con {consultorEncargo.nombre}: puede leer, editar y pedir ajustes con IA
           (que se cobran a tu cupo), pero no descargarlo ni regenerarlo. Pierde el acceso al terminar el encargo.
         </p>
       )}
 
       {error && (
-        <p role="alert" className="mb-4 rounded-lg border border-rose/30 bg-rose/10 px-4 py-3 text-sm text-rose-ink">
+        <p role="alert" className="mb-4 rounded-[4px] border border-rose/30 bg-rose-soft px-4 py-3 text-sm text-rose">
           {error}
         </p>
       )}
 
       {ocupado === "regenerar" && (
-        <div className="mb-4 flex items-center gap-3 rounded-xl border border-pri/30 bg-pri-soft px-4 py-3 text-sm text-pri-text">
+        <div className="mb-4 flex items-center gap-3 rounded-md border border-pri/30 bg-pri-soft px-4 py-3 text-sm text-pri-text">
           <div className="h-4 w-4 animate-spin rounded-full border-2 border-pri/30 border-t-pri" />
           Generando la versión nueva. Puede tardar hasta dos minutos; si falla, no se descuenta ningún crédito.
         </div>
@@ -264,7 +264,7 @@ export function EditorDocumento({
             />
           ))}
 
-          <div className="rounded-2xl border border-pri/30 bg-pri-soft p-5">
+          <div className="rounded-md border border-pri/30 bg-pri-soft p-5">
             <p className="flex items-center gap-1.5 text-sm font-semibold text-pri-text">
               <Sparkles className="h-4 w-4" /> Pedir ajuste a la IA
             </p>
@@ -292,7 +292,7 @@ export function EditorDocumento({
                 onChange={(e) => setInstruccion(e.target.value)}
                 maxLength={1000}
                 placeholder="Ej. hazlo más breve"
-                className="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-pri"
+                className="min-w-0 flex-1 rounded-[4px] border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-pri"
               />
               <Button variant="primary" onClick={enviarAjuste} disabled={!instruccion.trim() || ocupado !== null}>
                 {ocupado === "ajustar" ? "Aplicando… (hasta 2 min)" : "Aplicar ajuste"}
@@ -300,14 +300,14 @@ export function EditorDocumento({
             </div>
           </div>
 
-          <p className="flex items-start gap-2 rounded-xl border border-dashed border-line px-4 py-3 text-xs text-ink-3">
+          <p className="flex items-start gap-2 rounded-md border border-dashed border-line px-4 py-3 text-xs text-ink-3">
             <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             Este documento es una base generada con IA y sujeta a revisión humana. Verifícalo y complétalo antes de
             radicarlo en el portal de la entidad convocante.
           </p>
         </div>
 
-        <aside className="h-max rounded-2xl border border-line p-5 lg:sticky lg:top-24 bg-surface shadow-card">
+        <aside className="h-max rounded-md border border-line p-5 lg:sticky lg:top-24 bg-surface">
           <p className="flex items-center gap-1.5 text-sm font-semibold text-ink">
             <ClipboardList className="h-4 w-4 text-amber-ink" /> {pendientes.length} datos por completar
           </p>
@@ -321,7 +321,7 @@ export function EditorDocumento({
                 <li key={`${p.seccionId}-${idx}`}>
                   <button
                     onClick={() => irAPendiente(p.seccionId)}
-                    className="w-full rounded-lg border border-amber/30 bg-amber/10 px-3 py-2 text-left text-xs text-amber-ink hover:bg-amber/20"
+                    className="w-full rounded-[4px] border border-amber/30 bg-amber/10 px-3 py-2 text-left text-xs text-amber-ink hover:bg-amber/20"
                   >
                     <span className="block font-semibold">{p.seccionTitulo}</span>
                     <span className="block">{p.texto}</span>
@@ -334,8 +334,8 @@ export function EditorDocumento({
       </div>
 
       {confirmandoRegenerar && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div role="dialog" aria-modal="true" aria-labelledby="titulo-regenerar" className="w-full max-w-md rounded-2xl border border-line bg-surface p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
+          <div role="dialog" aria-modal="true" aria-labelledby="titulo-regenerar" className="w-full max-w-md rounded-md border border-line bg-surface p-6 shadow-card">
             <div className="mb-4 flex items-center justify-between">
               <h3 id="titulo-regenerar" className="font-display text-lg font-semibold text-ink">Regenerar documento</h3>
               <button onClick={() => setConfirmandoRegenerar(false)} className="text-ink-3 hover:text-ink" aria-label="Cerrar">
@@ -381,7 +381,7 @@ function SeccionEditable({
   const partes = dividirPorPendientes(seccion.contenido);
 
   return (
-    <div id={`seccion-${seccion.id}`} className={cn("scroll-mt-24 rounded-2xl border p-5", resaltada && !editando ? "border-amber/30" : "border-line")}>
+    <div id={`seccion-${seccion.id}`} className={cn("scroll-mt-24 rounded-md border p-5", resaltada && !editando ? "border-amber/30" : "border-line")}>
       <div className="mb-2 flex items-center justify-between gap-2">
         <h2 className="font-display text-base font-semibold text-ink">{seccion.titulo}</h2>
         {!editando && (
@@ -429,7 +429,7 @@ function EditorSeccion({
         value={borrador}
         onChange={(e) => setBorrador(e.target.value)}
         rows={Math.max(3, Math.ceil(borrador.length / 70))}
-        className="w-full resize-y rounded-lg border border-line px-3 py-2 text-sm leading-relaxed outline-none focus:border-pri bg-surface text-ink"
+        className="w-full resize-y rounded-[4px] border border-line px-3 py-2 text-sm leading-relaxed outline-none focus:border-pri bg-surface text-ink"
         autoFocus
       />
       <div className="mt-2 flex justify-end gap-2">

@@ -53,7 +53,7 @@ export function BusquedaEncargo({
         <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-pri-text">
           <Compass className="h-3.5 w-3.5" /> Buscar convocatoria para {encargo.empresaNombre}
         </p>
-        <h1 className="mt-1 text-[26px] font-extrabold tracking-[-0.025em] text-ink">{encargo.proyectoNombre}</h1>
+        <h1 className="mt-1 font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.01em] text-ink sm:text-[32px]">{encargo.proyectoNombre}</h1>
         <p className="mt-1 text-sm font-medium text-ink-2">{encargo.tituloTarea}</p>
         {encargo.descripcionTarea && <p className="mt-1 whitespace-pre-line text-sm text-ink-2">{encargo.descripcionTarea}</p>}
         <p className="mt-2 flex items-start gap-1.5 text-xs text-ink-3">
@@ -64,7 +64,7 @@ export function BusquedaEncargo({
       </div>
 
       {elegida && (
-        <p className="mb-6 flex items-start gap-2 rounded-xl border border-pri/30 bg-pri-soft px-4 py-3 text-sm text-pri-text">
+        <p className="mb-6 flex items-start gap-2 rounded-md border border-pri/30 bg-pri-soft px-4 py-3 text-sm text-pri-text">
           <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
           <span>
             La empresa eligió <strong>{elegida.convocatoriaNombre}</strong>. El encargo sigue con esa convocatoria; ya no se
@@ -164,12 +164,12 @@ function MisPropuestas({
   };
 
   return (
-    <section aria-labelledby={`propuestas-${encargoId}`} className="rounded-2xl border border-line p-5 bg-surface shadow-card">
+    <section aria-labelledby={`propuestas-${encargoId}`} className="rounded-md border border-line p-5 bg-surface">
       <h2 id={`propuestas-${encargoId}`} className="font-display text-base font-semibold text-ink">
         Tus propuestas ({propuestas.length})
       </h2>
       {error && (
-        <p role="alert" className="mt-3 flex items-start gap-2 rounded-lg bg-rose/10 px-3 py-2 text-sm text-rose-ink">
+        <p role="alert" className="mt-3 flex items-start gap-2 rounded-[4px] bg-rose-soft px-3 py-2 text-sm text-rose">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {error}
         </p>
       )}

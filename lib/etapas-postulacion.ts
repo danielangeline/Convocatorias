@@ -13,7 +13,7 @@ export const ETAPAS_TABLERO: EtapaPostulacion[] = ["preparacion", "documentos", 
 
 export const ETAPA_LABEL: Record<EtapaPostulacion, string> = {
   preparacion: "En preparación",
-  documentos: "Documentos",
+  documentos: "Reuniendo documentos",
   lista: "Lista para radicar",
   radicada: "Radicada",
   resuelta: "Resuelta o cerrada",

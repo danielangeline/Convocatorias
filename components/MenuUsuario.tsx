@@ -32,7 +32,7 @@ export function MenuUsuario({ tono = "amber" }: { tono?: "amber" | "pri" | "pri"
       <form action={cerrarSesion}>
         <button
           type="submit"
-          className="flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-semibold text-ink-3 hover:bg-surface-2 hover:text-ink"
+          className="flex items-center gap-1.5 rounded-[4px] px-2.5 py-2 text-xs font-semibold text-ink-3 hover:bg-surface-2 hover:text-ink"
         >
           <LogOut className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Salir</span>
         </button>

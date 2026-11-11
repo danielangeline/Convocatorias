@@ -58,7 +58,7 @@ export function PerfilesEnRevision({ perfiles }: { perfiles: ConsultorAdmin[] })
         accion={<span className="font-tabular text-xs text-ink-3">{perfiles.length}</span>}
       />
       {aviso && (
-        <p role="alert" className="mb-2 rounded-lg bg-rose/10 px-3 py-2 text-xs text-rose-ink">
+        <p role="alert" className="mb-2 rounded-[4px] bg-rose-soft px-3 py-2 text-xs text-rose">
           {aviso}
         </p>
       )}
@@ -67,7 +67,7 @@ export function PerfilesEnRevision({ perfiles }: { perfiles: ConsultorAdmin[] })
       ) : (
         perfiles.slice(0, 5).map((c) => (
           <div key={c.id} className="flex items-center gap-3 border-b border-line-2 py-2.5 last:border-b-0">
-            <span className={`grid h-[38px] w-[38px] flex-none place-items-center rounded-full text-xs font-extrabold ${TONO_CLASE.pri}`}>
+            <span className={`grid h-[38px] w-[38px] flex-none place-items-center rounded-full text-xs font-bold ${TONO_CLASE.pri}`}>
               {iniciales(c.nombreProfesional || "?")}
             </span>
             <Link href="/admin/consultores/revision" className="min-w-0 flex-1">
@@ -82,7 +82,7 @@ export function PerfilesEnRevision({ perfiles }: { perfiles: ConsultorAdmin[] })
               disabled={ocupado !== null}
               title="Aprobar"
               aria-label={`Aprobar a ${c.nombreProfesional}`}
-              className="grid h-10 w-10 flex-none cursor-pointer place-items-center rounded-[10px] bg-pri-soft text-pri-text hover:brightness-95 disabled:opacity-50"
+              className="grid h-10 w-10 flex-none cursor-pointer place-items-center rounded-[4px] bg-pri-soft text-pri-text hover:brightness-95 disabled:opacity-50"
             >
               <Check className="h-4 w-4" />
             </button>
@@ -95,7 +95,7 @@ export function PerfilesEnRevision({ perfiles }: { perfiles: ConsultorAdmin[] })
               disabled={ocupado !== null}
               title="Rechazar"
               aria-label={`Rechazar a ${c.nombreProfesional}`}
-              className="grid h-10 w-10 flex-none cursor-pointer place-items-center rounded-[10px] border border-line text-ink-3 hover:text-rose-ink disabled:opacity-50"
+              className="grid h-10 w-10 flex-none cursor-pointer place-items-center rounded-[4px] border border-line text-ink-3 hover:text-rose disabled:opacity-50"
             >
               <X className="h-4 w-4" />
             </button>

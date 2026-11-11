@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/Button";
 const sinSuscripcion = () => () => {};
 const CLAVES_MENU = ["shell:avisos-vistos"];
 
-/** RF-107 · Preferencias de este navegador: tema y estado del menú. No tocan la cuenta. */
+/** RF-107 · Preferencias de este navegador: tema y avisos vistos. No tocan la cuenta. */
 export function AjustesApariencia() {
   const { theme, setTheme } = useTheme();
   const montado = useSyncExternalStore(sinSuscripcion, () => true, () => false);
@@ -30,7 +30,7 @@ export function AjustesApariencia() {
     <div className="flex flex-col gap-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <div className="text-[13.5px] font-bold">Tema</div>
+          <div className="text-sm font-semibold">Tema</div>
           <div className="text-xs text-ink-3">«Sistema» sigue la preferencia de tu equipo.</div>
         </div>
         <Segmented
@@ -46,8 +46,8 @@ export function AjustesApariencia() {
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line-2 pt-5">
         <div>
-          <div className="text-[13.5px] font-bold">Menú lateral</div>
-          <div className="text-xs text-ink-3">Vuelve a abrir todos los grupos y a expandir el menú.</div>
+          <div className="text-sm font-semibold">Avisos de la campana</div>
+          <div className="text-xs text-ink-3">Vuelve a mostrar como nuevos los avisos que ya viste.</div>
         </div>
         <Button variant="secondary" onClick={restablecerMenu}>
           Restablecer

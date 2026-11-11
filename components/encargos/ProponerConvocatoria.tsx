@@ -64,13 +64,13 @@ export function ProponerConvocatoria({
   return (
     <div className="space-y-4">
       {error && (
-        <p role="alert" className="flex items-start gap-2 rounded-lg bg-rose/10 px-3 py-2 text-sm text-rose-ink">
+        <p role="alert" className="flex items-start gap-2 rounded-[4px] bg-rose-soft px-3 py-2 text-sm text-rose">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {error}
         </p>
       )}
 
       {propuesta ? (
-        <div className="rounded-xl border border-line-2 bg-surface-2/60 p-4">
+        <div className="rounded-md border border-line-2 bg-surface-2/60 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <Badge className={ESTADO_PROPUESTA_ESTILO[propuesta.estado]}>
               {propuesta.estado === "elegida" && <CheckCircle2 className="h-3 w-3" />}
@@ -103,7 +103,7 @@ export function ProponerConvocatoria({
             rows={4}
             maxLength={NOTA_MAXIMA}
             placeholder="Por ejemplo: financia proyectos del sector y el monto que busca la empresa está dentro del rango."
-            className="mt-2 w-full resize-none rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
+            className="mt-2 w-full resize-none rounded-[4px] border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
           />
           <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
             <span className="text-xs text-ink-3">
@@ -115,7 +115,7 @@ export function ProponerConvocatoria({
           </div>
         </div>
       ) : (
-        <p className="rounded-lg bg-surface-2 px-4 py-3 text-sm text-ink-2">
+        <p className="rounded-[4px] bg-surface-2 px-4 py-3 text-sm text-ink-2">
           La empresa ya eligió una convocatoria para este encargo: ya no se admiten más propuestas.
         </p>
       )}

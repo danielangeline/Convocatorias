@@ -31,13 +31,13 @@ export function DataTable<T>({
   const plantilla = columnas.map((c) => c.ancho ?? "minmax(0,1fr)").join(" ");
   const minimo = Math.max(560, columnas.length * 130);
   return (
-    <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-card">
+    <div className="overflow-hidden rounded-md border border-line bg-surface">
       <div className="overflow-x-auto">
         <div role="table" aria-label={etiqueta} style={{ minWidth: minimo }}>
           <div
             role="row"
             style={{ gridTemplateColumns: plantilla }}
-            className="grid gap-3.5 border-b border-line px-[18px] py-3 text-[11px] font-bold uppercase tracking-[.07em] text-ink-3"
+            className="grid gap-3.5 border-b border-line bg-surface-2 px-[18px] py-3 text-xs font-semibold uppercase tracking-[.06em] text-ink-3"
           >
             {columnas.map((c) => (
               <span

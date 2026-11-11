@@ -3,14 +3,14 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FolderKanban, Plus, Pencil, Trash2, MapPin, Wallet, Sparkles, UserPlus } from "lucide-react";
+import { FolderKanban, Plus, Trash2, Sparkles, UserPlus, X, PencilLine } from "lucide-react";
 import type { Categoria, PropuestaProyecto, Proyecto } from "@/lib/types";
-import { formatCOP } from "@/lib/utils";
-import { useAccesoSuscripcion } from "@/lib/hooks";
+import { calcularCompletitud } from "@/lib/proyectos";
+import { useAccesoSuscripcion, usePostulacionesPropias, useTarifas } from "@/lib/hooks";
 import { Button } from "@/components/ui/Button";
-import { Chip } from "@/components/ui/Chip";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { CompletitudBadge } from "@/components/CompletitudProyecto";
 import { SolicitarConsultorModal } from "@/components/SolicitarConsultorModal";
 import { ProyectoFormModal } from "@/components/ProyectoFormModal";
 import { AsistenteProyecto } from "./AsistenteProyecto";
@@ -21,9 +21,21 @@ import { textoUbicacionProyecto } from "@/lib/departamentos";
  * sesión de la empresa (RN-30); no del store, que en el servidor solo tiene
  * datos de ejemplo. Crear, editar y eliminar pasan por /api/proyectos.
  */
-export function ListadoProyectos({ proyectos, categorias }: { proyectos: Proyecto[]; categorias: Categoria[] }) {
+export function ListadoProyectos({
+  proyectos,
+  categorias,
+  compatiblesPorProyecto = {},
+}: {
+  proyectos: Proyecto[];
+  categorias: Categoria[];
+  /** Convocatorias vigentes que coinciden con cada proyecto (CU-10). */
+  compatiblesPorProyecto?: Record<string, number>;
+}) {
   const categoriaPorId = (id: string) => categorias.find((c) => c.id === id);
   const router = useRouter();
+  const postulaciones = usePostulacionesPropias();
+  const costoIA = useTarifas().estructuracion;
+  const [elegirAbierto, setElegirAbierto] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [eliminando, setEliminando] = useState<string | null>(null);
 
@@ -76,10 +88,19 @@ export function ListadoProyectos({ proyectos, categorias }: { proyectos: Proyect
     setProyectoConsultorId(proyectoId);
   };
 
+  // «Nuevo proyecto» abre primero la elección de camino: contarlo con la IA o llenar el formulario.
   const abrirCrear = () => {
     setEditando(null);
     setPropuesta(null);
+    setElegirAbierto(true);
+  };
+  const elegirIA = () => {
+    setElegirAbierto(false);
     setAsistenteAbierto(true);
+  };
+  const elegirFormulario = () => {
+    setElegirAbierto(false);
+    abrirFormulario(null);
   };
 
   const abrirFormulario = (p: PropuestaProyecto | null) => {
@@ -107,21 +128,19 @@ export function ListadoProyectos({ proyectos, categorias }: { proyectos: Proyect
   };
 
   return (
-    <div>
-      <div className="mb-6 flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Mis proyectos</h1>
-          <p className="text-sm text-ink-2">
-            Registra los proyectos de tu empresa para cruzarlos con convocatorias.
-          </p>
-        </div>
-        <Button variant="primary" className="shrink-0" onClick={abrirCrear}>
-          <Plus className="h-4 w-4" /> Nuevo proyecto
-        </Button>
-      </div>
+    <div className="flex flex-col gap-5">
+      <PageHeader
+        titulo="Proyectos"
+        descripcion="Registra los proyectos de tu empresa: son la base de las sugeridas y de los documentos con IA."
+        accion={
+          <Button variant="primary" onClick={abrirCrear}>
+            <Plus className="h-4 w-4" /> Nuevo proyecto
+          </Button>
+        }
+      />
 
       {error && (
-        <p role="alert" className="mb-4 rounded-lg bg-rose/10 px-3 py-2.5 text-sm text-rose-ink">
+        <p role="alert" className="rounded-[4px] bg-rose-soft px-3 py-2.5 text-sm text-rose">
           {error}
         </p>
       )}
@@ -138,68 +157,127 @@ export function ListadoProyectos({ proyectos, categorias }: { proyectos: Proyect
           }
         />
       ) : (
-        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-          {proyectos.map((p) => (
-            <div key={p.id} className="flex flex-col rounded-2xl border border-line p-5 bg-surface shadow-card">
-              <div className="flex items-start justify-between gap-2">
-                <Link href={`/proyectos/${p.id}`} className="font-display text-base font-semibold text-ink hover:text-pri-text">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,340px),1fr))] gap-4">
+          {proyectos.map((p) => {
+            const { porcentaje, faltantes } = calcularCompletitud(p);
+            const meta = [
+              ...p.categorias.map((cid) => categoriaPorId(cid)).filter((c) => c && (c.tipo === "tipo_proyecto" || c.tipo === "sector")).map((c) => c!.nombre),
+              textoUbicacionProyecto(p),
+            ].filter(Boolean);
+            const compatibles = compatiblesPorProyecto[p.id];
+            const numPostulaciones = postulaciones.filter((x) => x.proyectoId === p.id).length;
+            return (
+              <article key={p.id} className="flex flex-col rounded-md border border-line bg-surface p-5">
+                <Link href={`/proyectos/${p.id}`} className="font-display text-xl font-semibold leading-snug text-ink hover:text-pri-text hover:underline">
                   {p.nombre}
                 </Link>
-                <CompletitudBadge proyecto={p} className="shrink-0" />
-              </div>
-              <p className="mt-1.5 line-clamp-2 text-sm text-ink-2">{p.descripcion}</p>
+                {meta.length > 0 && <p className="mt-1 text-[13px] text-ink-3">{meta.join(" · ")}</p>}
 
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {p.categorias.map((cid) => {
-                  const cat = categoriaPorId(cid);
-                  return cat ? (
-                    <Chip key={cid} tono={cat.tipo}>
-                      {cat.nombre}
-                    </Chip>
-                  ) : null;
-                })}
-              </div>
+                <div className="mt-4">
+                  <div className="flex items-baseline justify-between text-xs font-semibold text-ink-2">
+                    <span>Información del proyecto</span>
+                    <span className="font-tabular text-ink">{porcentaje}%</span>
+                  </div>
+                  <ProgressBar porcentaje={porcentaje} tono={porcentaje < 70 ? "amber" : "pri"} className="mt-1.5" altura={6} />
+                  <p className="mt-2 text-[13px] leading-snug text-ink-2">
+                    {faltantes.length > 0
+                      ? `Agrega ${faltantes[0].etiqueta.toLowerCase()} para afinar el cruce.`
+                      : "Todo el contenido está diligenciado."}
+                  </p>
+                </div>
 
-              <div className="mt-4 space-y-1.5 border-t border-line-2 pt-4 text-sm">
-                <p className="flex items-center gap-1.5 text-ink-2">
-                  <Wallet className="h-3.5 w-3.5" />
-                  <span className="font-tabular font-medium text-ink">{p.montoBuscado != null ? formatCOP(p.montoBuscado) : "Monto sin definir"}</span>
-                </p>
-                <p className="flex items-center gap-1.5 text-ink-2">
-                  <MapPin className="h-3.5 w-3.5" /> {textoUbicacionProyecto(p) || "Sin ubicación"}
-                </p>
-              </div>
+                <dl className="m-0 mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-[4px] border border-line bg-line text-center">
+                  <div className="bg-surface px-2 py-2.5">
+                    <dd className="font-tabular m-0 text-xl font-medium text-ink">{compatibles ?? "—"}</dd>
+                    <dt className="text-xs text-ink-3">Compatibles</dt>
+                  </div>
+                  <div className="bg-surface px-2 py-2.5">
+                    <dd className="font-tabular m-0 text-xl font-medium text-ink">{numPostulaciones}</dd>
+                    <dt className="text-xs text-ink-3">Postulaciones</dt>
+                  </div>
+                </dl>
 
-              <div className="mt-4 flex items-center gap-2">
-                <Button variant="secondary" size="sm" className="flex-1" onClick={() => verSugerencias(p.id)}>
-                  <Sparkles className="h-3.5 w-3.5" /> Ver sugerencias
-                </Button>
-              </div>
-              <div className="mt-2 flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="flex-1 text-pri-text hover:bg-pri-soft"
-                  onClick={() => solicitarConsultor(p.id)}
-                >
-                  <UserPlus className="h-3.5 w-3.5" /> Solicitar consultor
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => abrirEditar(p)} aria-label={`Editar ${p.nombre}`}>
-                  <Pencil className="h-3.5 w-3.5" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => eliminarProyecto(p)}
-                  disabled={eliminando === p.id}
-                  aria-label={`Eliminar ${p.nombre}`}
-                  className="text-rose-ink hover:bg-rose/10"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
-              </div>
+                <div className="mt-4 flex gap-2">
+                  <Button variant="outline" className="flex-1" onClick={() => verSugerencias(p.id)}>
+                    <Sparkles className="h-4 w-4" /> Ver sugeridas
+                  </Button>
+                  <Button variant="secondary" onClick={() => abrirEditar(p)} aria-label={`Editar ${p.nombre}`}>
+                    <PencilLine className="h-4 w-4" /> Editar
+                  </Button>
+                </div>
+                <div className="mt-1.5 flex items-center justify-between gap-2">
+                  <Button variant="ghost" size="sm" className="text-pri-text hover:bg-pri-soft" onClick={() => solicitarConsultor(p.id)}>
+                    <UserPlus className="h-3.5 w-3.5" /> Solicitar consultor
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => eliminarProyecto(p)}
+                    disabled={eliminando === p.id}
+                    aria-label={`Eliminar ${p.nombre}`}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" /> Eliminar
+                  </Button>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Nuevo proyecto: dos caminos, el de la IA destacado. */}
+      {elegirAbierto && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4" onClick={() => setElegirAbierto(false)}>
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="titulo-camino"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.key === "Escape" && setElegirAbierto(false)}
+            className="w-full max-w-[520px] rounded-md border border-line bg-surface p-6"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <h2 id="titulo-camino" className="font-display text-2xl font-semibold text-ink">
+                Nuevo proyecto
+              </h2>
+              <button
+                type="button"
+                onClick={() => setElegirAbierto(false)}
+                aria-label="Cerrar"
+                className="grid h-11 w-11 cursor-pointer place-items-center rounded-[4px] text-ink-3 hover:bg-surface-2 hover:text-ink"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
-          ))}
+            <p className="mt-1 text-sm text-ink-2">¿Cómo quieres registrarlo?</p>
+            <div className="mt-5 flex flex-col gap-3">
+              <button
+                type="button"
+                autoFocus
+                onClick={elegirIA}
+                className="flex min-h-[88px] w-full cursor-pointer items-start gap-4 rounded-md border-2 border-pri bg-pri-soft p-4 text-left hover:bg-pri-soft/70"
+              >
+                <Sparkles className="mt-0.5 h-6 w-6 flex-none text-pri-text" aria-hidden />
+                <span>
+                  <span className="block font-display text-lg font-semibold text-ink">Cuéntalo con tus palabras</span>
+                  <span className="mt-0.5 block text-sm text-ink-2">
+                    Escribe o dicta tu idea y la IA arma el proyecto. Usa {costoIA.toLocaleString("es-CO")} créditos.
+                  </span>
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={elegirFormulario}
+                className="flex min-h-[88px] w-full cursor-pointer items-start gap-4 rounded-md border border-line-strong bg-surface p-4 text-left hover:bg-surface-2"
+              >
+                <PencilLine className="mt-0.5 h-6 w-6 flex-none text-ink-2" aria-hidden />
+                <span>
+                  <span className="block font-display text-lg font-semibold text-ink">Llenar el formulario</span>
+                  <span className="mt-0.5 block text-sm text-ink-2">Unos 5 minutos. Sin costo.</span>
+                </span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

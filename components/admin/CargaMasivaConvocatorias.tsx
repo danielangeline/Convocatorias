@@ -99,7 +99,7 @@ const tamanoLegible = (bytes: number) =>
 /** Ícono del estado de un documento: pendiente, adjunto o fallido. */
 function EstadoDoc({ subida, icono: Icono }: { subida?: Subida; icono: typeof FileText }) {
   if (subida?.ok) return <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-pri-text" aria-label="Adjunto" />;
-  if (subida) return <X className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose-ink" aria-label="No se adjuntó" />;
+  if (subida) return <X className="mt-0.5 h-3.5 w-3.5 shrink-0 text-rose" aria-label="No se adjuntó" />;
   return <Icono className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink-3" />;
 }
 
@@ -183,13 +183,13 @@ function ZonaDocumentos({
           agregar(e.dataTransfer.files);
         }}
         className={cn(
-          "flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed px-3 py-2 text-xs text-ink-3 hover:bg-surface-2",
+          "flex cursor-pointer items-center justify-center gap-2 rounded-[4px] border border-dashed px-3 py-2 text-xs text-ink-3 hover:bg-surface-2",
           encima ? "border-pri bg-pri-soft text-pri-text" : "border-line"
         )}
       >
         <Upload className="h-3.5 w-3.5" /> Arrastra aquí los documentos de esta convocatoria o <span className="font-semibold text-pri-text">elígelos</span>
       </label>
-      {aviso && <p className="mt-1 text-xs text-rose-ink">{aviso}</p>}
+      {aviso && <p className="mt-1 text-xs text-rose">{aviso}</p>}
     </div>
   );
 }
@@ -220,7 +220,7 @@ function FuenteNueva({ nombre, filas, onRegistrada }: { nombre: string; filas: n
     await onRegistrada();
   };
 
-  const campo = "w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-pri";
+  const campo = "w-full rounded-[4px] border border-line bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-pri";
   return (
     <li className="px-4 py-3">
       <p className="text-sm text-ink">
@@ -248,7 +248,7 @@ function FuenteNueva({ nombre, filas, onRegistrada }: { nombre: string; filas: n
         <Button size="sm" variant="secondary" onClick={registrar} disabled={ocupado}>
           <Plus className="h-3.5 w-3.5" /> {ocupado ? "Registrando…" : "Registrar fuente"}
         </Button>
-        {error && <span className="text-xs text-rose-ink">{error}</span>}
+        {error && <span className="text-xs text-rose">{error}</span>}
       </div>
     </li>
   );
@@ -448,7 +448,7 @@ export function CargaMasivaConvocatorias({
     <Drawer abierto={abierto} onCerrar={cerrar} titulo="Carga masiva de convocatorias" ancho={760} pie={pie}>
       <div className="space-y-6">
         <section>
-          <h3 className="mb-1 text-sm font-extrabold text-ink">1. Descarga la plantilla y llénala</h3>
+          <h3 className="mb-1 text-sm font-bold text-ink">1. Descarga la plantilla y llénala</h3>
           <p className="mb-3 text-sm text-ink-2">
             Una fila por convocatoria y una columna por cada campo de la ficha. Ábrela en Excel, borra la fila de ejemplo y
             guárdala como <strong>CSV UTF-8</strong>. Hasta {MAXIMO_FILAS} filas por archivo. En la columna{" "}
@@ -477,7 +477,7 @@ export function CargaMasivaConvocatorias({
             La de Excel trae el prompt para el agente de IA que busca convocatorias y las fuentes y categorías válidas de hoy.
           </p>
 
-          <details className="mt-4 rounded-xl border border-line">
+          <details className="mt-4 rounded-md border border-line">
             <summary className="cursor-pointer px-4 py-3 text-sm font-bold text-ink">Guía de columnas</summary>
             <div className="overflow-x-auto border-t border-line">
               <table className="w-full table-fixed text-left text-[13px] sm:table-auto">
@@ -496,7 +496,7 @@ export function CargaMasivaConvocatorias({
                     <tr key={c.clave} className="border-t border-line align-top">
                       <td className="break-all px-4 py-2 font-mono text-[12px] text-ink sm:whitespace-nowrap sm:break-normal">
                         {c.clave}
-                        {c.obligatoria && <span className="text-rose-ink"> *</span>}
+                        {c.obligatoria && <span className="text-rose"> *</span>}
                       </td>
                       <td className="px-4 py-2 text-ink-2">{c.guia}</td>
                     </tr>
@@ -510,7 +510,7 @@ export function CargaMasivaConvocatorias({
             </p>
           </details>
 
-          <details className="mt-3 rounded-xl border border-line">
+          <details className="mt-3 rounded-md border border-line">
             <summary className="cursor-pointer px-4 py-3 text-sm font-bold text-ink">Fuentes y categorías válidas</summary>
             <div className="space-y-4 border-t border-line px-4 py-3 text-[13px] text-ink-2">
               <div>
@@ -541,7 +541,7 @@ export function CargaMasivaConvocatorias({
         </section>
 
         <section>
-          <h3 className="mb-1 text-sm font-extrabold text-ink">2. Sube el CSV y revisa</h3>
+          <h3 className="mb-1 text-sm font-bold text-ink">2. Sube el CSV y revisa</h3>
           <p className="mb-3 text-sm text-ink-2">
             Antes de crear nada te mostramos qué filas están bien y qué le falta a cada una. Debajo de cada convocatoria lista
             puedes arrastrar sus documentos (PDF, Word, Excel o ZIP, hasta 20 MB).
@@ -549,7 +549,7 @@ export function CargaMasivaConvocatorias({
           <input ref={entrada} type="file" accept=".csv,text/csv" onChange={alElegir} className="sr-only" id="archivo-carga" disabled={ocupado} />
           <label
             htmlFor="archivo-carga"
-            className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-line px-4 py-4 text-sm text-ink-2 hover:bg-surface-2"
+            className="flex cursor-pointer items-center gap-3 rounded-md border border-dashed border-line px-4 py-4 text-sm text-ink-2 hover:bg-surface-2"
           >
             {archivo ? <FileSpreadsheet className="h-5 w-5 text-pri-text" /> : <Upload className="h-5 w-5 text-ink-3" />}
             <span className="min-w-0 flex-1 truncate">
@@ -559,7 +559,7 @@ export function CargaMasivaConvocatorias({
             <span className="font-semibold text-pri-text">{archivo ? "Cambiar" : "Elegir"}</span>
           </label>
 
-          <details className="mt-3 rounded-xl border border-line" open={documentos.length > 0}>
+          <details className="mt-3 rounded-md border border-line" open={documentos.length > 0}>
             <summary className="cursor-pointer px-4 py-3 text-sm font-bold text-ink">
               ¿Nombraste archivos en la columna documentos? Elígelos aquí
             </summary>
@@ -603,7 +603,7 @@ export function CargaMasivaConvocatorias({
 
         {resultado && (
           <section>
-            <h3 className="mb-3 text-sm font-extrabold text-ink">{terminado ? "3. Resultado" : "Vista previa"}</h3>
+            <h3 className="mb-3 text-sm font-bold text-ink">{terminado ? "3. Resultado" : "Vista previa"}</h3>
             {terminado ? (
               progreso && progreso.hechos < progreso.total ? (
                 <Aviso tipo="advertencia">
@@ -640,7 +640,7 @@ export function CargaMasivaConvocatorias({
               </div>
             )}
             {!terminado && resultado.fuentesNuevas.length > 0 && (
-              <div className="mt-3 rounded-xl border border-amber">
+              <div className="mt-3 rounded-md border border-amber">
                 <p className="px-4 pt-3 text-sm text-ink">
                   {resultado.fuentesNuevas.length === 1
                     ? "Esta fuente no está registrada. Regístrala para poder cargar sus convocatorias:"
@@ -694,7 +694,7 @@ export function CargaMasivaConvocatorias({
               </p>
             )}
 
-            <ul className="mt-4 divide-y divide-line rounded-xl border border-line">
+            <ul className="mt-4 divide-y divide-line rounded-md border border-line">
               {resultado.filas.map((f) => {
                 const subidasFila = subidas[f.numero] ?? [];
                 const arrastrados = manuales[f.numero] ?? [];
@@ -723,7 +723,7 @@ export function CargaMasivaConvocatorias({
                               <EstadoDoc subida={subida} icono={d.enlace !== undefined ? Link2 : FileText} />
                               <span className="min-w-0 [overflow-wrap:anywhere]">
                                 {d.enlace ?? d.archivo} <span className="text-ink-3">· {TIPO_DOCUMENTO_LABEL[d.tipo]}</span>
-                                {subida && !subida.ok && <span className="text-rose-ink"> — {subida.error}</span>}
+                                {subida && !subida.ok && <span className="text-rose"> — {subida.error}</span>}
                               </span>
                             </li>
                           );
@@ -737,7 +737,7 @@ export function CargaMasivaConvocatorias({
                                 <EstadoDoc subida={subida} icono={Paperclip} />
                                 <span className="min-w-0 [overflow-wrap:anywhere]">
                                   {m.archivo.name} <span className="text-ink-3">· {TIPO_DOCUMENTO_LABEL[m.tipo]}</span>
-                                  {subida && !subida.ok && <span className="text-rose-ink"> — {subida.error}</span>}
+                                  {subida && !subida.ok && <span className="text-rose"> — {subida.error}</span>}
                                 </span>
                               </li>
                             );

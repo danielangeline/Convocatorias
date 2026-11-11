@@ -13,7 +13,7 @@ export function CreditMeter({
   nota?: string;
 }) {
   return (
-    <div className="flex flex-col gap-2 rounded-xl bg-surface-2 p-3">
+    <div className="flex flex-col gap-2 rounded-md bg-surface-2 p-3">
       <div className="flex items-baseline justify-between text-xs">
         <span className="font-bold">{plan}</span>
         <span className="font-tabular text-ink-2">

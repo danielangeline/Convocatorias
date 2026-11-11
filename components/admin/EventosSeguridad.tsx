@@ -59,7 +59,7 @@ export function EventosSeguridad({ eventos, ahora, limite }: { eventos: EventoSe
         <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-pri-text">
           <ShieldAlert className="h-3.5 w-3.5" /> Seguridad y auditoría
         </p>
-        <h1 className="mt-1 text-[26px] font-extrabold tracking-[-0.025em] text-ink">Eventos de seguridad</h1>
+        <h1 className="mt-1 font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.01em] text-ink sm:text-[32px]">Eventos de seguridad</h1>
         <p className="text-sm text-ink-2">
           Logins fallidos, accesos denegados, verificación en dos pasos y gestión de administradores (CU-39, RF-65). Se
           muestran los {limite.toLocaleString("es-CO")} más recientes.
@@ -67,7 +67,7 @@ export function EventosSeguridad({ eventos, ahora, limite }: { eventos: EventoSe
       </div>
 
       {/* Bloqueos activos (CU-40) */}
-      <div className="mb-8 rounded-2xl border border-line p-4 sm:p-6 bg-surface shadow-card">
+      <div className="mb-8 rounded-md border border-line p-4 sm:p-6 bg-surface">
         <h2 className="flex items-center gap-2 font-display text-base font-semibold text-ink">
           <Lock className="h-4 w-4 text-pri-text" /> Bloqueos activos por límite de tasa
         </h2>
@@ -83,7 +83,7 @@ export function EventosSeguridad({ eventos, ahora, limite }: { eventos: EventoSe
             {bloqueosActivos.map((e) => (
               <li
                 key={e.id}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-pri/30 bg-pri-soft px-4 py-3"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-[4px] border border-pri/30 bg-pri-soft px-4 py-3"
               >
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-ink">
@@ -127,7 +127,7 @@ export function EventosSeguridad({ eventos, ahora, limite }: { eventos: EventoSe
       {eventosFiltrados.length === 0 ? (
         <EmptyState icon={ShieldCheck} titulo="Sin eventos" descripcion="No hay eventos de seguridad para este filtro." />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
+        <div className="overflow-x-auto rounded-md border border-line bg-surface">
           <table className="w-full min-w-[720px] text-sm">
             <thead>
               <tr className="border-b border-line bg-surface-2 text-left text-xs font-semibold uppercase tracking-wide text-ink-3">

@@ -9,7 +9,7 @@ export function VerRecorrido() {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div>
-        <div className="text-[13.5px] font-bold">Recorrido de bienvenida</div>
+        <div className="text-sm font-semibold">Recorrido de bienvenida</div>
         <div className="text-xs text-ink-3">Te mostramos otra vez para qué sirve cada sección.</div>
       </div>
       <Button variant="secondary" onClick={() => window.dispatchEvent(new Event(EVENTO_ABRIR_RECORRIDO))}>

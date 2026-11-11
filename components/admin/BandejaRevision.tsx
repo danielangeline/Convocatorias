@@ -85,7 +85,7 @@ export function BandejaRevision({ consultores }: { consultores: ConsultorAdmin[]
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Perfiles en revisión</h1>
+        <h1 className="font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.01em] text-ink sm:text-[32px]">Perfiles en revisión</h1>
         <p className="text-sm text-ink-2">
           Aprueba o rechaza los perfiles que los consultores enviaron. El que más lleva esperando va primero.
         </p>
@@ -106,7 +106,7 @@ export function BandejaRevision({ consultores }: { consultores: ConsultorAdmin[]
       ) : (
         <div className="space-y-6">
           {consultores.map((c) => (
-            <article key={c.id} className="rounded-2xl border border-line bg-surface p-6">
+            <article key={c.id} className="rounded-md border border-line bg-surface p-6">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="flex items-center gap-4">
                   {c.fotoUrl ? (
@@ -150,7 +150,7 @@ export function BandejaRevision({ consultores }: { consultores: ConsultorAdmin[]
               </div>
 
               {c.motivoRechazo && (
-                <div className="mt-4 flex items-start gap-2 rounded-lg border border-amber/30 bg-amber/10 px-4 py-3 text-sm text-amber-ink">
+                <div className="mt-4 flex items-start gap-2 rounded-[4px] border border-amber/30 bg-amber/10 px-4 py-3 text-sm text-amber-ink">
                   <History className="mt-0.5 h-4 w-4 shrink-0" />
                   <p>
                     <span className="font-semibold">Reenvío.</span> Motivo del rechazo anterior: {c.motivoRechazo}
@@ -191,7 +191,7 @@ export function BandejaRevision({ consultores }: { consultores: ConsultorAdmin[]
                 ) : (
                   <div className="grid gap-3 sm:grid-cols-2">
                     {c.portafolio.map((item, i) => (
-                      <div key={i} className="rounded-xl border border-line-2 p-3">
+                      <div key={i} className="rounded-md border border-line-2 p-3">
                         <p className="text-sm font-semibold text-ink">
                           {item.nombreProyecto}
                           {item.anio && <span className="font-normal text-ink-3"> · {item.anio}</span>}
@@ -205,9 +205,9 @@ export function BandejaRevision({ consultores }: { consultores: ConsultorAdmin[]
                 )}
               </div>
 
-              <div className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-line-2 px-4 py-3">
+              <div className="mt-4 flex items-center justify-between gap-3 rounded-[4px] border border-line-2 px-4 py-3">
                 <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-pri-soft text-pri-text">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-[4px] bg-pri-soft text-pri-text">
                     <FileText className="h-4 w-4" />
                   </span>
                   <p className="text-sm font-medium text-ink">

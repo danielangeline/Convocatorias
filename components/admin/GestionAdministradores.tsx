@@ -23,7 +23,7 @@ const ESTADO_INVITACION: Record<EstadoInvitacionAdmin, { etiqueta: string; estil
   pendiente: { etiqueta: "Pendiente", estilo: "bg-amber/10 text-amber-ink ring-amber/30" },
   aceptada: { etiqueta: "Aceptada", estilo: "bg-pri-soft text-pri-text ring-pri/30" },
   cancelada: { etiqueta: "Cancelada", estilo: "bg-surface-2 text-ink-2 ring-line" },
-  vencida: { etiqueta: "Vencida", estilo: "bg-rose/10 text-rose-ink ring-rose/30" },
+  vencida: { etiqueta: "Vencida", estilo: "bg-rose-soft text-rose ring-rose/30" },
 };
 
 type Mensaje = { tipo: "error" | "exito"; texto: string } | null;
@@ -104,7 +104,7 @@ export function GestionAdministradores({
   }) {
     if (confirmando !== clave) {
       return (
-        <Button variant="ghost" size="sm" className="text-rose-ink hover:bg-rose/10" disabled={ocupado !== null} onClick={() => setConfirmando(clave)}>
+        <Button variant="ghost" size="sm" className="text-rose hover:bg-rose-soft" disabled={ocupado !== null} onClick={() => setConfirmando(clave)}>
           <Icono className="h-3.5 w-3.5" /> {etiqueta}
         </Button>
       );
@@ -164,7 +164,7 @@ export function GestionAdministradores({
         <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-pri-text">
           <UserCog className="h-3.5 w-3.5" /> Propietario
         </p>
-        <h1 className="mt-1 text-[26px] font-extrabold tracking-[-0.025em] text-ink">Administradores</h1>
+        <h1 className="mt-1 font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.01em] text-ink sm:text-[32px]">Administradores</h1>
         <p className="text-sm text-ink-2">
           Solo tú puedes dar o retirar acceso al panel. Cada invitación, cancelación y revocación queda registrada en los eventos de seguridad.
         </p>
@@ -177,7 +177,7 @@ export function GestionAdministradores({
       )}
 
       {/* Invitar (CU-41 pasos 2-3) */}
-      <form onSubmit={invitar} className="mb-8 rounded-2xl border border-line bg-surface p-6">
+      <form onSubmit={invitar} className="mb-8 rounded-md border border-line bg-surface p-6">
         <h2 className="flex items-center gap-2 font-display text-base font-semibold text-ink">
           <MailPlus className="h-4 w-4 text-pri-text" /> Invitar administrador
         </h2>
@@ -210,7 +210,7 @@ export function GestionAdministradores({
       </form>
 
       {/* Invitaciones abiertas */}
-      <section className="mb-8 rounded-2xl border border-line bg-surface p-6">
+      <section className="mb-8 rounded-md border border-line bg-surface p-6">
         <h2 className="font-display text-base font-semibold text-ink">Invitaciones por resolver</h2>
         {abiertas.length === 0 ? (
           <p className="mt-3 text-sm text-ink-3">No hay invitaciones pendientes.</p>
@@ -237,7 +237,7 @@ export function GestionAdministradores({
       </section>
 
       {/* Administradores con acceso (CU-41 pasos 4-5) */}
-      <section className="mb-8 rounded-2xl border border-line bg-surface p-6">
+      <section className="mb-8 rounded-md border border-line bg-surface p-6">
         <h2 className="flex items-center gap-2 font-display text-base font-semibold text-ink">
           <ShieldCheck className="h-4 w-4 text-pri-text" /> Con acceso
         </h2>
@@ -271,14 +271,14 @@ export function GestionAdministradores({
       </section>
 
       {(revocados.length > 0 || historial.length > 0) && (
-        <section className="rounded-2xl border border-line bg-surface p-6">
+        <section className="rounded-md border border-line bg-surface p-6">
           <h2 className="font-display text-base font-semibold text-ink">Historial</h2>
           <ul className="mt-4 divide-y divide-line">
             {revocados.map((a) => (
               <li key={a.id} className="py-3">
                 <p className="flex items-center gap-2 text-sm font-medium text-ink">
                   {a.nombre ?? a.correo}
-                  <Badge className="bg-rose/10 text-rose-ink ring-rose/30">Revocado</Badge>
+                  <Badge className="bg-rose-soft text-rose ring-rose/30">Revocado</Badge>
                 </p>
                 <p className="text-xs text-ink-3">
                   {a.correo} · revocado {a.revocadoAt ? fechaHora(a.revocadoAt) : ""}

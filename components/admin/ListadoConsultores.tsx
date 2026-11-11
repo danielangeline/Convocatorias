@@ -53,7 +53,7 @@ export function ListadoConsultores({ consultores }: { consultores: ConsultorAdmi
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Consultores</h1>
+        <h1 className="font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.01em] text-ink sm:text-[32px]">Consultores</h1>
         <p className="text-sm text-ink-2">Todos los perfiles de consultor registrados en la plataforma.</p>
       </div>
 
@@ -66,7 +66,7 @@ export function ListadoConsultores({ consultores }: { consultores: ConsultorAdmi
       {consultores.length === 0 ? (
         <EmptyState icon={Users} titulo="No hay consultores" descripcion="Aún no hay perfiles de consultor registrados." />
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
+        <div className="overflow-x-auto rounded-md border border-line bg-surface">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-line bg-surface-2 text-left text-xs font-semibold uppercase tracking-wide text-ink-3">
@@ -131,7 +131,7 @@ export function ListadoConsultores({ consultores }: { consultores: ConsultorAdmi
                             setErrorModal(null);
                             setSuspendiendo(c);
                           }}
-                          className="text-rose-ink hover:bg-rose/10"
+                          className="text-rose hover:bg-rose-soft"
                         >
                           <Ban className="h-3.5 w-3.5" /> Suspender
                         </Button>
@@ -159,7 +159,7 @@ export function ListadoConsultores({ consultores }: { consultores: ConsultorAdmi
               {suspendiendo.encargosActivos > 0 ? (
                 <>
                   {" "}y se cancelarán de inmediato sus{" "}
-                  <span className="font-semibold text-rose-ink">
+                  <span className="font-semibold text-rose">
                     {suspendiendo.encargosActivos} {suspendiendo.encargosActivos === 1 ? "encargo activo" : "encargos activos"}
                   </span>{" "}
                   (en curso y pendientes). Reactivarlo después no los reabre.

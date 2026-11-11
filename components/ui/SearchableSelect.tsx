@@ -65,11 +65,11 @@ export function SearchableSelect({
           }}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={placeholder}
-          className="w-full h-[42px] rounded-xl border border-line bg-surface text-ink py-2 pl-9 pr-3 text-sm outline-none focus:border-pri"
+          className="w-full h-[42px] rounded-md border border-line bg-surface text-ink py-2 pl-9 pr-3 text-sm outline-none focus:border-pri"
         />
       </div>
       {abierto && (
-        <div className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-xl border border-line bg-surface py-1 shadow-card">
+        <div className="absolute z-10 mt-1 max-h-56 w-full overflow-y-auto rounded-md border border-line bg-surface py-1 shadow-card">
           {filtradas.length === 0 ? (
             <p className="px-3 py-2 text-sm text-ink-3">{vacioLabel}</p>
           ) : (

@@ -25,7 +25,7 @@ export function AvisoConsentimiento() {
   };
 
   return (
-    <div role="region" aria-label="Autorización de datos personales" className="mb-6 rounded-xl border border-line bg-pri-soft p-4 text-sm text-pri-text">
+    <div role="region" aria-label="Autorización de datos personales" className="mb-6 rounded-md border border-line bg-pri-soft p-4 text-sm text-pri-text">
       <p className="flex items-center gap-1.5 font-semibold">
         <ShieldCheck className="h-4 w-4" /> Falta tu autorización de datos personales
       </p>
@@ -34,7 +34,7 @@ export function AvisoConsentimiento() {
         datos personales para crear y operar mi cuenta en la plataforma, conforme a la Ley 1581 de 2012.
       </p>
       {error && (
-        <p role="alert" className="mt-2 text-rose-ink">
+        <p role="alert" className="mt-2 text-rose">
           {error}
         </p>
       )}

@@ -255,7 +255,7 @@ export function BotonDictado({
       <button
         type="button"
         onClick={detener}
-        className="inline-flex h-9 items-center gap-2 rounded-full bg-rose/10 px-3 text-xs font-semibold text-rose-ink ring-1 ring-inset ring-rose/30 hover:bg-rose/15"
+        className="inline-flex h-9 items-center gap-2 rounded-full bg-rose-soft px-3 text-xs font-semibold text-rose ring-1 ring-inset ring-rose/30 hover:bg-rose/15"
         aria-label={enVivo ? "Detener el dictado" : "Detener la grabación y transcribir"}
       >
         <span className="relative flex h-2.5 w-2.5">

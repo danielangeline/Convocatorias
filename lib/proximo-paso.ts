@@ -47,7 +47,7 @@ export function proximoPaso(
       convocatoria: c.nombre,
       pendientes: primera.pendientes.length,
       total: primera.p.checklist.length,
-      nombresPendientes: primera.pendientes.slice(0, 3).map((i) => i.descripcion),
+      nombresPendientes: primera.pendientes.slice(0, 3).map((i) => abreviar(i.descripcion)),
       dias: diasRestantes(c.fechaCierre),
       fechaCierre: c.fechaCierre,
     };
@@ -55,6 +55,14 @@ export function proximoPaso(
   if (proyectos === 0) return { tipo: "registrar_proyecto" };
   if (sugeridas > 0) return { tipo: "revisar_sugeridas", cantidad: sugeridas };
   return null;
+}
+
+/** Los requisitos son frases largas: para el resumen se recortan a ~60 caracteres, en el límite de una palabra. */
+function abreviar(texto: string, max = 60): string {
+  const t = texto.trim().replace(/[.;:,]+$/, "");
+  if (t.length <= max) return t;
+  const corte = t.slice(0, max).replace(/\s+\S*$/, "");
+  return `${corte}…`;
 }
 
 /** «a», «a y b», «a, b y c». */

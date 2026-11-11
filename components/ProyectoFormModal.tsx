@@ -238,9 +238,9 @@ export function ProyectoFormModal({
 
   // Caja de texto grande que la persona puede agrandar (RF-109, pedido del Product Owner).
   const claseCaja =
-    "block w-full resize-y rounded-xl border border-line bg-surface px-4 py-3 text-[14.5px] leading-relaxed text-ink outline-none focus:border-pri";
+    "block w-full resize-y rounded-md border border-line bg-surface px-4 py-3 text-[14.5px] leading-relaxed text-ink outline-none focus:border-pri";
   const claseLinea =
-    "block h-11 w-full rounded-xl border border-line bg-surface px-4 text-[14.5px] text-ink outline-none focus:border-pri";
+    "block h-11 w-full rounded-md border border-line bg-surface px-4 text-[14.5px] text-ink outline-none focus:border-pri";
 
   /** Apartado de texto con su botón «Editar con IA» (solo con el proyecto ya creado). */
   const apartadoTexto = (
@@ -304,7 +304,7 @@ export function ProyectoFormModal({
                 type="button"
                 aria-pressed={activo}
                 onClick={() => toggleCategoria(c.id)}
-                className={`min-h-10 cursor-pointer rounded-xl border px-3.5 py-2 text-left text-[13.5px] font-semibold transition-colors ${
+                className={`min-h-10 cursor-pointer rounded-md border px-3.5 py-2 text-left text-[13.5px] font-semibold transition-colors ${
                   activo
                     ? "border-pri bg-pri-soft text-pri-text"
                     : "border-line bg-surface text-ink-2 hover:border-pri hover:text-ink"
@@ -328,18 +328,18 @@ export function ProyectoFormModal({
       : "Nuevo proyecto";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 sm:p-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-3 sm:p-6">
       <div
         role="dialog"
         aria-modal="true"
         aria-label={titulo}
-        className={`flex max-h-[94vh] w-full flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-xl ${
+        className={`flex max-h-[94vh] w-full flex-col overflow-hidden rounded-md border border-line bg-surface shadow-card ${
           verTodo ? "max-w-5xl" : "max-w-3xl"
         }`}
       >
         <div className="flex items-center justify-between gap-3 border-b border-line px-6 py-4">
           <div className="min-w-0">
-            <h3 className="truncate text-xl font-extrabold tracking-[-0.02em] text-ink">{titulo}</h3>
+            <h3 className="truncate text-xl font-bold tracking-[-0.02em] text-ink">{titulo}</h3>
             {proyecto && <p className="truncate text-[13px] text-ink-3">{proyecto.nombre}</p>}
           </div>
           <div className="flex items-center gap-2">
@@ -350,7 +350,7 @@ export function ProyectoFormModal({
             )}
             <button
               onClick={cerrar}
-              className="grid h-10 w-10 cursor-pointer place-items-center rounded-[10px] text-ink-3 hover:bg-surface-2 hover:text-ink"
+              className="grid h-10 w-10 cursor-pointer place-items-center rounded-[4px] text-ink-3 hover:bg-surface-2 hover:text-ink"
               aria-label="Cerrar"
             >
               <X className="h-5 w-5" />
@@ -360,7 +360,7 @@ export function ProyectoFormModal({
 
         <div className="flex-1 overflow-y-auto bg-bg px-4 py-5 sm:px-6">
           {propuesta && (
-            <div className="mb-4 rounded-xl bg-pri-soft p-4 text-sm text-pri-text ring-1 ring-inset ring-pri/30">
+            <div className="mb-4 rounded-md bg-pri-soft p-4 text-sm text-pri-text ring-1 ring-inset ring-pri/30">
               <p className="flex items-center gap-1.5 font-semibold">
                 <Sparkles className="h-4 w-4" /> La IA llenó el formulario con lo que contaste
               </p>
@@ -442,7 +442,7 @@ export function ProyectoFormModal({
 
             {verTodo && (
               <div className="mt-2">
-                <p className="flex items-center gap-1.5 text-[15px] font-extrabold text-pri-text">
+                <p className="flex items-center gap-1.5 text-[15px] font-bold text-pri-text">
                   <Sparkles className="h-4 w-4" /> Contenido para generación de documentos
                 </p>
                 <p className="mt-1 text-[13px] text-ink-3">
@@ -501,7 +501,7 @@ export function ProyectoFormModal({
 
         <div className="border-t border-line bg-surface px-6 py-4">
           {error && (
-            <p role="alert" className="mb-3 rounded-lg bg-rose/10 px-3 py-2.5 text-sm text-rose-ink">
+            <p role="alert" className="mb-3 rounded-[4px] bg-rose-soft px-3 py-2.5 text-sm text-rose">
               {error}
             </p>
           )}
@@ -534,10 +534,10 @@ function Apartado({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-2xl border border-line bg-surface p-5 shadow-card">
+    <section className="rounded-md border border-line bg-surface p-5">
       <div className="mb-3 flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
-          <label htmlFor={htmlFor} className="block text-[15px] font-extrabold text-ink">
+          <label htmlFor={htmlFor} className="block text-[15px] font-bold text-ink">
             {titulo}
           </label>
           {ayuda && <p className="mt-0.5 text-[12.5px] text-ink-3">{ayuda}</p>}

@@ -53,19 +53,19 @@ export function SolicitudesEquipo({ esperando, atendidas }: { esperando: Solicit
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Solicitudes al equipo</h1>
+        <h1 className="font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.01em] text-ink sm:text-[32px]">Solicitudes al equipo</h1>
         <p className="text-sm text-ink-2">
           Empresas que pidieron ayuda a nuestro equipo. Escríbeles por correo y marca la solicitud como contactada.
         </p>
       </div>
 
       {error && (
-        <p role="alert" className="mb-5 flex items-start gap-2 rounded-lg bg-rose/10 px-4 py-3 text-sm text-rose-ink">
+        <p role="alert" className="mb-5 flex items-start gap-2 rounded-[4px] bg-rose-soft px-4 py-3 text-sm text-rose">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {error}
         </p>
       )}
       {aviso && !error && (
-        <p role="status" className="mb-5 flex items-start gap-2 rounded-lg bg-pri-soft px-4 py-3 text-sm text-pri-text">
+        <p role="status" className="mb-5 flex items-start gap-2 rounded-[4px] bg-pri-soft px-4 py-3 text-sm text-pri-text">
           <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /> {aviso}
         </p>
       )}
@@ -105,7 +105,7 @@ export function SolicitudesEquipo({ esperando, atendidas }: { esperando: Solicit
       ) : (
         <div className="space-y-4">
           {lista.map((s) => (
-            <div key={s.id} className="rounded-2xl border border-line bg-surface p-5">
+            <div key={s.id} className="rounded-md border border-line bg-surface p-5">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <Badge className={TIPO_AYUDA_ESTILO[s.tipoAyuda]}>
                   {s.tipoAyuda === "convocatoria_especifica" ? <Target className="h-3 w-3" /> : <Compass className="h-3 w-3" />}
@@ -136,7 +136,7 @@ export function SolicitudesEquipo({ esperando, atendidas }: { esperando: Solicit
               {s.convocatoriaNombre && <p className="mt-1 text-xs text-ink-3">Convocatoria: {s.convocatoriaNombre}</p>}
 
               {s.proyecto && (
-                <details className="mt-3 rounded-xl border border-line-2 bg-surface-2/60 px-4 py-3">
+                <details className="mt-3 rounded-md border border-line-2 bg-surface-2/60 px-4 py-3">
                   <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wide text-ink-3">
                     Proyecto: {s.proyecto.nombre}
                   </summary>
@@ -185,7 +185,7 @@ export function SolicitudesEquipo({ esperando, atendidas }: { esperando: Solicit
                   <CheckCircle2 className="h-3.5 w-3.5" /> Marcar como contactada
                 </Button>
               ) : (
-                <div className="mt-4 rounded-lg bg-pri-soft/60 px-3 py-2 text-xs text-pri-text">
+                <div className="mt-4 rounded-[4px] bg-pri-soft/60 px-3 py-2 text-xs text-pri-text">
                   Contactada {s.atendidoAt ? `el ${fechaHoraColombia(s.atendidoAt)}` : ""}
                   {s.atendidoPorNombre ? ` por ${s.atendidoPorNombre}` : ""}
                   {s.notaInterna && <p className="mt-1 whitespace-pre-line text-pri-text">{s.notaInterna}</p>}
@@ -197,8 +197,8 @@ export function SolicitudesEquipo({ esperando, atendidas }: { esperando: Solicit
       )}
 
       {aMarcar && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div role="dialog" aria-modal="true" aria-labelledby="titulo-marcar" className="w-full max-w-md rounded-2xl border border-line bg-surface p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
+          <div role="dialog" aria-modal="true" aria-labelledby="titulo-marcar" className="w-full max-w-md rounded-md border border-line bg-surface p-6 shadow-card">
             <div className="mb-3 flex items-center justify-between">
               <h3 id="titulo-marcar" className="font-display text-lg font-semibold text-ink">
                 Marcar como contactada
@@ -221,7 +221,7 @@ export function SolicitudesEquipo({ esperando, atendidas }: { esperando: Solicit
               rows={3}
               maxLength={2000}
               placeholder="Qué se habló, a quién se le asignó, próximos pasos… Solo la ven los administradores."
-              className="w-full resize-none rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
+              className="w-full resize-none rounded-[4px] border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
             />
             <div className="mt-5 flex justify-end gap-3">
               <Button variant="ghost" onClick={() => setAMarcar(null)}>

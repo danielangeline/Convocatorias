@@ -69,7 +69,7 @@ export default async function LandingPage() {
             <span className="inline-flex items-center gap-1.5 rounded-full bg-amber/10 px-3 py-1 text-xs font-semibold text-amber-ink ring-1 ring-amber/30">
               Hecho para empresas y entidades colombianas
             </span>
-            <h1 className="mt-5 font-display text-4xl font-extrabold leading-[1.08] tracking-tight text-ink sm:text-5xl">
+            <h1 className="mt-5 font-display text-4xl font-bold leading-[1.08] tracking-tight text-ink sm:text-5xl">
               La financiación de tu empresa, en un solo expediente.
             </h1>
             <p className="mt-5 max-w-xl text-lg text-ink-2">
@@ -104,14 +104,14 @@ export default async function LandingPage() {
             {PUERTAS.map(({ puerta, titulo, texto, icono: Icono, tono }) => (
               <div
                 key={puerta}
-                className="rounded-2xl border border-line bg-surface p-5 shadow-card"
+                className="rounded-md border border-line bg-surface p-5"
               >
                 <div className="flex items-center gap-3">
                   <span
                     className={
                       tono === "primary"
-                        ? "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-pri text-on-pri"
-                        : "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-pri text-white"
+                        ? "flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-pri text-on-pri"
+                        : "flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-pri text-white"
                     }
                   >
                     <Icono className="h-5 w-5" strokeWidth={1.75} />
@@ -165,8 +165,8 @@ export default async function LandingPage() {
                 "Consulta el estado de cada postulación y la línea de tiempo completa, desde preparación hasta el resultado final.",
             },
           ].map(({ icon: Icon, titulo, texto }) => (
-            <div key={titulo} className="rounded-2xl border border-line-2 p-6">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-pri text-on-pri">
+            <div key={titulo} className="rounded-md border border-line-2 p-6">
+              <div className="flex h-11 w-11 items-center justify-center rounded-md bg-pri text-on-pri">
                 <Icon className="h-5 w-5" strokeWidth={1.75} />
               </div>
               <h3 className="mt-4 font-display text-base font-semibold text-ink">{titulo}</h3>
@@ -178,7 +178,7 @@ export default async function LandingPage() {
 
       <section className="border-t border-line-2 bg-pri-soft">
         <div className="mx-auto flex max-w-7xl flex-col items-center gap-5 px-4 py-16 text-center sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-extrabold tracking-[-0.025em] text-ink sm:text-3xl">
+          <h2 className="text-2xl font-bold tracking-[-0.025em] text-ink sm:text-3xl">
             Tu próxima fuente de financiación puede estar a un clic
           </h2>
           <p className="max-w-xl text-ink-2">

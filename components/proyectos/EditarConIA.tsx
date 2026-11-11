@@ -74,7 +74,7 @@ export function EditarConIA({
   }
 
   return (
-    <div className="mt-3 rounded-xl border border-pri/30 bg-pri-soft p-4">
+    <div className="mt-3 rounded-md border border-pri/30 bg-pri-soft p-4">
       <div className="flex items-center justify-between gap-2">
         <p className="flex items-center gap-1.5 text-[13px] font-bold text-pri-text">
           <Sparkles className="h-4 w-4" /> ¿Qué quieres cambiar?
@@ -84,7 +84,7 @@ export function EditarConIA({
           onClick={cerrar}
           disabled={ocupado}
           aria-label="Cerrar la edición con IA"
-          className="grid h-8 w-8 cursor-pointer place-items-center rounded-lg text-ink-3 hover:bg-surface hover:text-ink disabled:opacity-40"
+          className="grid h-8 w-8 cursor-pointer place-items-center rounded-[4px] text-ink-3 hover:bg-surface hover:text-ink disabled:opacity-40"
         >
           <X className="h-4 w-4" />
         </button>
@@ -92,7 +92,7 @@ export function EditarConIA({
 
       {!propuesta ? (
         <>
-          <div className="mt-2 rounded-xl border border-line bg-surface focus-within:border-pri">
+          <div className="mt-2 rounded-md border border-line bg-surface focus-within:border-pri">
             <textarea
               value={parcial ? `${instruccion ? `${instruccion.trimEnd()} ` : ""}${parcial}` : instruccion}
               onChange={(e) => setInstruccion(e.target.value.slice(0, 2000))}
@@ -113,14 +113,14 @@ export function EditarConIA({
             </div>
           </div>
           {sinCredito && (
-            <p className="mt-2 rounded-lg bg-amber/10 px-3 py-2 text-[13px] text-amber-ink">
+            <p className="mt-2 rounded-[4px] bg-amber/10 px-3 py-2 text-[13px] text-amber-ink">
               {vigente
                 ? `Editar con IA cuesta ${textoCreditos(costo)} y te quedan ${textoCreditos(disponibles)}. Puedes editarlo a mano.`
                 : "Necesitas una suscripción vigente para editar con IA. Puedes editarlo a mano."}
             </p>
           )}
           {error && (
-            <p role="alert" className="mt-2 rounded-lg bg-rose/10 px-3 py-2 text-[13px] text-rose-ink">
+            <p role="alert" className="mt-2 rounded-[4px] bg-rose-soft px-3 py-2 text-[13px] text-rose">
               {error}
             </p>
           )}
@@ -141,7 +141,7 @@ export function EditarConIA({
       ) : (
         <>
           <p className="mt-2 text-xs font-bold uppercase tracking-[.07em] text-ink-3">Propuesta de la IA</p>
-          <div className="mt-1.5 max-h-[50vh] min-h-[96px] resize-y overflow-auto whitespace-pre-line rounded-xl border border-line bg-surface p-3 text-[14px] leading-relaxed text-ink">
+          <div className="mt-1.5 max-h-[50vh] min-h-[96px] resize-y overflow-auto whitespace-pre-line rounded-md border border-line bg-surface p-3 text-[14px] leading-relaxed text-ink">
             {propuesta.texto}
           </div>
           {propuesta.faltantes.length > 0 && (

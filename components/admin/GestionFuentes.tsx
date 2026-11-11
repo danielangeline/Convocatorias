@@ -15,7 +15,7 @@ type Formulario = Omit<FuenteAdmin, "id">;
 const vacio: Formulario = { nombre: "", tipoEntidad: "", url: "", notas: "", activa: true };
 
 const claseCampo =
-  "w-full rounded-lg border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri";
+  "w-full rounded-[4px] border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri";
 const claseEtiqueta = "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3";
 
 /**
@@ -74,7 +74,7 @@ export function GestionFuentes({ fuentes }: { fuentes: FuenteAdmin[] }) {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Fuentes</h1>
+          <h1 className="font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.01em] text-ink sm:text-[32px]">Fuentes</h1>
           <p className="text-sm text-ink-2">
             Entidades desde donde el equipo administrador carga convocatorias manualmente.
           </p>
@@ -102,7 +102,7 @@ export function GestionFuentes({ fuentes }: { fuentes: FuenteAdmin[] }) {
           }
         />
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-line bg-surface">
+        <div className="overflow-hidden rounded-md border border-line bg-surface">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-line bg-surface-2 text-left text-xs font-semibold uppercase tracking-wide text-ink-3">
@@ -171,13 +171,13 @@ export function GestionFuentes({ fuentes }: { fuentes: FuenteAdmin[] }) {
       )}
 
       {modalAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
           <form
             onSubmit={guardar}
             role="dialog"
             aria-modal="true"
             aria-labelledby="titulo-fuente"
-            className="w-full max-w-md rounded-2xl border border-line bg-surface p-6 shadow-xl"
+            className="w-full max-w-md rounded-md border border-line bg-surface p-6 shadow-card"
           >
             <div className="mb-4 flex items-center justify-between">
               <h3 id="titulo-fuente" className="font-display text-lg font-semibold text-ink">

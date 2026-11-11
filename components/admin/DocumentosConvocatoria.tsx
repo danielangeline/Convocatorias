@@ -149,9 +149,9 @@ export function DocumentosConvocatoria({
           {documentos.map((doc) => (
             <li
               key={doc.id}
-              className="flex flex-wrap items-center gap-2 rounded-lg border border-line-2 px-3 py-2.5"
+              className="flex flex-wrap items-center gap-2 rounded-[4px] border border-line-2 px-3 py-2.5"
             >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-pri-soft text-pri-text">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[4px] bg-pri-soft text-pri-text">
                 <FileText className="h-4 w-4" />
               </span>
               <div className="min-w-40 flex-1">
@@ -163,7 +163,7 @@ export function DocumentosConvocatoria({
                 onChange={(e) => cambiarTipo(doc, e.target.value as TipoDocumento)}
                 disabled={ocupado === doc.id}
                 aria-label={`Tipo de ${doc.nombre}`}
-                className="rounded-lg border border-line px-2 py-1.5 text-sm outline-none focus:border-pri bg-surface text-ink"
+                className="rounded-[4px] border border-line px-2 py-1.5 text-sm outline-none focus:border-pri bg-surface text-ink"
               >
                 {TIPOS.map((t) => (
                   <option key={t} value={t}>
@@ -195,7 +195,7 @@ export function DocumentosConvocatoria({
                   size="sm"
                   onClick={() => quitar(doc)}
                   disabled={ocupado === doc.id}
-                  className="text-rose-ink hover:bg-rose/10"
+                  className="text-rose hover:bg-rose-soft"
                   aria-label={`Quitar ${doc.nombre}`}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
@@ -206,7 +206,7 @@ export function DocumentosConvocatoria({
         </ul>
       )}
 
-      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-dashed border-line px-3 py-3">
+      <div className="flex flex-wrap items-end gap-3 rounded-[4px] border border-dashed border-line px-3 py-3">
         <label className="block">
           <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3">
             Tipo de documento
@@ -214,7 +214,7 @@ export function DocumentosConvocatoria({
           <select
             value={tipo}
             onChange={(e) => setTipo(e.target.value as TipoDocumento)}
-            className="rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
+            className="rounded-[4px] border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
           >
             {TIPOS.map((t) => (
               <option key={t} value={t}>

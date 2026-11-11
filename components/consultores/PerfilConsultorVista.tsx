@@ -209,7 +209,7 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
         <ArrowLeft className="h-4 w-4" /> Volver al directorio
       </Link>
 
-      <div className="rounded-2xl border border-line p-6 sm:p-8 bg-surface shadow-card">
+      <div className="rounded-md border border-line p-6 sm:p-8 bg-surface">
         <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center">
           {consultor.fotoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element -- URL firmada de Storage
@@ -220,7 +220,7 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
             </span>
           )}
           <div className="flex-1">
-            <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">{consultor.nombreProfesional}</h1>
+            <h1 className="font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.01em] text-ink sm:text-[32px]">{consultor.nombreProfesional}</h1>
             <div className="mt-1.5">
               <RatingStars valor={consultor.ratingPromedio} totalResenas={calificaciones.length} size="md" />
             </div>
@@ -286,14 +286,14 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                 <button
                   type="button"
                   onClick={verHojaDeVida}
-                  className="flex items-center gap-1.5 rounded-lg bg-surface-2 px-3 py-1.5 text-xs font-medium text-pri-text ring-1 ring-inset ring-line hover:bg-pri-soft"
+                  className="flex items-center gap-1.5 rounded-[4px] bg-surface-2 px-3 py-1.5 text-xs font-medium text-pri-text ring-1 ring-inset ring-line hover:bg-pri-soft"
                 >
                   <FileText className="h-3.5 w-3.5" /> Ver hoja de vida
                 </button>
               )}
             </>
           ) : (
-            <span className="flex items-center gap-1.5 rounded-lg bg-surface-2 px-3 py-1.5 text-xs text-ink-3 ring-1 ring-inset ring-line">
+            <span className="flex items-center gap-1.5 rounded-[4px] bg-surface-2 px-3 py-1.5 text-xs text-ink-3 ring-1 ring-inset ring-line">
               <Lock className="h-3.5 w-3.5" />
               Sitio web, redes y hoja de vida se muestran cuando el consultor acepte tu solicitud
             </span>
@@ -312,7 +312,7 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
           ) : (
             <div className="mt-3 grid gap-3 sm:grid-cols-2">
               {consultor.portafolio.map((item, i) => (
-                <div key={i} className="rounded-xl border border-line-2 p-4">
+                <div key={i} className="rounded-md border border-line-2 p-4">
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-semibold text-ink">{item.nombreProyecto}</p>
                     {item.anio && <span className="font-tabular text-xs text-ink-3">{item.anio}</span>}
@@ -339,7 +339,7 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
           ) : (
             <ul className="mt-3 space-y-3">
               {calificaciones.map((c, i) => (
-                <li key={i} className="rounded-xl border border-line-2 p-4">
+                <li key={i} className="rounded-md border border-line-2 p-4">
                   <div className="flex items-center justify-between">
                     <RatingStars valor={c.estrellas} />
                     <span className="text-xs text-ink-3">{fechaColombia(c.fecha)}</span>
@@ -353,8 +353,8 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
       </div>
 
       {modalAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div role="dialog" aria-modal="true" aria-labelledby="titulo-solicitar" className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-line bg-surface p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
+          <div role="dialog" aria-modal="true" aria-labelledby="titulo-solicitar" className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-md border border-line bg-surface p-6 shadow-card">
             <div className="mb-4 flex items-center justify-between">
               <h3 id="titulo-solicitar" className="font-display text-lg font-semibold text-ink">
                 {confirmacion
@@ -385,7 +385,7 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
               <div className="space-y-4">
                 <p className="text-sm text-ink-2">¿Para qué proyecto o postulación necesitas ayuda?</p>
 
-                <div className="flex gap-2 rounded-lg bg-surface-2 p-1">
+                <div className="flex gap-2 rounded-[4px] bg-surface-2 p-1">
                   <button
                     onClick={() => setOrigen("proyecto")}
                     className={cn(
@@ -408,7 +408,7 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
 
                 {origen === "proyecto" ? (
                   proyectos.length === 0 ? (
-                    <p className="rounded-lg bg-surface-2 px-3 py-2 text-xs text-ink-3">
+                    <p className="rounded-[4px] bg-surface-2 px-3 py-2 text-xs text-ink-3">
                       Aún no tienes proyectos registrados.{" "}
                       <Link href="/proyectos" className="font-semibold text-pri-text hover:underline">
                         Crea uno
@@ -424,7 +424,7 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                         <select id="campo-solicitar-1"
                           value={proyectoIdSel}
                           onChange={(e) => setProyectoIdSel(e.target.value)}
-                          className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
+                          className="w-full rounded-[4px] border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
                         >
                           <option value="">Selecciona un proyecto...</option>
                           {proyectos.map((p) => (
@@ -439,13 +439,13 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                         <button
                           onClick={() => setTipoAyuda("convocatoria_especifica")}
                           className={cn(
-                            "flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-colors",
+                            "flex w-full items-center gap-4 rounded-md border p-4 text-left transition-colors",
                             tipoAyuda === "convocatoria_especifica"
                               ? "border-pri bg-pri-soft"
                               : "border-line hover:border-pri/30"
                           )}
                         >
-                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-pri-soft text-pri-text">
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] bg-pri-soft text-pri-text">
                             <Target className="h-5 w-5" />
                           </span>
                           <span>
@@ -460,13 +460,13 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                         <button
                           onClick={() => setTipoAyuda("buscar_convocatoria")}
                           className={cn(
-                            "flex w-full items-center gap-4 rounded-xl border p-4 text-left transition-colors",
+                            "flex w-full items-center gap-4 rounded-md border p-4 text-left transition-colors",
                             tipoAyuda === "buscar_convocatoria"
                               ? "border-pri bg-pri-soft"
                               : "border-line hover:border-pri/30"
                           )}
                         >
-                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-pri-soft text-pri-text">
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[4px] bg-pri-soft text-pri-text">
                             <Compass className="h-5 w-5" />
                           </span>
                           <span>
@@ -499,7 +499,7 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                     </>
                   )
                 ) : postulacionesVinculadas.length === 0 ? (
-                  <p className="rounded-lg bg-surface-2 px-3 py-2 text-xs text-ink-3">
+                  <p className="rounded-[4px] bg-surface-2 px-3 py-2 text-xs text-ink-3">
                     No tienes postulaciones con un proyecto vinculado. Usa la pestaña &ldquo;Desde un
                     proyecto&rdquo; o vincula un proyecto a una postulación primero.
                   </p>
@@ -511,7 +511,7 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                     <select id="campo-solicitar-2"
                       value={postulacionIdSel}
                       onChange={(e) => setPostulacionIdSel(e.target.value)}
-                      className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
+                      className="w-full rounded-[4px] border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
                     >
                       <option value="">Selecciona una postulación...</option>
                       {postulacionesVinculadas.map((p) => {
@@ -525,7 +525,7 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                         );
                       })}
                     </select>
-                    <p className="mt-2 flex items-start gap-1.5 rounded-lg bg-surface-2 px-3 py-2 text-xs text-ink-3">
+                    <p className="mt-2 flex items-start gap-1.5 rounded-[4px] bg-surface-2 px-3 py-2 text-xs text-ink-3">
                       <FileStack className="mt-0.5 h-3.5 w-3.5 shrink-0" /> El consultor verá el proyecto y la
                       convocatoria de esta postulación, con su checklist.
                     </p>
@@ -551,7 +551,7 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                     value={titulo}
                     onChange={(e) => setTitulo(e.target.value)}
                     placeholder="Ej. Estructuración financiera de la postulación"
-                    className="w-full rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
+                    className="w-full rounded-[4px] border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
                   />
                 </div>
                 <div>
@@ -563,10 +563,10 @@ export function PerfilConsultorVista({ consultor }: { consultor: PerfilConsultor
                     onChange={(e) => setDescripcion(e.target.value)}
                     rows={4}
                     placeholder="Cuéntanos qué necesitas resolver"
-                    className="w-full resize-none rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
+                    className="w-full resize-none rounded-[4px] border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
                   />
                 </div>
-                <p className="flex items-start gap-1.5 rounded-lg bg-surface-2 px-3 py-2 text-xs text-ink-3">
+                <p className="flex items-start gap-1.5 rounded-[4px] bg-surface-2 px-3 py-2 text-xs text-ink-3">
                   <FolderKanban className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                   {origen === "postulacion" || tipoAyuda === "convocatoria_especifica"
                     ? "El contenido del proyecto y los datos de la convocatoria elegida se adjuntan automáticamente — no necesitas repetirlos aquí."

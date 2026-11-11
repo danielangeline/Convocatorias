@@ -38,7 +38,7 @@ export function CompletitudDetalle({
   const tono = toneCompletitud(porcentaje);
 
   return (
-    <div className="rounded-xl border border-line-2 p-4">
+    <div className="rounded-md border border-line-2 p-4">
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-ink">Completitud del contenido</p>
         <span className="font-tabular text-sm font-bold text-ink">

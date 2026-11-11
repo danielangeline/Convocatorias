@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { Aviso } from "@/components/identidad/Campo";
 import type { TasaAdmin } from "@/lib/admin/tasas";
 
-const claseCampo = "w-full rounded-lg border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri";
+const claseCampo = "w-full rounded-[4px] border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri";
 const MONEDAS_FRECUENTES = ["USD", "EUR", "GBP", "CHF", "CAD"];
 const pesos = (v: number) => new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 4 }).format(v);
 
@@ -56,7 +56,7 @@ export function GestionTasas({ tasas, monedas }: { tasas: TasaAdmin[]; monedas: 
       <div className="mb-6 flex items-center gap-2">
         <ArrowLeftRight className="h-5 w-5 text-pri-text" />
         <div>
-          <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Tasas de referencia</h1>
+          <h1 className="font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.01em] text-ink sm:text-[32px]">Tasas de referencia</h1>
           <p className="text-sm text-ink-2">
             Cuántos pesos vale una unidad de cada moneda. Solo sirven para comparar en pesos las convocatorias con montos en otra moneda; el monto
             guardado nunca cambia.
@@ -76,7 +76,7 @@ export function GestionTasas({ tasas, monedas }: { tasas: TasaAdmin[]; monedas: 
       )}
 
       <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
-        <div className="rounded-2xl border border-line bg-surface p-5">
+        <div className="rounded-md border border-line bg-surface p-5">
           <h2 className="mb-3 font-display text-sm font-semibold text-ink">Tasas vigentes</h2>
           {tasas.length === 0 ? (
             <p className="text-sm text-ink-3">
@@ -109,7 +109,7 @@ export function GestionTasas({ tasas, monedas }: { tasas: TasaAdmin[]; monedas: 
           )}
         </div>
 
-        <form onSubmit={guardar} className="space-y-3 rounded-2xl border border-line bg-surface p-5">
+        <form onSubmit={guardar} className="space-y-3 rounded-md border border-line bg-surface p-5">
           <h2 className="font-display text-sm font-semibold text-ink">Fijar o cambiar una tasa</h2>
           <label className="block text-sm">
             <span className="mb-1 block text-xs font-semibold text-ink-2">Moneda</span>

@@ -72,7 +72,7 @@ export function GestionCategorias({ categorias }: { categorias: CategoriaAdmin[]
       <div className="mb-6 flex items-center gap-2">
         <Tags className="h-5 w-5 text-pri-text" />
         <div>
-          <h1 className="text-[26px] font-extrabold tracking-[-0.025em] text-ink">Categorías</h1>
+          <h1 className="font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.01em] text-ink sm:text-[32px]">Categorías</h1>
           <p className="text-sm text-ink-2">
             Catálogo usado para clasificar convocatorias y proyectos, agrupado por tipo.
           </p>
@@ -90,7 +90,7 @@ export function GestionCategorias({ categorias }: { categorias: CategoriaAdmin[]
           const items = categorias.filter((c) => c.tipo === tipo);
           const activas = items.filter((c) => c.activa).length;
           return (
-            <div key={tipo} className="rounded-2xl border border-line bg-surface p-5">
+            <div key={tipo} className="rounded-md border border-line bg-surface p-5">
               <h2 className="font-display text-sm font-semibold text-ink">{TIPO_CATEGORIA_LABEL[tipo]}</h2>
               <p className="mb-4 text-xs text-ink-3">
                 {activas} activas{items.length > activas ? ` · ${items.length - activas} inactivas` : ""}
@@ -101,7 +101,7 @@ export function GestionCategorias({ categorias }: { categorias: CategoriaAdmin[]
                   <li
                     key={c.id}
                     className={cn(
-                      "flex items-center justify-between gap-2 rounded-lg border border-line-2 px-3 py-2",
+                      "flex items-center justify-between gap-2 rounded-[4px] border border-line-2 px-3 py-2",
                       !c.activa && "bg-surface-2 opacity-70"
                     )}
                   >
@@ -124,7 +124,7 @@ export function GestionCategorias({ categorias }: { categorias: CategoriaAdmin[]
                         <button
                           onClick={() => borrar(c)}
                           disabled={ocupado === c.id}
-                          className="text-ink-3 hover:text-rose-ink disabled:opacity-50"
+                          className="text-ink-3 hover:text-rose disabled:opacity-50"
                           aria-label={`Borrar ${c.nombre}`}
                           title="Borrar"
                         >
@@ -156,7 +156,7 @@ export function GestionCategorias({ categorias }: { categorias: CategoriaAdmin[]
                   placeholder="Nueva categoría..."
                   aria-label={`Nueva categoría de ${TIPO_CATEGORIA_LABEL[tipo]}`}
                   maxLength={100}
-                  className="flex-1 rounded-lg border border-line px-3 py-1.5 text-sm outline-none focus:border-pri bg-surface text-ink"
+                  className="flex-1 rounded-[4px] border border-line px-3 py-1.5 text-sm outline-none focus:border-pri bg-surface text-ink"
                 />
                 <Button type="submit" variant="secondary" size="sm" disabled={ocupado === tipo} aria-label="Agregar">
                   <Plus className="h-3.5 w-3.5" />

@@ -98,10 +98,10 @@ export function FichaProyecto({
 
       {creadoConIa && <AvisoCreadoConIA proyectoId={proyecto.id} />}
 
-      <div className="rounded-2xl border border-line p-6 sm:p-8 bg-surface shadow-card">
+      <div className="rounded-md border border-line p-6 sm:p-8 bg-surface">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="flex items-start gap-1 text-[26px] font-extrabold tracking-[-0.025em] text-ink">
+            <h1 className="flex items-start gap-1 font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.01em] text-ink sm:text-[32px]">
               {proyecto.nombre}
               <BotonEditar etiqueta="Editar el nombre" onClick={() => abrirEdicion("nombre")} />
             </h1>
@@ -127,7 +127,7 @@ export function FichaProyecto({
           <CompletitudDetalle proyecto={proyecto} onCompletar={(clave) => abrirEdicion(clave)} />
         </div>
 
-        <div className="mt-6 grid gap-4 rounded-xl bg-pri-soft/60 p-5 sm:grid-cols-2">
+        <div className="mt-6 grid gap-4 rounded-md bg-pri-soft/60 p-5 sm:grid-cols-2">
           <div>
             <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-ink-3">
               <Wallet className="h-3.5 w-3.5" /> Monto buscado
@@ -167,7 +167,7 @@ export function FichaProyecto({
         </div>
 
         <section className="mt-8" aria-labelledby="contenido-proyecto">
-          <h2 id="contenido-proyecto" className="text-[15px] font-extrabold text-ink">
+          <h2 id="contenido-proyecto" className="text-[15px] font-bold text-ink">
             Contenido del proyecto
           </h2>
           <p className="mt-1 text-[13px] text-ink-3">
@@ -181,8 +181,8 @@ export function FichaProyecto({
                   key={c.clave}
                   className={
                     completo
-                      ? "rounded-xl border border-line bg-surface p-4"
-                      : "rounded-xl border border-dashed border-amber/50 bg-amber/5 p-4"
+                      ? "rounded-md border border-line bg-surface p-4"
+                      : "rounded-md border border-dashed border-amber/50 bg-amber/5 p-4"
                   }
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -215,7 +215,7 @@ export function FichaProyecto({
       </div>
 
       {encargos.length > 0 && (
-        <div className="mt-6 rounded-2xl border border-line p-6 bg-surface shadow-card">
+        <div className="mt-6 rounded-md border border-line p-6 bg-surface">
           <h2 className="flex items-center gap-2 font-display text-base font-semibold text-ink">
             <Users className="h-4 w-4 text-pri-text" /> Consultores en este proyecto
           </h2>
@@ -247,8 +247,8 @@ export function FichaProyecto({
       />
 
       {modalGenerarAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div role="dialog" aria-modal="true" aria-labelledby="titulo-generar" className="max-h-[80vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-line bg-surface p-6 shadow-xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
+          <div role="dialog" aria-modal="true" aria-labelledby="titulo-generar" className="max-h-[80vh] w-full max-w-lg overflow-y-auto rounded-md border border-line bg-surface p-6 shadow-card">
             <div className="mb-4 flex items-center justify-between">
               <h3 id="titulo-generar" className="font-display text-lg font-semibold text-ink">Elige una convocatoria vigente</h3>
               <button onClick={() => setModalGenerarAbierto(false)} className="text-ink-3 hover:text-ink">
@@ -263,9 +263,9 @@ export function FichaProyecto({
                   <li key={c.id}>
                     <button
                       onClick={() => elegirConvocatoriaParaGenerar(c.id)}
-                      className="flex w-full items-center gap-3 rounded-lg border border-line p-3 text-left transition-colors hover:border-pri/30 hover:bg-pri-soft"
+                      className="flex w-full items-center gap-3 rounded-[4px] border border-line p-3 text-left transition-colors hover:border-pri/30 hover:bg-pri-soft"
                     >
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-pri-soft text-pri-text">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[4px] bg-pri-soft text-pri-text">
                         <FileStack className="h-4 w-4" />
                       </span>
                       <span>
@@ -291,7 +291,7 @@ function BotonEditar({ etiqueta, onClick }: { etiqueta: string; onClick: () => v
       onClick={onClick}
       aria-label={etiqueta}
       title={etiqueta}
-      className="ml-auto grid h-9 w-9 flex-none cursor-pointer place-items-center rounded-lg text-ink-3 normal-case tracking-normal hover:bg-surface-2 hover:text-ink"
+      className="ml-auto grid h-9 w-9 flex-none cursor-pointer place-items-center rounded-[4px] text-ink-3 normal-case tracking-normal hover:bg-surface-2 hover:text-ink"
     >
       <Pencil className="h-3.5 w-3.5" />
     </button>

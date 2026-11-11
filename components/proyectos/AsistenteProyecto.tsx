@@ -107,12 +107,12 @@ export function AsistenteProyecto({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Nuevo proyecto"
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-line bg-surface p-6 shadow-xl"
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-md border border-line bg-surface p-6 shadow-card"
       >
         <div className="mb-1 flex items-center justify-between">
           <h3 className="font-display text-lg font-semibold text-ink">Nuevo proyecto</h3>
@@ -128,7 +128,7 @@ export function AsistenteProyecto({
         <label htmlFor="explicacion-proyecto" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3">
           ¿De qué trata tu proyecto?
         </label>
-        <div className="rounded-xl border border-line focus-within:border-pri">
+        <div className="rounded-md border border-line focus-within:border-pri">
           <textarea
             id="explicacion-proyecto"
             value={parcial ? `${explicacion ? `${explicacion.trimEnd()} ` : ""}${parcial}` : explicacion}
@@ -154,7 +154,7 @@ export function AsistenteProyecto({
         </p>
 
         {sinCredito && (
-          <p className="mt-3 rounded-lg bg-amber/10 px-3 py-2.5 text-sm text-amber-ink">
+          <p className="mt-3 rounded-[4px] bg-amber/10 px-3 py-2.5 text-sm text-amber-ink">
             {vigente
               ? `Crear con IA cuesta ${textoCreditos(costo)} y te quedan ${textoCreditos(disponibles)}. Puedes llenar el formulario a mano sin costo.`
               : "Necesitas una suscripción vigente para crear el proyecto con IA. Puedes llenar el formulario a mano."}
@@ -162,7 +162,7 @@ export function AsistenteProyecto({
         )}
 
         {error && (
-          <p role="alert" className="mt-3 rounded-lg bg-rose/10 px-3 py-2.5 text-sm text-rose-ink">
+          <p role="alert" className="mt-3 rounded-[4px] bg-rose-soft px-3 py-2.5 text-sm text-rose">
             {error}
           </p>
         )}

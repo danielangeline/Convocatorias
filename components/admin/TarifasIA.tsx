@@ -40,7 +40,7 @@ export function TarifasIA({ tarifas }: { tarifas: Tarifas }) {
   };
 
   return (
-    <div className="mt-10 rounded-2xl border border-pri/30 bg-pri-soft p-4 sm:p-6">
+    <div className="mt-10 rounded-md border border-pri/30 bg-pri-soft p-4 sm:p-6">
       <h2 className="flex items-center gap-2 font-display text-base font-semibold text-ink">
         <Sparkles className="h-4 w-4 text-pri-text" /> Cuánto cuesta cada uso de la IA
       </h2>
@@ -62,7 +62,7 @@ export function TarifasIA({ tarifas }: { tarifas: Tarifas }) {
                 inputMode="numeric"
                 value={valores[a.clave]}
                 onChange={(e) => setValores({ ...valores, [a.clave]: e.target.value })}
-                className="w-40 rounded-lg border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
+                className="w-40 rounded-[4px] border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
               />
             </label>
             <Button
