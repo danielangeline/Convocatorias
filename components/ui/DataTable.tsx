@@ -31,7 +31,40 @@ export function DataTable<T>({
   const plantilla = columnas.map((c) => c.ancho ?? "minmax(0,1fr)").join(" ");
   const minimo = Math.max(560, columnas.length * 130);
   return (
-    <div className="overflow-hidden rounded-md border border-line bg-surface">
+    <>
+      {/* Móvil: una tarjeta por fila (primera columna como título, el resto «etiqueta: valor»). */}
+      <div role="list" aria-label={etiqueta} className="flex flex-col gap-3 md:hidden">
+        {filas.length === 0 && vacio}
+        {filas.map((f) => (
+          <div
+            key={clave(f)}
+            role="listitem"
+            tabIndex={alHacerClic ? 0 : undefined}
+            onClick={alHacerClic ? () => alHacerClic(f) : undefined}
+            onKeyDown={alHacerClic ? (e) => (e.key === "Enter" ? alHacerClic(f) : undefined) : undefined}
+            className={cn("rounded-md border border-line bg-surface p-4", alHacerClic && "cursor-pointer hover:border-pri")}
+          >
+            {columnas.map((c, i) =>
+              i === 0 ? (
+                <div key={c.clave} className="mb-1.5 font-display text-[17px] font-semibold leading-snug [&_.truncate]:overflow-visible [&_.truncate]:whitespace-normal">
+                  {c.celda(f)}
+                </div>
+              ) : c.titulo ? (
+                <div key={c.clave} className="flex items-center justify-between gap-3 py-1 text-[13px]">
+                  <span className="text-xs font-semibold text-ink-3">{c.titulo}</span>
+                  <span className="min-w-0 text-right">{c.celda(f)}</span>
+                </div>
+              ) : (
+                <div key={c.clave} className="mt-2 flex justify-end">
+                  {c.celda(f)}
+                </div>
+              )
+            )}
+          </div>
+        ))}
+      </div>
+
+    <div className="hidden overflow-hidden rounded-md border border-line bg-surface md:block">
       <div className="overflow-x-auto">
         <div role="table" aria-label={etiqueta} style={{ minWidth: minimo }}>
           <div
@@ -79,5 +112,6 @@ export function DataTable<T>({
         </div>
       </div>
     </div>
+    </>
   );
 }

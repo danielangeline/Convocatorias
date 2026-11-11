@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { ClipboardList, Clock, CreditCard, FilePen, Files } from "lucide-react";
 import type { DatosTablero } from "@/lib/admin/tablero";
 import { Card, CardHeader } from "@/components/ui/Card";
-import { KpiCard, KpiGrid } from "@/components/viz/KpiCard";
+import { KpiCelda, KpiFranja } from "@/components/viz/KpiCard";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { WeeklyBars } from "@/components/viz/WeeklyBars";
 import { SegmentedBar } from "@/components/viz/SegmentedBar";
 import { MiniStatGrid } from "@/components/viz/MiniStatGrid";
@@ -27,47 +27,55 @@ export function DashboardPanel({ datos, solicitudesEquipo }: { datos: DatosTable
   const medio = datos.semanas[Math.floor(datos.semanas.length / 2)];
 
   return (
-    <div className="flex flex-col gap-5">
-      <h1 className="sr-only">Panel general</h1>
-      {solicitudesEquipo > 0 && (
-        <Link
-          href="/admin/encargos"
-          className={`flex items-center gap-2 self-start rounded-md px-3.5 py-2 text-[13px] font-bold ${TONO_CLASE.rose}`}
-        >
-          <ClipboardList className="h-4 w-4" />
-          {solicitudesEquipo} {solicitudesEquipo === 1 ? "solicitud espera" : "solicitudes esperan"} al equipo
-        </Link>
-      )}
+    <div className="flex flex-col gap-6">
+      <PageHeader titulo="Panel general" descripcion="Lo que necesita tu decisión y cómo va la plataforma." />
 
-      <KpiGrid>
-        <KpiCard
+      {/* Requiere tu atención: lo accionable, primero. */}
+      <section aria-labelledby="atencion">
+        <h2 id="atencion" className="font-display text-xl font-semibold text-ink">
+          Requiere tu atención
+        </h2>
+        <div className="mt-3 grid grid-cols-[repeat(auto-fit,minmax(min(100%,240px),1fr))] gap-3.5">
+          {[
+            { href: "/admin/consultores/revision", n: datos.perfilesEnRevision.length, uno: "perfil en revisión", varios: "perfiles en revisión" },
+            { href: "/admin/encargos", n: solicitudesEquipo, uno: "solicitud sin asignar", varios: "solicitudes sin asignar" },
+            { href: "/admin/convocatorias", n: datos.borradoresSinDocumentos, uno: "borrador sin documentos", varios: "borradores sin documentos" },
+          ].map((t) => (
+            <Link
+              key={t.href}
+              href={t.href}
+              className="flex items-center gap-4 rounded-md border border-line border-l-[3px] border-l-amber bg-surface p-4 transition-colors hover:border-pri hover:border-l-amber"
+            >
+              <span className="font-tabular text-[26px] font-medium leading-none text-ink">{t.n}</span>
+              <span className="text-sm font-semibold text-ink-2">{t.n === 1 ? t.uno : t.varios}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <KpiFranja>
+        <KpiCelda
           etiqueta="Publicadas"
           valor={datos.publicadas}
           nota={datos.publicadasEsteMes > 0 ? `+${datos.publicadasEsteMes} este mes` : "Vigentes en el catálogo"}
-          icono={Files}
+          href="/admin/convocatorias"
         />
-        <KpiCard
+        <KpiCelda
           etiqueta="Borradores"
           valor={datos.borradores}
-          nota={
-            datos.borradoresSinDocumentos > 0
-              ? `${datos.borradoresSinDocumentos} sin documentos adjuntos`
-              : "Todos con documentos"
-          }
-          icono={FilePen}
-          tono="pri"
+          nota={datos.borradoresSinDocumentos > 0 ? `${datos.borradoresSinDocumentos} sin documentos adjuntos` : "Todos con documentos"}
+          href="/admin/convocatorias"
         />
-        <KpiCard etiqueta="Cierran en < 15 días" valor={datos.cierranPronto.length} nota="Revisa vigencias" icono={Clock} tono="amber" />
-        <KpiCard
+        <KpiCelda etiqueta="Cierran en < 15 días" valor={datos.cierranPronto.length} nota="Revisa vigencias" />
+        <KpiCelda
           etiqueta="Suscripciones activas"
           valor={s.activas}
           nota={datos.conversion !== null ? `Conversión de prueba: ${datos.conversion}%` : "Sin cuentas todavía"}
-          icono={CreditCard}
-          tono="pri"
+          href="/admin/suscripciones"
         />
-      </KpiGrid>
+      </KpiFranja>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] gap-3.5">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] gap-4">
         <Card className="flex flex-col gap-4">
           <CardHeader titulo="Postulaciones iniciadas" subtitulo={`Últimas ${datos.semanas.length} semanas`} />
           <WeeklyBars
@@ -81,7 +89,7 @@ export function DashboardPanel({ datos, solicitudesEquipo }: { datos: DatosTable
           <CardHeader
             titulo="Suscripciones por estado"
             accion={
-              <Link href="/admin/suscripciones" className="text-[12.5px] font-bold text-pri-text">
+              <Link href="/admin/suscripciones" className="inline-flex min-h-11 items-center text-[13px] font-semibold text-pri-text hover:underline">
                 Ver todas
               </Link>
             }
@@ -99,7 +107,7 @@ export function DashboardPanel({ datos, solicitudesEquipo }: { datos: DatosTable
         </Card>
       </div>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,300px),1fr))] gap-3.5">
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,300px),1fr))] gap-4">
         <PerfilesEnRevision perfiles={datos.perfilesEnRevision} />
 
         <Card className="flex flex-col gap-1">

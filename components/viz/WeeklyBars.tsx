@@ -3,7 +3,7 @@ export interface SemanaBarra {
   valor: number;
 }
 
-/** 12 barras semanales; la última en pri, las demás atenuadas. */
+/** 12 barras semanales; la última en pri y las demás atenuadas (mezcla de pri con la superficie, para que se vean también en oscuro). */
 export function WeeklyBars({
   semanas,
   variacion,
@@ -34,12 +34,10 @@ export function WeeklyBars({
             <div
               key={`${s.etiqueta}-${i}`}
               title={`${s.etiqueta}: ${s.valor}`}
-              className="crece-alto flex-1 rounded-t-[5px]"
+              className="crece-alto flex-1 rounded-t-[3px]"
               style={{
                 height: `${Math.max(2, (s.valor / max) * 100)}%`,
-                background: ultima
-                  ? "var(--pri)"
-                  : "color-mix(in oklch, var(--pri) 35%, var(--surface-2))",
+                background: ultima ? "var(--pri)" : "color-mix(in oklch, var(--pri) 40%, var(--surface))",
               }}
             />
           );

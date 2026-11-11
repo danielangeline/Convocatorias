@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button, LinkButton } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Tabs } from "@/components/ui/Tabs";
+import { ChipsEstado } from "@/components/ui/ChipsEstado";
 import { DataTable } from "@/components/ui/DataTable";
 import { DeadlineChip } from "@/components/viz/Deadline";
 import { Aviso } from "@/components/identidad/Campo";
@@ -27,7 +27,7 @@ const filtros: Array<{ valor: EstadoConvocatoria | "todas"; etiqueta: string }> 
 ];
 
 const claseCampo =
-  "w-full rounded-[4px] border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri";
+  "w-full min-h-11 rounded-[4px] border border-line-strong bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri focus:ring-2 focus:ring-pri-soft";
 const claseEtiqueta = "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3";
 
 // En la moneda de la convocatoria (RN-40).
@@ -103,12 +103,12 @@ export function ListadoConvocatorias({
         }
       />
 
-      <Tabs
+      <ChipsEstado
         className="mb-4"
         etiqueta="Estado"
         valor={filtro}
         onChange={setFiltro}
-        pestanas={filtros.map((f) => ({
+        chips={filtros.map((f) => ({
           valor: f.valor,
           etiqueta: f.etiqueta,
           conteo: f.valor === "todas" ? convocatorias.length : convocatorias.filter((c) => c.estado === f.valor).length,
@@ -138,7 +138,7 @@ export function ListadoConvocatorias({
               ancho: "minmax(0,2.6fr)",
               celda: (c) => (
                 <>
-                  <Link href={`/admin/convocatorias/${c.id}`} className="block truncate font-bold text-ink hover:text-pri-text">
+                  <Link href={`/admin/convocatorias/${c.id}`} className="block truncate font-semibold text-ink hover:text-pri-text">
                     {c.nombre}
                   </Link>
                   <span className="mt-0.5 block truncate text-xs text-ink-3">{c.entidadConvocante || c.fuenteNombre || "—"}</span>

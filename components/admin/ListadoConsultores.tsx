@@ -14,6 +14,7 @@ import { RatingStars } from "@/components/RatingStars";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Aviso } from "@/components/identidad/Campo";
 import { ModalMotivo } from "./ModalMotivo";
+import { TablaTarjetas } from "@/components/ui/TablaTarjetas";
 
 /**
  * CU-27 · Consultores registrados (RF-35). Suspender pide motivo y cancela en
@@ -67,7 +68,8 @@ export function ListadoConsultores({ consultores }: { consultores: ConsultorAdmi
         <EmptyState icon={Users} titulo="No hay consultores" descripcion="Aún no hay perfiles de consultor registrados." />
       ) : (
         <div className="overflow-x-auto rounded-md border border-line bg-surface">
-          <table className="w-full text-sm">
+          <TablaTarjetas>
+<table className="w-full text-sm">
             <thead>
               <tr className="border-b border-line bg-surface-2 text-left text-xs font-semibold uppercase tracking-wide text-ink-3">
                 <th className="px-5 py-3">Consultor</th>
@@ -147,6 +149,7 @@ export function ListadoConsultores({ consultores }: { consultores: ConsultorAdmi
               ))}
             </tbody>
           </table>
+</TablaTarjetas>
         </div>
       )}
 

@@ -221,7 +221,7 @@ export function SolicitudesEquipo({ esperando, atendidas }: { esperando: Solicit
               rows={3}
               maxLength={2000}
               placeholder="Qué se habló, a quién se le asignó, próximos pasos… Solo la ven los administradores."
-              className="w-full resize-none rounded-[4px] border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
+              className="w-full resize-none min-h-11 rounded-[4px] border border-line-strong bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-pri focus:ring-2 focus:ring-pri-soft"
             />
             <div className="mt-5 flex justify-end gap-3">
               <Button variant="ghost" onClick={() => setAMarcar(null)}>

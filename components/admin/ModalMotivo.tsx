@@ -56,7 +56,7 @@ export function ModalMotivo({
           maxLength={1000}
           autoFocus
           placeholder="El consultor verá este texto."
-          className="w-full resize-none rounded-[4px] border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
+          className="w-full resize-none min-h-11 rounded-[4px] border border-line-strong bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-pri focus:ring-2 focus:ring-pri-soft"
         />
         {error && (
           <div className="mt-3">

@@ -136,4 +136,4 @@ Sustituye el rediseño visual de la sesión 031 (verde, Plus Jakarta). **No camb
 - **Fase 3 (hecha):** identidad (pantalla partida, puertas, consentimiento y MFA de 6 casillas).
 - **Fase 4 (hecha):** portal empresa; `/sugeridas` y `/guardadas` redirigen a `/convocatorias?tab=…`.
 - **Fase 5 (hecha):** portal consultor.
-- **Fase 6:** panel admin, según el README del handoff.
+- **Fase 6 (hecha):** panel admin (el editor de convocatoria conserva su ruta; sus pasos son anclas).

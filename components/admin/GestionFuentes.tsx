@@ -9,13 +9,14 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Aviso } from "@/components/identidad/Campo";
+import { TablaTarjetas } from "@/components/ui/TablaTarjetas";
 
 type Formulario = Omit<FuenteAdmin, "id">;
 
 const vacio: Formulario = { nombre: "", tipoEntidad: "", url: "", notas: "", activa: true };
 
 const claseCampo =
-  "w-full rounded-[4px] border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri";
+  "w-full min-h-11 rounded-[4px] border border-line-strong bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri focus:ring-2 focus:ring-pri-soft";
 const claseEtiqueta = "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3";
 
 /**
@@ -103,7 +104,8 @@ export function GestionFuentes({ fuentes }: { fuentes: FuenteAdmin[] }) {
         />
       ) : (
         <div className="overflow-hidden rounded-md border border-line bg-surface">
-          <table className="w-full text-sm">
+          <TablaTarjetas>
+<table className="w-full text-sm">
             <thead>
               <tr className="border-b border-line bg-surface-2 text-left text-xs font-semibold uppercase tracking-wide text-ink-3">
                 <th className="px-5 py-3">Nombre</th>
@@ -167,6 +169,7 @@ export function GestionFuentes({ fuentes }: { fuentes: FuenteAdmin[] }) {
               ))}
             </tbody>
           </table>
+</TablaTarjetas>
         </div>
       )}
 

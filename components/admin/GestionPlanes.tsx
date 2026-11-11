@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Aviso } from "@/components/identidad/Campo";
+import { TablaTarjetas } from "@/components/ui/TablaTarjetas";
 
 type Formulario = {
   nombre: string;
@@ -136,7 +137,8 @@ export function GestionPlanes({ planes }: { planes: Plan[] }) {
         <EmptyState icon={Layers} titulo="No hay planes" descripcion="Crea el primer plan de suscripción." />
       ) : (
         <div className="overflow-x-auto rounded-md border border-line bg-surface">
-          <table className="w-full text-sm">
+          <TablaTarjetas>
+<table className="w-full text-sm">
             <thead>
               <tr className="border-b border-line bg-surface-2 text-left text-xs font-semibold uppercase tracking-wide text-ink-3">
                 <th className="px-5 py-3">Plan</th>
@@ -186,6 +188,7 @@ export function GestionPlanes({ planes }: { planes: Plan[] }) {
               ))}
             </tbody>
           </table>
+</TablaTarjetas>
         </div>
       )}
 

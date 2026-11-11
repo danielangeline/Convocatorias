@@ -20,8 +20,15 @@ type Opcion = { codigo: string; nombre: string };
 /** Las monedas más usadas por las fuentes van primero en la lista (RN-40). */
 const MONEDAS_FRECUENTES = ["COP", "USD", "EUR", "GBP", "CHF", "CAD"];
 
+const PASOS = [
+  { id: "paso-datos", etiqueta: "Datos generales" },
+  { id: "paso-categorias", etiqueta: "Categorías" },
+  { id: "paso-documentos", etiqueta: "Documentos" },
+  { id: "paso-requisitos", etiqueta: "Requisitos" },
+] as const;
+
 const claseCampo =
-  "w-full rounded-[4px] border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri";
+  "min-h-11 w-full rounded-[4px] border border-line-strong bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri focus:ring-2 focus:ring-pri-soft";
 const tiposCategoria: TipoCategoria[] = ["tipo_proyecto", "sector", "tipo_entidad"];
 
 // Clave local para la lista: los requisitos nuevos aún no tienen id.
@@ -100,6 +107,7 @@ export function EditorConvocatoria({
     setAvisoDocumentos(null);
   };
   const [guardando, setGuardando] = useState(false);
+  const [paso, setPaso] = useState(0);
   const [estado, setEstado] = useState(convocatoria.estado);
   const [publicando, setPublicando] = useState(false);
 
@@ -144,15 +152,27 @@ export function EditorConvocatoria({
         "La fecha de cierre ya pasó. Si guardas, la convocatoria seguirá publicada hasta la medianoche (hora de Colombia) y entonces se cerrará sola. Para retirarla ya, usa Despublicar. ¿Guardar de todos modos?"
       )
     ) {
-      return;
+      return false;
     }
     setGuardando(true);
     limpiarAvisos();
     const { ok, aviso } = await enviarFormulario();
     setGuardando(false);
-    if (!ok) return;
+    if (!ok) return false;
     setMensaje(aviso ? { tipo: "advertencia", texto: `Cambios guardados. ${aviso}` } : { tipo: "exito", texto: "Cambios guardados." });
     router.refresh();
+    return true;
+  };
+
+  // Pasos numerados: cada uno es una sección de la ficha (anclas), no una pantalla aparte.
+  const irAPaso = (n: number) => {
+    const destino = Math.min(Math.max(n, 0), PASOS.length - 1);
+    setPaso(destino);
+    const reducido = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    document.getElementById(PASOS[destino].id)?.scrollIntoView({ behavior: reducido ? "auto" : "smooth", block: "start" });
+  };
+  const guardarYSeguir = async () => {
+    if (await guardar()) irAPaso(paso + 1);
   };
 
   /**
@@ -208,10 +228,10 @@ export function EditorConvocatoria({
   const montoMax = lecturaMax.ok ? lecturaMax.valor ?? 0 : 0;
 
   return (
-    <div>
+    <div className="mx-auto w-full max-w-[760px] pb-24">
       <Link
         href="/admin/convocatorias"
-        className="mb-6 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-2 hover:text-pri-text"
+        className="mb-4 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-ink-2 hover:text-pri-text"
       >
         <ArrowLeft className="h-4 w-4" /> Volver al listado
       </Link>
@@ -249,9 +269,37 @@ export function EditorConvocatoria({
         </div>
       )}
 
+      <nav aria-label="Pasos de la ficha" className="sticky top-[60px] z-10 -mx-1 mb-6 overflow-x-auto bg-bg/95 px-1 py-3 backdrop-blur">
+        <ol className="m-0 flex list-none gap-2 p-0">
+          {PASOS.map((p, i) => (
+            <li key={p.id}>
+              <button
+                type="button"
+                onClick={() => irAPaso(i)}
+                aria-current={i === paso ? "step" : undefined}
+                className={cn(
+                  "flex min-h-11 cursor-pointer items-center gap-2 whitespace-nowrap rounded-full border pl-2 pr-4 text-[13px] font-semibold transition-colors",
+                  i === paso ? "border-pri bg-pri-soft text-pri-text" : "border-line-strong bg-surface text-ink-2 hover:bg-surface-2"
+                )}
+              >
+                <span
+                  className={cn(
+                    "font-tabular grid h-7 w-7 place-items-center rounded-full text-xs font-medium",
+                    i === paso ? "bg-pri text-on-pri" : "bg-surface-2 text-ink-3"
+                  )}
+                >
+                  {i + 1}
+                </span>
+                {p.etiqueta}
+              </button>
+            </li>
+          ))}
+        </ol>
+      </nav>
+
       <div className="space-y-6">
-        <Seccion titulo="Datos generales">
-          <div className="grid gap-4 sm:grid-cols-2">
+        <Seccion numero={1} id={PASOS[0].id} titulo="Datos generales">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-4">
             <Campo etiqueta="Nombre de la convocatoria" span2>
               <input {...campo("nombre")} className={claseCampo} required maxLength={300} />
             </Campo>
@@ -442,7 +490,7 @@ export function EditorConvocatoria({
           )}
         </Seccion>
 
-        <Seccion titulo="Categorías">
+        <Seccion numero={2} id={PASOS[1].id} titulo="Categorías">
           {categoriasOfrecidas.length === 0 ? (
             <p className="text-sm text-ink-3">
               No hay categorías activas.{" "}
@@ -492,7 +540,7 @@ export function EditorConvocatoria({
           )}
         </Seccion>
 
-        <Seccion titulo="Documentos">
+        <Seccion numero={3} id={PASOS[2].id} titulo="Documentos">
           <DocumentosConvocatoria
             convocatoriaId={convocatoria.id}
             documentos={convocatoria.documentos}
@@ -502,6 +550,8 @@ export function EditorConvocatoria({
         </Seccion>
 
         <Seccion
+          numero={4}
+          id={PASOS[3].id}
           titulo="Requisitos"
           accion={
             <Button
@@ -590,31 +640,57 @@ export function EditorConvocatoria({
         </Seccion>
       </div>
 
-      <div className="mt-6 flex justify-end">
-        <Button variant="primary" onClick={guardar} disabled={guardando}>
-          {guardando ? "Guardando…" : "Guardar cambios"}
-        </Button>
+      {/* Pie fijo: cerrar sin guardar o guardar y pasar al paso siguiente. */}
+      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface lg:left-[252px]">
+        <div className="mx-auto flex max-w-[760px] items-center justify-between gap-3 px-4 py-3 sm:px-7">
+          <Link
+            href="/admin/convocatorias"
+            className="inline-flex min-h-11 items-center justify-center rounded-[4px] border border-line-strong bg-surface px-4 text-sm font-semibold text-ink hover:bg-surface-2"
+          >
+            Cerrar
+          </Link>
+          <Button variant="primary" onClick={guardarYSeguir} disabled={guardando}>
+            {guardando ? "Guardando…" : paso >= PASOS.length - 1 ? "Guardar cambios" : "Guardar y seguir"}
+          </Button>
+        </div>
       </div>
     </div>
   );
 }
 
-function Seccion({ titulo, children, accion }: { titulo: string; children: React.ReactNode; accion?: React.ReactNode }) {
+function Seccion({
+  titulo,
+  children,
+  accion,
+  numero,
+  id,
+}: {
+  titulo: string;
+  children: React.ReactNode;
+  accion?: React.ReactNode;
+  numero?: number;
+  id?: string;
+}) {
   return (
-    <div className="rounded-md border border-line bg-surface p-6">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="font-display text-base font-semibold text-ink">{titulo}</h2>
+    <section id={id} aria-labelledby={id ? `${id}-titulo` : undefined} className="scroll-mt-32 rounded-md border border-line bg-surface p-5 sm:p-6">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h2 id={id ? `${id}-titulo` : undefined} className="flex items-center gap-3 font-display text-xl font-semibold text-ink">
+          {numero !== undefined && (
+            <span className="font-tabular grid h-7 w-7 place-items-center rounded-full bg-pri-soft text-xs font-medium text-pri-text">{numero}</span>
+          )}
+          {titulo}
+        </h2>
         {accion}
       </div>
       {children}
-    </div>
+    </section>
   );
 }
 
 function Campo({ etiqueta, children, span2 }: { etiqueta: string; children: React.ReactNode; span2?: boolean }) {
   return (
-    <label className={cn("block", span2 && "sm:col-span-2")}>
-      <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3">{etiqueta}</span>
+    <label className={cn("block", span2 && "col-span-full")}>
+      <span className="mb-1.5 block text-[13px] font-semibold text-ink">{etiqueta}</span>
       {children}
     </label>
   );

@@ -214,7 +214,7 @@ export function DocumentosConvocatoria({
           <select
             value={tipo}
             onChange={(e) => setTipo(e.target.value as TipoDocumento)}
-            className="rounded-[4px] border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
+            className="min-h-11 rounded-[4px] border border-line-strong bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-pri focus:ring-2 focus:ring-pri-soft"
           >
             {TIPOS.map((t) => (
               <option key={t} value={t}>

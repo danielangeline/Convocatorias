@@ -212,3 +212,52 @@ textarea::placeholder {
 .barra-desplazable::-webkit-scrollbar {
   display: none;
 }
+
+/* Listados del panel en móvil (< 768 px): cada fila de una <table> envuelta en
+   `TablaTarjetas` se vuelve una tarjeta. La primera celda es el título y las
+   demás muestran «etiqueta: valor» (la etiqueta la pone `data-etiqueta`). */
+@media (max-width: 767px) {
+  .tabla-tarjetas table,
+  .tabla-tarjetas tbody,
+  .tabla-tarjetas tr,
+  .tabla-tarjetas td {
+    display: block;
+    width: 100%;
+  }
+  .tabla-tarjetas thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .tabla-tarjetas tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+  }
+  .tabla-tarjetas tr {
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--surface);
+    padding: 14px 16px;
+  }
+  .tabla-tarjetas td {
+    padding: 4px 0 !important;
+    text-align: left !important;
+    border: 0 !important;
+  }
+  .tabla-tarjetas td:first-child {
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 600;
+    padding-bottom: 8px !important;
+  }
+  .tabla-tarjetas td[data-etiqueta]:not(:first-child)::before {
+    content: attr(data-etiqueta) ": ";
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-3);
+  }
+}

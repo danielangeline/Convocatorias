@@ -11,6 +11,7 @@ import { TIPO_EVENTO_SEGURIDAD_LABEL, TIPO_EVENTO_SEGURIDAD_ESTILO, cn } from "@
 import { fechaHoraColombia } from "@/lib/fechas";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { TablaTarjetas } from "@/components/ui/TablaTarjetas";
 
 /**
  * CU-39 · RF-65 · Bitácora de eventos de seguridad, con los datos reales que
@@ -128,7 +129,8 @@ export function EventosSeguridad({ eventos, ahora, limite }: { eventos: EventoSe
         <EmptyState icon={ShieldCheck} titulo="Sin eventos" descripcion="No hay eventos de seguridad para este filtro." />
       ) : (
         <div className="overflow-x-auto rounded-md border border-line bg-surface">
-          <table className="w-full min-w-[720px] text-sm">
+          <TablaTarjetas>
+<table className="w-full min-w-[720px] text-sm">
             <thead>
               <tr className="border-b border-line bg-surface-2 text-left text-xs font-semibold uppercase tracking-wide text-ink-3">
                 <th className="px-5 py-3">Tipo</th>
@@ -154,6 +156,7 @@ export function EventosSeguridad({ eventos, ahora, limite }: { eventos: EventoSe
               ))}
             </tbody>
           </table>
+</TablaTarjetas>
         </div>
       )}
     </div>

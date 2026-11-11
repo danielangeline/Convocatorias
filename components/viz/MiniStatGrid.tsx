@@ -12,7 +12,7 @@ export function MiniStatGrid({ stats, titulo }: { stats: MiniStat[]; titulo?: st
     <div className="grid grid-cols-2 gap-2.5">
       {stats.map((s) => (
         <div key={s.etiqueta} className="rounded-md bg-surface-2 p-3">
-          <div className="font-tabular text-[19px] font-semibold">{s.valor}</div>
+          <div className="font-tabular text-[19px] font-medium">{s.valor}</div>
           <div className="mt-0.5 text-[11.5px] text-ink-3">{s.etiqueta}</div>
         </div>
       ))}
@@ -21,8 +21,8 @@ export function MiniStatGrid({ stats, titulo }: { stats: MiniStat[]; titulo?: st
   if (!titulo) return rejilla;
   return (
     <Card className="flex flex-col gap-3.5">
-      <div className="flex items-center gap-2 text-[15px] font-bold">
-        <span className="grid h-7 w-7 place-items-center rounded-[4px] bg-[color-mix(in_oklch,var(--pri)_16%,transparent)] text-pri">
+      <div className="flex items-center gap-2 font-display text-xl font-semibold">
+        <span className="grid h-7 w-7 place-items-center rounded-[4px] bg-pri-soft text-pri-text">
           <Sparkles className="h-4 w-4" aria-hidden />
         </span>
         {titulo}

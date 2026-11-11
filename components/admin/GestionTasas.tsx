@@ -9,8 +9,9 @@ import { formatFecha } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Aviso } from "@/components/identidad/Campo";
 import type { TasaAdmin } from "@/lib/admin/tasas";
+import { TablaTarjetas } from "@/components/ui/TablaTarjetas";
 
-const claseCampo = "w-full rounded-[4px] border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri";
+const claseCampo = "w-full min-h-11 rounded-[4px] border border-line-strong bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri focus:ring-2 focus:ring-pri-soft";
 const MONEDAS_FRECUENTES = ["USD", "EUR", "GBP", "CHF", "CAD"];
 const pesos = (v: number) => new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 4 }).format(v);
 
@@ -85,7 +86,8 @@ export function GestionTasas({ tasas, monedas }: { tasas: TasaAdmin[]; monedas: 
             </p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <TablaTarjetas>
+<table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-xs text-ink-3">
                     <th className="py-2 pr-3 font-semibold">Moneda</th>
@@ -105,6 +107,7 @@ export function GestionTasas({ tasas, monedas }: { tasas: TasaAdmin[]; monedas: 
                   ))}
                 </tbody>
               </table>
+</TablaTarjetas>
             </div>
           )}
         </div>

@@ -111,7 +111,7 @@ export function GestionPlantillas({ plantillas, tipo = "documento" }: { plantill
     router.refresh();
   };
 
-  const campo = "w-full rounded-[4px] border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri";
+  const campo = "w-full min-h-11 rounded-[4px] border border-line-strong bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri focus:ring-2 focus:ring-pri-soft";
 
   return (
     <div>
