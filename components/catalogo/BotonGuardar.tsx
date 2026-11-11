@@ -4,8 +4,21 @@ import { useState } from "react";
 import { Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
-/** RF-103 · Guardar o quitar una convocatoria desde su ficha. El servidor manda: si falla, se deshace. */
-export function BotonGuardar({ convocatoriaId, inicial }: { convocatoriaId: string; inicial: boolean }) {
+/**
+ * RF-103 · Guardar o quitar una convocatoria desde su ficha. El servidor manda:
+ * si falla, se deshace. `soloIcono` es la versión de la barra fija del móvil.
+ */
+export function BotonGuardar({
+  convocatoriaId,
+  inicial,
+  soloIcono = false,
+  className,
+}: {
+  convocatoriaId: string;
+  inicial: boolean;
+  soloIcono?: boolean;
+  className?: string;
+}) {
   const [guardada, setGuardada] = useState(inicial);
   const [ocupado, setOcupado] = useState(false);
   const [error, setError] = useState(false);
@@ -27,10 +40,19 @@ export function BotonGuardar({ convocatoriaId, inicial }: { convocatoriaId: stri
     }
   };
 
+  const etiqueta = error ? "No se pudo, reintenta" : guardada ? "Guardada" : "Guardar";
   return (
-    <Button variant="secondary" size="lg" onClick={alternar} disabled={ocupado} aria-pressed={guardada}>
+    <Button
+      variant="secondary"
+      size="lg"
+      onClick={alternar}
+      disabled={ocupado}
+      aria-pressed={guardada}
+      aria-label={soloIcono ? (guardada ? "Quitar de guardadas" : "Guardar convocatoria") : undefined}
+      className={className}
+    >
       <Bookmark className={guardada ? "h-4 w-4 fill-current text-pri-text" : "h-4 w-4"} />
-      {error ? "No se pudo, reintenta" : guardada ? "Guardada" : "Guardar"}
+      {!soloIcono && etiqueta}
     </Button>
   );
 }

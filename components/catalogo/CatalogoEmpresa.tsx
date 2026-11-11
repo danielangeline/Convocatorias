@@ -1,10 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { ChevronDown, Coins, LayoutGrid, Layers, List, ReceiptText, Search, SlidersHorizontal, X } from "lucide-react";
-import { cn, diasRestantes, formatFecha } from "@/lib/utils";
-import { formatRangoConvocatoria } from "@/lib/monedas";
+import { Bookmark, ChevronDown, Search, SlidersHorizontal, WandSparkles, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   DIAS_CIERRE,
   ORDENES,
@@ -23,11 +21,11 @@ import { DEPARTAMENTOS, REGIONES, esCodigoDepartamento, nombreDepartamento, type
 import type { Categoria, Convocatoria, OrigenConvocatoria, TipoConvocatoria, TipoDocumento } from "@/lib/types";
 import { ConvocatoriaCard } from "@/components/ConvocatoriaCard";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Button } from "@/components/ui/Button";
+import { Button, LinkButton } from "@/components/ui/Button";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Segmented } from "@/components/ui/Segmented";
-import { DataTable } from "@/components/ui/DataTable";
-import { DeadlineChip } from "@/components/viz/Deadline";
+import { Tabs } from "@/components/ui/Tabs";
+import { BottomSheet } from "@/components/ui/BottomSheet";
+import { FilaConvocatoria } from "./FilaConvocatoria";
 
 // Sprint 2 paso 4: convocatorias y categorías son las reales, leídas en el
 // servidor con la sesión de la empresa (RN-33) y recibidas como props: el store
@@ -89,7 +87,12 @@ const SIN_FILTROS: Filtros = {
 };
 
 const CAMPO =
-  "w-full rounded-lg border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri ";
+  "min-h-11 w-full rounded-[4px] border border-line-strong bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri focus:ring-2 focus:ring-pri-soft ";
+
+/** Pestañas de la pantalla (`?tab=`): el catálogo, las sugeridas del cruce y las guardadas. */
+export type PestanaCatalogo = "todas" | "sugeridas" | "guardadas";
+/** Compatibilidad mínima de «Para mi perfil». */
+const UMBRAL_PERFIL = 60;
 
 // RF-91: el consultor de un encargo "buscar convocatoria" usa la misma pantalla
 // desde su encargo: `rutaFicha` lleva a la ficha de ese encargo y `soloVigentes`
@@ -104,6 +107,10 @@ export function CatalogoEmpresa({
   tipoInicial = "todas",
   compatibilidad,
   guardadas: guardadasIniciales,
+  tabInicial = "todas",
+  nuevasIds = [],
+  proyectoPorConvocatoria,
+  ultimoRastreo,
 }: {
   convocatorias: Convocatoria[];
   categorias: Categoria[];
@@ -118,16 +125,28 @@ export function CatalogoEmpresa({
   compatibilidad?: Record<string, number>;
   /** RF-103: ids guardados; sin la prop no se ofrece guardar (p. ej. el consultor). */
   guardadas?: string[];
+  /** Pestaña de arranque (`?tab=`); solo la empresa tiene pestañas. */
+  tabInicial?: PestanaCatalogo;
+  /** Convocatorias publicadas en los últimos 7 días (badge NUEVO y «nuevas esta semana»). */
+  nuevasIds?: string[];
+  /** Nombre del proyecto con el que mejor se cruzó cada convocatoria (pestaña Sugeridas). */
+  proyectoPorConvocatoria?: Record<string, string>;
+  /** Hora del último rastreo, cuando la fuente la informa; sin ella no se muestra nada. */
+  ultimoRastreo?: string;
 }) {
   const tiposProyecto = useMemo(() => categorias.filter((c) => c.tipo === "tipo_proyecto"), [categorias]);
   const sectores = useMemo(() => categorias.filter((c) => c.tipo === "sector"), [categorias]);
   const tiposEntidad = useMemo(() => categorias.filter((c) => c.tipo === "tipo_entidad"), [categorias]);
   const [busqueda, setBusqueda] = useState(busquedaInicial);
-  const [vista, setVista] = useState<"tarjetas" | "lista">("tarjetas");
-  const router = useRouter();
   const [f, setF] = useState<Filtros>(SIN_FILTROS);
   const [orden, setOrden] = useState<ClaveOrden | "">("");
   const [filtrosAbiertos, setFiltrosAbiertos] = useState(false);
+  const conPestanas = guardadasIniciales !== undefined;
+  const hayCompatibilidad = !!compatibilidad && Object.keys(compatibilidad).length > 0;
+  const [tab, setTabEstado] = useState<PestanaCatalogo>(conPestanas ? tabInicial : "todas");
+  // «Para mi perfil» arranca activo si hay con qué cruzar; una búsqueda o un tipo pedidos desde fuera lo apagan.
+  const [perfil, setPerfil] = useState(() => hayCompatibilidad && tipoInicial === "todas" && !busquedaInicial && conPestanas);
+  const nuevasSet = useMemo(() => new Set(nuevasIds), [nuevasIds]);
   const [tipo, setTipoEstado] = useState<TipoConvocatoria | "todas">(tipoInicial);
   const [origen, setOrigen] = useState<OrigenConvocatoria | "todos">("todos");
   const [guardadas, setGuardadas] = useState(() => new Set(guardadasIniciales ?? []));
@@ -138,6 +157,13 @@ export function CatalogoEmpresa({
     const url = new URL(window.location.href);
     if (t === "todas") url.searchParams.delete("tipo");
     else url.searchParams.set("tipo", t);
+    window.history.replaceState(null, "", url.toString());
+  };
+  const cambiarTab = (t: PestanaCatalogo) => {
+    setTabEstado(t);
+    const url = new URL(window.location.href);
+    if (t === "todas") url.searchParams.delete("tab");
+    else url.searchParams.set("tab", t);
     window.history.replaceState(null, "", url.toString());
   };
   const alternarGuardada = async (id: string) => {
@@ -240,12 +266,14 @@ export function CatalogoEmpresa({
     });
     // RF-94: con orden elegido, ese; si no, por compatibilidad con los proyectos (CU-10)
     // cuando la hay, y si no, el del servidor.
-    if (orden) return ordenarCatalogo(filtradas, orden);
+    const delPerfil =
+      perfil && compatibilidad ? filtradas.filter((c) => (compatibilidad[c.id] ?? -1) >= UMBRAL_PERFIL) : filtradas;
+    if (orden) return ordenarCatalogo(delPerfil, orden);
     if (compatibilidad && Object.keys(compatibilidad).length > 0) {
-      return [...filtradas].sort((a, b) => (compatibilidad[b.id] ?? -1) - (compatibilidad[a.id] ?? -1));
+      return [...delPerfil].sort((a, b) => (compatibilidad[b.id] ?? -1) - (compatibilidad[a.id] ?? -1));
     }
-    return filtradas;
-  }, [convocatorias, busqueda, f, orden, lecturaHasta, lecturaDesde, maxReq, compatibilidad]);
+    return delPerfil;
+  }, [convocatorias, busqueda, f, orden, lecturaHasta, lecturaDesde, maxReq, compatibilidad, perfil]);
   const porCompatibilidad = !orden && !!compatibilidad && Object.keys(compatibilidad).length > 0;
 
   // RF-95: cada filtro activo, con su valor y la forma de quitarlo.
@@ -276,7 +304,47 @@ export function CatalogoEmpresa({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [f, categorias]);
 
-  const limpiarFiltros = () => setF(SIN_FILTROS);
+  const limpiarFiltros = () => {
+    setF(SIN_FILTROS);
+    setPerfil(false);
+  };
+  const limpiarTodo = () => {
+    setF(SIN_FILTROS);
+    setBusqueda("");
+    setOrden("");
+    setTipo("todas");
+    setOrigen("todos");
+    setPerfil(false);
+  };
+
+  // Atajos de un toque sobre lo que ya existe: compatibilidad (CU-10), cierre, tipo y origen.
+  const chipsRapidos: { clave: string; etiqueta: string; activo: boolean; alternar: () => void }[] = [
+    ...(conPestanas && hayCompatibilidad
+      ? [{ clave: "perfil", etiqueta: "Para mi perfil", activo: perfil, alternar: () => setPerfil((v) => !v) }]
+      : []),
+    {
+      clave: "cierre",
+      etiqueta: "Cierran en 15 días",
+      activo: f.cierraEnDias === 15,
+      alternar: () => set("cierraEnDias", f.cierraEnDias === 15 ? null : 15),
+    },
+    {
+      clave: "tributario",
+      etiqueta: "Beneficio tributario",
+      activo: tipo === "beneficio_tributario",
+      alternar: () => setTipo(tipo === "beneficio_tributario" ? "todas" : "beneficio_tributario"),
+    },
+    {
+      clave: "cooperacion",
+      etiqueta: "Cooperación",
+      activo: origen === "cooperacion",
+      alternar: () => setOrigen(origen === "cooperacion" ? "todos" : "cooperacion"),
+    },
+  ];
+  const nuevasSemana = useMemo(
+    () => todas.filter((c) => nuevasSet.has(c.id) && c.estado !== "cerrada" && c.elegible !== false).length,
+    [todas, nuevasSet]
+  );
 
   const aplicarBusquedaSugerida = ({ filtros }: ChipSugerido) => {
     setF({
@@ -289,453 +357,465 @@ export function CatalogoEmpresa({
     setFiltrosAbiertos(true);
   };
 
-  const opcionesCategoria = (lista: Categoria[], clave: "tipoProyecto" | "sector" | "tipoEntidad") =>
-    lista.map((cat) => (
-      <Checkbox
-        key={cat.id}
-        label={cat.nombre}
-        cuenta={porCategoria.get(cat.id) ?? 0}
-        checked={f[clave].includes(cat.id)}
-        onChange={() => alternar(clave, cat.id)}
-      />
-    ));
+  const conteoFiltrosActivos = activos.length + (orden ? 1 : 0) + (tipo !== "todas" ? 1 : 0) + (origen !== "todos" ? 1 : 0);
 
-  return (
-    <div>
-      <PageHeader
-        className="mb-6"
-        titulo={titulo}
-        descripcion={
-          <span aria-live="polite">
-            {resultados.length} {resultados.length === 1 ? "resultado" : "resultados"}
-            {porCompatibilidad && " · ordenadas por compatibilidad con tus proyectos"}
-          </span>
-        }
-        accion={
-          <Segmented
-            grande
-            etiqueta="Tipo de convocatoria"
-            valor={tipo}
-            onChange={setTipo}
-            opciones={[
-              { valor: "todas", etiqueta: <><Layers className="h-4 w-4" />Todas</> },
-              { valor: "fondo", etiqueta: <><Coins className="h-4 w-4" />Fondos y financiación</> },
-              { valor: "beneficio_tributario", etiqueta: <><ReceiptText className="h-4 w-4" />Beneficios tributarios</> },
-            ]}
-          />
-        }
-      />
-
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" />
-          <input
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Busca por nombre, entidad o palabra clave"
-            aria-label="Buscar convocatorias"
-            className="h-[42px] w-full rounded-xl border border-line bg-surface py-2.5 pl-9 pr-4 text-[13.5px] text-ink outline-none placeholder:text-ink-3 focus:border-pri"
-          />
-        </div>
-        <select
-          value={orden}
-          onChange={(e) => setOrden(e.target.value as ClaveOrden | "")}
-          aria-label="Ordenar por"
-          className="h-[42px] rounded-xl border border-line bg-surface px-3 text-[13.5px] text-ink outline-none focus:border-pri sm:w-56"
+  // Opciones de una categoría como botones de 38 px (activo: pri-soft con borde pri).
+  const botonesCategoria = (lista: Categoria[], clave: "tipoProyecto" | "sector" | "tipoEntidad") => (
+    <div className="flex flex-wrap gap-2">
+      {lista.map((cat) => (
+        <BotonOpcion
+          key={cat.id}
+          activo={f[clave].includes(cat.id)}
+          onClick={() => alternar(clave, cat.id)}
+          cuenta={porCategoria.get(cat.id) ?? 0}
         >
-          <option value="">Orden: el del catálogo</option>
-          {ORDENES.map((o) => (
-            <option key={o.clave} value={o.clave}>
-              {o.nombre}
-            </option>
-          ))}
-        </select>
-        <Button variant={filtrosAbiertos ? "secondary" : "outline"} size="md" onClick={() => setFiltrosAbiertos((v) => !v)} className="h-[42px] sm:w-auto">
-          <SlidersHorizontal className="h-4 w-4" />
-          Filtros {activos.length > 0 && `(${activos.length})`}
-        </Button>
-      </div>
+          {cat.nombre}
+        </BotonOpcion>
+      ))}
+    </div>
+  );
 
-      <div className="mb-4 flex flex-wrap items-center gap-2.5">
-        <div role="group" aria-label="Origen" className="flex flex-wrap gap-1.5">
-          {(
-            [
-              ["todos", "Todo origen"],
-              ["publico", "Público"],
-              ["privado", "Privado"],
-              ["cooperacion", "Cooperación"],
-            ] as const
-          ).map(([valor, etiqueta]) => (
-            <button
-              key={valor}
-              type="button"
-              aria-pressed={origen === valor}
-              onClick={() => setOrigen(valor)}
-              className={cn(
-                "h-10 cursor-pointer rounded-full border px-4 text-[13px] font-semibold transition-colors",
-                origen === valor ? "border-ink bg-ink text-bg" : "border-line bg-surface text-ink-2 hover:text-ink"
-              )}
-            >
-              {etiqueta}
-            </button>
-          ))}
-        </div>
-        <div className="flex-1" />
-        <Segmented
-          etiqueta="Vista"
-          valor={vista}
-          onChange={setVista}
-          opciones={[
-            { valor: "tarjetas", titulo: "Tarjetas", etiqueta: <LayoutGrid className="h-4 w-4" aria-label="Tarjetas" /> },
-            { valor: "lista", titulo: "Lista", etiqueta: <List className="h-4 w-4" aria-label="Lista" /> },
-          ]}
-        />
-      </div>
+  const fila = (c: Convocatoria) => (
+    <FilaConvocatoria
+      key={c.id}
+      convocatoria={c}
+      href={rutaFicha?.(c.id) ?? `/convocatorias/${c.id}`}
+      compatibilidad={compatibilidad?.[c.id]}
+      nueva={nuevasSet.has(c.id)}
+      guardada={guardadasIniciales ? guardadas.has(c.id) : undefined}
+      onGuardar={guardadasIniciales ? () => alternarGuardada(c.id) : undefined}
+    />
+  );
 
-      {errorGuardar && (
-        <p role="alert" className="mb-4 rounded-lg bg-rose/10 px-4 py-3 text-sm text-rose-ink">
-          {errorGuardar}
-        </p>
-      )}
+  // Pestaña «Sugeridas»: tarjetas de las compatibles, de mayor a menor (CU-10, RN-05).
+  const sugeridasLista = useMemo(
+    () =>
+      todas
+        .filter((c) => compatibilidad?.[c.id] !== undefined && c.estado !== "cerrada" && c.elegible !== false)
+        .sort((a, b) => (compatibilidad![b.id] ?? 0) - (compatibilidad![a.id] ?? 0)),
+    [todas, compatibilidad]
+  );
+  const guardadasLista = useMemo(() => todas.filter((c) => guardadas.has(c.id)), [todas, guardadas]);
 
-      {activos.length > 0 && (
-        <div className="mb-4 flex flex-wrap items-center gap-2" aria-label="Filtros activos">
-          {activos.map((a) => (
-            <button
-              key={a.clave}
-              onClick={a.quitar}
-              className="flex items-center gap-1 rounded-full bg-pri-soft py-1 pl-3 pr-2 text-xs font-medium text-pri-text ring-1 ring-inset ring-pri-soft hover:bg-pri-soft"
-              title="Quitar este filtro"
-            >
-              {a.texto}
-              <X className="h-3 w-3" aria-label="Quitar" />
-            </button>
-          ))}
-          <button onClick={limpiarFiltros} className="text-xs font-semibold text-pri-text hover:underline">
-            Limpiar todo
-          </button>
-        </div>
-      )}
-
-      {sugeridas.length > 0 && (
-        <div className="mb-6 flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold text-ink-3">Prueba con:</span>
-          {sugeridas.map((s) => (
-            <button
-              key={s.etiqueta}
-              onClick={() => aplicarBusquedaSugerida(s)}
-              className="rounded-full bg-pri-soft px-3 py-1.5 text-xs font-medium text-pri-text ring-1 ring-inset ring-pri-soft hover:bg-pri-soft"
-            >
-              {s.etiqueta}
-            </button>
-          ))}
-        </div>
-      )}
-
-      <div className={cn("grid gap-8", filtrosAbiertos ? "lg:grid-cols-[300px_1fr]" : "grid-cols-1")}>
-        {filtrosAbiertos && (
-          <aside className="h-max rounded-2xl border border-line p-5 lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto bg-surface shadow-card">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-display text-sm font-semibold text-ink">Filtros</h2>
-              {activos.length > 0 && (
-                <button onClick={limpiarFiltros} className="flex items-center gap-1 text-xs font-semibold text-pri-text hover:underline">
-                  <X className="h-3 w-3" /> Limpiar
+  const vacio = (
+    <EmptyState
+      icon={Search}
+      titulo="No encontramos convocatorias con esos filtros"
+      descripcion="Prueba ajustando los filtros o la búsqueda para ver más resultados."
+      accion={
+        <div className="flex flex-col items-center gap-4">
+          <Button variant="secondary" onClick={limpiarTodo}>
+            Limpiar filtros
+          </Button>
+          {sugeridas.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-2">
+              {sugeridas.map((s) => (
+                <button
+                  key={s.etiqueta}
+                  onClick={() => aplicarBusquedaSugerida(s)}
+                  className="min-h-11 cursor-pointer rounded-full bg-pri-soft px-3.5 text-xs font-semibold text-pri-text hover:underline"
+                >
+                  {s.etiqueta}
                 </button>
-              )}
-            </div>
-
-            <FiltroGrupo titulo="Tipo de proyecto" abierto>{opcionesCategoria(tiposProyecto, "tipoProyecto")}</FiltroGrupo>
-            <FiltroGrupo titulo="Sector" abierto>{opcionesCategoria(sectores, "sector")}</FiltroGrupo>
-            <FiltroGrupo titulo="Quién puede postular">{opcionesCategoria(tiposEntidad, "tipoEntidad")}</FiltroGrupo>
-
-            <FiltroGrupo titulo="Entidad convocante">
-              <select value={f.entidad} onChange={(e) => set("entidad", e.target.value)} aria-label="Entidad convocante" className={CAMPO}>
-                <option value="">Todas las entidades</option>
-                {entidades.map(([e, n]) => (
-                  <option key={e} value={e}>
-                    {e} ({n})
-                  </option>
-                ))}
-              </select>
-            </FiltroGrupo>
-
-            {/* RF-12, RN-34: el departamento y la región traen también las de cobertura nacional. */}
-            <FiltroGrupo titulo="Ubicación">
-              <select value={f.departamento} onChange={(e) => set("departamento", e.target.value)} aria-label="Departamento" className={CAMPO}>
-                <option value="">Todos los departamentos</option>
-                {DEPARTAMENTOS.map((d) => (
-                  <option key={d.codigo} value={d.codigo}>
-                    {d.nombre} ({porDepartamento.get(d.codigo) ?? 0})
-                  </option>
-                ))}
-              </select>
-              <select value={f.region} onChange={(e) => set("region", e.target.value as ClaveRegion | "")} aria-label="Región" className={CAMPO}>
-                <option value="">Todas las regiones</option>
-                {REGIONES.map((r) => (
-                  <option key={r.clave} value={r.clave}>
-                    {r.nombre}
-                  </option>
-                ))}
-              </select>
-              <select value={f.alcance} onChange={(e) => set("alcance", e.target.value as Alcance | "")} aria-label="Alcance" className={CAMPO}>
-                <option value="">Nacionales y territoriales</option>
-                <option value="nacional">Solo de cobertura nacional</option>
-                <option value="territorial">Solo territoriales</option>
-              </select>
-              {(f.departamento || f.region) && f.alcance !== "territorial" && (
-                <p className="text-xs text-ink-3">Incluye las convocatorias de cobertura nacional.</p>
-              )}
-            </FiltroGrupo>
-
-            <FiltroGrupo titulo="Monto">
-              <CampoMonto etiqueta="Monto mínimo exigido hasta" valor={f.montoHasta} onChange={(v) => set("montoHasta", v)} lectura={lecturaHasta} />
-              <CampoMonto etiqueta="Apoya con al menos" valor={f.montoDesde} onChange={(v) => set("montoDesde", v)} lectura={lecturaDesde} />
-              <select value={f.monto} onChange={(e) => set("monto", e.target.value as FiltroMonto | "")} aria-label="Monto informado" className={CAMPO}>
-                <option value="">Con o sin monto informado</option>
-                <option value="con">Solo con monto informado</option>
-                <option value="sin">Sin monto (apoyo no monetario o no informado)</option>
-              </select>
-            </FiltroGrupo>
-
-            <FiltroGrupo titulo="Fecha de cierre">
-              <div className="flex flex-wrap gap-1.5">
-                {DIAS_CIERRE.map((d) => (
-                  <button
-                    key={d}
-                    onClick={() => set("cierraEnDias", f.cierraEnDias === d ? null : d)}
-                    aria-pressed={f.cierraEnDias === d}
-                    className={cn(
-                      "rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset",
-                      f.cierraEnDias === d ? "bg-pri text-on-pri ring-pri" : "bg-surface text-ink-2 ring-line hover:bg-pri-soft"
-                    )}
-                  >
-                    {d} días
-                  </button>
-                ))}
-              </div>
-              <p className="text-xs text-ink-3">Cierra en los próximos…</p>
-              <select value={f.anioCierre} onChange={(e) => set("anioCierre", e.target.value)} aria-label="Año de cierre" className={CAMPO}>
-                <option value="">Cualquier año</option>
-                {anios.map((a) => (
-                  <option key={a} value={a}>
-                    Cierra en {a}
-                  </option>
-                ))}
-              </select>
-              <Fecha etiqueta="Cierra desde" valor={f.cierraDesde} onChange={(v) => set("cierraDesde", v)} />
-              <Fecha etiqueta="Cierra antes de" valor={f.cierraAntesDe} onChange={(v) => set("cierraAntesDe", v)} />
-            </FiltroGrupo>
-
-            <FiltroGrupo titulo="Fecha de apertura">
-              <Fecha etiqueta="Abre desde" valor={f.abreDesde} onChange={(v) => set("abreDesde", v)} />
-              <p className="text-xs text-ink-3">Las que no informan su apertura no aparecen con este filtro.</p>
-            </FiltroGrupo>
-
-            <FiltroGrupo titulo="Documentos y requisitos" ultimo={soloVigentes}>
-              {TIPOS_DOCUMENTO.map((t) => (
-                <Checkbox key={t.clave} label={t.nombre} checked={f.tipoDoc.includes(t.clave)} onChange={() => alternar("tipoDoc", t.clave)} />
               ))}
-              <Checkbox label="Exige documentos entre sus requisitos" checked={f.exigeDocumentos} onChange={() => set("exigeDocumentos", !f.exigeDocumentos)} />
-              <label className="block text-xs text-ink-3">
-                Hasta cuántos requisitos
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={f.maxRequisitos}
-                  onChange={(e) => set("maxRequisitos", e.target.value.replace(/\D/g, "").slice(0, 3))}
-                  placeholder="Ej. 5"
-                  className={cn(CAMPO, "mt-1")}
-                />
-              </label>
-            </FiltroGrupo>
-
-            {/* RN-39: las de otros países solo entran bajo petición explícita. */}
-            {!soloVigentes && (
-              <FiltroGrupo titulo="Otros países" abierto>
-                <label className="flex cursor-pointer items-start gap-2">
-                  <input type="checkbox" checked={f.incluirOtrosPaises} onChange={(e) => set("incluirOtrosPaises", e.target.checked)} className="mt-0.5" />
-                  <span>
-                    <span className="block text-sm text-ink">Incluir las de otros países</span>
-                    <span className="block text-xs text-ink-3">
-                      Convocatorias a las que las organizaciones de tu país no pueden postularse. Se marcan y no admiten postulación.
-                    </span>
-                  </span>
-                </label>
-              </FiltroGrupo>
-            )}
-
-            {/* RF-11 / RN-02: las cerradas solo entran bajo petición explícita. */}
-            {!soloVigentes && (
-              <FiltroGrupo titulo="Convocatorias cerradas" ultimo abierto>
-                <label className="flex cursor-pointer items-start gap-2">
-                  <input type="checkbox" checked={f.incluirCerradas} onChange={(e) => set("incluirCerradas", e.target.checked)} className="mt-0.5" />
-                  <span>
-                    <span className="block text-sm text-ink">Incluirlas en los resultados</span>
-                    <span className="block text-xs text-ink-3">
-                      Sirven de referencia sobre lo que suele abrirse, pero ya no admiten postulación.
-                    </span>
-                  </span>
-                </label>
-              </FiltroGrupo>
-            )}
-          </aside>
-        )}
-
-        <div>
-          {resultados.length === 0 ? (
-            <EmptyState
-              icon={Search}
-              titulo="No encontramos convocatorias con esos filtros"
-              descripcion="Prueba ajustando los filtros o la búsqueda para ver más resultados."
-              accion={
-                <div className="flex flex-col items-center gap-4">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => {
-                      limpiarFiltros();
-                      setBusqueda("");
-                    }}
-                  >
-                    Limpiar filtros
-                  </Button>
-                  <div className="flex flex-wrap justify-center gap-2">
-                    {sugeridas.map((s) => (
-                      <button
-                        key={s.etiqueta}
-                        onClick={() => aplicarBusquedaSugerida(s)}
-                        className="rounded-full bg-pri-soft px-3 py-1.5 text-xs font-medium text-pri-text ring-1 ring-inset ring-pri-soft hover:bg-pri-soft"
-                      >
-                        {s.etiqueta}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              }
-            />
-          ) : (
-            vista === "lista" ? (
-              <DataTable
-                etiqueta="Convocatorias"
-                filas={resultados}
-                clave={(c) => c.id}
-                alHacerClic={(c) => router.push(rutaFicha?.(c.id) ?? `/convocatorias/${c.id}`)}
-                columnas={[
-                  {
-                    clave: "nombre",
-                    titulo: "Convocatoria",
-                    ancho: "minmax(0,3fr)",
-                    celda: (c) => (
-                      <>
-                        <span className="block truncate font-bold">{c.nombre}</span>
-                        <span className="mt-0.5 block truncate text-xs text-ink-3">{c.entidadConvocante}</span>
-                      </>
-                    ),
-                  },
-                  {
-                    clave: "tipo",
-                    titulo: "Tipo",
-                    ancho: "120px",
-                    celda: (c) => <span className="text-ink-2">{c.tipo === "beneficio_tributario" ? "Tributario" : "Fondos"}</span>,
-                  },
-                  {
-                    clave: "origen",
-                    titulo: "Origen",
-                    ancho: "110px",
-                    celda: (c) => (
-                      <span className="text-ink-2">
-                        {c.origen === "privado" ? "Privado" : c.origen === "cooperacion" ? "Cooperación" : "Público"}
-                      </span>
-                    ),
-                  },
-                  {
-                    clave: "monto",
-                    titulo: "Monto",
-                    ancho: "minmax(0,1.6fr)",
-                    celda: (c) => <span className="font-tabular font-semibold">{formatRangoConvocatoria(c)}</span>,
-                  },
-                  {
-                    clave: "cierre",
-                    titulo: "Cierre",
-                    ancho: "150px",
-                    celda: (c) => {
-                      const d = diasRestantes(c.fechaCierre);
-                      return d >= 0 && d < 15 && c.estado === "publicada" ? (
-                        <DeadlineChip dias={d} />
-                      ) : (
-                        <span className="text-ink-2">{formatFecha(c.fechaCierre)}</span>
-                      );
-                    },
-                  },
-                  ...(compatibilidad
-                    ? [
-                        {
-                          clave: "match",
-                          titulo: "Match",
-                          ancho: "70px",
-                          alinear: "derecha" as const,
-                          celda: (c: Convocatoria) =>
-                            compatibilidad[c.id] !== undefined ? (
-                              <span className="font-tabular font-semibold text-pri-text">{compatibilidad[c.id]}%</span>
-                            ) : (
-                              <span className="text-ink-3">—</span>
-                            ),
-                        },
-                      ]
-                    : []),
-                ]}
-              />
-            ) : (
-              <div className="grid gap-3.5 sm:grid-cols-2 xl:grid-cols-3">
-                {resultados.map((c) => (
-                  <ConvocatoriaCard
-                    key={c.id}
-                    convocatoria={c}
-                    categorias={categorias}
-                    href={rutaFicha?.(c.id)}
-                    compatibilidad={compatibilidad?.[c.id]}
-                    guardada={guardadasIniciales ? guardadas.has(c.id) : undefined}
-                    onGuardar={guardadasIniciales ? () => alternarGuardada(c.id) : undefined}
-                  />
-                ))}
-              </div>
-            )
+            </div>
           )}
         </div>
-      </div>
+      }
+    />
+  );
+
+  return (
+    <div className="flex flex-col gap-5">
+      <PageHeader
+        titulo={titulo}
+        descripcion={
+          ultimoRastreo
+            ? `Fondos públicos, privados y de cooperación. Último rastreo: ${ultimoRastreo}.`
+            : "Fondos públicos, privados y de cooperación para tu organización."
+        }
+      />
+
+      {conPestanas && (
+        <Tabs
+          etiqueta="Vistas del catálogo"
+          valor={tab}
+          onChange={cambiarTab}
+          pestanas={[
+            { valor: "todas", etiqueta: "Todas", conteo: convocatorias.length },
+            { valor: "sugeridas", etiqueta: "Sugeridas para ti", conteo: sugeridasLista.length },
+            { valor: "guardadas", etiqueta: "Guardadas", conteo: guardadasLista.length },
+          ]}
+        />
+      )}
+
+      {tab === "todas" && (
+        <>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" aria-hidden />
+              <input
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                placeholder="Busca por nombre, entidad o palabra clave"
+                aria-label="Buscar convocatorias"
+                className="h-12 w-full rounded-[4px] border border-line-strong bg-surface pl-10 pr-4 text-[15px] text-ink outline-none placeholder:text-ink-3 focus:border-pri focus:ring-2 focus:ring-pri-soft"
+              />
+            </div>
+            <Button variant="secondary" size="lg" onClick={() => setFiltrosAbiertos(true)} aria-haspopup="dialog">
+              <SlidersHorizontal className="h-4 w-4" />
+              Filtros
+              {conteoFiltrosActivos > 0 && (
+                <span className="font-tabular grid h-5 min-w-5 place-items-center rounded-full bg-pri px-1.5 text-[11px] text-on-pri">
+                  {conteoFiltrosActivos}
+                </span>
+              )}
+            </Button>
+          </div>
+
+          {/* Chips rápidos con desplazamiento horizontal. */}
+          <div role="group" aria-label="Atajos" className="barra-desplazable -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+            {chipsRapidos.map((c) => (
+              <button
+                key={c.clave}
+                type="button"
+                aria-pressed={c.activo}
+                onClick={c.alternar}
+                className={cn(
+                  "min-h-11 shrink-0 cursor-pointer whitespace-nowrap rounded-full border px-4 text-[13px] font-semibold transition-colors",
+                  c.activo ? "border-pri bg-pri text-on-pri" : "border-line-strong bg-surface text-ink-2 hover:bg-surface-2"
+                )}
+              >
+                {c.etiqueta}
+              </button>
+            ))}
+          </div>
+
+          {errorGuardar && (
+            <p role="alert" className="rounded-[4px] bg-rose-soft px-4 py-3 text-sm text-rose">
+              {errorGuardar}
+            </p>
+          )}
+
+          {activos.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2" aria-label="Filtros activos">
+              {activos.map((a) => (
+                <button
+                  key={a.clave}
+                  onClick={a.quitar}
+                  className="flex min-h-9 cursor-pointer items-center gap-1 rounded-full bg-pri-soft py-1 pl-3 pr-2 text-xs font-semibold text-pri-text"
+                  title="Quitar este filtro"
+                >
+                  {a.texto}
+                  <X className="h-3 w-3" aria-label="Quitar" />
+                </button>
+              ))}
+              <button onClick={limpiarFiltros} className="min-h-9 cursor-pointer text-xs font-semibold text-pri-text hover:underline">
+                Limpiar todo
+              </button>
+            </div>
+          )}
+
+          <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-ink-2">
+            <p aria-live="polite">
+              <strong className="font-semibold text-ink">
+                {resultados.length} {resultados.length === 1 ? "convocatoria coincide" : "convocatorias coinciden"}
+              </strong>
+              {porCompatibilidad && " · ordenadas por compatibilidad"}
+            </p>
+            {nuevasSemana > 0 && (
+              <p className="flex items-center gap-2 text-[13px] font-semibold text-ink-2">
+                <span aria-hidden className="relative h-2 w-2">
+                  <span className="ping-ring absolute inset-0 rounded-full bg-amber" />
+                  <span className="absolute inset-0 rounded-full bg-amber" />
+                </span>
+                {nuevasSemana} {nuevasSemana === 1 ? "nueva" : "nuevas"} esta semana
+              </p>
+            )}
+          </div>
+
+          {resultados.length === 0 ? vacio : <div className="flex flex-col gap-3">{resultados.map(fila)}</div>}
+        </>
+      )}
+
+      {tab === "sugeridas" &&
+        (sugeridasLista.length === 0 ? (
+          <EmptyState
+            icon={WandSparkles}
+            titulo="Aún no hay convocatorias sugeridas"
+            descripcion="Registra un proyecto o completa su tipo, sector, monto y departamento para que el cruce encuentre las que mejor le pegan."
+            accion={<LinkButton href="/proyectos">Ir a mis proyectos</LinkButton>}
+          />
+        ) : (
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,320px),1fr))] gap-4">
+            {sugeridasLista.map((c) => (
+              <ConvocatoriaCard
+                key={c.id}
+                convocatoria={c}
+                categorias={categorias}
+                href={rutaFicha?.(c.id)}
+                compatibilidad={compatibilidad?.[c.id]}
+                proyectoNombre={proyectoPorConvocatoria?.[c.id]}
+                guardada={guardadas.has(c.id)}
+                onGuardar={() => alternarGuardada(c.id)}
+              />
+            ))}
+          </div>
+        ))}
+
+      {tab === "guardadas" &&
+        (guardadasLista.length === 0 ? (
+          <EmptyState
+            icon={Bookmark}
+            titulo="Aún no guardas convocatorias"
+            descripcion="En «Todas», toca el marcador de una convocatoria para tenerla a mano aquí. Si una cierra en los próximos 7 días, te avisamos en la campana."
+            accion={<Button onClick={() => cambiarTab("todas")}>Explorar convocatorias</Button>}
+          />
+        ) : (
+          <div className="flex flex-col gap-3">{guardadasLista.map(fila)}</div>
+        ))}
+
+      {/* Filtros: panel lateral de 420 px en escritorio y hoja inferior (86 %) en móvil. */}
+      <BottomSheet
+        abierto={filtrosAbiertos}
+        onCerrar={() => setFiltrosAbiertos(false)}
+        titulo="Filtros"
+        lateralLg
+        pie={
+          <div className="flex gap-3">
+            <Button variant="secondary" onClick={limpiarTodo}>
+              Limpiar
+            </Button>
+            <Button className="flex-1" onClick={() => setFiltrosAbiertos(false)}>
+              Ver {resultados.length} {resultados.length === 1 ? "convocatoria" : "convocatorias"}
+            </Button>
+          </div>
+        }
+      >
+        <div className="flex flex-col gap-5 p-5">
+          {chipsRapidos.find((c) => c.clave === "perfil")?.activo && (
+            <p className="rounded-[4px] bg-pri-soft px-3.5 py-3 text-[13px] leading-snug text-pri-text">
+              Ya filtramos por tu perfil: solo ves las de 60 % o más de compatibilidad con alguno de tus proyectos. Ajusta
+              solo si buscas algo distinto.
+            </p>
+          )}
+
+          {!soloVigentes && (
+            <FiltroGrupo titulo="Tipo de convocatoria" abierto>
+              <div className="flex flex-wrap gap-2">
+                {(
+                  [
+                    ["todas", "Todas"],
+                    ["fondo", "Fondos y financiación"],
+                    ["beneficio_tributario", "Beneficios tributarios"],
+                  ] as const
+                ).map(([valor, etiqueta]) => (
+                  <BotonOpcion key={valor} activo={tipo === valor} onClick={() => setTipo(valor)}>
+                    {etiqueta}
+                  </BotonOpcion>
+                ))}
+              </div>
+            </FiltroGrupo>
+          )}
+          <FiltroGrupo titulo="Origen" abierto>
+            <div className="flex flex-wrap gap-2">
+              {(
+                [
+                  ["todos", "Todo origen"],
+                  ["publico", "Público"],
+                  ["privado", "Privado"],
+                  ["cooperacion", "Cooperación"],
+                ] as const
+              ).map(([valor, etiqueta]) => (
+                <BotonOpcion key={valor} activo={origen === valor} onClick={() => setOrigen(valor)}>
+                  {etiqueta}
+                </BotonOpcion>
+              ))}
+            </div>
+          </FiltroGrupo>
+          <FiltroGrupo titulo="Ordenar por" abierto>
+            <select
+              value={orden}
+              onChange={(e) => setOrden(e.target.value as ClaveOrden | "")}
+              aria-label="Ordenar por"
+              className={CAMPO}
+            >
+              <option value="">El del catálogo</option>
+              {ORDENES.map((o) => (
+                <option key={o.clave} value={o.clave}>
+                  {o.nombre}
+                </option>
+              ))}
+            </select>
+          </FiltroGrupo>
+
+          <FiltroGrupo titulo="Tipo de proyecto" abierto>{botonesCategoria(tiposProyecto, "tipoProyecto")}</FiltroGrupo>
+          <FiltroGrupo titulo="Sector" abierto>{botonesCategoria(sectores, "sector")}</FiltroGrupo>
+          <FiltroGrupo titulo="Quién puede postular">{botonesCategoria(tiposEntidad, "tipoEntidad")}</FiltroGrupo>
+
+          <FiltroGrupo titulo="Entidad convocante">
+            <select value={f.entidad} onChange={(e) => set("entidad", e.target.value)} aria-label="Entidad convocante" className={CAMPO}>
+              <option value="">Todas las entidades</option>
+              {entidades.map(([e, n]) => (
+                <option key={e} value={e}>
+                  {e} ({n})
+                </option>
+              ))}
+            </select>
+          </FiltroGrupo>
+
+          {/* RF-12, RN-34: el departamento y la región traen también las de cobertura nacional. */}
+          <FiltroGrupo titulo="Ubicación">
+            <select value={f.departamento} onChange={(e) => set("departamento", e.target.value)} aria-label="Departamento" className={CAMPO}>
+              <option value="">Todos los departamentos</option>
+              {DEPARTAMENTOS.map((d) => (
+                <option key={d.codigo} value={d.codigo}>
+                  {d.nombre} ({porDepartamento.get(d.codigo) ?? 0})
+                </option>
+              ))}
+            </select>
+            <select value={f.region} onChange={(e) => set("region", e.target.value as ClaveRegion | "")} aria-label="Región" className={CAMPO}>
+              <option value="">Todas las regiones</option>
+              {REGIONES.map((r) => (
+                <option key={r.clave} value={r.clave}>
+                  {r.nombre}
+                </option>
+              ))}
+            </select>
+            <select value={f.alcance} onChange={(e) => set("alcance", e.target.value as Alcance | "")} aria-label="Alcance" className={CAMPO}>
+              <option value="">Nacionales y territoriales</option>
+              <option value="nacional">Solo de cobertura nacional</option>
+              <option value="territorial">Solo territoriales</option>
+            </select>
+            {(f.departamento || f.region) && f.alcance !== "territorial" && (
+              <p className="text-xs text-ink-3">Incluye las convocatorias de cobertura nacional.</p>
+            )}
+          </FiltroGrupo>
+
+          <FiltroGrupo titulo="Cuánto necesitas" abierto>
+            <CampoMonto etiqueta="Busco apoyos de al menos" valor={f.montoDesde} onChange={(v) => set("montoDesde", v)} lectura={lecturaDesde} />
+            <CampoMonto etiqueta="Que no exijan más de (monto mínimo)" valor={f.montoHasta} onChange={(v) => set("montoHasta", v)} lectura={lecturaHasta} />
+            <select value={f.monto} onChange={(e) => set("monto", e.target.value as FiltroMonto | "")} aria-label="Monto informado" className={CAMPO}>
+              <option value="">Con o sin monto informado</option>
+              <option value="con">Solo con monto informado</option>
+              <option value="sin">Sin monto (apoyo no monetario o no informado)</option>
+            </select>
+          </FiltroGrupo>
+
+          <FiltroGrupo titulo="Fecha de cierre">
+            <div className="flex flex-wrap gap-2">
+              {DIAS_CIERRE.map((d) => (
+                <BotonOpcion key={d} activo={f.cierraEnDias === d} onClick={() => set("cierraEnDias", f.cierraEnDias === d ? null : d)}>
+                  {d} días
+                </BotonOpcion>
+              ))}
+            </div>
+            <p className="text-xs text-ink-3">Cierra en los próximos…</p>
+            <select value={f.anioCierre} onChange={(e) => set("anioCierre", e.target.value)} aria-label="Año de cierre" className={CAMPO}>
+              <option value="">Cualquier año</option>
+              {anios.map((a) => (
+                <option key={a} value={a}>
+                  Cierra en {a}
+                </option>
+              ))}
+            </select>
+            <Fecha etiqueta="Cierra desde" valor={f.cierraDesde} onChange={(v) => set("cierraDesde", v)} />
+            <Fecha etiqueta="Cierra antes de" valor={f.cierraAntesDe} onChange={(v) => set("cierraAntesDe", v)} />
+          </FiltroGrupo>
+
+          <FiltroGrupo titulo="Fecha de apertura">
+            <Fecha etiqueta="Abre desde" valor={f.abreDesde} onChange={(v) => set("abreDesde", v)} />
+            <p className="text-xs text-ink-3">Las que no informan su apertura no aparecen con este filtro.</p>
+          </FiltroGrupo>
+
+          <FiltroGrupo titulo="Documentos y requisitos">
+            <div className="flex flex-wrap gap-2">
+              {TIPOS_DOCUMENTO.map((t) => (
+                <BotonOpcion key={t.clave} activo={f.tipoDoc.includes(t.clave)} onClick={() => alternar("tipoDoc", t.clave)}>
+                  {t.nombre}
+                </BotonOpcion>
+              ))}
+              <BotonOpcion activo={f.exigeDocumentos} onClick={() => set("exigeDocumentos", !f.exigeDocumentos)}>
+                Exige documentos entre sus requisitos
+              </BotonOpcion>
+            </div>
+            <label className="block text-xs text-ink-3">
+              Hasta cuántos requisitos
+              <input
+                type="text"
+                inputMode="numeric"
+                value={f.maxRequisitos}
+                onChange={(e) => set("maxRequisitos", e.target.value.replace(/\D/g, "").slice(0, 3))}
+                placeholder="Ej. 5"
+                className={cn(CAMPO, "mt-1")}
+              />
+            </label>
+          </FiltroGrupo>
+
+          {/* RN-39: las de otros países solo entran bajo petición explícita. */}
+          {!soloVigentes && (
+            <FiltroGrupo titulo="Otros países">
+              <BotonOpcion activo={f.incluirOtrosPaises} onClick={() => set("incluirOtrosPaises", !f.incluirOtrosPaises)}>
+                Incluir las de otros países
+              </BotonOpcion>
+              <p className="text-xs text-ink-3">
+                Convocatorias a las que las organizaciones de tu país no pueden postularse. Se marcan y no admiten postulación.
+              </p>
+            </FiltroGrupo>
+          )}
+
+          {/* RF-11 / RN-02: las cerradas solo entran bajo petición explícita. */}
+          {!soloVigentes && (
+            <FiltroGrupo titulo="Convocatorias cerradas">
+              <BotonOpcion activo={f.incluirCerradas} onClick={() => set("incluirCerradas", !f.incluirCerradas)}>
+                Incluirlas en los resultados
+              </BotonOpcion>
+              <p className="text-xs text-ink-3">Sirven de referencia sobre lo que suele abrirse, pero ya no admiten postulación.</p>
+            </FiltroGrupo>
+          )}
+        </div>
+      </BottomSheet>
     </div>
   );
 }
 
-function FiltroGrupo({
-  titulo,
-  children,
-  ultimo,
-  abierto,
-}: {
-  titulo: string;
-  children: React.ReactNode;
-  ultimo?: boolean;
-  abierto?: boolean;
-}) {
+function FiltroGrupo({ titulo, children, abierto }: { titulo: string; children: React.ReactNode; abierto?: boolean }) {
   return (
-    <details open={abierto} className={cn("group mb-3 border-b border-line-2 pb-3", ultimo && "mb-0 border-b-0 pb-0")}>
-      <summary className="flex cursor-pointer list-none items-center justify-between text-xs font-semibold uppercase tracking-wide text-ink-3">
+    <details open={abierto} className="group border-b border-line-2 pb-4 last:border-b-0">
+      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between text-xs font-semibold uppercase tracking-[.08em] text-ink-3">
         {titulo}
         <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
       </summary>
-      <div className="mt-2 space-y-2">{children}</div>
+      <div className="mt-1 space-y-2.5">{children}</div>
     </details>
   );
 }
 
-function Checkbox({ label, checked, onChange, cuenta }: { label: string; checked: boolean; onChange: () => void; cuenta?: number }) {
+/** Opción de 38 px que reemplaza a la casilla: activa con `pri-soft` y borde `pri`. */
+function BotonOpcion({
+  activo,
+  onClick,
+  cuenta,
+  children,
+}: {
+  activo: boolean;
+  onClick: () => void;
+  cuenta?: number;
+  children: React.ReactNode;
+}) {
   return (
-    <label className="flex cursor-pointer items-center gap-2 text-sm text-ink-2">
-      <input type="checkbox" checked={checked} onChange={onChange} className="h-4 w-4 rounded border-line text-pri-text focus:ring-pri bg-surface text-ink" />
-      <span className="flex-1">{label}</span>
-      {cuenta !== undefined && <span className="text-xs text-ink-3">{cuenta}</span>}
-    </label>
+    <button
+      type="button"
+      aria-pressed={activo}
+      onClick={onClick}
+      className={cn(
+        "inline-flex min-h-[38px] cursor-pointer items-center gap-2 rounded-[4px] border px-3 text-[13px] font-medium transition-colors",
+        activo ? "border-pri bg-pri-soft text-pri-text" : "border-line-strong bg-surface text-ink-2 hover:bg-surface-2"
+      )}
+    >
+      {children}
+      {cuenta !== undefined && <span className="font-tabular text-xs text-ink-3">{cuenta}</span>}
+    </button>
   );
 }
 
@@ -771,11 +851,11 @@ function CampoMonto({
           placeholder="Ej. 100.000.000"
           aria-label={etiqueta}
           aria-invalid={!lectura.ok}
-          className={cn(CAMPO, "pr-12")}
+          className={cn(CAMPO, "font-tabular pr-12")}
         />
         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink-3">COP</span>
       </div>
-      {!lectura.ok && <p className="mt-1 text-xs text-pri-text">El monto {lectura.error}</p>}
+      {!lectura.ok && <p className="mt-1 text-xs text-rose">El monto {lectura.error}</p>}
     </label>
   );
 }

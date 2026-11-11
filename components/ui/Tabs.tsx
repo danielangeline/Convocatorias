@@ -38,13 +38,13 @@ export function Tabs<T extends string>({
             aria-selected={activa}
             onClick={() => onChange(p.valor)}
             className={cn(
-              "-mb-px flex h-11 cursor-pointer items-center gap-2 whitespace-nowrap border-b-2 px-3.5 text-[13px] font-bold transition-colors",
+              "-mb-px flex h-11 cursor-pointer items-center gap-2 whitespace-nowrap border-b-2 px-3.5 text-[14px] font-semibold transition-colors",
               activa ? "border-pri text-pri-text" : "border-transparent text-ink-3 hover:text-ink"
             )}
           >
             {p.etiqueta}
             {p.conteo !== undefined && (
-              <span className="font-tabular rounded-md bg-surface-2 px-1.5 py-0.5 text-[11px] text-ink-2">
+              <span className="font-tabular rounded-[3px] bg-surface-2 px-1.5 py-0.5 text-[11px] text-ink-2">
                 {p.conteo}
               </span>
             )}

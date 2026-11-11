@@ -57,3 +57,9 @@ export function nuevasEstaSemana(compatibles: Compatibilidad[], catalogo: Convoc
     return f ? new Date(f).getTime() >= limite : false;
   }).length;
 }
+
+/** Ids de las convocatorias publicadas en los últimos 7 días (badge NUEVO del catálogo). */
+export function idsNuevasEstaSemana(catalogo: Convocatoria[]): string[] {
+  const limite = Date.now() - DIAS_NUEVA * 24 * 60 * 60 * 1000;
+  return catalogo.filter((c) => c.publicadaAt && new Date(c.publicadaAt).getTime() >= limite).map((c) => c.id);
+}

@@ -17,6 +17,7 @@ export function BottomSheet({
   titulo,
   children,
   pie,
+  lateralLg = false,
   className,
 }: {
   abierto: boolean;
@@ -24,6 +25,8 @@ export function BottomSheet({
   titulo: string;
   children: React.ReactNode;
   pie?: React.ReactNode;
+  /** En escritorio (≥ 1024 px) se vuelve un panel lateral derecho de 420 px (p. ej. los filtros). */
+  lateralLg?: boolean;
   className?: string;
 }) {
   const panel = useRef<HTMLDivElement>(null);
@@ -66,6 +69,7 @@ export function BottomSheet({
         tabIndex={-1}
         className={cn(
           "absolute inset-x-0 bottom-0 flex max-h-[86%] flex-col rounded-t-xl border-t border-line bg-surface shadow-card outline-none",
+          lateralLg && "lg:inset-y-0 lg:left-auto lg:right-0 lg:max-h-none lg:w-[420px] lg:rounded-none lg:border-l lg:border-t-0",
           className
         )}
       >

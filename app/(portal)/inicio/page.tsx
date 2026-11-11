@@ -1,19 +1,18 @@
 import Link from "next/link";
-import { ArrowRight, Banknote, FolderPlus, KanbanSquare, Target } from "lucide-react";
+import { ArrowRight, FolderPlus } from "lucide-react";
 import { obtenerSesion } from "@/lib/auth";
 import { listarCatalogo } from "@/lib/catalogo";
 import { listarPostulaciones } from "@/lib/postulaciones-servidor";
 import { compatibilidadEmpresa, nuevasEstaSemana } from "@/lib/compatibilidad-empresa";
 import { ETAPA_LABEL, etapaDe } from "@/lib/etapas-postulacion";
+import { listaConY, proximoPaso } from "@/lib/proximo-paso";
 import { diasRestantes } from "@/lib/utils";
 import { formatRangoConvocatoria, montoMaxCop } from "@/lib/monedas";
 import { LinkButton } from "@/components/ui/Button";
 import { Card, CardHeader } from "@/components/ui/Card";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Badge } from "@/components/ui/Badge";
-import { KpiCard, KpiGrid } from "@/components/viz/KpiCard";
-import { StackedBarChart, type BarraApilada } from "@/components/viz/StackedBarChart";
-import { CompatRing } from "@/components/viz/CompatRing";
+import { ProgressBar } from "@/components/ui/ProgressBar";
+import { KpiCelda, KpiFranja } from "@/components/viz/KpiCard";
 import { DeadlineTile } from "@/components/viz/Deadline";
 import { ProgressRow } from "@/components/viz/ProgressRow";
 import { KpiCreditos } from "@/components/inicio/KpiCreditos";
@@ -21,7 +20,8 @@ import { KpiCreditos } from "@/components/inicio/KpiCreditos";
 // CU-44, RF-101 · Inicio de la empresa. Solo presenta lo que ya existe: el
 // catálogo (con su tipo y origen, RF-102), la compatibilidad de CU-10 (cruce
 // determinístico, RN-05), las postulaciones y los créditos. Se lee con la
-// sesión de la empresa (RN-30).
+// sesión de la empresa (RN-30). Rediseño FundRadar: una sola acción («Tu
+// próximo paso»), la franja de KPI y dos listas; la gráfica de fondos por mes salió.
 const ESTADOS_ACTIVOS = ["en_preparacion", "presentada", "en_evaluacion"];
 
 function fechaYSaludo() {
@@ -34,7 +34,6 @@ function fechaYSaludo() {
 }
 
 const millones = (v: number) => `$${Math.round(v / 1e6).toLocaleString("es-CO")}`;
-const milesDeMillones = (v: number) => `$${(v / 1e9).toLocaleString("es-CO", { maximumFractionDigits: 1 })}`;
 /** Monto corto para las listas: «$80 M», «Hasta $2.000 M», «Monto no informado». */
 function montoCorto(min: number | null, max: number | null): string {
   if (max == null && min == null) return "Monto no informado";
@@ -42,6 +41,10 @@ function montoCorto(min: number | null, max: number | null): string {
   if (max == null) return `Desde ${millones(min!)} M`;
   return `${millones(min!)} – ${millones(max)} M`;
 }
+const fechaCorta = (iso: string) =>
+  new Intl.DateTimeFormat("es-CO", { day: "numeric", month: "short", timeZone: "UTC" })
+    .format(new Date(`${iso.slice(0, 10)}T00:00:00Z`))
+    .replace(".", "");
 
 export default async function InicioPage() {
   const [datos, postulaciones, catalogo, compat] = await Promise.all([
@@ -55,7 +58,6 @@ export default async function InicioPage() {
   const proyectos = compat.proyectos;
 
   const compatibles = [...compat.porConvocatoria.values()];
-  const porPorcentaje = [...compatibles].sort((a, b) => b.porcentaje - a.porcentaje);
   const porCierre = [...compatibles].sort((a, b) => a.convocatoria.fechaCierre.localeCompare(b.convocatoria.fechaCierre));
   const cierranPronto = compatibles.filter((s) => diasRestantes(s.convocatoria.fechaCierre) <= 15).length;
   const nuevas = nuevasEstaSemana(compatibles, catalogo);
@@ -70,29 +72,7 @@ export default async function InicioPage() {
   const conMonto = activas.filter((p) => p.convocatoria && montoMaxCop(p.convocatoria) != null);
   const enJuego = conMonto.reduce((suma, p) => suma + (montoMaxCop(p.convocatoria!) ?? 0), 0);
 
-  // Fondos por mes de cierre: suma del monto máximo de las compatibles,
-  // pública abajo y privada o de cooperación arriba (RF-102). Los nulos no suman.
-  const porMes = new Map<string, { publico: number; privado: number }>();
-  for (const s of compatibles) {
-    const c = s.convocatoria;
-    const max = montoMaxCop(c);
-    if (max == null) continue;
-    const mes = c.fechaCierre.slice(0, 7);
-    const acc = porMes.get(mes) ?? { publico: 0, privado: 0 };
-    if ((c.origen ?? "publico") === "publico") acc.publico += max;
-    else acc.privado += max;
-    porMes.set(mes, acc);
-  }
-  const barras: BarraApilada[] = [...porMes.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .slice(0, 6)
-    .map(([mes, v]) => ({
-      etiqueta: new Intl.DateTimeFormat("es-CO", { month: "short", timeZone: "UTC" })
-        .format(new Date(`${mes}-01T00:00:00Z`))
-        .replace(".", "")
-        .replace(/^./, (c) => c.toUpperCase()),
-      ...v,
-    }));
+  const paso = proximoPaso(postulaciones, proyectos, compatibles.length);
 
   const resumen =
     compatibles.length === 0 ? (
@@ -116,7 +96,7 @@ export default async function InicioPage() {
     );
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
       <PageHeader
         eyebrow={fecha}
         titulo={`${saludo}${nombre ? `, ${nombre}` : ""}`}
@@ -133,8 +113,89 @@ export default async function InicioPage() {
         }
       />
 
-      <KpiGrid>
-        <KpiCard
+      {/* Tu próximo paso: una sola acción, la más útil ahora. */}
+      {paso && (
+        <section
+          aria-labelledby="proximo-paso"
+          data-recorrido="proximo-paso"
+          className="flex flex-wrap items-center justify-between gap-5 rounded-md bg-pri-soft p-5 sm:p-6"
+        >
+          <div className="min-w-0 flex-[1_1_360px]">
+            <p className="flex items-center gap-2.5 text-xs font-semibold uppercase tracking-[.08em] text-pri-text">
+              <span aria-hidden className="relative h-2 w-2 flex-none">
+                <span className="ping-ring absolute inset-0 rounded-full bg-amber" />
+                <span className="absolute inset-0 rounded-full bg-amber" />
+              </span>
+              Tu próximo paso
+            </p>
+            {paso.tipo === "completar_postulacion" && (
+              <>
+                <h2 id="proximo-paso" className="mt-2 font-display text-2xl font-semibold leading-tight text-ink">
+                  Completa la postulación a {paso.convocatoria}
+                </h2>
+                <p className="mt-1.5 text-[15px] leading-[1.55] text-ink-2 [text-wrap:pretty]">
+                  Te faltan {paso.pendientes} de {paso.total} requisitos: {listaConY(paso.nombresPendientes)}
+                  {paso.pendientes > paso.nombresPendientes.length ? " y otros" : ""}.
+                </p>
+                <ProgressBar
+                  porcentaje={((paso.total - paso.pendientes) / paso.total) * 100}
+                  className="mt-3.5 max-w-md"
+                />
+                <div className="mt-4 flex flex-wrap gap-2.5">
+                  <LinkButton href={`/postulaciones/${paso.postulacionId}`}>Continuar postulación</LinkButton>
+                  <LinkButton href={`/convocatorias/${paso.convocatoriaId}`} variant="outline">
+                    Ver la convocatoria
+                  </LinkButton>
+                </div>
+              </>
+            )}
+            {paso.tipo === "registrar_proyecto" && (
+              <>
+                <h2 id="proximo-paso" className="mt-2 font-display text-2xl font-semibold leading-tight text-ink">
+                  Registra tu primer proyecto
+                </h2>
+                <p className="mt-1.5 text-[15px] leading-[1.55] text-ink-2">
+                  Con un proyecto registrado cruzamos sus datos con el catálogo y te mostramos las convocatorias que
+                  mejor le pegan.
+                </p>
+                <div className="mt-4">
+                  <LinkButton href="/proyectos">Registrar proyecto</LinkButton>
+                </div>
+              </>
+            )}
+            {paso.tipo === "revisar_sugeridas" && (
+              <>
+                <h2 id="proximo-paso" className="mt-2 font-display text-2xl font-semibold leading-tight text-ink">
+                  Revisa tus {paso.cantidad} {paso.cantidad === 1 ? "sugerida" : "sugeridas"}
+                </h2>
+                <p className="mt-1.5 text-[15px] leading-[1.55] text-ink-2">
+                  Son las convocatorias vigentes que mejor coinciden con tus proyectos, de mayor a menor compatibilidad.
+                </p>
+                <div className="mt-4">
+                  <LinkButton href="/convocatorias?tab=sugeridas">Ver sugeridas</LinkButton>
+                </div>
+              </>
+            )}
+          </div>
+          {paso.tipo === "completar_postulacion" && (
+            <div
+              className="flex min-w-[120px] flex-col items-center rounded-md bg-surface px-5 py-4 text-center"
+              aria-label={`Cierra en ${paso.dias} días`}
+            >
+              <span className={`font-tabular text-[44px] font-medium leading-none ${paso.dias < 10 ? "text-rose" : "text-ink"}`}>
+                {paso.dias}
+              </span>
+              <span className="mt-1 text-xs font-semibold uppercase tracking-[.08em] text-ink-3">
+                {paso.dias === 1 ? "día" : "días"}
+              </span>
+              <span className="mt-1 text-xs text-ink-3">Cierra el {fechaCorta(paso.fechaCierre)}</span>
+            </div>
+          )}
+        </section>
+      )}
+
+      <KpiFranja>
+        <KpiCelda
           etiqueta="Compatibles contigo"
           valor={compatibles.length}
           nota={
@@ -144,51 +205,31 @@ export default async function InicioPage() {
                 ? `+${nuevas} ${nuevas === 1 ? "nueva" : "nuevas"} esta semana`
                 : `Con ${proyectos} ${proyectos === 1 ? "proyecto" : "proyectos"}`
           }
-          icono={Target}
+          href="/convocatorias?tab=sugeridas"
         />
-        <KpiCard
+        <KpiCelda
           etiqueta="Postulaciones activas"
           valor={activas.length}
           nota={listas > 0 ? `${listas} ${listas === 1 ? "lista" : "listas"} para radicar` : "En preparación o radicadas"}
-          icono={KanbanSquare}
-          tono="pri"
+          href="/postulaciones"
         />
-        <KpiCard
+        <KpiCelda
           etiqueta="Monto en juego"
           valor={millones(enJuego)}
           sufijo=" M"
           nota={conMonto.length > 0 ? `COP en ${conMonto.length} ${conMonto.length === 1 ? "postulación" : "postulaciones"}` : "Sin montos informados"}
-          icono={Banknote}
-          tono="amber"
+          href="/postulaciones"
         />
         <KpiCreditos />
-      </KpiGrid>
+      </KpiFranja>
 
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] gap-3.5">
-        <Card className="flex flex-col gap-4">
-          <CardHeader
-            titulo="Fondos disponibles para tu perfil"
-            subtitulo="Monto total por mes de cierre · miles de millones COP"
-          />
-          {barras.length > 0 ? (
-            <StackedBarChart
-              datos={barras}
-              etiquetaPrivado="Privados"
-              formatear={milesDeMillones}
-              etiquetaAccesible="Fondos disponibles para tu perfil por mes de cierre, públicos y privados"
-            />
-          ) : (
-            <p className="py-10 text-center text-[13px] text-ink-3">
-              Cuando haya convocatorias compatibles con monto informado, verás aquí cuánto cierra cada mes.
-            </p>
-          )}
-        </Card>
+      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] gap-4">
         <Card className="flex flex-col gap-1.5">
           <CardHeader
             className="mb-2"
             titulo="Próximos cierres"
             accion={
-              <Link href="/convocatorias" className="text-[12.5px] font-bold text-pri-text">
+              <Link href="/convocatorias" className="inline-flex min-h-11 items-center text-[13px] font-semibold text-pri-text hover:underline">
                 Ver todas
               </Link>
             }
@@ -200,76 +241,28 @@ export default async function InicioPage() {
             <Link
               key={s.convocatoria.id}
               href={`/convocatorias/${s.convocatoria.id}`}
-              className="-mx-2.5 flex items-center gap-3.5 rounded-xl p-2.5 hover:bg-surface-2"
+              className="-mx-2.5 flex items-center gap-3.5 rounded-[4px] p-2.5 hover:bg-surface-2"
             >
               <DeadlineTile dias={diasRestantes(s.convocatoria.fechaCierre)} />
               <div className="min-w-0 flex-1">
-                <div className="truncate text-[13.5px] font-bold">{s.convocatoria.nombre}</div>
+                <div className="truncate font-display text-[17px] font-semibold leading-snug">{s.convocatoria.nombre}</div>
                 <div className="mt-0.5 truncate text-xs text-ink-3">
-                  {s.convocatoria.entidadConvocante} · {(s.convocatoria.moneda ?? "COP") === "COP" ? montoCorto(s.convocatoria.montoMin, s.convocatoria.montoMax) : formatRangoConvocatoria(s.convocatoria)}
+                  {s.convocatoria.entidadConvocante} ·{" "}
+                  {(s.convocatoria.moneda ?? "COP") === "COP"
+                    ? montoCorto(s.convocatoria.montoMin, s.convocatoria.montoMax)
+                    : formatRangoConvocatoria(s.convocatoria)}
                 </div>
               </div>
-              <span className="font-tabular text-xs font-semibold text-pri-text">{s.porcentaje}%</span>
+              <span className="font-tabular text-xs font-medium text-pri-text">{s.porcentaje}%</span>
             </Link>
           ))}
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] gap-3.5">
-        <Card className="flex flex-col gap-3.5">
-          <CardHeader
-            titulo="Sugeridas para tus proyectos"
-            subtitulo="Cruce de sector, tipo de entidad, ubicación y monto"
-            accion={
-              porPorcentaje.length > 3 ? (
-                <Link href="/sugeridas" className="text-[12.5px] font-bold text-pri-text">
-                  Ver todas
-                </Link>
-              ) : undefined
-            }
-          />
-          {porPorcentaje.length === 0 ? (
-            <p className="text-[13px] text-ink-2">
-              {proyectos === 0 ? (
-                <>
-                  Aún no tienes proyectos.{" "}
-                  <Link href="/proyectos" className="font-bold text-pri-text">
-                    Crea el primero
-                  </Link>{" "}
-                  y aquí verás las convocatorias que mejor le pegan.
-                </>
-              ) : (
-                "Ninguna convocatoria vigente coincide todavía. Completa los datos de tus proyectos para mejorar el cruce."
-              )}
-            </p>
-          ) : (
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-2.5">
-              {porPorcentaje.slice(0, 3).map((s) => {
-                const tributario = s.convocatoria.tipo === "beneficio_tributario";
-                return (
-                  <Link
-                    key={s.convocatoria.id}
-                    href={`/convocatorias/${s.convocatoria.id}`}
-                    className="flex flex-col gap-3 rounded-[14px] border border-line bg-bg p-3.5 hover:border-pri"
-                  >
-                    <div className="flex items-center justify-between">
-                      <CompatRing porcentaje={s.porcentaje} fondo="var(--bg)" />
-                      <Badge tono={tributario ? "pri" : "pri"}>{tributario ? "Tributario" : "Fondos"}</Badge>
-                    </div>
-                    <div className="text-[13.5px] font-bold leading-snug [text-wrap:pretty]">{s.convocatoria.nombre}</div>
-                    <div className="mt-auto text-xs text-ink-3">{s.convocatoria.entidadConvocante}</div>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
         </Card>
 
         <Card className="flex flex-col gap-3.5">
           <CardHeader
             titulo="Mis postulaciones"
             accion={
-              <Link href="/postulaciones" className="text-[12.5px] font-bold text-pri-text">
+              <Link href="/postulaciones" className="inline-flex min-h-11 items-center text-[13px] font-semibold text-pri-text hover:underline">
                 Abrir tablero
               </Link>
             }
@@ -277,14 +270,14 @@ export default async function InicioPage() {
           {conEtapa.length === 0 ? (
             <p className="text-[13px] text-ink-2">
               No tienes postulaciones activas.{" "}
-              <Link href="/convocatorias" className="font-bold text-pri-text">
+              <Link href="/convocatorias" className="font-semibold text-pri-text hover:underline">
                 Explora el catálogo
               </Link>{" "}
               para preparar la primera.
             </p>
           ) : (
             conEtapa.slice(0, 4).map(({ p, hechos, etapa }) => (
-              <Link key={p.id} href={`/postulaciones/${p.id}`} className="-mx-2.5 rounded-xl p-2.5 hover:bg-surface-2">
+              <Link key={p.id} href={`/postulaciones/${p.id}`} className="-mx-2.5 rounded-[4px] p-2.5 hover:bg-surface-2">
                 <ProgressRow
                   nombre={p.convocatoria?.nombre ?? "Convocatoria no disponible"}
                   etapa={ETAPA_LABEL[etapa]}

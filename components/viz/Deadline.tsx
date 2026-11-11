@@ -6,10 +6,10 @@ export function DeadlineTile({ dias }: { dias: number }) {
   const tono = dias < 10 ? "rose" : dias < 15 ? "amber" : "neutro";
   return (
     <div
-      className={`flex h-[46px] w-[46px] flex-none flex-col items-center justify-center gap-0.5 rounded-[4px] ${TONO_CLASE[tono]}`}
+      className={`flex h-12 w-12 flex-none flex-col items-center justify-center gap-0.5 rounded-[4px] ${TONO_CLASE[tono]}`}
       aria-label={`Cierra en ${dias} días`}
     >
-      <span className="font-tabular text-[17px] font-semibold leading-none">{dias}</span>
+      <span className="font-tabular text-lg font-semibold leading-none">{dias}</span>
       <span className="text-[9.5px] font-bold uppercase leading-none tracking-[.06em]">días</span>
     </div>
   );

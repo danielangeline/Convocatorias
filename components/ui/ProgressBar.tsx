@@ -22,7 +22,7 @@ export function ProgressBar({
   const valor = Math.max(0, Math.min(100, porcentaje));
   return (
     <div
-      className={cn("w-full overflow-hidden rounded-full bg-surface-2", className)}
+      className={cn("w-full overflow-hidden rounded-full bg-line-2", className)}
       style={{ height: altura }}
       role="progressbar"
       aria-valuenow={valor}
