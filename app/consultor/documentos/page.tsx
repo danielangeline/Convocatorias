@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { FileText, Sparkles } from "lucide-react";
-import { ESTADO_DOCUMENTO_LABEL, ESTADO_DOCUMENTO_ESTILO } from "@/lib/documentos";
+import { FileText } from "lucide-react";
 import { listarDocumentos } from "@/lib/documentos-servidor";
 import { formatFecha } from "@/lib/utils";
 import { GuardaConsultor } from "@/components/GuardaConsultor";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 // RN-22, RN-27 · Solo los documentos que una empresa le autorizó y cuyo encargo
 // sigue en curso: lo decide la RLS en cada petición, no la pantalla.
@@ -14,17 +14,11 @@ export default async function DocumentosConsultorPage() {
 
   return (
     <GuardaConsultor>
-      <div>
-        <div className="mb-6">
-          <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-pri-text">
-            <Sparkles className="h-3.5 w-3.5" /> Módulo de IA
-          </p>
-          <h1 className="mt-1 font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.01em] text-ink sm:text-[32px]">Documentos</h1>
-          <p className="text-sm text-ink-2">
-            Borradores generados con IA que una empresa te autorizó para un encargo en curso. Puedes leerlos, editarlos
-            y pedir ajustes con IA, pero no descargarlos. Al terminar el encargo dejas de verlos.
-          </p>
-        </div>
+      <div className="flex flex-col gap-5">
+        <PageHeader
+          titulo="Documentos"
+          descripcion="Borradores que una empresa te autorizó para un encargo en curso. Puedes leerlos, editarlos y pedir ajustes con IA, pero no descargarlos; al terminar el encargo dejas de verlos."
+        />
 
         {documentos.length === 0 ? (
           <EmptyState
@@ -33,26 +27,39 @@ export default async function DocumentosConsultorPage() {
             descripcion="Cuando una empresa autorice tu acceso a un documento generado con IA, aparecerá aquí."
           />
         ) : (
-          <div className="grid gap-5 sm:grid-cols-2">
+          <div className="flex flex-col gap-3">
             {documentos.map((doc) => (
-              <Link
+              <article
                 key={doc.id}
-                href={`/consultor/documentos/${doc.id}`}
-                className="flex flex-col rounded-md border border-line bg-surface p-5 transition-colors hover:border-pri/30 hover:bg-pri-soft"
+                className="flex flex-wrap items-center gap-x-6 gap-y-3 rounded-md border border-line bg-surface p-5 transition-colors hover:border-pri"
               >
-                <div className="flex items-start justify-between gap-2">
-                  <Badge className={ESTADO_DOCUMENTO_ESTILO[doc.estado]}>{ESTADO_DOCUMENTO_LABEL[doc.estado]}</Badge>
-                  <span className="font-tabular text-xs text-ink-3">v{doc.version}</span>
+                <div className="min-w-0 flex-[1_1_300px]">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <Badge tono="aviso">Puede editar</Badge>
+                    <span className="font-tabular text-xs text-ink-3">
+                      v{doc.version} · {formatFecha(doc.actualizadoAt.slice(0, 10))}
+                    </span>
+                  </div>
+                  <h2 className="mt-2 font-display text-lg font-semibold leading-snug text-ink">{doc.proyectoNombre}</h2>
+                  <p className="mt-0.5 text-sm text-ink-2">{doc.convocatoriaNombre}</p>
                 </div>
-                <h3 className="mt-3 font-display text-base font-semibold leading-snug text-ink">{doc.proyectoNombre}</h3>
-                <p className="mt-1 text-sm text-ink-2">{doc.convocatoriaNombre}</p>
-                <div className="mt-4 flex items-center justify-between border-t border-line-2 pt-4 text-xs text-ink-3">
-                  <span>Actualizado: {formatFecha(doc.actualizadoAt.slice(0, 10))}</span>
-                  {doc.pendientes.length > 0 && (
-                    <Badge className="bg-amber/10 text-amber-ink ring-amber/30">{doc.pendientes.length} pendientes</Badge>
+                <div className="flex items-center gap-4">
+                  {doc.pendientes.length > 0 ? (
+                    <span className="text-[13px] font-semibold text-ink-2">
+                      <span className="font-tabular">{doc.pendientes.length}</span>{" "}
+                      {doc.pendientes.length === 1 ? "apartado por completar" : "apartados por completar"}
+                    </span>
+                  ) : (
+                    <span className="text-[13px] text-ink-3">Sin pendientes</span>
                   )}
+                  <Link
+                    href={`/consultor/documentos/${doc.id}`}
+                    className="inline-flex min-h-11 items-center justify-center whitespace-nowrap rounded-[4px] border border-pri bg-surface px-4 text-sm font-semibold text-pri-text hover:bg-pri-soft"
+                  >
+                    Abrir
+                  </Link>
                 </div>
-              </Link>
+              </article>
             ))}
           </div>
         )}

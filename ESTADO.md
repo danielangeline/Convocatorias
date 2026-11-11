@@ -17,7 +17,9 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 
 ## Lo último que se hizo
 
-- **Sesión 040, Fase 4: portal empresa** (Inicio con «Tu próximo paso», Convocatorias con pestañas/filtros/redirecciones, Ficha con «¿Te aplica?», Proyectos, Postulaciones, Detalle con stepper, Documentos, Directorio, Encargos, Plan y créditos, Ajustes; bitácora `2026-11-10-sesion-040-fundradar-fase-4.md`). Sin RF nuevos. Omitidos por falta de dato: chips «No reembolsable»/«Crédito», «Recomendado», paquetes de créditos. **Siguiente: Fase 5 (portal consultor).**
+- **Sesión 040, Fase 5: portal consultor** (Mi perfil con banda de completitud y lateral, Encargos con franja de KPI y solicitudes con borde ámbar, Documentos; bitácora `2026-11-10-sesion-040-fundradar-fase-5.md`). Sin RF nuevos. **Siguiente: Fase 6 (panel admin).**
+
+- **Sesión 040, Fase 4: portal empresa** (Inicio con «Tu próximo paso», Convocatorias con pestañas/filtros/redirecciones, Ficha con «¿Te aplica?», Proyectos, Postulaciones, Detalle con stepper, Documentos, Directorio, Encargos, Plan y créditos, Ajustes; bitácora `2026-11-10-sesion-040-fundradar-fase-4.md`). Sin RF nuevos. Omitidos por falta de dato: chips «No reembolsable»/«Crédito», «Recomendado», paquetes de créditos. 
 
 - **Sesión 040, Fase 3: identidad** (pantalla partida con banda oscura y cifras reales, tarjetas de puerta, casilla de consentimiento propia, MFA de 6 casillas, tratamiento de usted; bitácora `2026-11-10-sesion-040-fundradar-fase-3.md`). Sin RF nuevos. No se añadió el enlace público a `/mfa` (choca con RN-31). 
 

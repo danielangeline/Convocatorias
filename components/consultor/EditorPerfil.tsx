@@ -1,7 +1,6 @@
 "use client";
 
 import { CompatRing } from "@/components/viz/CompatRing";
-import { ChecklistSteps } from "@/components/viz/ChecklistSteps";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -25,6 +24,7 @@ import type { Categoria, ItemPortafolioPropio, PerfilConsultorPropio, RedSocialT
 import { cn, ESTADO_PERFIL_LABEL, ESTADO_PERFIL_ESTILO } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 const iconosRed: Record<RedSocialTipo, React.ElementType> = {
   linkedin: Briefcase,
@@ -69,9 +69,12 @@ const BUCKETS = { foto: "fotos-consultores", cv: "hojas-de-vida" } as const;
 export function EditorPerfil({
   perfilInicial,
   categorias,
+  reputacion,
 }: {
   perfilInicial: PerfilConsultorPropio;
   categorias: Categoria[];
+  /** Calificación y encargos completados (CU-18); sin ella no se muestra la tarjeta. */
+  reputacion?: { rating: number; completados: number };
 }) {
   const router = useRouter();
   const [perfil, setPerfil] = useState(perfilInicial);
@@ -80,6 +83,7 @@ export function EditorPerfil({
   const [ocupado, setOcupado] = useState<null | "guardar" | "enviar" | "foto" | "cv" | "consentimiento">(null);
   const [error, setError] = useState<string | null>(null);
   const [exito, setExito] = useState<string | null>(null);
+  const [arrastrando, setArrastrando] = useState(false);
   const fotoRef = useRef<HTMLInputElement>(null);
   const cvRef = useRef<HTMLInputElement>(null);
 
@@ -210,19 +214,40 @@ export function EditorPerfil({
   const bloqueado = !perfil.consentimientoDatos;
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="mb-6">
-        <h1 className="font-display text-[28px] font-semibold leading-[1.1] tracking-[-0.01em] text-ink sm:text-[32px]">Mi perfil de consultor</h1>
-        <p className="text-sm text-ink-2">Completa tu perfil para que las empresas puedan encontrarte en el directorio.</p>
-      </div>
+    <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-5">
+      <PageHeader
+        titulo="Mi perfil"
+        descripcion="Completa tu perfil para que las empresas puedan encontrarte en el directorio."
+        accion={
+          !bloqueado && (
+            <div className="hidden sm:block">
+              <Button onClick={guardar} disabled={!cambios || ocupado !== null}>
+                {ocupado === "guardar" ? "Guardando…" : "Guardar cambios"}
+              </Button>
+            </div>
+          )
+        }
+      />
 
-      <div className="mb-6 flex flex-wrap items-center gap-5 rounded-md border border-line bg-surface p-5">
-        <CompatRing porcentaje={completitud} tamano={84} etiqueta="Perfil completo" />
+      {/* Banda de completitud: lo que falta, concreto. */}
+      <section aria-label="Completitud del perfil" className="flex flex-wrap items-center gap-5 rounded-md bg-pri-soft p-5">
+        <CompatRing porcentaje={completitud} tamano={76} fondo="var(--pri-soft)" etiqueta="Perfil completo" />
         <div className="min-w-[220px] flex-1">
-          <h2 className="mb-3 text-[15px] font-bold">Tu perfil público</h2>
-          <ChecklistSteps pasos={pasos} />
+          <h2 className="font-display text-xl font-semibold text-ink">
+            {faltan.length === 0
+              ? "Tu perfil está completo"
+              : `Te ${faltan.length === 1 ? "falta 1 cosa" : `faltan ${faltan.length} cosas`} para el 100 %`}
+          </h2>
+          {faltan.length > 0 && (
+            <ul className="m-0 mt-1.5 list-disc space-y-0.5 pl-5 text-sm text-ink-2">
+              {faltan.map((f) => (
+                <li key={f}>{f.charAt(0).toUpperCase() + f.slice(1)}</li>
+              ))}
+            </ul>
+          )}
         </div>
-      </div>
+        {perfil.estadoPerfil === "aprobado" && <Badge tono="ok">Publicado en el directorio</Badge>}
+      </section>
 
       {bloqueado ? (
         <div className="rounded-md border border-line bg-pri-soft px-5 py-4">
@@ -264,14 +289,15 @@ export function EditorPerfil({
         </p>
       )}
 
-      <fieldset disabled={bloqueado} className={cn("mt-6 space-y-6", bloqueado && "opacity-60")}>
-        <Seccion titulo="Foto y datos principales">
+      <fieldset disabled={bloqueado} className={cn("m-0 flex min-w-0 flex-wrap items-start gap-5 border-0 p-0", bloqueado && "opacity-60")}>
+        <div className="flex min-w-0 flex-[1_1_560px] flex-col gap-5">
+        <Seccion titulo="Datos principales">
           <div className="flex items-center gap-5">
             {perfil.fotoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element -- URL firmada de Storage, cambia cada 15 min
-              <img src={perfil.fotoUrl} alt="Tu foto de perfil" className="h-20 w-20 rounded-full object-cover ring-1 ring-line" />
+              <img src={perfil.fotoUrl} alt="Tu foto de perfil" className="h-20 w-20 shrink-0 rounded-full object-cover ring-1 ring-line" />
             ) : (
-              <span className="flex h-20 w-20 items-center justify-center rounded-full bg-surface-2 text-ink-3 ring-1 ring-line">
+              <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-surface-2 text-ink-3 ring-1 ring-line">
                 <UserRound className="h-8 w-8" />
               </span>
             )}
@@ -339,8 +365,8 @@ export function EditorPerfil({
                 if (delTipo.length === 0) return null;
                 return (
                   <div key={tipo}>
-                    <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-ink-3">{etiqueta}</p>
-                    <div className="flex flex-wrap gap-1.5">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-[.08em] text-ink-3">{etiqueta}</p>
+                    <div className="flex flex-wrap gap-2">
                       {delTipo.map((c) => {
                         const activo = form.especialidades.includes(c.id);
                         return (
@@ -350,8 +376,8 @@ export function EditorPerfil({
                             aria-pressed={activo}
                             onClick={() => toggleEspecialidad(c.id)}
                             className={cn(
-                              "rounded-md px-2.5 py-1 text-xs font-medium ring-1 ring-inset transition-colors",
-                              activo ? "bg-pri text-white ring-pri/30" : "bg-surface text-ink-2 ring-line hover:bg-surface-2"
+                              "min-h-[38px] cursor-pointer rounded-[4px] border px-3 text-[13px] font-medium transition-colors",
+                              activo ? "border-pri bg-pri-soft text-pri-text" : "border-line-strong bg-surface text-ink-2 hover:bg-surface-2"
                             )}
                           >
                             {c.nombre}
@@ -430,6 +456,8 @@ export function EditorPerfil({
 
         <Seccion
           titulo="Portafolio"
+          pendiente={form.portafolio.length === 0}
+          discontinuo={form.portafolio.length === 0}
           accion={
             <Button
               variant="secondary"
@@ -512,25 +540,10 @@ export function EditorPerfil({
             </div>
           )}
         </Seccion>
+        </div>
 
-        <Seccion titulo="Hoja de vida">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-[4px] bg-pri-soft text-pri-text">
-              <FileText className="h-5 w-5" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-ink">
-                {perfil.tieneHojaDeVida ? "Hoja de vida cargada" : "Sin hoja de vida cargada"}
-              </p>
-              <p className="text-xs text-ink-3">
-                PDF hasta 10 MB. Solo la verán los administradores y la empresa que te haya enviado una solicitud.
-              </p>
-            </div>
-            {perfil.tieneHojaDeVida && (
-              <Button variant="ghost" size="sm" onClick={verHojaDeVida}>
-                Ver
-              </Button>
-            )}
+        <aside className="flex min-w-0 flex-[1_1_300px] flex-col gap-5">
+          <Seccion titulo="Hoja de vida">
             <input
               ref={cvRef}
               type="file"
@@ -542,16 +555,62 @@ export function EditorPerfil({
                 if (archivo) subir("cv", archivo);
               }}
             />
-            <Button variant="secondary" size="sm" onClick={() => cvRef.current?.click()} disabled={ocupado !== null}>
-              <Upload className="h-3.5 w-3.5" />{" "}
-              {ocupado === "cv" ? "Subiendo…" : perfil.tieneHojaDeVida ? "Reemplazar PDF" : "Subir PDF"}
-            </Button>
-          </div>
-        </Seccion>
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                setArrastrando(true);
+              }}
+              onDragLeave={() => setArrastrando(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setArrastrando(false);
+                const archivo = e.dataTransfer.files?.[0];
+                if (archivo && ocupado === null) subir("cv", archivo);
+              }}
+              className={cn(
+                "flex flex-col items-center gap-2 rounded-md border-2 border-dashed px-4 py-6 text-center",
+                arrastrando ? "border-pri bg-pri-soft" : "border-line-strong"
+              )}
+            >
+              <FileText className="h-6 w-6 text-pri-text" aria-hidden />
+              <p className="text-sm font-semibold text-ink">
+                {perfil.tieneHojaDeVida ? "Hoja de vida cargada" : "Arrastra tu hoja de vida aquí"}
+              </p>
+              <p className="text-xs text-ink-3">PDF hasta 10 MB. Solo la verán los administradores y la empresa que te haya enviado una solicitud.</p>
+              <div className="mt-1 flex flex-wrap justify-center gap-2">
+                <Button variant="secondary" size="sm" onClick={() => cvRef.current?.click()} disabled={ocupado !== null}>
+                  <Upload className="h-3.5 w-3.5" /> {ocupado === "cv" ? "Subiendo…" : perfil.tieneHojaDeVida ? "Reemplazar PDF" : "Elegir PDF"}
+                </Button>
+                {perfil.tieneHojaDeVida && (
+                  <Button variant="ghost" size="sm" onClick={verHojaDeVida}>
+                    Ver
+                  </Button>
+                )}
+              </div>
+            </div>
+          </Seccion>
+
+          {reputacion && (
+            <Seccion titulo="Reputación">
+              <dl className="m-0 grid grid-cols-2 gap-px overflow-hidden rounded-[4px] border border-line bg-line text-center">
+                <div className="bg-surface px-2 py-3">
+                  <dd className="font-tabular m-0 text-xl font-medium text-ink">
+                    {reputacion.completados > 0 ? `★ ${reputacion.rating.toFixed(1).replace(".", ",")}` : "—"}
+                  </dd>
+                  <dt className="text-xs text-ink-3">Calificación</dt>
+                </div>
+                <div className="bg-surface px-2 py-3">
+                  <dd className="font-tabular m-0 text-xl font-medium text-ink">{reputacion.completados}</dd>
+                  <dt className="text-xs text-ink-3">Completados</dt>
+                </div>
+              </dl>
+            </Seccion>
+          )}
+        </aside>
       </fieldset>
 
       {!bloqueado && (
-        <div className="sticky bottom-0 mt-6 flex flex-wrap items-center justify-end gap-3 border-t border-line-2 bg-surface/95 py-4 backdrop-blur">
+        <div className="sticky bottom-[calc(58px+env(safe-area-inset-bottom))] z-10 flex flex-wrap items-center justify-end gap-3 border-t border-line bg-surface py-3 sm:hidden">
           {cambios && <span className="text-xs text-ink-3">Tienes cambios sin guardar.</span>}
           <Button onClick={guardar} disabled={!cambios || ocupado !== null}>
             {ocupado === "guardar" ? "Guardando…" : "Guardar cambios"}
@@ -573,8 +632,8 @@ function formularioDe(p: PerfilConsultorPropio) {
   };
 }
 
-const claseEntrada = "w-full rounded-[4px] border border-line bg-surface text-ink px-3 py-2 text-sm outline-none focus:border-pri";
-const claseEntradaChica = "rounded-[4px] border border-line bg-surface text-ink px-3 py-1.5 text-sm outline-none focus:border-pri";
+const claseEntrada = "min-h-[46px] w-full rounded-[4px] border border-line-strong bg-surface px-3 py-2 text-[15px] text-ink outline-none focus:border-pri focus:ring-2 focus:ring-pri-soft";
+const claseEntradaChica = "min-h-11 rounded-[4px] border border-line-strong bg-surface px-3 py-1.5 text-sm text-ink outline-none focus:border-pri focus:ring-2 focus:ring-pri-soft";
 
 function Campo({
   etiqueta,
@@ -589,7 +648,7 @@ function Campo({
 }) {
   return (
     <div className="mt-4">
-      <label htmlFor={id} className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3">
+      <label htmlFor={id} className="mb-1.5 block text-[13px] font-semibold text-ink">
         {etiqueta}
       </label>
       {children}
@@ -617,7 +676,7 @@ function BannerEstado({
 }) {
   if (estado === "aprobado") {
     return (
-      <div className="flex items-center gap-3 rounded-md border border-pri/30 bg-pri-soft px-5 py-4">
+      <div className="flex items-center gap-3 rounded-md bg-pri-soft px-5 py-4">
         <CheckCircle2 className="h-5 w-5 shrink-0 text-pri-text" />
         <div>
           <p className="text-sm font-semibold text-pri-text">Tu perfil está aprobado</p>
@@ -629,7 +688,7 @@ function BannerEstado({
 
   if (estado === "en_revision") {
     return (
-      <div className="flex items-center gap-3 rounded-md border border-amber/30 bg-amber/10 px-5 py-4">
+      <div className="flex items-center gap-3 rounded-md bg-amber-soft px-5 py-4">
         <Clock className="h-5 w-5 shrink-0 text-amber-ink" />
         <div>
           <p className="text-sm font-semibold text-amber-ink">Tu perfil está en revisión</p>
@@ -644,7 +703,7 @@ function BannerEstado({
 
   if (estado === "suspendido") {
     return (
-      <div className="flex items-center gap-3 rounded-md border border-line bg-surface-2 px-5 py-4">
+      <div className="flex items-center gap-3 rounded-md bg-surface-2 px-5 py-4">
         <Lock className="h-5 w-5 shrink-0 text-ink-2" />
         <div>
           <p className="text-sm font-semibold text-ink">Tu perfil está suspendido</p>
@@ -663,7 +722,7 @@ function BannerEstado({
 
   if (estado === "rechazado") {
     return (
-      <div className="rounded-md border border-rose/30 bg-rose-soft px-5 py-4">
+      <div className="rounded-md bg-rose-soft px-5 py-4">
         <div className="flex items-start gap-3">
           <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-rose" />
           <div>
@@ -680,7 +739,7 @@ function BannerEstado({
   }
 
   return (
-    <div className="rounded-md border border-line bg-surface-2 px-5 py-4">
+    <div className="rounded-md bg-surface-2 px-5 py-4">
       <div className="flex flex-wrap items-center gap-3">
         <Badge className={ESTADO_PERFIL_ESTILO["incompleto"]}>{ESTADO_PERFIL_LABEL["incompleto"]}</Badge>
         <p className="text-sm text-ink-2">{aviso}</p>
@@ -692,11 +751,26 @@ function BannerEstado({
   );
 }
 
-function Seccion({ titulo, children, accion }: { titulo: string; children: React.ReactNode; accion?: React.ReactNode }) {
+function Seccion({
+  titulo,
+  children,
+  accion,
+  discontinuo = false,
+  pendiente = false,
+}: {
+  titulo: string;
+  children: React.ReactNode;
+  accion?: React.ReactNode;
+  discontinuo?: boolean;
+  pendiente?: boolean;
+}) {
   return (
-    <section className="rounded-md border border-line bg-surface p-6">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="font-display text-base font-semibold text-ink">{titulo}</h2>
+    <section className={cn("rounded-md bg-surface p-5 sm:p-6", discontinuo ? "border border-dashed border-line-strong" : "border border-line")}>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h2 className="flex items-center gap-2.5 font-display text-xl font-semibold text-ink">
+          {titulo}
+          {pendiente && <Badge tono="aviso">Pendiente</Badge>}
+        </h2>
         {accion}
       </div>
       {children}

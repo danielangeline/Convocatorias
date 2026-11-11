@@ -7,7 +7,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 
 // CU-16, CU-17 · El perfil real del consultor, leído con su sesión (RLS).
 export default async function PerfilConsultorPage() {
-  const { sesion } = await exigirRol(["consultor"], { ruta: "portal consultor" });
+  const { sesion, consultor } = await exigirRol(["consultor"], { ruta: "portal consultor" });
   const [perfil, categorias] = await Promise.all([obtenerPerfilPropio(sesion.usuarioId), listarCategoriasActivas()]);
 
   if (!perfil) {
@@ -20,5 +20,11 @@ export default async function PerfilConsultorPage() {
     );
   }
 
-  return <EditorPerfil perfilInicial={perfil} categorias={categorias} />;
+  return (
+    <EditorPerfil
+      perfilInicial={perfil}
+      categorias={categorias}
+      reputacion={consultor ? { rating: consultor.ratingPromedio, completados: consultor.totalEncargosCompletados } : undefined}
+    />
+  );
 }

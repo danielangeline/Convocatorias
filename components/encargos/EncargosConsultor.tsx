@@ -34,7 +34,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { RatingStars } from "@/components/RatingStars";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Tabs } from "@/components/ui/Tabs";
-import { KpiCard, KpiGrid } from "@/components/viz/KpiCard";
+import { KpiCelda, KpiFranja } from "@/components/viz/KpiCard";
 
 type Pestana = "solicitudes" | "en_curso" | "historial";
 
@@ -97,12 +97,11 @@ export function EncargosConsultor({
   };
 
   return (
-    <div>
+    <div className="flex flex-col gap-5">
       <PageHeader
-        className="mb-5"
         eyebrow={
           aprobado ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-pri-soft px-2.5 py-1 text-[11.5px] font-bold text-pri-text">
+            <span className="inline-flex items-center gap-1.5 text-pri-text">
               <span className="h-1.5 w-1.5 rounded-full bg-pri" />
               Perfil aprobado · visible en el directorio
             </span>
@@ -112,27 +111,26 @@ export function EncargosConsultor({
         descripcion="Gestiona las tareas que las empresas te solicitan."
       />
 
-      <div className="mb-6">
-        <KpiGrid>
-          <KpiCard etiqueta="Solicitudes nuevas" valor={solicitudes.length} nota="Esperan tu respuesta" icono={ClipboardList} tono="amber" />
-          <KpiCard etiqueta="Encargos en curso" valor={enCurso.length} nota="Aceptados y sin completar" icono={Target} tono="pri" />
-          {ratingPromedio !== undefined && (completados ?? 0) > 0 && (
-            <KpiCard etiqueta="Calificación" valor={ratingPromedio.toFixed(1)} sufijo=" /5" nota="Promedio de las empresas" icono={CheckCircle2} />
-          )}
-          {completados !== undefined && (
-            <KpiCard etiqueta="Completados" valor={completados} nota="Encargos terminados" icono={Check} tono="pri" />
-          )}
-        </KpiGrid>
-      </div>
+      {/* Franja de 4 KPI en una sola tarjeta. */}
+      <KpiFranja>
+        <KpiCelda etiqueta="Solicitudes nuevas" valor={solicitudes.length} nota="Esperan tu respuesta" />
+        <KpiCelda etiqueta="Encargos en curso" valor={enCurso.length} nota="Aceptados y sin completar" />
+        <KpiCelda
+          etiqueta="Calificación"
+          valor={ratingPromedio !== undefined && (completados ?? 0) > 0 ? ratingPromedio.toFixed(1).replace(".", ",") : "—"}
+          sufijo={ratingPromedio !== undefined && (completados ?? 0) > 0 ? " / 5" : undefined}
+          nota="Promedio de las empresas"
+        />
+        <KpiCelda etiqueta="Completados" valor={completados ?? 0} nota="Encargos terminados" />
+      </KpiFranja>
 
       {error && (
-        <p role="alert" className="mb-5 flex items-start gap-2 rounded-[4px] bg-rose-soft px-4 py-3 text-sm text-rose">
+        <p role="alert" className="flex items-start gap-2 rounded-[4px] bg-rose-soft px-4 py-3 text-sm text-rose">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /> {error}
         </p>
       )}
 
       <Tabs
-        className="mb-6"
         etiqueta="Encargos"
         valor={pestana}
         onChange={setPestana}
@@ -145,25 +143,35 @@ export function EncargosConsultor({
         ) : (
           <div className="space-y-4">
             {solicitudes.map((e) => (
-              <div key={e.id} className="rounded-md border border-line p-5 bg-surface">
-                <Encabezado e={e} />
-                {e.descripcionTarea && <p className="mt-1.5 whitespace-pre-line text-sm text-ink-2">{e.descripcionTarea}</p>}
-                <p className="mt-2 text-xs text-ink-3">
-                  El correo de la empresa se muestra cuando aceptes. Recibida el {formatFecha(e.fechas.creada)}.
+              <div key={e.id} className="rounded-md border border-line border-l-[3px] border-l-amber bg-surface p-5">
+                <p className="text-xs font-semibold uppercase tracking-[.06em] text-ink-3">
+                  {e.empresaNombre} · {antiguedad(e.fechas.creada)}
                 </p>
+                <h3 className="mt-1.5 font-display text-xl font-semibold leading-snug text-ink">
+                  {e.convocatoriaNombre ?? e.tituloTarea}
+                </h3>
+                <p className="mt-1 text-[13px] text-ink-2">
+                  {e.convocatoriaNombre && <>{e.tituloTarea} · </>}
+                  Proyecto: <span className="font-semibold text-ink">{e.proyectoNombre}</span>
+                  {e.contexto?.convocatoria?.fechaCierre && (
+                    <>
+                      {" · "}Cierra el <span className="font-tabular">{formatFecha(e.contexto.convocatoria.fechaCierre)}</span>
+                    </>
+                  )}
+                </p>
+                {e.descripcionTarea && (
+                  <blockquote className="m-0 mt-3 whitespace-pre-line rounded-[4px] bg-surface-2 px-4 py-3 text-sm leading-[1.55] text-ink-2">
+                    &ldquo;{e.descripcionTarea}&rdquo;
+                  </blockquote>
+                )}
+                <p className="mt-2 text-xs text-ink-3">El correo de la empresa se muestra cuando aceptes.</p>
                 {e.contexto && <Contexto contexto={e.contexto} abierto />}
-                <div className="mt-4 flex gap-2">
-                  <Button variant="primary" size="sm" onClick={() => responder(e, true)} disabled={ocupado === e.id}>
-                    <Check className="h-3.5 w-3.5" /> Aceptar
+                <div className="mt-4 flex flex-wrap gap-2.5">
+                  <Button variant="primary" onClick={() => responder(e, true)} disabled={ocupado === e.id}>
+                    <Check className="h-4 w-4" /> Aceptar encargo
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => responder(e, false)}
-                    disabled={ocupado === e.id}
-                    className="text-rose hover:bg-rose-soft"
-                  >
-                    <XIcon className="h-3.5 w-3.5" /> Rechazar
+                  <Button variant="danger" onClick={() => responder(e, false)} disabled={ocupado === e.id}>
+                    <XIcon className="h-4 w-4" /> No puedo
                   </Button>
                 </div>
               </div>
@@ -177,7 +185,7 @@ export function EncargosConsultor({
         ) : (
           <div className="space-y-4">
             {enCurso.map((e) => (
-              <div key={e.id} className="rounded-md border border-line p-5 bg-surface">
+              <div key={e.id} className="rounded-md border border-line bg-surface p-5">
                 <Encabezado e={e} />
                 {e.correoContraparte && (
                   <p className="mt-1.5 flex items-center gap-1.5 text-xs text-ink-2">
@@ -211,7 +219,7 @@ export function EncargosConsultor({
                     onChange={(ev) => setNotas((n) => ({ ...n, [e.id]: ev.target.value }))}
                     maxLength={2000}
                     placeholder="Escribe una nota de avance..."
-                    className="flex-1 rounded-[4px] border border-line px-3 py-2 text-sm outline-none focus:border-pri bg-surface text-ink"
+                    className="min-h-11 flex-1 rounded-[4px] border border-line-strong bg-surface px-3 text-sm text-ink outline-none focus:border-pri"
                   />
                   <Button
                     variant="secondary"
@@ -237,13 +245,13 @@ export function EncargosConsultor({
         ) : (
           <div className="space-y-4">
             {historial.map((e) => (
-              <div key={e.id} className="rounded-md border border-line p-5 bg-surface">
+              <div key={e.id} className="rounded-md border border-line bg-surface p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-xs text-ink-3">
                       {e.empresaNombre} · Proyecto: <span className="font-medium text-ink-2">{e.proyectoNombre}</span>
                     </p>
-                    <h3 className="mt-1 font-display text-base font-semibold text-ink">{e.tituloTarea}</h3>
+                    <h3 className="mt-1 font-display text-lg font-semibold leading-snug text-ink">{e.tituloTarea}</h3>
                   </div>
                   <Badge className={ESTADO_ENCARGO_ESTILO[e.estado]}>{ESTADO_ENCARGO_LABEL[e.estado]}</Badge>
                 </div>
@@ -291,7 +299,7 @@ function BusquedaResumen({ e }: { e: EncargoConsultor }) {
       </p>
       <Link
         href={`/consultor/encargos/${e.id}/convocatorias`}
-        className="inline-flex items-center gap-1.5 rounded-[4px] bg-surface px-3 py-1.5 text-xs font-semibold text-pri-text ring-1 ring-pri/30 hover:bg-pri-soft"
+        className="inline-flex min-h-11 items-center gap-1.5 rounded-[4px] border border-pri bg-surface px-3 text-xs font-semibold text-pri-text hover:bg-pri-soft"
       >
         <Search className="h-3.5 w-3.5" /> {elegida ? "Ver la búsqueda" : "Buscar y proponer"}
       </Link>
@@ -318,9 +326,15 @@ function Encabezado({ e }: { e: EncargoConsultor }) {
           </>
         )}
       </p>
-      <h3 className="mt-1 font-display text-base font-semibold text-ink">{e.tituloTarea}</h3>
+      <h3 className="mt-1 font-display text-lg font-semibold leading-snug text-ink">{e.tituloTarea}</h3>
     </>
   );
+}
+
+/** «hoy», «hace 3 días»: antigüedad de la solicitud según su fecha de creación. */
+function antiguedad(creada: string): string {
+  const dias = Math.max(0, Math.floor((new Date().getTime() - new Date(creada).getTime()) / 86400000));
+  return dias === 0 ? "recibida hoy" : `hace ${dias} ${dias === 1 ? "día" : "días"}`;
 }
 
 const CAMPOS: Array<{ clave: "problema" | "objetivoGeneral" | "poblacionBeneficiaria" | "actividades" | "resultadosEsperados" | "experienciaEmpresa"; etiqueta: string }> = [

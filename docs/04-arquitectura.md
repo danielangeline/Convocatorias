@@ -135,4 +135,5 @@ Sustituye el rediseño visual de la sesión 031 (verde, Plus Jakarta). **No camb
 - **Fase 2 (hecha):** menú de empresa más corto; «Sugeridas», «Guardadas» y «Beneficios tributarios» salen del menú y pasan a pestañas y chips de `/convocatorias`; pestañas inferiores y hoja «Más» en móvil. `/sugeridas` y `/guardadas` se convertirán en redirecciones a `/convocatorias?tab=…` cuando existan las pestañas (Fase 4).
 - **Fase 3 (hecha):** identidad (pantalla partida, puertas, consentimiento y MFA de 6 casillas).
 - **Fase 4 (hecha):** portal empresa; `/sugeridas` y `/guardadas` redirigen a `/convocatorias?tab=…`.
-- **Fases 5 y 6:** portal consultor y admin, según el README del handoff.
+- **Fase 5 (hecha):** portal consultor.
+- **Fase 6:** panel admin, según el README del handoff.
