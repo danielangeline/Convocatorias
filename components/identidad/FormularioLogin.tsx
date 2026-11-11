@@ -17,14 +17,20 @@ export function FormularioLogin({ puertaInicial, errorInicial }: { puertaInicial
     <form action={accion} className="mt-6 space-y-4">
       <SelectorPuerta puerta={puerta} onCambio={setPuerta} />
       <Campo etiqueta="Correo" name="correo" type="email" autoComplete="email" required />
-      <Campo etiqueta="Contraseña" name="contrasena" type="password" autoComplete="current-password" required />
-      <p className="-mt-2 text-right text-xs">
-        <Link href="/auth/recuperar" className="font-semibold text-pri-text hover:underline">
-          ¿Olvidaste tu contraseña?
-        </Link>
-      </p>
+      <Campo
+        etiqueta="Contraseña"
+        name="contrasena"
+        type="password"
+        autoComplete="current-password"
+        required
+        accion={
+          <Link href="/auth/recuperar" className="text-[13px] font-semibold text-pri-text hover:underline">
+            ¿La olvidó?
+          </Link>
+        }
+      />
       {estado.error && <Aviso tipo="error">{estado.error}</Aviso>}
-      <Button type="submit" variant="primary" className="w-full" disabled={enviando}>
+      <Button type="submit" variant="primary" size="lg" className="w-full" disabled={enviando}>
         {enviando ? "Entrando…" : "Entrar"}
       </Button>
     </form>

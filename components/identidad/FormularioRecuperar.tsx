@@ -12,11 +12,11 @@ export function FormularioRecuperar() {
 
   if (estado.mensaje) {
     return (
-      <div className="mt-6 flex flex-col items-center gap-3 text-center" role="status">
-        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-pri-soft text-pri-text">
+      <div className="mt-8 flex flex-col items-center gap-3 text-center" role="status">
+        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-pri-soft text-pri-text">
           <MailCheck className="h-6 w-6" />
         </span>
-        <p className="font-display text-lg font-bold text-ink">Revisa tu correo</p>
+        <p className="font-display text-xl font-semibold text-ink">Revise su correo</p>
         <p className="text-sm text-ink-2">{estado.mensaje}</p>
       </div>
     );
@@ -26,7 +26,7 @@ export function FormularioRecuperar() {
     <form action={accion} className="mt-6 space-y-4">
       <Campo etiqueta="Correo" name="correo" type="email" autoComplete="email" required />
       {estado.error && <Aviso tipo="error">{estado.error}</Aviso>}
-      <Button type="submit" className="w-full" disabled={enviando}>
+      <Button type="submit" size="lg" className="w-full" disabled={enviando}>
         {enviando ? "Enviando…" : "Enviar enlace"}
       </Button>
     </form>

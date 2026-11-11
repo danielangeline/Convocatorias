@@ -133,4 +133,5 @@ Sustituye el rediseño visual de la sesión 031 (verde, Plus Jakarta). **No camb
 
 - **Fase 1 (hecha):** tokens claro y oscuro (hueso y teal, un solo acento; el ámbar es solo el «ping»), fuentes Source Serif 4 / Inter / IBM Plex Mono, logo de dos anillos, `Button` (variantes `primary | secondary | outline | ghost | danger`; `ai`, `consultor` y `outline-amber` eliminadas), `Card`, `Badge` (`ok | aviso | error | neutro`), `PageHeader`, `Deadline` y `CompatRing`.
 - **Fase 2 (hecha):** menú de empresa más corto; «Sugeridas», «Guardadas» y «Beneficios tributarios» salen del menú y pasan a pestañas y chips de `/convocatorias`; pestañas inferiores y hoja «Más» en móvil. `/sugeridas` y `/guardadas` se convertirán en redirecciones a `/convocatorias?tab=…` cuando existan las pestañas (Fase 4).
-- **Fases 3 a 6:** identidad, portal empresa, consultor y admin, según el README del handoff.
+- **Fase 3 (hecha):** identidad (pantalla partida, puertas, consentimiento y MFA de 6 casillas).
+- **Fases 4 a 6:** portal empresa, consultor y admin, según el README del handoff.

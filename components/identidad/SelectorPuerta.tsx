@@ -26,19 +26,15 @@ export function SelectorPuerta({
 }) {
   return (
     <fieldset className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-      <legend className="sr-only">¿Cómo usas la plataforma?</legend>
+      <legend className="sr-only">¿Cómo usa la plataforma?</legend>
       {(["empresa", "consultor"] as const).map((valor) => {
         const Icono = ICONO[valor];
         return (
           <label
             key={valor}
             className={cn(
-              "cursor-pointer rounded-xl border p-3 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-pri-soft",
-              puerta === valor
-                ? valor === "empresa"
-                  ? "border-pri bg-pri-soft"
-                  : "border-pri bg-pri-soft"
-                : "border-line hover:bg-surface-2"
+              "cursor-pointer rounded-md border-2 p-3.5 transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-pri",
+              puerta === valor ? "border-pri bg-pri-soft" : "border-line hover:bg-surface-2"
             )}
           >
             <input

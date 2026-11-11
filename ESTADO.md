@@ -17,7 +17,9 @@ La especificación está cerrada en **v6**. **La base de datos existe en Supabas
 
 ## Lo último que se hizo
 
-- **Sesión 040, Fase 2: shell y navegación** (menú corto, sidebar 252 px, topbar 60 px, pestañas inferiores y hoja «Más» en móvil; bitácora `2026-11-10-sesion-040-fundradar-fase-2.md`). Sin RF nuevos; `/sugeridas` y `/guardadas` siguen sin redirigir hasta las pestañas de la Fase 4. **Siguiente: Fase 3 (identidad).**
+- **Sesión 040, Fase 3: identidad** (pantalla partida con banda oscura y cifras reales, tarjetas de puerta, casilla de consentimiento propia, MFA de 6 casillas, tratamiento de usted; bitácora `2026-11-10-sesion-040-fundradar-fase-3.md`). Sin RF nuevos. No se añadió el enlace público a `/mfa` (choca con RN-31). **Siguiente: Fase 4 (portal empresa).**
+
+- **Sesión 040, Fase 2: shell y navegación** (menú corto, sidebar 252 px, topbar 60 px, pestañas inferiores y hoja «Más» en móvil; bitácora `2026-11-10-sesion-040-fundradar-fase-2.md`). Sin RF nuevos; `/sugeridas` y `/guardadas` siguen sin redirigir hasta las pestañas de la Fase 4. 
 
 - **Sesión 040: rediseño FundRadar, Fase 1 (tokens y marca)** (handoff `design_handoff_fundradar/`; bitácora `2026-11-10-sesion-040-fundradar-fase-1.md`). Tokens, fuentes, logo y componentes base; sin RF nuevos. Build, lint y tsc en verde. Sin push.
 

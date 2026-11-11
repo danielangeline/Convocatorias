@@ -31,7 +31,7 @@ export function FormularioMfa() {
     (async () => {
       const { data, error: errorFactores } = await supabase.auth.mfa.listFactors();
       if (errorFactores) {
-        if (!cancelado) setEstado({ fase: "fallo", mensaje: "No pudimos consultar tus factores de verificación." });
+        if (!cancelado) setEstado({ fase: "fallo", mensaje: "No pudimos consultar sus factores de verificación." });
         return;
       }
 
@@ -54,7 +54,7 @@ export function FormularioMfa() {
       });
       if (cancelado) return;
       if (errorAlta || !alta) {
-        setEstado({ fase: "fallo", mensaje: "No pudimos iniciar la activación. Recarga la página." });
+        setEstado({ fase: "fallo", mensaje: "No pudimos iniciar la activación. Recargue la página." });
         return;
       }
       setEstado({ fase: "enrolar", factorId: alta.id, qr: alta.totp.qr_code, secreto: alta.totp.secret });
@@ -69,7 +69,7 @@ export function FormularioMfa() {
     e.preventDefault();
     if (estado.fase !== "enrolar" && estado.fase !== "verificar") return;
     if (codigo.length !== 6) {
-      setError("Escribe los 6 dígitos que muestra tu aplicación.");
+      setError("Escriba los 6 dígitos que muestra su aplicación.");
       return;
     }
 
@@ -85,7 +85,7 @@ export function FormularioMfa() {
       await registrarMfaFallido();
       setEnviando(false);
       setCodigo("");
-      setError("El código no es correcto o ya expiró. Intenta con el siguiente.");
+      setError("El código no es correcto o ya expiró. Intente con el siguiente.");
       return;
     }
 
@@ -99,10 +99,10 @@ export function FormularioMfa() {
 
   return (
     <div>
-      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-pri-soft text-pri-text">
+      <span className="flex h-14 w-14 items-center justify-center rounded-full bg-pri-soft text-pri-text">
         <ShieldCheck className="h-6 w-6" />
       </span>
-      <h1 className="mt-4 font-display text-xl font-bold text-ink">Verificación en dos pasos</h1>
+      <h1 className="mt-4 font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.01em] text-ink">Verificación en dos pasos</h1>
 
       {estado.fase === "cargando" && <p className="mt-2 text-sm text-ink-2">Preparando la verificación…</p>}
       {estado.fase === "fallo" && (
@@ -114,41 +114,60 @@ export function FormularioMfa() {
       {estado.fase === "enrolar" && (
         <>
           <p className="mt-2 text-sm text-ink-2">
-            Ninguna sesión administrativa opera sin un segundo factor. Escanea este código con tu aplicación
-            autenticadora (Google Authenticator, Microsoft Authenticator, 1Password…) y escribe el código que genera.
+            Ninguna sesión administrativa opera sin un segundo factor. Escanee este código con su aplicación
+            autenticadora (Google Authenticator, Microsoft Authenticator, 1Password…) y escriba el código que genera.
           </p>
-          <div className="mt-4 flex justify-center rounded-xl border border-line bg-surface p-4">
+          <div className="mt-4 flex justify-center rounded-md border border-line bg-surface p-4">
             {/* El QR llega como data URL SVG desde Supabase Auth. */}
             <img src={estado.qr} alt="Código QR para la aplicación autenticadora" className="h-44 w-44" />
           </div>
           <p className="mt-2 break-all text-center text-xs text-ink-3">
-            ¿No puedes escanear? Clave: <span className="font-tabular text-ink-2">{estado.secreto}</span>
+            ¿No puede escanear? Clave: <span className="font-tabular text-ink-2">{estado.secreto}</span>
           </p>
         </>
       )}
 
       {estado.fase === "verificar" && (
-        <p className="mt-2 text-sm text-ink-2">Escribe el código de 6 dígitos de tu aplicación autenticadora.</p>
+        <p className="mt-2 text-sm text-ink-2">Escriba el código de 6 dígitos de su aplicación autenticadora.</p>
       )}
 
       {(estado.fase === "enrolar" || estado.fase === "verificar") && (
         <form onSubmit={verificar} className="mt-4 space-y-3">
-          <label className="block">
-            <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3">
+          <div>
+            <span id="mfa-etiqueta" className="mb-1.5 block text-[13px] font-semibold text-ink">
               Código de 6 dígitos
             </span>
-            <input
-              value={codigo}
-              onChange={(e) => setCodigo(e.target.value.replace(/\D/g, "").slice(0, 6))}
-              placeholder="000000"
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              autoFocus
-              className="w-full rounded-lg border border-line px-3 py-2 text-center font-tabular text-lg tracking-[0.3em] outline-none focus:border-pri bg-surface text-ink"
-            />
-          </label>
+            {/* El input real (invisible) recibe el teclado, el pegado y el autocompletado; las 6 casillas solo lo muestran. */}
+            <div className="relative">
+              <div className="grid grid-cols-6 gap-2" aria-hidden>
+                {Array.from({ length: 6 }, (_, i) => {
+                  const actual = i === Math.min(codigo.length, 5);
+                  return (
+                    <div
+                      key={i}
+                      className={`font-tabular grid h-14 place-items-center rounded-[4px] border bg-surface text-2xl font-medium text-ink ${
+                        actual ? "border-2 border-pri" : "border-line-strong"
+                      }`}
+                    >
+                      {codigo[i] ?? ""}
+                    </div>
+                  );
+                })}
+              </div>
+              <input
+                value={codigo}
+                onChange={(e) => setCodigo(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                autoFocus
+                maxLength={6}
+                aria-labelledby="mfa-etiqueta"
+                className="absolute inset-0 h-full w-full cursor-text opacity-0"
+              />
+            </div>
+          </div>
           {error && <Aviso tipo="error">{error}</Aviso>}
-          <Button type="submit" className="w-full" disabled={enviando}>
+          <Button type="submit" size="lg" className="w-full" disabled={enviando}>
             {enviando ? "Verificando…" : estado.fase === "enrolar" ? "Activar y continuar" : "Verificar y continuar"}
           </Button>
         </form>

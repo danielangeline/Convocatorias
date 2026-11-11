@@ -74,10 +74,10 @@ export function FormularioDefinirContrasena() {
 
   return (
     <div>
-      <span className="flex h-12 w-12 items-center justify-center rounded-full bg-pri-soft text-pri-text">
+      <span className="flex h-14 w-14 items-center justify-center rounded-full bg-pri-soft text-pri-text">
         <KeyRound className="h-6 w-6" />
       </span>
-      <h1 className="mt-4 font-display text-xl font-bold text-ink">Define tu contraseña</h1>
+      <h1 className="mt-4 font-display text-[32px] font-semibold leading-[1.1] tracking-[-0.01em] text-ink">Defina su contraseña</h1>
 
       {fase === "cargando" && <p className="mt-2 text-sm text-ink-2">Validando el enlace…</p>}
 
@@ -87,11 +87,11 @@ export function FormularioDefinirContrasena() {
             El enlace no es válido o ya expiró.
           </Aviso>
           <p className="mt-3 text-sm text-ink-2">
-            Si estabas recuperando tu contraseña,{" "}
+            Si estaba recuperando su contraseña,{" "}
             <Link href="/auth/recuperar" className="font-semibold text-pri-text hover:underline">
-              pide un enlace nuevo
+              pida un enlace nuevo
             </Link>
-            . Si te invitaron, pide a quien te invitó que reenvíe la invitación.
+            . Si lo invitaron, pida a quien lo invitó que reenvíe la invitación.
           </p>
         </div>
       )}
@@ -99,9 +99,9 @@ export function FormularioDefinirContrasena() {
       {fase === "formulario" && (
         <form action={guardar} className="mt-4 space-y-4">
           <Campo etiqueta="Contraseña nueva" name="contrasena" type="password" autoComplete="new-password" minLength={8} required ayuda="Mínimo 8 caracteres." />
-          <Campo etiqueta="Repite la contraseña" name="confirmacion" type="password" autoComplete="new-password" minLength={8} required />
+          <Campo etiqueta="Repita la contraseña" name="confirmacion" type="password" autoComplete="new-password" minLength={8} required />
           {error && <Aviso tipo="error">{error}</Aviso>}
-          <Button type="submit" className="w-full" disabled={enviando}>
+          <Button type="submit" size="lg" className="w-full" disabled={enviando}>
             {enviando ? "Guardando…" : "Guardar y continuar"}
           </Button>
         </form>
