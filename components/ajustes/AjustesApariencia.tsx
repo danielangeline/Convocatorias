@@ -7,7 +7,7 @@ import { Segmented } from "@/components/ui/Segmented";
 import { Button } from "@/components/ui/Button";
 
 const sinSuscripcion = () => () => {};
-const CLAVES_MENU = ["shell:contraido", "shell:empresa:grupos-cerrados", "shell:avisos-vistos"];
+const CLAVES_MENU = ["shell:avisos-vistos"];
 
 /** RF-107 · Preferencias de este navegador: tema y estado del menú. No tocan la cuenta. */
 export function AjustesApariencia() {

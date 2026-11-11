@@ -14,7 +14,7 @@ export function AdminShell({
   children: React.ReactNode;
 }) {
   return (
-    <AppShell rol="administrador" grupos={gruposAdmin(esPropietario)} ancho="max-w-6xl" contadores={contadores}>
+    <AppShell rol="administrador" grupos={gruposAdmin(esPropietario)} ancho="max-w-[1240px]" contadores={contadores}>
       {children}
     </AppShell>
   );

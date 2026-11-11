@@ -18,7 +18,7 @@ export function ThemeToggle() {
       onClick={() => setTheme(oscuro ? "light" : "dark")}
       title={oscuro ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
       aria-label={oscuro ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-      className="grid h-10 w-10 flex-none cursor-pointer place-items-center rounded-[10px] border border-line bg-surface text-ink-2 hover:text-ink"
+      className="grid h-11 w-11 flex-none cursor-pointer place-items-center rounded-[4px] border border-line-strong bg-surface text-ink-2 hover:bg-surface-2 hover:text-ink"
     >
       {oscuro ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
     </button>

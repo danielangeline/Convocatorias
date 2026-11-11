@@ -24,7 +24,7 @@ export default async function ConsultorLayout({ children }: { children: React.Re
     <>
       <SincronizarSesion datos={datos} />
       <SincronizarPlanes planes={planes} tarifas={tarifas} />
-      <AppShell rol="consultor" ancho="max-w-6xl" contadores={{ "/consultor/encargos": solicitudes }}>
+      <AppShell rol="consultor" ancho="max-w-[1120px]" contadores={{ "/consultor/encargos": solicitudes }}>
         {/* RF-84: aviso si entró por la puerta del otro rol */}
         <Suspense>
           <div className="mb-6 empty:hidden">

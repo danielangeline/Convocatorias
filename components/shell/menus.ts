@@ -1,14 +1,11 @@
 import {
+  BriefcaseBusiness,
   ClipboardCheck,
   CreditCard,
-  FolderKanban,
-  Bookmark,
-  LayoutGrid,
-  ReceiptText,
-  Settings,
-  WandSparkles,
-  Handshake,
+  Folder,
+  House,
   Search,
+  SlidersHorizontal,
   Sparkles,
   User,
   Users,
@@ -23,6 +20,10 @@ export interface ItemMenu {
   icono: LucideIcon;
   /** Solo activo con la ruta exacta (p. ej. el panel general de admin). */
   exacto?: boolean;
+  /** Otras rutas que pertenecen a este ítem (p. ej. /sugeridas dentro de Convocatorias). */
+  alias?: string[];
+  /** Etiqueta corta en la barra de pestañas inferior (móvil). */
+  etiquetaTab?: string;
 }
 
 export interface GrupoMenu {
@@ -37,31 +38,34 @@ export const PORTAL: Record<RolShell, string> = {
   administrador: "Panel administrativo",
 };
 
-// Solo rutas que existen. «Beneficios tributarios» es el catálogo con el tipo
-// preseleccionado (RF-102); un href con consulta solo se marca activo cuando
-// la consulta coincide.
+// Menú corto del rediseño FundRadar. «Sugeridas para ti», «Guardadas» y
+// «Beneficios tributarios» salen del menú y pasan a ser pestañas y chips de
+// Convocatorias (Fase 4); sus rutas siguen vivas y cuentan como Convocatorias.
 const EMPRESA: GrupoMenu[] = [
   {
     id: "general",
-    titulo: "General",
-    items: [{ href: "/inicio", label: "Inicio", icono: LayoutGrid }],
+    titulo: "",
+    items: [{ href: "/inicio", label: "Inicio", icono: House, etiquetaTab: "Inicio" }],
   },
   {
     id: "descubrir",
     titulo: "Descubrir",
     items: [
-      { href: "/convocatorias", label: "Convocatorias", icono: Search },
-      { href: "/sugeridas", label: "Sugeridas para ti", icono: WandSparkles },
-      { href: "/convocatorias?tipo=beneficio_tributario", label: "Beneficios tributarios", icono: ReceiptText },
-      { href: "/guardadas", label: "Guardadas", icono: Bookmark },
+      {
+        href: "/convocatorias",
+        label: "Convocatorias",
+        icono: Search,
+        alias: ["/sugeridas", "/guardadas"],
+        etiquetaTab: "Buscar",
+      },
     ],
   },
   {
     id: "trabajo",
     titulo: "Mi trabajo",
     items: [
-      { href: "/proyectos", label: "Proyectos", icono: FolderKanban },
-      { href: "/postulaciones", label: "Postulaciones", icono: ClipboardCheck },
+      { href: "/proyectos", label: "Proyectos", icono: Folder, etiquetaTab: "Proyectos" },
+      { href: "/postulaciones", label: "Postulaciones", icono: ClipboardCheck, etiquetaTab: "Postular" },
       { href: "/documentos", label: "Documentos con IA", icono: Sparkles },
     ],
   },
@@ -70,7 +74,7 @@ const EMPRESA: GrupoMenu[] = [
     titulo: "Consultores",
     items: [
       { href: "/consultores", label: "Directorio", icono: Users },
-      { href: "/encargos", label: "Mis encargos", icono: Handshake },
+      { href: "/encargos", label: "Mis encargos", icono: BriefcaseBusiness },
     ],
   },
   {
@@ -78,7 +82,7 @@ const EMPRESA: GrupoMenu[] = [
     titulo: "Cuenta",
     items: [
       { href: "/suscripcion", label: "Plan y créditos", icono: CreditCard },
-      { href: "/ajustes", label: "Ajustes", icono: Settings },
+      { href: "/ajustes", label: "Ajustes", icono: SlidersHorizontal },
     ],
   },
 ];
@@ -87,20 +91,20 @@ const CONSULTOR: GrupoMenu[] = [
   {
     id: "general",
     titulo: "General",
-    items: [{ href: "/consultor/perfil", label: "Mi perfil", icono: User }],
+    items: [{ href: "/consultor/perfil", label: "Mi perfil", icono: User, etiquetaTab: "Perfil" }],
   },
   {
     id: "trabajo",
     titulo: "Trabajo",
     items: [
-      { href: "/consultor/encargos", label: "Encargos", icono: Handshake },
-      { href: "/consultor/documentos", label: "Documentos", icono: Sparkles },
+      { href: "/consultor/encargos", label: "Encargos", icono: BriefcaseBusiness, etiquetaTab: "Encargos" },
+      { href: "/consultor/documentos", label: "Documentos", icono: Sparkles, etiquetaTab: "Documentos" },
     ],
   },
   {
     id: "cuenta",
     titulo: "Cuenta",
-    items: [{ href: "/consultor/suscripcion", label: "Mi suscripción", icono: CreditCard }],
+    items: [{ href: "/consultor/suscripcion", label: "Mi suscripción", icono: CreditCard, etiquetaTab: "Suscripción" }],
   },
 ];
 
@@ -125,10 +129,28 @@ export function itemActivo(
       const consultaCoincide = [...pide.entries()].every(([k, v]) => actual.get(k) === v);
       // Sin consulta propia, el ítem no se marca si la consulta actual es la de otro ítem.
       const otroLaReclama = !q && grupos.some((g) => g.items.some((x) => x.href.startsWith(ruta + "?") && [...new URLSearchParams(x.href.split("?")[1]).entries()].every(([k, v]) => actual.get(k) === v)));
-      const coincideRuta = item.exacto ? pathname === ruta : pathname === ruta || pathname.startsWith(ruta + "/");
+      const rutas = [ruta, ...(item.alias ?? [])];
+      const coincideRuta = item.exacto
+        ? pathname === ruta
+        : rutas.some((r) => pathname === r || pathname.startsWith(r + "/"));
       const coincide = coincideRuta && consultaCoincide && !otroLaReclama;
       if (coincide && (!mejor || item.href.length > mejor.item.href.length)) mejor = { grupo, item };
     }
   }
   return mejor;
+}
+
+/**
+ * Barra de pestañas inferior (móvil, < 1024 px): los ítems con `etiquetaTab`
+ * van como pestañas y el resto del menú, en el «Más» de la empresa. El
+ * consultor tiene 4 pestañas y no necesita «Más».
+ */
+const ORDEN_TABS_EMPRESA = ["/inicio", "/convocatorias", "/postulaciones", "/proyectos"];
+
+export function tabsDeRol(rol: "empresa" | "consultor"): { tabs: ItemMenu[]; mas: ItemMenu[] } {
+  const todos = gruposDeRol(rol).flatMap((g) => g.items);
+  const tabs = todos.filter((i) => i.etiquetaTab);
+  // Empresa: Inicio · Buscar · Postular · Proyectos (el menú lateral lista Proyectos primero).
+  if (rol === "empresa") tabs.sort((a, b) => ORDEN_TABS_EMPRESA.indexOf(a.href) - ORDEN_TABS_EMPRESA.indexOf(b.href));
+  return { tabs, mas: todos.filter((i) => !i.etiquetaTab) };
 }

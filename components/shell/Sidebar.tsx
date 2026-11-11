@@ -1,29 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronDown, LogOut, Sparkles } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useAppStore } from "@/lib/store";
-import { useCreditos } from "@/lib/hooks";
+import { useCreditos, useTarifas } from "@/lib/hooks";
 import { cerrarSesion } from "@/lib/acciones/auth";
 import { cn } from "@/lib/utils";
-import { Logo, LogoMarca } from "./Logo";
-import { CreditMeter } from "@/components/viz/CreditMeter";
+import { Logo } from "./Logo";
 import { itemActivo, PORTAL, type GrupoMenu, type RolShell } from "./menus";
-import { useAlmacenLocal } from "./useAlmacenLocal";
 
 function iniciales(texto: string): string {
   const partes = texto.trim().split(/\s+/).filter(Boolean);
   return (partes[0]?.[0] ?? "?").concat(partes[1]?.[0] ?? "").toUpperCase();
 }
 
-function Contador({ n, contraido }: { n: number; contraido: boolean }) {
+/** Contador ámbar (el "ping" del menú): el texto sobre ámbar siempre es la tinta oscura. */
+function Contador({ n }: { n: number }) {
   if (n <= 0) return null;
-  if (contraido) {
-    return <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-rose" aria-label={`${n} pendientes`} />;
-  }
   return (
     <span
-      className="font-tabular grid h-5 min-w-5 place-items-center rounded-full bg-rose px-1.5 text-[11px] font-semibold text-white"
+      className="font-tabular grid h-5 min-w-5 place-items-center rounded-full bg-amber px-1.5 text-[11px] font-medium text-[#0a1a22]"
       aria-label={`${n} pendientes`}
     >
       {n}
@@ -31,24 +27,35 @@ function Contador({ n, contraido }: { n: number; contraido: boolean }) {
   );
 }
 
+/** Tarjeta de créditos del pie: siempre en documentos, con la tarifa real (RF-100). */
 function PieEmpresa() {
-  const { plan, disponibles, incluidos, extra, suscripcion } = useCreditos();
+  const { disponibles, incluidos, extra, suscripcion } = useCreditos();
+  const tarifaDocumento = useTarifas().generacion;
   const abrir = useAppStore((s) => s.abrirModalCreditos);
   if (!suscripcion) return null;
+  const total = Math.max(incluidos + extra, disponibles);
+  const pct = total > 0 ? Math.min(100, (disponibles / total) * 100) : 0;
+  const documentos = tarifaDocumento > 0 ? Math.floor(disponibles / tarifaDocumento) : 0;
   return (
     <button
       type="button"
       onClick={() => abrir()}
       title="Créditos de IA: ver cómo conseguir más"
       data-recorrido="creditos"
-      className="cursor-pointer rounded-xl text-left"
+      className="w-full cursor-pointer rounded-md border border-line bg-surface-2 p-3 text-left hover:border-pri"
     >
-      <CreditMeter
-        plan={`Plan ${plan?.nombre ?? ""}`.trim()}
-        usados={disponibles}
-        total={Math.max(incluidos + extra, disponibles)}
-        nota="Créditos de IA disponibles"
-      />
+      <div className="flex items-baseline justify-between gap-2 text-xs font-semibold text-ink-2">
+        <span>Créditos de IA</span>
+        <span className="font-tabular text-ink">
+          {disponibles.toLocaleString("es-CO")} / {total.toLocaleString("es-CO")}
+        </span>
+      </div>
+      <div className="mt-2 h-[5px] overflow-hidden rounded-full bg-line-2">
+        <div className="h-full rounded-full bg-pri" style={{ width: `${pct}%` }} />
+      </div>
+      <p className="mt-2 text-xs text-ink-3">
+        Te alcanzan para {documentos.toLocaleString("es-CO")} {documentos === 1 ? "documento" : "documentos"}
+      </p>
     </button>
   );
 }
@@ -59,7 +66,6 @@ export function Sidebar({
   pathname,
   consulta,
   contadores,
-  contraido,
   alNavegar,
 }: {
   rol: RolShell;
@@ -67,126 +73,80 @@ export function Sidebar({
   pathname: string;
   consulta: string;
   contadores: Record<string, number>;
-  contraido: boolean;
   alNavegar: () => void;
 }) {
   const sesion = useAppStore((s) => s.sesion);
-  const [cerradosRaw, fijarCerrados] = useAlmacenLocal(`shell:${rol}:grupos-cerrados`, "");
-  const cerrados = new Set(cerradosRaw.split(",").filter(Boolean));
   const activo = itemActivo(grupos, pathname, consulta);
-
-  const alternar = (id: string) => {
-    const nuevo = new Set(cerrados);
-    if (nuevo.has(id)) nuevo.delete(id);
-    else nuevo.add(id);
-    fijarCerrados([...nuevo].join(","));
-  };
 
   const titulo = sesion ? (sesion.nombreEmpresa ?? sesion.nombre) : "";
   const subtitulo = sesion ? (sesion.nombreEmpresa ? sesion.nombre : sesion.rol === "administrador" ? "Administrador" : "Consultor") : "";
 
   return (
     <div className="flex h-full flex-col bg-surface">
-      <div className="flex min-h-[70px] items-center gap-2.5 px-4 pb-4 pt-[18px]">
-        <Link
-          href={grupos[0]?.items[0]?.href ?? "/"}
-          onClick={alNavegar}
-          aria-label="FundRadar"
-        >
-          {contraido ? <LogoMarca /> : <Logo subtitulo={PORTAL[rol]} />}
+      <div className="px-5 pb-3.5 pt-5">
+        <Link href={grupos[0]?.items[0]?.href ?? "/"} onClick={alNavegar} aria-label="FundRadar, ir al inicio">
+          <Logo subtitulo={PORTAL[rol]} />
         </Link>
       </div>
 
-      <nav aria-label="Menú principal" className="flex flex-1 flex-col gap-0.5 overflow-y-auto pb-3 pt-1 [scrollbar-color:var(--line)_transparent] [scrollbar-width:thin]">
-        {grupos.map((g, i) => {
-          const cerrado = !contraido && cerrados.has(g.id);
-          const suma = g.items.reduce((s, it) => s + (contadores[it.href] ?? 0), 0);
-          return (
-            <div key={g.id} className="flex flex-col gap-0.5 px-2.5">
-              {contraido ? (
-                i > 0 && <div className="mx-2.5 my-[9px] h-px bg-line" />
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => alternar(g.id)}
-                  aria-expanded={!cerrado}
-                  className="flex w-full cursor-pointer items-center justify-between bg-transparent px-2.5 pb-[7px] pt-3.5 text-[10.5px] font-bold uppercase tracking-[.09em] text-ink-3 hover:text-ink"
+      <nav
+        aria-label="Menú principal"
+        className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 pb-3 [scrollbar-color:var(--line)_transparent] [scrollbar-width:thin]"
+      >
+        {grupos.map((g) => (
+          <div key={g.id} className="flex flex-col gap-0.5">
+            {g.titulo && (
+              <div className="px-2.5 pb-1.5 pt-4 text-[11px] font-semibold uppercase tracking-[.08em] text-ink-3">
+                {g.titulo}
+              </div>
+            )}
+            {g.items.map((it) => {
+              const esActivo = activo?.item.href === it.href;
+              const Icono = it.icono;
+              return (
+                <Link
+                  key={it.href}
+                  href={it.href}
+                  onClick={alNavegar}
+                  data-recorrido={it.href}
+                  aria-current={esActivo ? "page" : undefined}
+                  className={cn(
+                    "flex h-10 items-center gap-2.5 rounded-[4px] px-2.5 text-sm transition-colors",
+                    esActivo
+                      ? "bg-pri-soft font-semibold text-pri-text"
+                      : "font-medium text-ink-2 hover:bg-surface-2 hover:text-ink"
+                  )}
                 >
-                  <span className="flex items-center gap-2">
-                    {g.titulo}
-                    {cerrado && suma > 0 && (
-                      <span className="grid h-4 min-w-4 place-items-center rounded-lg bg-rose px-[5px] text-[10px] tracking-normal text-white">
-                        {suma}
-                      </span>
-                    )}
-                  </span>
-                  <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", cerrado && "-rotate-90")} />
-                </button>
-              )}
-              {!cerrado &&
-                g.items.map((it) => {
-                  const esActivo = activo?.item.href === it.href;
-                  const Icono = it.icono;
-                  return (
-                    <Link
-                      key={it.href}
-                      href={it.href}
-                      onClick={alNavegar}
-                      title={it.label}
-                      data-recorrido={it.href}
-                      aria-current={esActivo ? "page" : undefined}
-                      className={cn(
-                        "relative flex h-[38px] items-center gap-2.5 rounded-[10px] px-2.5 text-[13.5px] transition-colors",
-                        contraido && "justify-center px-0",
-                        esActivo
-                          ? "bg-pri-soft font-bold text-pri-text"
-                          : "font-semibold text-ink-2 hover:text-ink"
-                      )}
-                    >
-                      <Icono className="h-[17px] w-[17px] flex-none" />
-                      {!contraido && <span className="flex-1 truncate">{it.label}</span>}
-                      <Contador n={contadores[it.href] ?? 0} contraido={contraido} />
-                    </Link>
-                  );
-                })}
-            </div>
-          );
-        })}
+                  <Icono className="h-[18px] w-[18px] flex-none" aria-hidden />
+                  <span className="flex-1 truncate">{it.label}</span>
+                  <Contador n={contadores[it.href] ?? 0} />
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </nav>
 
-      <div className="flex flex-col gap-2.5 border-t border-line p-3">
-        {rol === "empresa" && !contraido && <PieEmpresa />}
-        {rol === "empresa" && contraido && (
-          <button
-            type="button"
-            onClick={() => useAppStore.getState().abrirModalCreditos()}
-            title="Créditos de IA"
-            data-recorrido="creditos"
-            className="mx-auto grid h-[38px] w-[38px] cursor-pointer place-items-center rounded-[10px] bg-surface-2 text-pri"
-          >
-            <Sparkles className="h-4 w-4" />
-          </button>
-        )}
+      <div className="flex flex-col gap-3 border-t border-line p-3">
+        {rol === "empresa" && <PieEmpresa />}
         {sesion && (
-          <div className={cn("flex items-center gap-2.5", contraido && "flex-col")}>
+          <div className="flex items-center gap-2.5">
             <div
               title={`${titulo} · ${sesion.correo}`}
-              className="grid h-[34px] w-[34px] flex-none place-items-center rounded-full bg-pri-soft text-xs font-extrabold text-pri-text"
+              className="grid h-9 w-9 flex-none place-items-center rounded-full bg-pri-soft text-xs font-bold text-pri-text"
             >
               {iniciales(titulo)}
             </div>
-            {!contraido && (
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-[13px] font-bold">{titulo}</div>
-                <div className="truncate text-[11.5px] text-ink-3">{subtitulo}</div>
-              </div>
-            )}
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-[13px] font-semibold text-ink">{titulo}</div>
+              <div className="truncate text-xs text-ink-3">{subtitulo}</div>
+            </div>
             <form action={cerrarSesion}>
               <button
                 type="submit"
                 title="Cerrar sesión"
                 aria-label="Cerrar sesión"
-                className="grid h-[30px] w-[30px] cursor-pointer place-items-center rounded-lg text-ink-3 hover:bg-surface-2 hover:text-ink"
+                className="grid h-11 w-11 cursor-pointer place-items-center rounded-[4px] text-ink-3 hover:bg-surface-2 hover:text-ink"
               >
                 <LogOut className="h-4 w-4" />
               </button>

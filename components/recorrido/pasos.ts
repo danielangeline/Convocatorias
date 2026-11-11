@@ -33,25 +33,7 @@ export const PASOS_EMPRESA: PasoRecorrido[] = [
     objetivo: "/convocatorias",
     titulo: "Convocatorias",
     texto:
-      "El catálogo completo de fondos públicos, privados y de cooperación. Filtra por sector, región, monto o fecha de cierre, abre la ficha con sus requisitos y documentos, y desde ahí postula o genera tu documento con IA.",
-  },
-  {
-    objetivo: "/sugeridas",
-    titulo: "Sugeridas para ti",
-    texto:
-      "Las convocatorias que mejor se ajustan a tus proyectos, con su porcentaje de compatibilidad y el detalle de por qué. Entre más completo tu proyecto, mejores sugerencias.",
-  },
-  {
-    objetivo: "/convocatorias?tipo=beneficio_tributario",
-    titulo: "Beneficios tributarios",
-    texto:
-      "Convocatorias que no entregan dinero sino beneficios en impuestos, como deducciones o descuentos. Es el mismo catálogo, ya filtrado por este tipo.",
-  },
-  {
-    objetivo: "/guardadas",
-    titulo: "Guardadas",
-    texto:
-      "Las convocatorias que marcaste para revisar después. Si alguna cierra en los próximos 7 días, te avisamos en la campana.",
+      "El catálogo completo de fondos públicos, privados y de cooperación. Alterna entre Todas, Sugeridas para ti y Guardadas, filtra por sector, región, monto o fecha de cierre, y abre la ficha con sus requisitos para postular o generar tu documento con IA.",
   },
   {
     objetivo: "/proyectos",

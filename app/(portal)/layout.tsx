@@ -24,6 +24,7 @@ import { leerTarifas, listarPlanesDelRol } from "@/lib/suscripcion-servidor";
 import { listarGuardadas } from "@/lib/guardadas-servidor";
 import { compatibilidadEmpresa, nuevasEstaSemana } from "@/lib/compatibilidad-empresa";
 import { notificacionesEmpresa } from "@/lib/notificaciones-empresa";
+import { etapaDe } from "@/lib/etapas-postulacion";
 
 // Portal Empresa: solo rol empresa (RNF-30, docs/04 §8.2). proxy.ts ya lo
 // aplica; esta es la segunda barrera.
@@ -55,9 +56,11 @@ export default async function PortalLayout({ children }: { children: React.React
   const faltaConsentimiento = !consentimiento.error && !consentimiento.data?.consentimiento_datos_at;
   const faltaRecorrido = !consentimiento.error && !!consentimiento.data && !consentimiento.data.recorrido_visto_at;
 
-  // Contador del menú: encargos que siguen abiertos (presentación).
-  const encargosAbiertos = encargos.filter((e) =>
-    ["esperando_asignacion", "pendiente", "en_curso"].includes(e.estado),
+  // Contadores del menú (presentación): postulaciones con todos sus requisitos
+  // listos para radicar (la radicación se hace en el portal oficial, RN-19) y
+  // convocatorias compatibles nuevas esta semana.
+  const listasParaRadicar = postulaciones.filter((p) =>
+    etapaDe(p.estado, p.checklist.filter((i) => i.completado).length, p.checklist.length) === "lista",
   ).length;
 
   return (
@@ -71,7 +74,7 @@ export default async function PortalLayout({ children }: { children: React.React
       <SincronizarDocumentos documentos={documentos.map(aDocumentoStore)} />
       <AppShell
         rol="empresa"
-        contadores={{ "/encargos": encargosAbiertos, "/sugeridas": sugeridasNuevas }}
+        contadores={{ "/convocatorias": sugeridasNuevas, "/postulaciones": listasParaRadicar }}
         notificaciones={notificaciones}
       >
         {/* RF-84: aviso si entró por la puerta del otro rol */}
