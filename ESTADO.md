@@ -536,7 +536,7 @@ Esperan al Product Owner. No bloquean el Sprint 1.
 
 ## Hallazgos no planificados
 
-- **(Sesión 042)** 14 modales con la clase `bg-overlay\x01` (carácter de control de un `sed` de la sesión 040): no oscurecen el fondo. Lista en la bitácora 042.
+- ~~**(Sesión 042)** 14 modales con la clase `bg-overlay\x01`~~ — **resuelto al cierre de la 042** a pedido del Product Owner: 15 apariciones en 14 archivos; el fondo del modal vuelve a oscurecerse (comprobado en pantalla).
 - **(Sesión 042)** RF-73: el detalle de la postulación solo muestra «Ir al portal de la entidad» con todos los requisitos listos; `prueba-postulaciones.mjs` falla 2 comprobaciones desde el rediseño de la sesión 040.
 - **(Sesión 042)** El store de Zustand es global en el proceso del servidor: en el render del servidor los componentes cliente ven datos de ejemplo hasta hidratar (no filtra datos de otra cuenta: comprobado). Lo nuevo de la 042 usa un contexto por petición (`lib/contexto-plan.tsx`).
 - **(Sesión 042)** El portal mezcla tuteo y usted.
