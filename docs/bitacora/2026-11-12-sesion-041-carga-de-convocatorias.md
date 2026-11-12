@@ -14,11 +14,13 @@ Subir al catálogo las 207 fuentes de `CARGA_FINANCIADORES.csv`, las convocatori
 - **Grants.gov (API pública, `search2` y `fetchOpportunity`):** 59 convocatorias con su NOFO como TDR; las que el texto oficial abre a entidades extranjeras llevan «todos los países».
 - **Horizon Europe (API SEDIA):** 29 temas con el programa de trabajo oficial como TDR; Colombia es elegible para financiación automática (lista de países participantes v3.7).
 - **IKI Medium Grants** (solo sede en Alemania/UE; Colombia entra como socia local) y **CSCI 2027** (solo EE. UU.), del listado del Product Owner.
-- **Publicación:** 98 de 99 publicadas por `POST /api/admin/convocatorias/{id}/publicar`; **50 sirven a Colombia** (todos los países o `CO`).
+- **Segunda tanda Horizon (60 temas, mismo método):** se leyeron las condiciones de cada tema en la API SEDIA y se excluyeron los que limitan la participación a entidades de la UE o países asociados. Un primer reintento de la carga falló en 40 filas por un error transitorio de guardado; se reintentó y quedaron todas.
+- **Corrección propia:** 9 temas de la primera tanda tenían esa restricción (ciberseguridad ECCC, SPACE, INFRA-DEV, GOVERNANCE-03) y se habían publicado por error; se **despublicaron**.
+- **Publicación:** por `POST /api/admin/convocatorias/{id}/publicar`. Resultado final: 159 cargadas, 149 publicadas, **101 sirven a Colombia** (todos los países o `CO`).
 
 ## Cómo se verificó
 
-Todo pasó por el importador real (vista previa y confirmación), con administrador temporal con MFA, ya borrado. Consulta final a la base: 99 cargadas, 98 publicadas, 50 con alcance a Colombia.
+Todo pasó por el importador real (vista previa y confirmación), con administrador temporal con MFA, ya borrado. Consulta final a la base: 159 cargadas, 149 publicadas, 101 con alcance a Colombia.
 
 ## Decisiones tomadas
 
@@ -28,7 +30,7 @@ Todo pasó por el importador real (vista previa y confirmación), con administra
 
 ## Qué quedó abierto
 
-- **Araucária CP 20/2026**: sin publicar; sus enlaces dan 404 al servidor. Subir el PDF a mano.
+- **Araucária CP 20/2026** (borrador) y 9 temas Horizon restringidos a la UE (despublicados): sin publicar; sus enlaces dan 404 al servidor. Subir el PDF a mano.
 - **Beneficios tributarios para Colombia:** no se halló ninguno con fecha de cierre verificable y TDR (Minciencias 853, exención de IVA, es de ventanilla abierta sin fecha; la 970 de CTeI no está confirmada).
 - Las convocatorias solo EE. UU. quedan publicadas, pero no se sugieren a empresas colombianas (RN-39).
 
