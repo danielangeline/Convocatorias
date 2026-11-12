@@ -386,7 +386,7 @@ Detalle en [`docs/bitacora/2026-09-24-sesion-020.md`](docs/bitacora/2026-09-24-s
 
 ## Lo siguiente
 
-**Del Product Owner (sesión 042):** confirmar qué pasa con los encargos en curso y los documentos compartidos cuando un Pro baja a Gratis (hoy siguen vivos) y la meta de conversión de Gratis a pago (docs/00). Revisar la portada y los textos en usted.
+**Del Product Owner (sesión 042):** ~~encargos en curso al bajar a Gratis~~ (resuelto: siguen vivos, RN-41); la meta de conversión de Gratis a pago (docs/00). Revisar la portada y los textos en usted.
 
 **Carga masiva (sesiones 034 y 035, con documentos):** el Product Owner la prueba con un archivo real y decide si se fusiona a `main`, y si quiere la opción «Publicar las que estén completas» (hoy todo queda en borrador). Si pide subir `.xlsx` directamente (hoy se guarda como «CSV UTF-8» desde Excel), es una ampliación de RF-118.
 

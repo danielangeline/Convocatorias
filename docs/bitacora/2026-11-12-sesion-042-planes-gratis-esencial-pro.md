@@ -47,7 +47,7 @@ Al abrir: `ESTADO.md` y la bitácora 041 (carga de datos, sin código). El MCP d
 - **Aplicar la migración y fusionar al final** (decisión del Product Owner en la sesión): la base es la de producción y `main` desplegado leía `planes.es_trial`, así que el portal empresa de producción estuvo caído entre el `db push` y la fusión. Se descartó una capa de compatibilidad (alias `es_trial` y fecha lejana en vez de nula) para no dejar deuda.
 - **Gratis es una suscripción `gratis` sin vencimiento**, no la ausencia de suscripción: se conserva «una suscripción por cuenta» y la bajada reutiliza la misma fila (paquetes intactos). Descartado: dejar la fila de pago `vencida` y calcular Gratis aparte (dos verdades).
 - **Plan efectivo con respaldo en Gratis**: una empresa vencida que el job aún no movió, o suspendida, ya se trata como Gratis; no depende del job (como RF-40 desde la sesión 023).
-- **Al bajar a Gratis no se cancela nada**: los encargos en curso siguen (el consultor puede terminar), los documentos compartidos siguen compartidos y la empresa puede revocar o retirar; lo que no puede es avanzar postulaciones, calificar, elegir propuestas, compartir de nuevo ni usar la IA. **Pide confirmación del Product Owner** (ver abierto).
+- **Al bajar a Gratis no se cancela nada**: los encargos en curso siguen (el consultor puede terminar), los documentos compartidos siguen compartidos y la empresa puede revocar o retirar; lo que no puede es avanzar postulaciones, calificar, elegir propuestas, compartir de nuevo ni usar la IA. **Confirmado por el Product Owner al cierre de la sesión** («Sí, que sigan»); registrado en RN-41 y docs/05 §9.38.
 - **El directorio sigue siendo de lectura pública en la base** (lo usa RF-44 y los perfiles aprobados son públicos por diseño, §9.20): el bloqueo de Pro está en el servidor y en toda acción con un consultor.
 - **Tratamiento de usted** en todo lo nuevo, también en el titular y los botones que el Product Owner escribió en tuteo («Encuentre…», «Empiece gratis»), por la regla de la portada.
 - **«Soporte prioritario y más usuarios»** no se muestra en las tarjetas: no está modelado ni construido (no hay cuentas con varios usuarios) y anunciarlo sería prometer algo que no existe.
@@ -55,7 +55,6 @@ Al abrir: `ESTADO.md` y la bitácora 041 (carga de datos, sin código). El MCP d
 
 ## Qué quedó abierto
 
-- **Product Owner:** confirmar qué pasa con los encargos en curso y los documentos compartidos cuando un Pro baja a Gratis (hoy siguen vivos).
 - **Product Owner:** la meta «conversión de trial a pago ≥ 30 %» de docs/00 quedó como `[COMPLETAR]` para el plan Gratis sin vencimiento.
 - Hasta que esta rama llegue a `main`, el portal empresa de producción no funciona (ver «Estado al cerrar»).
 
