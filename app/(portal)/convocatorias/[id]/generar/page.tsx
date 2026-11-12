@@ -12,7 +12,8 @@ import {
   XCircle,
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
-import { textoCreditos, useAccesoSuscripcion, useCreditos, useDocumentosPropios, useProyectosPropios, useCategoriaPorId, useTarifas } from "@/lib/hooks";
+import { textoCreditos, useAccesoSuscripcion, useCreditos, useDocumentosPropios, usePlanEfectivo, useProyectosPropios, useCategoriaPorId, useTarifas } from "@/lib/hooks";
+import { PantallaBloqueada } from "@/components/plan/FuncionBloqueada";
 import { documentoParaProyectoConv } from "@/lib/documentos";
 import { pedir } from "@/lib/pedir";
 import { calcularCompletitud } from "@/lib/proyectos";
@@ -42,6 +43,8 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
   const documentos = useDocumentosPropios();
   const { requerirAcceso } = useAccesoSuscripcion();
   const { disponibles } = useCreditos();
+  // RN-41, RF-120 (sesión 042): el documento con IA es de Esencial y Pro.
+  const conFuncion = usePlanEfectivo().incluye("documento_ia");
   // RN-17: generar cuesta la tarifa vigente (100 al iniciar la sesión 030).
   const costo = useTarifas().generacion;
 
@@ -72,6 +75,8 @@ export default function GenerarDocumentoPage({ params }: { params: Promise<{ id:
       </div>
     );
   }
+
+  if (!conFuncion) return <PantallaBloqueada funcion="documento_ia" titulo="Generar documento con IA" />;
 
   const proyectoSeleccionado = proyectos.find((p) => p.id === seleccionId);
   // RF-53, RF-61: si el par ya tiene documento, generar crea una versión nueva y conserva la anterior.

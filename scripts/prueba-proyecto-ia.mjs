@@ -12,6 +12,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import crypto from "node:crypto";
+import { prepararPlanes } from "./plan-prueba.mjs";
 
 const URL_ = process.env.NEXT_PUBLIC_SUPABASE_URL, ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const APP = process.env.PRUEBA_URL ?? "http://localhost:3000";
@@ -46,6 +47,10 @@ const audio = (bytes, tipo = "audio/webm") => {
 };
 
 const sufijo = crypto.randomBytes(3).toString("hex");
+
+// Sesión 042 (RN-41): las empresas de esta prueba usan un plan temporal con todas las funciones.
+
+const planesPrueba = await prepararPlanes(svc, sufijo);
 const cuentas = [];
 const usados = async (id) => (await svc.from("suscripciones").select("creditos_usados_periodo").eq("usuario_id", id).single()).data.creditos_usados_periodo;
 const consumos = async (id, tipo) => (await svc.from("consumos_ia").select("exito, credito_descontado, tokens_entrada, costo_estimado, modelo").eq("usuario_id", id).eq("tipo", tipo)).data ?? [];
@@ -63,6 +68,7 @@ try {
     });
     if (error) throw error;
     cuentas.push(data.user.id);
+    if (rol === "empresa") await planesPrueba.pasarA(data.user.id);
     const s = sesion();
     const { error: e } = await s.cliente.auth.signInWithPassword({ email: data.user.email, password: clave });
     if (e) throw e;
@@ -151,6 +157,7 @@ try {
   }
   const { count } = await svc.from("perfiles").select("id", { count: "exact", head: true }).in("id", cuentas);
   console.log(`\nCuentas temporales sobrantes: ${count ?? "?"}`);
+  await planesPrueba.limpiar();
   console.log(fallas === 0 ? "TODAS LAS COMPROBACIONES PASARON" : `${fallas} FALLA(S)`);
   process.exit(fallas === 0 ? 0 : 1);
 }

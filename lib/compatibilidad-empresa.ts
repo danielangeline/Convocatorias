@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { listarProyectos } from "@/lib/proyectos-servidor";
+import { planEfectivoSesion } from "@/lib/plan-servidor";
 import { sugerenciasDeProyecto, type CriterioEvaluado } from "@/lib/sugerencias";
 import { diasRestantes } from "@/lib/utils";
 import type { Convocatoria } from "@/lib/types";
@@ -25,7 +26,9 @@ const MAXIMO_PROYECTOS = 8;
 const DIAS_NUEVA = 7;
 
 export const compatibilidadEmpresa = cache(async (): Promise<{ porConvocatoria: Map<string, Compatibilidad>; proyectos: number; compatiblesPorProyecto: Record<string, number> }> => {
-  const proyectos = await listarProyectos();
+  const [proyectos, plan] = await Promise.all([listarProyectos(), planEfectivoSesion()]);
+  // RN-41 (sesión 042): sin sugerencias en el plan, no hay cruce que mostrar.
+  if (!plan?.funciones.sugerencias) return { porConvocatoria: new Map(), proyectos: proyectos.length, compatiblesPorProyecto: {} };
   const elegidos = proyectos.slice(0, MAXIMO_PROYECTOS);
   const resultados = await Promise.all(elegidos.map((p) => sugerenciasDeProyecto(p.id)));
   const porConvocatoria = new Map<string, Compatibilidad>();

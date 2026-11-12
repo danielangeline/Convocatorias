@@ -1,4 +1,5 @@
 import "server-only";
+import { rechazoFuncion } from "@/lib/plan-servidor";
 import { cache } from "react";
 import type { PostgrestError } from "@supabase/supabase-js";
 import { crearClienteServicio, crearClienteServidor } from "@/lib/supabase/servidor";
@@ -201,6 +202,8 @@ const RECHAZOS: Record<string, { status: number; error: string }> = {
     error: "Las organizaciones de tu país no pueden postularse a esta convocatoria.",
   },
   sin_suscripcion: { status: 402, error: "Necesitas una suscripción vigente para usar la IA." },
+  // RN-41 (sesión 042): el plan no incluye el documento con IA.
+  funcion_no_incluida: rechazoFuncion("documento_ia"),
   sin_creditos: { status: 402, error: "No te quedan créditos de IA. Puedes pedir un paquete adicional o un plan con más créditos." },
   sin_plantilla: { status: 503, error: "La generación no está disponible en este momento. Intenta más tarde." },
   documento_no_existe: { status: 404, error: "El documento no existe." },
@@ -430,6 +433,13 @@ export async function ajustarDocumento(
     .rpc("preparar_ajuste", { p_usuario: usuarioId, p_documento: id })
     .single<Preparacion>();
   if (ePrep) {
+    if (rol === "consultor" && ePrep.hint === "funcion_no_incluida") {
+      return {
+        ok: false,
+        status: 402,
+        error: "El plan de la empresa dueña del documento ya no incluye los ajustes con IA. Avísale para que pueda seguir pidiéndolos.",
+      };
+    }
     if (rol === "consultor" && (ePrep.hint === "sin_creditos" || ePrep.hint === "sin_suscripcion")) {
       return {
         ok: false,
@@ -559,6 +569,8 @@ export function aDocumentoStore(d: DocumentoServidor): DocumentoGenerado {
 // ---------------------------------------------------------------------------
 
 const RECHAZOS_COMPARTIR: Record<string, { status: number; error: string }> = {
+  // RN-41 (sesión 042): compartir con consultor es del plan Pro.
+  funcion_no_incluida: rechazoFuncion("consultores"),
   sin_encargo_en_curso: {
     status: 409,
     error: "Solo puedes compartir el documento con el consultor de un encargo en curso sobre este proyecto.",

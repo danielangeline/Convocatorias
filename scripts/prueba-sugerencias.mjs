@@ -14,6 +14,7 @@ import { createServerClient } from "@supabase/ssr";
 import crypto from "node:crypto";
 import { datosFaltantes, separarSugerencias, MAXIMO_CERCANAS } from "../lib/sugerencias-calculo.ts";
 import { DEPARTAMENTOS } from "../lib/departamentos.ts";
+import { prepararPlanes } from "./plan-prueba.mjs";
 
 const URL_ = process.env.NEXT_PUBLIC_SUPABASE_URL, ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const APP = process.env.PRUEBA_URL ?? "http://localhost:3000";
@@ -40,6 +41,10 @@ async function api(s, metodo, ruta, cuerpo) {
 }
 
 const sufijo = crypto.randomBytes(3).toString("hex");
+
+// Sesión 042 (RN-41): las empresas de esta prueba usan un plan temporal con todas las funciones.
+
+const planesPrueba = await prepararPlanes(svc, sufijo);
 const hoyCO = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Bogota" }).format(new Date());
 const enDias = (n) => new Date(Date.parse(hoyCO) + n * 86400000).toISOString().slice(0, 10);
 const cuentas = [], categorias = [], convocatorias = [];
@@ -72,6 +77,7 @@ try {
     });
     if (error) throw error;
     cuentas.push(data.user.id);
+    if (rol === "empresa") await planesPrueba.pasarA(data.user.id);
     const s = sesion();
     const { error: e } = await s.cliente.auth.signInWithPassword({ email: data.user.email, password: clave });
     if (e) throw e;
@@ -159,7 +165,8 @@ try {
   const { error: eSus } = await svc.from("suscripciones").update({ estado: "vencida", fecha_inicio: enDias(-60), fecha_vencimiento: enDias(-30) }).eq("usuario_id", b.id);
   ok(!eSus, `suscripción de B vencida ${eSus?.message ?? ""}`);
   const rVencida = await api(b, "GET", ruta(R.id));
-  ok(rVencida.status === 402 && /suscripci/i.test(rVencida.json?.error ?? ""), `B con la suscripción vencida -> 402 (${rVencida.status})`);
+  // Sesión 042 (RN-16, RN-41): vencida, su plan efectivo es Gratis, que no incluye sugerencias.
+  ok(rVencida.status === 402 && /plan Esencial/i.test(rVencida.json?.error ?? ""), `B con la suscripción vencida (en Gratis) -> 402 (${rVencida.status})`);
 
   // --- RF-12: filtro del catálogo por departamento ------------------------------------------------
   const ids = async (qs) => new Set(((await api(a, "GET", `/api/convocatorias?${qs}`)).json?.datos ?? []).map((c) => c.id));
@@ -192,5 +199,6 @@ try {
   if (categorias.length) await svc.from("categorias").delete().in("id", categorias);
   console.log("datos y cuentas de prueba borrados");
 }
+await planesPrueba.limpiar();
 console.log(fallas ? `${fallas} FALLAS` : "TODO PASÓ");
 process.exitCode = fallas ? 1 : 0;

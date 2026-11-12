@@ -5,6 +5,7 @@ import { headers } from "next/headers";
 import { isAuthApiError, isAuthSessionMissingError, type AuthError } from "@supabase/supabase-js";
 import { ipDeCabeceras, registrarAccesoDenegado } from "./autorizacion/eventos";
 import { crearClienteServidor } from "./supabase/servidor";
+import { COLUMNAS_PLAN, aPlan, funcionesDeFila, type FilaPlan } from "./planes";
 import type { DatosSesion, EstadoPerfilConsultor, ModalidadSuscripcion, EstadoSuscripcion, RolUsuario } from "./types";
 
 /**
@@ -69,12 +70,17 @@ export const obtenerSesion = cache(async (): Promise<DatosSesion | null> => {
   const { data: sus } = await supabase
     .from("suscripciones")
     .select(
-      "id, plan_id, modalidad, estado, fecha_inicio, fecha_vencimiento, creditos_usados_periodo, creditos_extra, periodo_creditos_inicio, planes (id, nombre, rol, precio_mensual, precio_anual, creditos_ia_mensuales, es_trial)"
+      `id, plan_id, modalidad, estado, fecha_inicio, fecha_vencimiento, creditos_usados_periodo, creditos_extra, periodo_creditos_inicio, planes (${COLUMNAS_PLAN})`
     )
     .eq("usuario_id", perfil.id)
-    .order("fecha_vencimiento", { ascending: false })
+    .order("fecha_vencimiento", { ascending: false, nullsFirst: false })
     .limit(1)
     .maybeSingle();
+
+  // RN-41, RF-120: el plan que rige las funciones, con la misma regla de la base.
+  const { data: efectivo, error: eEfectivo } =
+    rol === "empresa" ? await supabase.rpc("mi_plan_efectivo").maybeSingle() : { data: null, error: null };
+  if (eEfectivo) console.error("Sesión: no se pudo leer el plan efectivo", eEfectivo.code, eEfectivo.message);
 
   // Sin sitio_web ni cv_path: esas columnas no se leen directamente (docs/05 §9.11 punto 4).
   const { data: cons } =
@@ -86,15 +92,8 @@ export const obtenerSesion = cache(async (): Promise<DatosSesion | null> => {
           .maybeSingle()
       : { data: null };
 
-  const planFila = sus?.planes as unknown as {
-    id: string;
-    nombre: string;
-    rol: "empresa" | "consultor";
-    precio_mensual: number;
-    precio_anual: number;
-    creditos_ia_mensuales: number;
-    es_trial: boolean;
-  } | null;
+  const planFila = sus?.planes as unknown as FilaPlan | null;
+  const ef = efectivo as (Partial<FilaPlan> & { plan_id: string; nombre: string; es_gratuito: boolean }) | null;
 
   return {
     sesion: {
@@ -120,16 +119,9 @@ export const obtenerSesion = cache(async (): Promise<DatosSesion | null> => {
           periodoCreditosInicio: sus.periodo_creditos_inicio,
         }
       : null,
-    plan: planFila
-      ? {
-          id: planFila.id,
-          nombre: planFila.nombre,
-          rol: planFila.rol,
-          precioMensual: Number(planFila.precio_mensual),
-          precioAnual: Number(planFila.precio_anual),
-          creditosIaMensuales: planFila.creditos_ia_mensuales,
-          esTrial: planFila.es_trial,
-        }
+    plan: planFila ? aPlan(planFila) : null,
+    planEfectivo: ef
+      ? { planId: ef.plan_id, nombre: ef.nombre, esGratuito: ef.es_gratuito === true, funciones: funcionesDeFila(ef) }
       : null,
     consultor: cons
       ? {

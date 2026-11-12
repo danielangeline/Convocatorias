@@ -18,7 +18,7 @@ type Filtro = EstadoSuscripcion | "todas" | "sin";
 
 const filtros: Array<{ valor: Filtro; etiqueta: string }> = [
   { valor: "todas", etiqueta: "Todas" },
-  { valor: "trial", etiqueta: "Trial" },
+  { valor: "gratis", etiqueta: "Gratis" },
   { valor: "activa", etiqueta: "Activa" },
   { valor: "en_gracia", etiqueta: "En gracia" },
   { valor: "vencida", etiqueta: "Vencida" },
@@ -26,7 +26,7 @@ const filtros: Array<{ valor: Filtro; etiqueta: string }> = [
   { valor: "sin", etiqueta: "Sin suscripción" },
 ];
 
-const CON_ACCESO = new Set<EstadoSuscripcion>(["trial", "activa", "en_gracia"]);
+const CON_ACCESO = new Set<EstadoSuscripcion>(["gratis", "activa", "en_gracia"]);
 const usd = (v: number) => `USD ${v.toLocaleString("es-CO", { maximumFractionDigits: 4 })}`;
 
 /**
@@ -64,7 +64,7 @@ export function GestionSuscripciones({
   );
   const cuenta = (f: Filtro) => (f === "sin" ? cuentas.filter((c) => c.estado === null).length : cuentas.filter((c) => c.estado === f).length);
 
-  const planesPara = (c: CuentaSuscripcion) => planes.filter((p) => p.rol === c.rol && !p.esTrial && p.activo !== false);
+  const planesPara = (c: CuentaSuscripcion) => planes.filter((p) => p.rol === c.rol && !p.esGratuito && p.activo !== false);
   const precioDe = (planId: string, modalidad: "mensual" | "anual") => {
     const p = planes.find((x) => x.id === planId);
     return p ? formatearMontoCOP(modalidad === "anual" ? p.precioAnual : p.precioMensual) : "";
@@ -146,7 +146,7 @@ export function GestionSuscripciones({
           <dl className="mt-3 grid grid-cols-5 gap-2 text-center">
             {(
               [
-                ["Trial", tablero.trial],
+                ["Gratis", tablero.gratis],
                 ["Activas", tablero.activas],
                 ["En gracia", tablero.enGracia],
                 ["Vencidas", tablero.vencidas],
@@ -232,7 +232,7 @@ export function GestionSuscripciones({
                   </td>
                   <td className="px-5 py-3 text-ink-2">
                     {c.planNombre ?? "—"}
-                    {c.modalidad && c.modalidad !== "trial" && <span className="text-xs text-ink-3"> · {c.modalidad}</span>}
+                    {c.modalidad && c.modalidad !== "gratis" && <span className="text-xs text-ink-3"> · {c.modalidad}</span>}
                   </td>
                   <td className="px-5 py-3">
                     {c.estado ? (
@@ -241,7 +241,7 @@ export function GestionSuscripciones({
                       <span className="text-xs text-ink-3">Sin suscripción</span>
                     )}
                   </td>
-                  <td className="px-5 py-3 text-ink-2">{c.fechaVencimiento ? formatFecha(c.fechaVencimiento) : "—"}</td>
+                  <td className="px-5 py-3 text-ink-2">{c.fechaVencimiento ? formatFecha(c.fechaVencimiento) : c.modalidad === "gratis" ? "Sin vencimiento" : "—"}</td>
                   <td className="px-5 py-3 font-tabular text-ink-2">
                     {c.rol === "consultor" || !c.estado ? (
                       "—"

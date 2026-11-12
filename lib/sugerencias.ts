@@ -1,4 +1,5 @@
 import "server-only";
+import { rechazoFuncion } from "@/lib/plan-servidor";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { listarCatalogo, listarCategoriasActivas } from "@/lib/catalogo";
 import { obtenerProyecto } from "@/lib/proyectos-servidor";
@@ -57,6 +58,8 @@ type Fila = Record<ClaveCriterio, boolean> & {
 };
 
 const RECHAZOS: Record<string, { status: number; error: string }> = {
+  // RN-41 (sesión 042): el plan no incluye las sugerencias.
+  funcion_no_incluida: rechazoFuncion("sugerencias"),
   sin_suscripcion: {
     status: 402,
     error: "Tu suscripción está vencida. Renuévala para ver qué convocatorias coinciden con este proyecto.",

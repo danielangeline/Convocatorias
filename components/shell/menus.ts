@@ -11,6 +11,7 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
+import type { FuncionPlan } from "@/lib/types";
 
 export type RolShell = "empresa" | "consultor" | "administrador";
 
@@ -24,6 +25,8 @@ export interface ItemMenu {
   alias?: string[];
   /** Etiqueta corta en la barra de pestañas inferior (móvil). */
   etiquetaTab?: string;
+  /** RN-41, RF-120: la función del plan que abre la pantalla; sin ella, el ítem lleva candado. */
+  funcion?: FuncionPlan;
 }
 
 export interface GrupoMenu {
@@ -65,16 +68,16 @@ const EMPRESA: GrupoMenu[] = [
     titulo: "Mi trabajo",
     items: [
       { href: "/proyectos", label: "Proyectos", icono: Folder, etiquetaTab: "Proyectos" },
-      { href: "/postulaciones", label: "Postulaciones", icono: ClipboardCheck, etiquetaTab: "Postular" },
-      { href: "/documentos", label: "Documentos con IA", icono: Sparkles },
+      { href: "/postulaciones", label: "Postulaciones", icono: ClipboardCheck, etiquetaTab: "Postular", funcion: "postulaciones" },
+      { href: "/documentos", label: "Documentos con IA", icono: Sparkles, funcion: "documento_ia" },
     ],
   },
   {
     id: "consultores",
     titulo: "Consultores",
     items: [
-      { href: "/consultores", label: "Directorio", icono: Users },
-      { href: "/encargos", label: "Mis encargos", icono: BriefcaseBusiness },
+      { href: "/consultores", label: "Directorio", icono: Users, funcion: "consultores" },
+      { href: "/encargos", label: "Mis encargos", icono: BriefcaseBusiness, funcion: "consultores" },
     ],
   },
   {

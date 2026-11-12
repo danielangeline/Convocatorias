@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { FileText } from "lucide-react";
 import { useAppStore } from "@/lib/store";
-import { useCreditos, useDocumentosPropios, useProyectosPropios, useTarifas } from "@/lib/hooks";
+import { useCreditos, useDocumentosPropios, usePlanEfectivo, useProyectosPropios, useTarifas } from "@/lib/hooks";
+import { AvisoFuncionBloqueada, PantallaBloqueada } from "@/components/plan/FuncionBloqueada";
 import { extraerPendientes } from "@/lib/documentos";
 import { formatFecha } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
@@ -24,6 +25,10 @@ export default function DocumentosPage() {
   const abrirCreditos = useAppStore((s) => s.abrirModalCreditos);
 
   const ordenados = [...documentos].sort((a, b) => (a.fechaActualizacion < b.fechaActualizacion ? 1 : -1));
+  // RN-41, RF-120 (sesión 042): sin la función, los documentos que ya tiene se
+  // ven y se descargan; sin ninguno, la pantalla explica en qué plan está.
+  const conFuncion = usePlanEfectivo().incluye("documento_ia");
+  if (!conFuncion && documentos.length === 0) return <PantallaBloqueada funcion="documento_ia" titulo="Documentos con IA" />;
 
   return (
     <div className="flex flex-col gap-5">
@@ -33,8 +38,14 @@ export default function DocumentosPage() {
         descripcion="Borradores de propuesta generados con IA a partir de tus proyectos y las convocatorias."
       />
 
+      {!conFuncion && (
+        <AvisoFuncionBloqueada
+          funcion="documento_ia"
+          texto="Sus documentos siguen aquí: puede verlos, editarlos a mano y exportarlos, pero no generar nuevos ni ajustarlos con IA"
+        />
+      )}
       {/* Banda informativa en una línea: tarifas reales y créditos traducidos a documentos. */}
-      <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1 rounded-[4px] bg-pri-soft px-4 py-3 text-[13.5px] text-pri-text">
+      {conFuncion && <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1 rounded-[4px] bg-pri-soft px-4 py-3 text-[13.5px] text-pri-text">
         <span>
           Cada documento usa <strong className="font-tabular font-medium">{tarifas.generacion.toLocaleString("es-CO")}</strong> créditos y cada ajuste,{" "}
           <strong className="font-tabular font-medium">{tarifas.ajuste.toLocaleString("es-CO")}</strong>. Te quedan{" "}
@@ -45,7 +56,7 @@ export default function DocumentosPage() {
         <button type="button" onClick={() => abrirCreditos("conseguir más créditos")} className="min-h-11 cursor-pointer font-semibold underline">
           Conseguir más
         </button>
-      </p>
+      </p>}
 
       {ordenados.length === 0 ? (
         <EmptyState

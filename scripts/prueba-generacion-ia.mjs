@@ -14,6 +14,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import crypto from "node:crypto";
+import { prepararPlanes } from "./plan-prueba.mjs";
 
 const URL_ = process.env.NEXT_PUBLIC_SUPABASE_URL, ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const APP = process.env.PRUEBA_URL ?? "http://localhost:3000";
@@ -41,6 +42,10 @@ async function api(s, metodo, ruta, cuerpo, { origen = APP } = {}) {
 }
 
 const sufijo = crypto.randomBytes(3).toString("hex");
+
+// Sesión 042 (RN-41): las empresas de esta prueba usan un plan temporal con todas las funciones.
+
+const planesPrueba = await prepararPlanes(svc, sufijo);
 const cuentas = [], convocatorias = [];
 const hoy = new Date(Date.now() - 5 * 3600 * 1000);  // Colombia
 const enDias = (n) => new Date(hoy.getTime() + n * 86400000).toISOString().slice(0, 10);
@@ -58,6 +63,7 @@ try {
     });
     if (error) throw error;
     cuentas.push(data.user.id);
+    if (rol === "empresa") await planesPrueba.pasarA(data.user.id);
     const s = sesion();
     const { error: e } = await s.cliente.auth.signInWithPassword({ email: data.user.email, password: clave });
     if (e) throw e;
@@ -245,6 +251,7 @@ try {
     const { error } = await svc.auth.admin.deleteUser(id);
     if (error) console.error("no se pudo borrar la cuenta", id, error.message);
   }
+  await planesPrueba.limpiar();
   console.log(fallas === 0 ? "\nTODO OK" : `\n${fallas} FALLA(S)`);
   process.exit(fallas === 0 ? 0 : 1);
 }

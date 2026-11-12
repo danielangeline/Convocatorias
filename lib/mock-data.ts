@@ -1012,7 +1012,7 @@ export function encargoPorId(id: string): Encargo | undefined {
 // ---------------------------------------------------------------------------
 
 export const planes: Plan[] = [
-  { id: "plan-trial", nombre: "Trial", rol: "empresa", precioMensual: 0, precioAnual: 0, creditosIaMensuales: 3, esTrial: true },
+  { id: "plan-gratis", nombre: "Gratis", rol: "empresa", precioMensual: 0, precioAnual: 0, creditosIaMensuales: 0, esGratuito: true },
   { id: "plan-empresa-esencial", nombre: "Empresa Esencial", rol: "empresa", precioMensual: 89_000, precioAnual: 890_000, creditosIaMensuales: 10 },
   { id: "plan-empresa-pro", nombre: "Empresa Pro", rol: "empresa", precioMensual: 189_000, precioAnual: 1_890_000, creditosIaMensuales: 30 },
   { id: "plan-consultor", nombre: "Consultor", rol: "consultor", precioMensual: 69_000, precioAnual: 690_000, creditosIaMensuales: 0 },
@@ -1033,11 +1033,11 @@ export const suscripciones: Suscripcion[] = [
   {
     id: "sub-1",
     usuarioId: "empresa-1",
-    planId: "plan-trial",
-    modalidad: "trial",
-    estado: "trial",
+    planId: "plan-gratis",
+    modalidad: "gratis",
+    estado: "gratis",
     fechaInicio: desdeHoy(-11),
-    fechaVencimiento: desdeHoy(3),
+    fechaVencimiento: null,
     creditosUsadosPeriodo: 1,
     creditosExtra: 0,
     periodoCreditosInicio: desdeHoy(-11),
@@ -1094,8 +1094,8 @@ export const suscripciones: Suscripcion[] = [
     id: "sub-6",
     usuarioId: "consultor-5",
     planId: "plan-consultor",
-    modalidad: "trial",
-    estado: "trial",
+    modalidad: "mensual",
+    estado: "activa",
     fechaInicio: desdeHoy(-6),
     fechaVencimiento: desdeHoy(8),
     creditosUsadosPeriodo: 0,

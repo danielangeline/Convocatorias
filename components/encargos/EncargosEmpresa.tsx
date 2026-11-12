@@ -21,6 +21,8 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { RatingStars } from "@/components/RatingStars";
+import { AvisoFuncionBloqueada, PantallaBloqueada } from "@/components/plan/FuncionBloqueada";
+import { usePlanEfectivo } from "@/lib/hooks";
 
 /**
  * CU-22..24 · Los encargos de la empresa. Los datos llegan del servidor con su
@@ -45,6 +47,10 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
   const [aCalificar, setACalificar] = useState<EncargoDetalle | null>(null);
   const [estrellas, setEstrellas] = useState(5);
   const [comentario, setComentario] = useState("");
+  // RN-41, RF-120 (sesión 042): los encargos son del plan Pro. Sin él, los que
+  // ya tiene se ven en solo lectura; retirar una solicitud sigue permitido.
+  const { incluye } = usePlanEfectivo();
+  const conFuncion = incluye("consultores");
 
   const retirar = async (e: EncargoDetalle) => {
     const quien = e.consultor ? e.consultor.nombre : "nuestro equipo";
@@ -77,9 +83,17 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
     router.refresh();
   };
 
+  if (!conFuncion && encargos.length === 0) return <PantallaBloqueada funcion="consultores" titulo="Mis encargos" />;
+
   return (
     <div className="flex flex-col gap-5">
       <PageHeader titulo="Mis encargos" descripcion="Consultores contratados o solicitados para tus proyectos." />
+      {!conFuncion && (
+        <AvisoFuncionBloqueada
+          funcion="consultores"
+          texto="Sus encargos quedan en solo lectura: puede verlos y retirar una solicitud, pero no solicitar nuevos, elegir propuestas ni calificar"
+        />
+      )}
 
       {error && (
         <p role="alert" className="flex items-start gap-2 rounded-[4px] bg-rose-soft px-4 py-3 text-sm text-rose">
@@ -227,7 +241,7 @@ export function EncargosEmpresa({ encargos }: { encargos: EncargoDetalle[] }) {
                   </Button>
                 )}
 
-                {e.estado === "completado" && (
+                {e.estado === "completado" && conFuncion && (
                   <Button variant="outline" size="sm" className="w-full" onClick={() => abrirCalificar(e)}>
                     <Star className="h-3.5 w-3.5" /> Calificar
                   </Button>

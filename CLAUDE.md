@@ -1,6 +1,6 @@
 # Plataforma de Gestión de Convocatorias
 
-Aplicación web que ayuda a empresas colombianas a **encontrar convocatorias de financiación, generar con IA el documento base de postulación, preparar la postulación y contratar consultores**. Monetiza con suscripción mensual/anual por rol; los planes de **empresa** se diferencian por créditos de IA, el de **consultor** por acceso al directorio y a los encargos.
+Aplicación web que ayuda a empresas colombianas a **encontrar convocatorias de financiación, generar con IA el documento base de postulación, preparar la postulación y contratar consultores**. Monetiza con suscripción mensual/anual por rol; los planes de **empresa** —**Gratis, Esencial y Pro**— se diferencian por **funciones y créditos de IA** (RN-41), el de **consultor** por acceso al directorio y a los encargos.
 
 **Especificación vigente: v6.** Este archivo es el contexto mínimo. El detalle vive en `docs/` y se lee **bajo demanda**, no completo.
 
@@ -37,7 +37,7 @@ Reglas que se rompen con facilidad:
 2. **Veracidad del contenido generado.** La IA nunca inventa datos, cifras ni antecedentes que no vengan del proyecto del usuario o de la convocatoria. Lo que falte se marca como `[COMPLETAR: ...]` y se lista al usuario. (RNF-23, RF-57)
 3. **La IA se usa en tres lugares:** generar el documento base de postulación; desde la sesión 030, crear un proyecto a partir de la explicación escrita o dictada de la empresa, que se guarda enseguida y ella revisa y edita en su ficha (sesión 031) (CU-43, RN-37); y desde la sesión 031, reescribir un apartado del proyecto a pedido de la empresa, que ella acepta antes de guardar (CU-47, RF-109). **No** estructura el catálogo ni hace matching semántico — el matching es un cruce determinístico de atributos. (RN-05)
 4. **Solo un administrador publica convocatorias.** Las carga a mano o, desde la sesión 032, llegan solas desde las APIs oficiales de Grants.gov, la UE e iNNpulsa: el importador las deja **siempre en borrador** y un administrador las revisa y publica; ninguna convocatoria importada llega a una empresa sin esa revisión. Sin raspado de páginas web (scraping) en el MVP: solo APIs y canales que la fuente publica para eso. (RN-38, CU-48, CU-49)
-5. **Cada uso exitoso de la IA cuesta su tarifa en créditos**: 100 por documento, 50 por proyecto creado con IA, 10 por ajuste desde el cuarto (los 3 primeros de cada documento son gratis), 10 por editar un apartado del proyecto con IA; dictar no cuesta. Las tarifas las cambia el administrador (RF-100). Un uso fallido **nunca** consume créditos. (RN-17)
+5. **Cada uso exitoso de la IA cuesta su tarifa en créditos**: 100 por documento, 50 por proyecto creado con IA, 10 por ajuste desde el cuarto (los 3 primeros de cada documento son gratis), 10 por editar un apartado del proyecto con IA; dictar no cuesta. Las tarifas las cambia el administrador (RF-100). Un uso fallido **nunca** consume créditos. (RN-17) **Y la IA solo la usa una empresa cuyo plan la incluye** (Esencial o Pro; el plan Gratis no tiene créditos ni IA): las funciones de cada plan son datos de `planes` (`incluye_*`), se verifican en la base con `privado.plan_incluye` y una función no incluida se ve bloqueada, nunca oculta (RN-41, RF-120, sesión 042).
 6. **Suscripción y cupo se validan en el servidor y en RLS**, nunca solo en la interfaz. (RNF-20)
 7. **La plataforma no intermedia el pago de los encargos** entre empresa y consultor. Los ingresos vienen de las suscripciones. (RN-14)
 8. **Ninguna tabla se despliega sin RLS con política explícita, y ninguna sesión administrativa opera sin MFA verificado.** Ambos son requisitos de diseño desde el Sprint 0, no revisiones posteriores. (RN-24, RNF-25, RNF-28)
@@ -52,7 +52,7 @@ Reglas que se rompen con facilidad:
 
 | Rol | Qué hace | Acceso |
 |---|---|---|
-| **Empresa** (o entidad) | Busca convocatorias, registra proyectos, genera documentos con IA, postula, contrata consultores | Registro libre + trial 7 días con 3 créditos |
+| **Empresa** (o entidad) | Busca convocatorias, registra proyectos, genera documentos con IA, postula, contrata consultores | Registro libre al plan **Gratis**, sin vencimiento (catálogo, guardadas y proyectos a mano). **Esencial** suma IA, sugerencias y postulaciones; **Pro**, consultores. Al vencer un plan de pago baja a Gratis sin borrar nada (RN-11, RN-16, RN-41, sesión 042) |
 | **Consultor** | Perfil con portafolio/CV/redes, recibe y ejecuta encargos, recibe calificaciones. **No genera documentos ni tiene cupo propio de IA** (RN-28) | Requiere **aprobación de un administrador** antes de operar |
 | **Administrador** | Fuentes, convocatorias, requisitos, aprobación de consultores, planes y créditos, plantilla del prompt, seguridad y auditoría | **Solo por invitación del Propietario** (RN-06, RN-31) con cuenta dedicada + **MFA obligatorio** (RNF-28). El panel es invisible (404) para todos los demás (RF-85) |
 
@@ -62,7 +62,7 @@ Reglas que se rompen con facilidad:
 ENTRADA       dos puertas: "Soy empresa o entidad" / "Soy consultor" → registro fija el rol ·
               login lleva al portal del rol (sin opción de administrador en ninguna pantalla pública)
 ADMINS        Propietario → invita por correo → la persona define contraseña + MFA → panel · revocar
-CATÁLOGO      (solo cuentas de empresa, RN-33; excepción: consultor con encargo "buscar convocatoria"
+CATÁLOGO      (solo cuentas de empresa —en todo plan, también Gratis—, RN-33; excepción: consultor con encargo "buscar convocatoria"
               en curso, RF-91) buscar/filtrar → ficha → [Postular] o [Generar documento con IA]
 SUGERENCIAS   proyecto registrado → cruce de atributos → % de compatibilidad + desglose
 GENERACIÓN    convocatoria → elegir proyecto → generar (1 crédito) → editar → exportar .docx

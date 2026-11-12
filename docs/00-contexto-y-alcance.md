@@ -19,7 +19,7 @@ El MVP valida tres hipótesis: (1) que una empresa encuentra la convocatoria cor
 | **Búsqueda sin IA** | Catálogo con filtros por categorías + sugerencias por cruce de atributos, presentadas como **porcentaje de compatibilidad** con desglose por criterio |
 | **La plataforma no presenta la postulación** | La radicación se hace en el portal de la entidad convocante. La plataforma acompaña la **preparación**: encontrar, evaluar compatibilidad, generar el documento base, organizar el checklist y hacer seguimiento |
 | **Red de consultores** | Tercer rol: perfil con portafolio, hoja de vida y redes; ingreso aprobado por administradores; encargos por tarea desde el proyecto o directo desde el directorio/perfil (RF-74), con directorio o asignación interna; rating por encargo completado |
-| **Modelo de ingresos** | Suscripción mensual o anual para empresas y consultores. Los planes de **empresa** se diferencian entre sí **por volumen de créditos de IA**; el plan de **consultor** no lleva cupo —no existe operación que pueda consumirlo (RN-28)— y se vende por presencia en el directorio y recepción de encargos *(precisado en v6)*. Trial de 7 días con 3 créditos, solo empresas *(mod. v6: antes 14)*. Piloto: activación manual; pasarela (Wompi) como primera evolución. La plataforma **no** intermedia el pago de los encargos (RN-14) |
+| **Modelo de ingresos** | Suscripción mensual o anual para empresas y consultores. Los planes de **empresa** —**Gratis, Esencial y Pro** *(sesión 042)*— se diferencian entre sí **por las funciones que incluyen y por volumen de créditos de IA** (RN-41); el plan de **consultor** no lleva cupo —no existe operación que pueda consumirlo (RN-28)— y se vende por presencia en el directorio y recepción de encargos *(precisado en v6)*. ~~Trial de 7 días~~ **Plan Gratis sin vencimiento para toda empresa nueva** *(sesión 042: el Trial desaparece; al vencer un plan de pago, la empresa baja a Gratis)*. Piloto: activación manual; pasarela (Wompi) como primera evolución. La plataforma **no** intermedia el pago de los encargos (RN-14) |
 | **Fuera del MVP** | Alertas por correo, extracción de TDR para poblar el esquema, matching semántico, scraping (raspado de páginas; la importación por API sí entra desde la sesión 032), pasarela en línea, comisión por encargo, marketplace de aliados, LATAM/Brasil, bóveda de documentos de la empresa (backlog — ver 14) |
 
 ### 1.2 Principio rector: veracidad del contenido generado
@@ -54,7 +54,7 @@ Heredado de la sección 6 del alcance inicial y ahora **operativo**: el document
 | **Costo promedio de IA por documento** | Dentro del margen previsto del plan |
 | Consultores aprobados en el directorio | ≥ 5 |
 | Encargos completados y calificados | ≥ 2 |
-| Conversión de trial a suscripción paga | ≥ 30 % |
+| Conversión de Gratis a plan de pago *(antes: de trial; sesión 042)* | ≥ 30 % [COMPLETAR: validar la meta con el plan Gratis sin vencimiento] |
 | Reducción del tiempo de preparación frente al proceso manual | ≥ 50 % |
 
 ---

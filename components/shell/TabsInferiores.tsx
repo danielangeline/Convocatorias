@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronRight, Ellipsis, LogOut } from "lucide-react";
+import { ChevronRight, Ellipsis, Lock, LogOut } from "lucide-react";
+import { usePlanEfectivo } from "@/lib/hooks";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { cerrarSesion } from "@/lib/acciones/auth";
 import { cn } from "@/lib/utils";
@@ -23,6 +24,9 @@ export function TabsInferiores({
   contadores: Record<string, number>;
 }) {
   const { tabs, mas } = tabsDeRol(rol);
+  const { incluye } = usePlanEfectivo();
+  // RF-120: la función que el plan no incluye sigue visible, con candado.
+  const bloqueado = (i: ItemMenu) => !!i.funcion && !incluye(i.funcion);
   const [abierta, setAbierta] = useState(false);
   const conMas = mas.length > 0;
   const masActivo = conMas && !!activoHref && mas.some((i) => i.href === activoHref);
@@ -58,7 +62,9 @@ export function TabsInferiores({
               {barra(activo)}
               <span className="relative">
                 <Icono className="h-[21px] w-[21px]" aria-hidden />
-                {n > 0 && (
+                {bloqueado(t) ? (
+                  <Lock className="absolute -right-2 -top-1 h-3 w-3 text-ink-3" aria-label="Función bloqueada en su plan" />
+                ) : n > 0 && (
                   <span
                     className="absolute -right-1.5 -top-1 h-2.5 w-2.5 rounded-full bg-amber"
                     aria-label={`${n} pendientes`}
@@ -103,6 +109,7 @@ export function TabsInferiores({
                   >
                     <Icono className="h-5 w-5 flex-none text-ink-3" aria-hidden />
                     <span className="flex-1">{i.label}</span>
+                    {bloqueado(i) && <Lock className="h-4 w-4 text-ink-3" aria-label="Función bloqueada en su plan" />}
                     <ChevronRight className="h-4 w-4 text-ink-3" aria-hidden />
                   </Link>
                 </li>

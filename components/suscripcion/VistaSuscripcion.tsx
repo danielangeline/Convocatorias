@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Receipt, Check, Sparkles, Info } from "lucide-react";
+import { Receipt, Check, Sparkles, Info, Lock } from "lucide-react";
 import { useAppStore } from "@/lib/store";
-import { useAccesoSuscripcion, useCreditos, useTarifas } from "@/lib/hooks";
+import { useAccesoSuscripcion, useCreditos, usePlanEfectivo, useTarifas } from "@/lib/hooks";
 import type { Pago, RolPlan } from "@/lib/types";
 import { cn, formatCOP, formatFecha, ESTADO_SUSCRIPCION_LABEL, ESTADO_SUSCRIPCION_ESTILO } from "@/lib/utils";
-import { beneficiosDePlan, CONTRATAR_EN_PILOTO } from "@/lib/planes";
+import { beneficiosDePlan, CONTRATAR_EN_PILOTO, FUNCIONES, funcionesNoIncluidas } from "@/lib/planes";
 import { Badge } from "@/components/ui/Badge";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ProgressBar } from "@/components/ui/ProgressBar";
@@ -21,18 +21,31 @@ import { BloqueCreditos } from "@/components/BloqueCreditos";
  * historial de pagos, del servidor (docs/05 §9.28). El cupo de créditos solo
  * aparece en los planes que lo incluyen (RF-41): el consultor no lo tiene
  * (RN-28). En el piloto no se contrata desde aquí (CU-28 paso 3).
+ *
+ * Sesión 042 (RN-41, RF-120): la empresa compara Gratis, Esencial y Pro con sus
+ * funciones; «Mejorar plan» llega con `?plan=<id>` y ese plan queda señalado.
  */
-export function VistaSuscripcion({ rol, pagos }: { rol: RolPlan; pagos: Pago[] }) {
+export function VistaSuscripcion({ rol, pagos, planSenalado }: { rol: RolPlan; pagos: Pago[]; planSenalado?: string | null }) {
   const tarifas = useTarifas();
   const tarifaDocumento = tarifas.generacion;
   const { suscripcion, diasRestantes } = useAccesoSuscripcion();
   const { disponibles: creditosDisponibles, incluidos, extra } = useCreditos();
-  const planes = useAppStore((s) => s.planes);
+  // RF-82: en el portal Empresa, los planes de la petición (contexto); si no, el store.
+  const planesStore = useAppStore((s) => s.planes);
+  const { planes: planesCtx, planEfectivo } = usePlanEfectivo();
+  const planes = planesCtx ?? planesStore;
   const [modalidad, setModalidad] = useState<"mensual" | "anual">("mensual");
-  const [elegido, setElegido] = useState<string | null>(null);
+  const [elegido, setElegido] = useState<string | null>(planSenalado ?? null);
 
-  const planActual = suscripcion ? planes.find((p) => p.id === suscripcion.planId) : undefined;
-  const disponibles = planes.filter((p) => p.rol === rol && !p.esTrial && p.activo !== false);
+  // RN-16: pasada la gracia, la base ya trata a la empresa como Gratis aunque el
+  // job de la medianoche no haya movido la fila; la pantalla dice lo mismo.
+  const bajoAGratis = rol === "empresa" && !!suscripcion && !!planEfectivo && planEfectivo.planId !== suscripcion.planId;
+  const planActual = bajoAGratis
+    ? planes.find((p) => p.id === planEfectivo!.planId)
+    : suscripcion ? planes.find((p) => p.id === suscripcion.planId) : undefined;
+  const disponibles = planes
+    .filter((p) => p.rol === rol && p.activo !== false)
+    .sort((a, b) => a.precioMensual - b.precioMensual);
   const vencida = suscripcion?.estado === "vencida" || suscripcion?.estado === "suspendida";
 
   return (
@@ -50,14 +63,22 @@ export function VistaSuscripcion({ rol, pagos }: { rol: RolPlan; pagos: Pago[] }
           </h2>
           {suscripcion && (
             <div className="mt-2 flex flex-wrap items-center gap-2.5">
-              <Badge className={ESTADO_SUSCRIPCION_ESTILO[suscripcion.estado]}>{ESTADO_SUSCRIPCION_LABEL[suscripcion.estado]}</Badge>
+              <Badge className={ESTADO_SUSCRIPCION_ESTILO[bajoAGratis ? "gratis" : suscripcion.estado]}>
+                {ESTADO_SUSCRIPCION_LABEL[bajoAGratis ? "gratis" : suscripcion.estado]}
+              </Badge>
               <span className="text-sm text-ink-2">
-                {suscripcion.estado === "vencida" ? "Venció el" : suscripcion.modalidad === "trial" ? "Termina el" : "Vence el"}{" "}
-                <span className="font-tabular font-medium text-ink">{formatFecha(suscripcion.fechaVencimiento)}</span>
+                {suscripcion.fechaVencimiento ? (
+                  <>
+                    {suscripcion.estado === "vencida" || bajoAGratis ? "Su plan de pago venció el" : "Vence el"}{" "}
+                    <span className="font-tabular font-medium text-ink">{formatFecha(suscripcion.fechaVencimiento)}</span>
+                  </>
+                ) : (
+                  "Sin vencimiento"
+                )}
               </span>
             </div>
           )}
-          {suscripcion && suscripcion.modalidad !== "trial" && (
+          {suscripcion && suscripcion.modalidad !== "gratis" && !bajoAGratis && (
             <p className="mt-1 text-sm text-ink-3">
               {suscripcion.modalidad === "anual" ? "Anual" : "Mensual"} · desde el {formatFecha(suscripcion.fechaInicio)}
             </p>
@@ -67,18 +88,24 @@ export function VistaSuscripcion({ rol, pagos }: { rol: RolPlan; pagos: Pago[] }
               ? rol === "consultor"
                 ? "Aún no tienes un plan. Mientras dure el piloto, puedes aparecer en el directorio y recibir encargos sin él."
                 : "No tienes un plan activo."
-              : suscripcion.estado === "suspendida"
+              : bajoAGratis
+                ? "Su plan de pago venció y terminó el periodo de gracia: la cuenta está en el plan Gratis. No se borró nada; puede ver y descargar lo que creó. Al renovar, vuelven las funciones de pago."
+                : suscripcion.estado === "suspendida"
                 ? "Tu suscripción está suspendida. Escríbenos para reactivarla."
                 : suscripcion.estado === "vencida"
                   ? rol === "empresa"
                     ? "Tu suscripción está vencida: no puedes postular, ver sugerencias, solicitar consultores ni generar documentos con IA. El catálogo sigue disponible."
                     : "Tu suscripción está vencida."
-                  : diasRestantes !== null && diasRestantes >= 0
-                    ? `Termina en ${diasRestantes} ${diasRestantes === 1 ? "día" : "días"}${suscripcion.modalidad === "trial" ? " de periodo de prueba" : ""}.`
-                    : null}
+                  : suscripcion.estado === "gratis"
+                    ? "Con el plan Gratis puede explorar el catálogo, guardar convocatorias y registrar sus proyectos a mano. Para usar la IA, las sugerencias y las postulaciones, mejore a Esencial; para trabajar con consultores, a Pro. Si tuvo un plan de pago, todo lo que creó sigue aquí."
+                    : suscripcion.estado === "en_gracia" && rol === "empresa"
+                      ? "Su plan venció y está en periodo de gracia. Si no se renueva, la cuenta pasa al plan Gratis: no se borra nada, pero las funciones de pago quedan bloqueadas."
+                      : diasRestantes !== null && diasRestantes >= 0
+                        ? `Termina en ${diasRestantes} ${diasRestantes === 1 ? "día" : "días"}.`
+                        : null}
           </p>
         </div>
-        {rol === "empresa" && incluidos + extra > 0 && (
+        {rol === "empresa" && !bajoAGratis && incluidos + extra > 0 && (
           <div className="bg-surface p-6">
             <p className="text-xs font-semibold uppercase tracking-[.08em] text-ink-3">Créditos de IA</p>
             <p className="mt-1">
@@ -121,22 +148,39 @@ export function VistaSuscripcion({ rol, pagos }: { rol: RolPlan; pagos: Pago[] }
         {disponibles.length === 0 ? (
           <p className="text-sm text-ink-3">No hay planes disponibles en este momento.</p>
         ) : (
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className={cn("grid gap-4 sm:grid-cols-2", disponibles.length >= 3 && "lg:grid-cols-3")}>
             {disponibles.map((plan) => {
               const precio = modalidad === "anual" ? plan.precioAnual : plan.precioMensual;
               const ahorro = plan.precioMensual * 12 - plan.precioAnual;
               const esActual = planActual?.id === plan.id && !vencida;
+              const senalado = planSenalado === plan.id && !esActual;
               return (
-                <div key={plan.id} className={cn("flex flex-col rounded-md border bg-surface p-5", esActual ? "border-line border-t-[3px] border-t-pri" : "border-line")}>
-                  <div className="flex items-center justify-between">
+                <div
+                  key={plan.id}
+                  id={`plan-${plan.id}`}
+                  className={cn(
+                    "flex flex-col rounded-md border bg-surface p-5",
+                    esActual ? "border-line border-t-[3px] border-t-pri" : senalado ? "border-pri ring-2 ring-pri/30" : "border-line"
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-2">
                     <h3 className="font-display text-xl font-semibold text-ink">{plan.nombre}</h3>
-                    {esActual && <Badge tono="ok">Tu plan</Badge>}
+                    {esActual ? <Badge tono="ok">Su plan</Badge> : senalado ? <Badge tono="pri">Incluye lo que buscaba</Badge> : null}
                   </div>
                   <p className="mt-2">
-                    <span className="font-tabular text-2xl font-medium text-ink">{formatCOP(precio)}</span>
-                    <span className="text-sm text-ink-3"> / {modalidad === "anual" ? "año" : "mes"}</span>
+                    {plan.esGratuito ? (
+                      <>
+                        <span className="font-tabular text-2xl font-medium text-ink">$0</span>
+                        <span className="text-sm text-ink-3"> · sin vencimiento</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="font-tabular text-2xl font-medium text-ink">{formatCOP(precio)}</span>
+                        <span className="text-sm text-ink-3"> / {modalidad === "anual" ? "año" : "mes"}</span>
+                      </>
+                    )}
                   </p>
-                  {modalidad === "anual" && ahorro > 0 && (
+                  {!plan.esGratuito && modalidad === "anual" && ahorro > 0 && (
                     <p className="text-xs font-semibold text-amber-ink">Ahorras {formatCOP(ahorro)} frente a pagar mes a mes</p>
                   )}
                   <ul className="mt-4 flex-1 space-y-2 text-sm text-ink-2">
@@ -146,7 +190,21 @@ export function VistaSuscripcion({ rol, pagos }: { rol: RolPlan; pagos: Pago[] }
                         {b.texto}
                       </li>
                     ))}
+                    {funcionesNoIncluidas(plan).map((f) => (
+                      <li key={f} className="flex items-start gap-2 text-ink-3">
+                        <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+                        <span>
+                          <span className="sr-only">No incluye: </span>
+                          <span className="line-through">{FUNCIONES[f].beneficio}</span>
+                        </span>
+                      </li>
+                    ))}
                   </ul>
+                  {plan.esGratuito ? (
+                    <p className="mt-5 rounded-[4px] bg-surface-2 px-3 py-2 text-center text-xs text-ink-3">
+                      {esActual ? "Es su plan actual." : "Toda empresa vuelve a Gratis cuando vence su plan de pago."}
+                    </p>
+                  ) : (
                   <Button
                     variant={esActual ? "secondary" : "primary"}
                     size="lg"
@@ -156,6 +214,7 @@ export function VistaSuscripcion({ rol, pagos }: { rol: RolPlan; pagos: Pago[] }
                   >
                     {esActual ? "Plan actual" : "Quiero este plan"}
                   </Button>
+                  )}
                   {elegido === plan.id && (
                     <p role="status" className="mt-3 flex items-start gap-2 rounded-[4px] bg-surface-2 px-3 py-2 text-xs text-ink-2">
                       <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />

@@ -20,7 +20,8 @@ import {
 } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { dividirPorPendientes, extraerPendientes, ESTADO_DOCUMENTO_LABEL, ESTADO_DOCUMENTO_ESTILO, EJEMPLOS_AJUSTE } from "@/lib/documentos";
-import { textoCreditos, useAccesoSuscripcion, useCreditos, useTarifas } from "@/lib/hooks";
+import { textoCreditos, useAccesoSuscripcion, usePlanEfectivo, useCreditos, useTarifas } from "@/lib/hooks";
+import { AvisoFuncionBloqueada } from "@/components/plan/FuncionBloqueada";
 import { pedir } from "@/lib/pedir";
 import { cn } from "@/lib/utils";
 import type { DocumentoServidor, SeccionDocumento } from "@/lib/types";
@@ -58,6 +59,12 @@ export function EditorDocumento({
   // RN-17: tarifas vigentes del ajuste (desde el cuarto) y de regenerar.
   const tarifas = useTarifas();
   const esConsultor = rol === "consultor";
+  // RN-41, RF-120 (sesión 042): sin la función, el documento se ve, se edita a
+  // mano y se descarga; ajustar y regenerar con IA o compartirlo quedan bloqueados.
+  // Para el consultor decide el plan de la empresa dueña, en el servidor (RN-28).
+  const { incluye } = usePlanEfectivo();
+  const conIA = esConsultor || incluye("documento_ia");
+  const conConsultores = incluye("consultores");
 
   const [documento, setDocumento] = useState(inicial);
   const [seccionActivaId, setSeccionActivaId] = useState<string | null>(null);
@@ -205,7 +212,7 @@ export function EditorDocumento({
             </span>
           ) : (
             <>
-              {consultorEncargo && (
+              {consultorEncargo && (conConsultores || compartidoConEncargo) && (
                 <Button variant={compartidoConEncargo ? "outline" : "secondary"} onClick={alternarCompartir} disabled={ocupado !== null}>
                   {compartidoConEncargo ? (
                     <>
@@ -221,9 +228,11 @@ export function EditorDocumento({
               <Button variant="secondary" onClick={exportar} disabled={ocupado !== null}>
                 <Download className="h-4 w-4" /> {ocupado === "exportar" ? "Preparando…" : "Exportar a Word"}
               </Button>
-              <Button variant="ghost" onClick={() => setConfirmandoRegenerar(true)} disabled={ocupado !== null}>
-                <RotateCcw className="h-4 w-4" /> {ocupado === "regenerar" ? "Regenerando…" : "Regenerar"}
-              </Button>
+              {conIA && (
+                <Button variant="ghost" onClick={() => setConfirmandoRegenerar(true)} disabled={ocupado !== null}>
+                  <RotateCcw className="h-4 w-4" /> {ocupado === "regenerar" ? "Regenerando…" : "Regenerar"}
+                </Button>
+              )}
             </>
           )}
         </div>
@@ -264,7 +273,13 @@ export function EditorDocumento({
             />
           ))}
 
-          <div className="rounded-md border border-pri/30 bg-pri-soft p-5">
+          {!conIA && (
+            <AvisoFuncionBloqueada
+              funcion="documento_ia"
+              texto="Ajustar y regenerar con IA. Puede editar el texto a mano y exportarlo a Word"
+            />
+          )}
+          <div className={conIA ? "rounded-md border border-pri/30 bg-pri-soft p-5" : "hidden"}>
             <p className="flex items-center gap-1.5 text-sm font-semibold text-pri-text">
               <Sparkles className="h-4 w-4" /> Pedir ajuste a la IA
             </p>

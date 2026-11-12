@@ -1,5 +1,7 @@
 "use client";
 
+import { usePlanEfectivo } from "@/lib/hooks";
+import { DialogoFuncionBloqueada } from "@/components/plan/FuncionBloqueada";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -31,9 +33,12 @@ interface SolicitarConsultorModalProps {
  * directorio guarda la tarea en el store hasta elegir consultor (CU-21 3a).
  */
 export function SolicitarConsultorModal(props: SolicitarConsultorModalProps) {
+  // RN-41, RF-120 (sesión 042): solicitar consultores es del plan Pro.
+  const { incluye } = usePlanEfectivo();
   // Se monta de nuevo cada vez que se abre: el estado arranca limpio sin
   // reiniciarlo desde un efecto.
   if (!props.open) return null;
+  if (!incluye("consultores")) return <DialogoFuncionBloqueada funcion="consultores" onCerrar={props.onClose} />;
   return <ContenidoSolicitud {...props} />;
 }
 

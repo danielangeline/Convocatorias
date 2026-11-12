@@ -67,12 +67,14 @@ try {
     nombre_profesional: `Consultora ${sufijo}`, descripcion: "Formulo proyectos", foto_path: `${cons.id}/f.png`, cv_path: `${cons.id}/cv.pdf`, estado_perfil: "aprobado",
   }).eq("id", cons.id);
 
-  const { data: planes } = await svc.from("planes").select("id, nombre, rol, es_trial, precio_mensual, precio_anual, creditos_ia_mensuales");
+  const { data: planes } = await svc.from("planes").select("id, nombre, rol, es_gratuito, precio_mensual, precio_anual, creditos_ia_mensuales, incluye_consultores, incluye_documento_ia");
   const esencial = planes.find((p) => p.nombre === "Empresa Esencial");
   const pro = planes.find((p) => p.nombre === "Empresa Pro");
   const planConsultor = planes.find((p) => p.rol === "consultor" && p.nombre === "Consultor");
-  const trial = planes.find((p) => p.es_trial);
-  ok(esencial && pro && planConsultor && trial, "§9.28: existen los planes semilla y el trial");
+  const gratis = planes.find((p) => p.es_gratuito);
+  ok(esencial && pro && planConsultor && gratis, "§9.28, §9.38: existen los planes semilla y Gratis");
+  ok(gratis.creditos_ia_mensuales === 0 && !gratis.incluye_documento_ia && esencial.incluye_documento_ia && !esencial.incluye_consultores && pro.incluye_consultores,
+    "RN-41: Gratis sin IA, Esencial con IA y sin consultores, Pro con consultores");
 
   // Administrador por invitación (CU-41), primero sin MFA.
   const { data: propietario } = await svc.from("perfiles").select("id").eq("es_propietario", true).single();
@@ -100,7 +102,7 @@ try {
   const sinMfa = await Promise.all([api(adm, "GET", "/api/admin/suscripciones"), api(adm, "POST", "/api/admin/suscripciones/activar", rutas[4][2]), api(adm, "GET", "/admin/planes")]);
   ok(sinMfa.every((r) => r.status === 307 && /\/mfa/.test(r.destino ?? "")), `RNF-28: administrador sin MFA -> /mfa (${sinMfa.map((r) => r.status).join("/")})`);
   const { data: susUno0 } = await svc.from("suscripciones").select("estado, plan_id").eq("usuario_id", uno.id).single();
-  ok(susUno0.estado === "trial" && susUno0.plan_id === trial.id, "RNF-28: y la empresa sigue en su trial");
+  ok(susUno0.estado === "gratis" && susUno0.plan_id === gratis.id, "RNF-28: y la empresa sigue en Gratis");
 
   const { data: alta } = await adm.cliente.auth.mfa.enroll({ factorType: "totp", friendlyName: "Autenticador" });
   const { error: eMfa } = await adm.cliente.auth.mfa.challengeAndVerify({ factorId: alta.id, code: totp(alta.totp.secret) });
@@ -108,7 +110,7 @@ try {
 
   // --- RF-36: planes ---------------------------------------------------------------------------
   const lista = await api(adm, "GET", "/api/admin/planes");
-  ok(lista.status === 200 && lista.json.datos.some((p) => p.esTrial) && lista.json.datos.some((p) => p.id === pro.id), `RF-36: lista los planes con el trial (${lista.json?.datos?.length})`);
+  ok(lista.status === 200 && lista.json.datos.some((p) => p.esGratuito) && lista.json.datos.some((p) => p.id === pro.id && p.funciones?.consultores === true), `RF-36, RN-41: lista los planes con Gratis y las funciones (${lista.json?.datos?.length})`);
   const nombrePlan = `Plan prueba ${sufijo}`;
   const crear = await api(adm, "POST", "/api/admin/planes", { nombre: nombrePlan, rol: "empresa", precioMensual: "120.000", precioAnual: "1200000", creditosIaMensuales: "20", activo: false });
   const idPlan = crear.json?.datos?.id;
@@ -131,8 +133,15 @@ try {
     const r = await api(adm, "POST", "/api/admin/planes", cuerpo);
     ok(r.status === esperado, `RNF-20: plan con ${caso} -> ${esperado} (${r.status})`);
   }
-  const trialPago = await api(adm, "PATCH", `/api/admin/planes/${trial.id}`, { nombre: "Trial", rol: "empresa", precioMensual: "1000", precioAnual: "0", creditosIaMensuales: 3, activo: true, diasTrial: 7 });
-  ok(trialPago.status === 409, `§9.28: el trial no se cobra (${trialPago.status})`);
+  const gratisPago = await api(adm, "PATCH", `/api/admin/planes/${gratis.id}`, { nombre: "Gratis", rol: "empresa", precioMensual: "1000", precioAnual: "0", creditosIaMensuales: 0, activo: true, funciones: {} });
+  ok(gratisPago.status === 409, `§9.38: Gratis no se cobra (${gratisPago.status})`);
+  // RF-36, RN-41: las funciones se administran desde el panel.
+  const conFunciones = await api(adm, "PATCH", `/api/admin/planes/${idPlan}`, { nombre: nombrePlan, rol: "empresa", precioMensual: "125000", precioAnual: "1.250.000", creditosIaMensuales: 25, activo: false, funciones: { sugerencias: true, consultores: true } });
+  const { data: filaPlan3 } = await svc.from("planes").select("incluye_sugerencias, incluye_consultores, incluye_documento_ia").eq("id", idPlan).single();
+  ok(conFunciones.status === 200 && filaPlan3.incluye_sugerencias && filaPlan3.incluye_consultores && !filaPlan3.incluye_documento_ia,
+    `RF-36, RN-41: el panel marca las funciones de un plan (${conFunciones.status})`);
+  const consultorConFunciones = await api(adm, "POST", "/api/admin/planes", { nombre: `Cons ${sufijo}`, rol: "consultor", precioMensual: "1", precioAnual: "1", creditosIaMensuales: 0, activo: false, funciones: { documento_ia: true } });
+  ok(consultorConFunciones.status === 400, `RN-41: un plan de consultor no lleva funciones (${consultorConFunciones.status})`);
   ok((await api(adm, "POST", "/api/admin/planes", invalidosPlan[0][0], { origen: "https://otro.example" })).status === 403, "RNF-30: crear desde otro origen -> 403");
   ok((await api(adm, "PATCH", "/api/admin/planes/no-es-uuid", invalidosPlan[0][0])).status === 404, "RNF-30: id que no es uuid -> 404");
 
@@ -140,14 +149,15 @@ try {
   const cuentasAntes = await api(adm, "GET", "/api/admin/suscripciones");
   const filaUno = cuentasAntes.json?.datos?.cuentas?.find((c) => c.usuarioId === uno.id);
   const filaCons = cuentasAntes.json?.datos?.cuentas?.find((c) => c.usuarioId === cons.id);
-  ok(cuentasAntes.status === 200 && filaUno?.estado === "trial" && filaUno.correo === `uno.planes.${sufijo}@example.com` && filaCons && filaCons.estado === null,
-    "RF-42: las cuentas traen la empresa en trial y la consultora aprobada sin suscripción");
-  ok(typeof cuentasAntes.json?.datos?.tablero?.costoUsd === "number" && cuentasAntes.json.datos.tablero.trial >= 2, "RF-42: el tablero trae estados y consumo del mes");
+  ok(cuentasAntes.status === 200 && filaUno?.estado === "gratis" && filaUno.correo === `uno.planes.${sufijo}@example.com` && filaCons && filaCons.estado === null,
+    "RF-42: las cuentas traen la empresa en Gratis y la consultora aprobada sin suscripción");
+  ok(typeof cuentasAntes.json?.datos?.tablero?.costoUsd === "number" && cuentasAntes.json.datos.tablero.gratis >= 2, "RF-42: el tablero trae estados y consumo del mes");
 
   const malos = [
     [{ usuarioId: uno.id, planId: planConsultor.id, modalidad: "mensual", monto: "69.000", fechaPago: hoy }, 409, "plan de consultor a una empresa"],
     [{ usuarioId: uno.id, planId: idPlan, modalidad: "mensual", monto: "1", fechaPago: hoy }, 409, "plan inactivo"],
-    [{ usuarioId: uno.id, planId: pro.id, modalidad: "trial", monto: "1", fechaPago: hoy }, 400, "modalidad trial"],
+    [{ usuarioId: uno.id, planId: pro.id, modalidad: "gratis", monto: "1", fechaPago: hoy }, 400, "modalidad gratis"],
+    [{ usuarioId: uno.id, planId: gratis.id, modalidad: "mensual", monto: "1", fechaPago: hoy }, 409, "el plan Gratis"],
     [{ usuarioId: uno.id, planId: pro.id, modalidad: "mensual", monto: "0", fechaPago: hoy }, 400, "monto 0"],
     [{ usuarioId: uno.id, planId: pro.id, modalidad: "mensual", monto: "1", fechaPago: masDias(hoy, 1) }, 400, "fecha futura"],
     [{ usuarioId: adminId, planId: pro.id, modalidad: "mensual", monto: "1", fechaPago: hoy }, 404, "cuenta de administrador"],
@@ -160,7 +170,7 @@ try {
   const activar = await api(adm, "POST", "/api/admin/suscripciones/activar", { usuarioId: uno.id, planId: esencial.id, modalidad: "mensual", monto: "89.000", fechaPago: hoy });
   const { data: susUno } = await svc.from("suscripciones").select("*").eq("usuario_id", uno.id);
   ok(activar.status === 200 && susUno.length === 1 && susUno[0].estado === "activa" && susUno[0].plan_id === esencial.id && susUno[0].fecha_inicio === hoy && susUno[0].activada_por === adminId,
-    `RF-38: la empresa pasa del trial a Esencial activa, en la misma fila (${activar.status}, vence ${susUno[0]?.fecha_vencimiento})`);
+    `RF-38: la empresa pasa de Gratis a Esencial activa, en la misma fila (${activar.status}, vence ${susUno[0]?.fecha_vencimiento})`);
   const activarCons = await api(adm, "POST", "/api/admin/suscripciones/activar", { usuarioId: cons.id, planId: planConsultor.id, modalidad: "anual", monto: "690.000", fechaPago: hoy });
   ok(activarCons.status === 200, `CU-28: la consultora aprobada se suscribe al plan anual (${activarCons.status})`);
 

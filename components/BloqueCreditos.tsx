@@ -1,7 +1,7 @@
 "use client";
 
 import { Sparkles } from "lucide-react";
-import { useCreditos, useTarifas } from "@/lib/hooks";
+import { useCreditos, useTarifas, usePlanEfectivo } from "@/lib/hooks";
 import { formatFecha } from "@/lib/utils";
 
 /**
@@ -13,8 +13,11 @@ export function BloqueCreditos() {
   const { suscripcion, vigente, usados, incluidos, extra, fechaReinicio } = useCreditos();
   const tarifas = useTarifas();
   const n = (v: number) => v.toLocaleString("es-CO");
+  // RN-41 (sesión 042): sin IA en el plan efectivo (Gratis), no hay cupo que explicar.
+  const { incluye } = usePlanEfectivo();
+  const conIA = incluye("documento_ia") || incluye("proyecto_ia");
 
-  if (!suscripcion || incluidos + extra === 0) return null;
+  if (!suscripcion || !conIA || incluidos + extra === 0) return null;
 
   return (
     <div className="rounded-md border border-line bg-surface p-6">

@@ -4,7 +4,9 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, PencilLine, Sparkles, X } from "lucide-react";
 import type { PropuestaProyecto } from "@/lib/types";
-import { textoCreditos, useCreditos, useTarifas } from "@/lib/hooks";
+import { textoCreditos, useCreditos, usePlanEfectivo, useTarifas } from "@/lib/hooks";
+import { AvisoFuncionBloqueada } from "@/components/plan/FuncionBloqueada";
+import { FUNCIONES } from "@/lib/planes";
 import { Button } from "@/components/ui/Button";
 import { BotonDictado, dictadoEnVivoDisponible } from "./BotonDictado";
 import { cuerpoDeFormulario, desdePropuesta } from "@/components/ProyectoFormModal";
@@ -36,6 +38,8 @@ export function AsistenteProyecto({
 }) {
   const router = useRouter();
   const { disponibles, vigente } = useCreditos();
+  // RN-41, RF-120 (sesión 042): crear con IA es de Esencial y Pro.
+  const conFuncion = usePlanEfectivo().incluye("proyecto_ia");
   // RN-17: crear con IA cuesta la tarifa vigente (50 al iniciar la sesión 030).
   const costo = useTarifas().estructuracion;
   const [explicacion, setExplicacion] = useState("");
@@ -105,6 +109,36 @@ export function AsistenteProyecto({
       setCreando(false);
     }
   };
+
+  if (!conFuncion) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Nuevo proyecto"
+          className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-md border border-line bg-surface p-6 shadow-card"
+        >
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="font-display text-lg font-semibold text-ink">Nuevo proyecto</h3>
+            <button onClick={onClose} className="text-ink-3 hover:text-ink" aria-label="Cerrar">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          <AvisoFuncionBloqueada funcion="proyecto_ia" texto="Crear el proyecto con IA, escribiendo o dictando" />
+          <p className="mt-4 text-sm leading-[1.6] text-ink-2">{FUNCIONES.proyecto_ia.explicacion}</p>
+          <p className="mt-3 text-sm leading-[1.6] text-ink-2">
+            En su plan puede registrar el proyecto con el formulario, sin costo y sin límite.
+          </p>
+          <div className="mt-6 flex justify-end">
+            <Button variant="primary" onClick={onManual}>
+              <PencilLine className="h-4 w-4" /> Llenar el formulario a mano
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">

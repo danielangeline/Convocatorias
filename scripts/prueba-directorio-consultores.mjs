@@ -13,6 +13,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import crypto from "node:crypto";
+import { prepararPlanes } from "./plan-prueba.mjs";
 
 const URL_ = process.env.NEXT_PUBLIC_SUPABASE_URL, ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const APP = process.env.PRUEBA_URL ?? "http://localhost:3000";
@@ -40,6 +41,8 @@ async function api(s, metodo, ruta, cuerpo, { origen = APP } = {}) {
 
 const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
 const sufijo = crypto.randomBytes(3).toString("hex");
+// Sesión 042 (RN-41): las empresas de esta prueba usan un plan temporal con todas las funciones.
+const planesPrueba = await prepararPlanes(svc, sufijo);
 const pdfDe = (quien) => Buffer.from(`%PDF-1.4\n% hoja de vida de ${quien} ${sufijo}\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n`);
 const cuentas = [], categorias = [];
 
@@ -59,6 +62,7 @@ try {
     });
     if (error) throw error;
     cuentas.push(data.user.id);
+    if (rol === "empresa") await planesPrueba.pasarA(data.user.id);
     const s = sesion();
     const { error: e } = await s.cliente.auth.signInWithPassword({ email: data.user.email, password: clave });
     if (e) throw e;
@@ -207,6 +211,7 @@ try {
     if (error) console.log(`No se pudo borrar la cuenta ${id}: ${error.message}`);
   }
   if (categorias.length) await svc.from("categorias").delete().in("id", categorias);
+  await planesPrueba.limpiar();
   console.log(fallas === 0 ? "\nTODO PASA" : `\n${fallas} FALLA(S)`);
   process.exit(fallas === 0 ? 0 : 1);
 }

@@ -1,11 +1,15 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { UUID, conEmpresa } from "@/lib/api-empresa";
 import { listarDirectorio } from "@/lib/consultores-directorio";
+import { exigirFuncion } from "@/lib/plan-servidor";
 
 // CU-20 · RF-26. Aprobados y fuera del equipo interno; filtros opcionales:
 // q, especialidad (ids separados por comas) y ratingMin (0 a 5).
 export async function GET(request: NextRequest) {
   return conEmpresa(request, async () => {
+    // RN-41 (sesión 042): el directorio es del plan Pro; se bloquea en el servidor.
+    const sinFuncion = await exigirFuncion("consultores");
+    if (sinFuncion) return NextResponse.json({ error: sinFuncion.error }, { status: sinFuncion.status });
     const p = request.nextUrl.searchParams;
     const especialidades = (p.get("especialidad") ?? "").split(",").filter(Boolean);
     if (especialidades.some((e) => !UUID.test(e))) {

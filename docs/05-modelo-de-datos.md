@@ -43,13 +43,13 @@ erDiagram
 | experiencia_empresa | text | Trayectoria y capacidad |
 | completitud | int | 0–100, calculado sobre los campos de contenido (RF-46). **Lo calcula la base con un trigger al guardar** (§9.17); la aplicación no puede fijarlo |
 
-**PLANES** — se agrega `creditos_ia_mensuales` (int, RF-36). *(mod. v6, sesión 004)* Se agregan también `es_trial` (boolean, default false) y `dias_trial` (int, not null si y solo si `es_trial`): el trial es **un plan más**, con precio 0, rol `empresa`, 3 créditos y 7 días. Hay como máximo un plan trial (índice único parcial) y no aparece en el comparador de planes. Así el cupo del trial se calcula igual que el de cualquier plan, y el administrador puede ajustar sus créditos o su duración sin migración (RF-37, RN-11)
+**PLANES** — se agrega `creditos_ia_mensuales` (int, RF-36). *(mod. v6, sesión 004)* Se agregan también `es_trial` (boolean, default false) y `dias_trial` (int, not null si y solo si `es_trial`): el trial es **un plan más**, con precio 0, rol `empresa`, 3 créditos y 7 días. Hay como máximo un plan trial (índice único parcial) y no aparece en el comparador de planes. Así el cupo del trial se calcula igual que el de cualquier plan, y el administrador puede ajustar sus créditos o su duración sin migración (RF-37, RN-11). **(Sesión 042: el trial se retira. `es_trial` pasa a llamarse `es_gratuito` y el plan, «Gratis», sin vencimiento, sin créditos y sin funciones de pago; `dias_trial` se elimina. Ver §9.38.)**
 
-**SUSCRIPCIONES** — se agregan `creditos_usados_periodo` (int), `creditos_extra` (int, paquetes adicionales que no se reinician) y `periodo_creditos_inicio` (date, ancla del reinicio mensual). *(mod. v6, sesión 004)* `plan_id` es **not null también en el trial**: la suscripción trial apunta al plan con `es_trial`, y su `fecha_vencimiento` es `fecha_inicio + dias_trial`
+**SUSCRIPCIONES** — se agregan `creditos_usados_periodo` (int), `creditos_extra` (int, paquetes adicionales que no se reinician) y `periodo_creditos_inicio` (date, ancla del reinicio mensual). *(mod. v6, sesión 004)* `plan_id` es **not null también en el trial**: la suscripción trial apunta al plan con `es_trial`, y su `fecha_vencimiento` es `fecha_inicio + dias_trial`. **(Sesión 042: la suscripción del plan Gratis tiene `estado = 'gratis'`, `modalidad = 'gratis'` y `fecha_vencimiento` nula. Ver §9.38.)**
 
 **Registro de cuentas** *(nuevo v6, sesión 004)* — un trigger `after insert` sobre `auth.users` crea en la misma transacción:
 - la fila de `perfiles`, con el rol leído de los metadatos del registro. **Solo `consultor` produce consultor; cualquier otro valor —incluido `administrador`— produce `empresa`** (RN-06). La cuenta invitada como administrador también nace así y el servidor la convierte después con `aceptar_invitacion_admin` (§9.12, *rediseñado en la sesión 008*);
-- si es empresa: la suscripción trial contra el plan trial (RF-37). Si no existe plan trial activo, el registro **falla** en lugar de crear una empresa sin trial;
+- si es empresa: ~~la suscripción trial contra el plan trial~~ **la suscripción Gratis contra el plan con `es_gratuito`, sin vencimiento (RF-37, sesión 042)**. Si no existe plan gratuito activo, el registro **falla** en lugar de crear una empresa sin plan;
 - si es consultor: la fila de `consultor_perfiles` en estado `incompleto`, sin suscripción (RN-11, CU-14).
 - *(sesión 021, RF-88)* `perfiles.consentimiento_datos_at` (timestamptz, nullable) con `now()` si los metadatos traen `consentimiento_datos = true`. El formulario lo exige; una cuenta creada por otra vía (una invitación de administrador, un registro directo contra Auth) nace sin él. Lo fija solo la base: un trigger impide que el cliente lo cambie; se pone por primera vez con `aceptar_consentimiento_datos()`.
 - *(sesión 038, RF-119)* `perfiles.recorrido_visto_at` (timestamptz, nullable): cuándo la empresa terminó u omitió el recorrido de bienvenida (CU-51). Nula = el portal lo abre al entrar. La fija `marcar_recorrido_visto()` (security definer, solo `auth.uid()`, solo si está vacía); el trigger de `perfiles` impide que el cliente la cambie directamente. Es una preferencia de presentación: no autoriza nada.
@@ -1094,3 +1094,48 @@ Nunca cambia `estado` (RN-38).
 | cambios que vigila | cierre, montos, enlace, y `oppStatus` cerrada o archivada | apertura, cierre y estado cerrada | apertura, cierre, enlace y `status` cerrada |
 
 Cuando una fuente no da un campo, queda null y lo completa el administrador (RNF-23). Categorías, requisitos y cobertura nunca los pone el importador.
+
+### 9.38 Planes con funciones: Gratis, Esencial y Pro *(nuevo v6, sesión 042 · RN-11, RN-16, RN-41, RF-36, RF-37, RF-39, RF-40, RF-82, RF-120 · migración `20261112100000`)*
+
+Decisión del Product Owner: el Trial desaparece; toda empresa nueva entra a **Gratis**, sin vencimiento; los planes de empresa se diferencian por **funciones** además de créditos; al vencer un plan de pago la empresa **baja a Gratis** sin perder nada.
+
+**Columnas de `planes`:**
+
+| Campo | Tipo | Nota |
+|---|---|---|
+| es_gratuito | boolean | not null, default false. **Renombra `es_trial`.** Índice único parcial: como máximo un plan gratuito. Debe ser de empresa, con precio 0 y activo (`guardar_plan`, `gratuito_fijo`) |
+| dias_trial | — | **Se elimina** con su check |
+| incluye_proyecto_ia | boolean | not null, default false. Crear proyecto con IA (texto o dictado, CU-43) y editar apartado con IA (CU-47) |
+| incluye_sugerencias | boolean | not null, default false. Sugerencias por compatibilidad (CU-10, RF-106) |
+| incluye_documento_ia | boolean | not null, default false. Generar documento base y ajustes (CU-33, CU-34) |
+| incluye_postulaciones | boolean | not null, default false. Iniciar, marcar el checklist y cambiar el estado de una postulación (CU-11..13) |
+| incluye_consultores | boolean | not null, default false. Directorio, solicitar y elegir propuestas de encargos, calificar y compartir documentos con consultor (CU-19..24, RF-71) |
+
+Valores iniciales: Gratis ninguna; Empresa Esencial todas menos `incluye_consultores`; Empresa Pro todas. El plan de consultor queda con todas en false: **las banderas solo se leen para cuentas de empresa** (el plan de consultor no cambia).
+
+**Suscripciones:** `estado` admite `gratis` en lugar de `trial` (`gratis`, `activa`, `en_gracia`, `vencida`, `suspendida`) y `modalidad` admite `gratis` en lugar de `trial`. El trigger `validar_plan_de_suscripcion` exige `modalidad = 'gratis'` si y solo si el plan es gratuito. `fecha_vencimiento` pasa a nullable, y es nula **si y solo si** la modalidad es `gratis` (check). **Migración de datos:** toda suscripción `trial` (las 4 que había, ya vencidas) pasa a `gratis` sin vencimiento, conservando sus créditos de paquete.
+
+**Funciones nuevas (`privado`):**
+
+| Función | Qué hace |
+|---|---|
+| `plan_efectivo(p_usuario) → uuid` | El plan de la suscripción de la cuenta si está `gratis`, o `activa`/`en_gracia` con `fecha_vencimiento + 5 >= hoy`; si no —vencida que el job no alcanzó a mover, suspendida o sin fila— y la cuenta es de empresa, **el plan gratuito**. Para otros roles, null |
+| `plan_incluye(p_usuario, p_funcion) → boolean` | La bandera `incluye_<p_funcion>` del plan efectivo (`proyecto_ia`, `sugerencias`, `documento_ia`, `postulaciones`, `consultores`). Función desconocida o sin plan: false |
+
+`tiene_suscripcion_vigente` acepta también `gratis` y vencimiento nulo; `suscripcion_de_cobro` sigue devolviendo la fila a la que se cargan los créditos.
+
+**Dónde se verifica (RNF-20).** Cada función rechaza con `hint = 'funcion_no_incluida'` (el servidor responde 402) **antes** de comprobar créditos:
+
+| Función | Bandera |
+|---|---|
+| `iniciar_estructuracion`, `iniciar_transcripcion`, `iniciar_edicion_apartado` | `proyecto_ia` |
+| `sugerencias_proyecto` | `sugerencias` |
+| `iniciar_generacion`, `preparar_ajuste` (de la empresa dueña, RN-28) | `documento_ia` |
+| `iniciar_postulacion`; RLS de `postulaciones` (insertar y actualizar) y de `postulacion_checklist` (actualizar) | `postulaciones` |
+| `solicitar_encargo`, `elegir_propuesta`, `calificar_encargo`, `compartir_documento`; RLS de `calificaciones` (insertar) | `consultores` |
+
+Siguen abiertos en todo plan: leer y descargar documentos (`leer_documento`, `marcar_exportado`), revocar un documento compartido, retirar una solicitud de encargo y leer postulaciones, encargos y sus avances. Los perfiles aprobados de consultor siguen siendo de lectura pública (§9.20, lo usa RF-44): **el directorio se bloquea en el servidor** (`/consultores`, `/api/consultores`), y lo que exige Pro es cualquier acción con un consultor.
+
+**Job 2 (`vencer_suscripciones`):** `activa` vencida → `en_gracia`; `en_gracia` con más de 5 días → **si es de empresa, `gratis`** con el plan gratuito, `modalidad = 'gratis'`, `fecha_vencimiento` nula, `fecha_inicio` y `periodo_creditos_inicio` hoy y `creditos_usados_periodo = 0` (los `creditos_extra` se conservan); **si es de consultor, `vencida`** con la cancelación de RN-29 como antes. Devuelve también cuántas bajaron a Gratis (`a_gratis`). **Job 3** reinicia `gratis` y `activa`.
+
+**Funciones del panel que cambian:** `guardar_plan(p_id, p_nombre, p_rol, p_precio_mensual, p_precio_anual, p_creditos, p_activo, p_incluye_proyecto_ia, p_incluye_sugerencias, p_incluye_documento_ia, p_incluye_postulaciones, p_incluye_consultores)` reemplaza a la de §9.28 (sin `p_dias_trial`); `activar_suscripcion` rechaza el plan gratuito (`plan_invalido`); `suspender_suscripcion` acepta `gratis`; `tablero_suscripciones` devuelve `gratis` en lugar de `trial`; `cuentas_suscripcion_admin` sin cambios de forma. **Portada:** `tarifas_ia` gana una política de lectura para `anon` (como `planes` activos), para que la portada explique el crédito con las tarifas reales. **Nueva:** `public.mi_plan_efectivo()` (authenticated) devuelve el plan efectivo de la sesión con sus banderas: la pantalla lo lee para pintar los bloqueos (RF-120) con la misma regla de la base.

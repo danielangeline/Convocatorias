@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   return conAdministrador(request, async () => ({ ok: true, datos: await listarPlanesAdmin() }));
 }
 
-// Cuerpo: { nombre, rol, precioMensual, precioAnual, creditosIaMensuales, activo }. Crea un plan.
+// Cuerpo: { nombre, rol, precioMensual, precioAnual, creditosIaMensuales, activo, funciones }. Crea un plan (RN-41).
 export async function POST(request: NextRequest) {
   return conAdministrador(request, (cuerpo) => guardarPlan(null, cuerpo));
 }

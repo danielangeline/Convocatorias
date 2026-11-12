@@ -16,7 +16,9 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useAccesoSuscripcion, useCreditos, useProyectosPropios, useTarifas } from "@/lib/hooks";
+import { useAccesoSuscripcion, useCreditos, usePlanEfectivo, useProyectosPropios, useTarifas } from "@/lib/hooks";
+import { DialogoFuncionBloqueada } from "@/components/plan/FuncionBloqueada";
+import { nombreCortoPlan } from "@/lib/planes";
 import {
   diasRestantes,
   formatFechaLarga,
@@ -31,7 +33,7 @@ import { Button } from "@/components/ui/Button";
 import { CompatRing } from "@/components/viz/CompatRing";
 import { CompatBreakdown, type CriterioCompat } from "@/components/viz/CompatBreakdown";
 import { DeadlineChip } from "@/components/viz/Deadline";
-import type { Categoria, Convocatoria } from "@/lib/types";
+import type { Categoria, Convocatoria, FuncionPlan } from "@/lib/types";
 import { textoCobertura } from "@/lib/departamentos";
 import { equivalenteCop, formatRangoConvocatoria } from "@/lib/monedas";
 
@@ -76,6 +78,10 @@ export function FichaConvocatoria({
   const [errorPostular, setErrorPostular] = useState<string | null>(null);
   const { requerirAcceso } = useAccesoSuscripcion();
   const { disponibles } = useCreditos();
+  // RN-41, RF-120 (sesión 042): la acción que el plan no incluye abre su explicación.
+  const { incluye, planPara } = usePlanEfectivo();
+  const [funcionBloqueada, setFuncionBloqueada] = useState<FuncionPlan | null>(null);
+  const planDocumento = planPara("documento_ia");
   const tarifaDocumento = useTarifas().generacion;
 
   if (!convocatoria) {
@@ -136,11 +142,13 @@ export function FichaConvocatoria({
   };
 
   const accionPostular = () => {
+    if (!incluye("postulaciones")) return setFuncionBloqueada("postulaciones");
     if (!requerirAcceso("postularte a esta convocatoria")) return;
     setErrorPostular(null);
     setModalAbierto(true);
   };
   const accionGenerar = () => {
+    if (!incluye("documento_ia")) return setFuncionBloqueada("documento_ia");
     if (!requerirAcceso("generar un documento con IA")) return;
     router.push(`/convocatorias/${convocatoria.id}/generar`);
   };
@@ -350,7 +358,9 @@ export function FichaConvocatoria({
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-semibold text-ink">Escribir el borrador con IA</span>
                     <span className="block text-xs text-ink-3">
-                      Usa {tarifaDocumento.toLocaleString("es-CO")} de tus {disponibles.toLocaleString("es-CO")} créditos
+                      {incluye("documento_ia")
+                        ? `Usa ${tarifaDocumento.toLocaleString("es-CO")} de tus ${disponibles.toLocaleString("es-CO")} créditos`
+                        : `Disponible en el plan ${planDocumento ? nombreCortoPlan(planDocumento.nombre) : "de pago"}`}
                     </span>
                   </span>
                   <ChevronRight className="h-4 w-4 flex-none text-ink-3" aria-hidden />
@@ -384,6 +394,8 @@ export function FichaConvocatoria({
           </Button>
         </div>
       )}
+
+      {funcionBloqueada && <DialogoFuncionBloqueada funcion={funcionBloqueada} onCerrar={() => setFuncionBloqueada(null)} />}
 
       {modalAbierto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">

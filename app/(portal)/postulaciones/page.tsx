@@ -8,6 +8,8 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { LinkButton } from "@/components/ui/Button";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { TableroPostulaciones, type ItemTablero } from "@/components/postulaciones/TableroPostulaciones";
+import { AvisoFuncionBloqueada, PantallaBloqueada } from "@/components/plan/FuncionBloqueada";
+import { planEfectivoSesion } from "@/lib/plan-servidor";
 
 // CU-13 1a, RF-104 · Tablero de postulaciones, leído con la sesión de la
 // empresa: la RLS solo deja ver las suyas (RN-30), con su convocatoria aunque
@@ -15,11 +17,16 @@ import { TableroPostulaciones, type ItemTablero } from "@/components/postulacion
 // La plataforma no radica (RN-19): se prepara aquí y se presenta en el portal
 // de cada entidad. El consultor es el del encargo vivo ligado a la postulación.
 export default async function PostulacionesPage() {
-  const [postulaciones, proyectos, encargos] = await Promise.all([
+  const [postulaciones, proyectos, encargos, plan] = await Promise.all([
     listarPostulaciones(),
     listarProyectos(),
     listarEncargosEmpresa(),
+    planEfectivoSesion(),
   ]);
+  // RN-41, RF-120 (sesión 042): sin la función, la pantalla explica en qué plan
+  // está; si ya tiene postulaciones (de un plan anterior), las lista en solo lectura.
+  const conFuncion = plan?.funciones.postulaciones === true;
+  if (!conFuncion && postulaciones.length === 0) return <PantallaBloqueada funcion="postulaciones" titulo="Postulaciones" />;
   const consultorDe = new Map(
     encargos
       .filter((e) => e.postulacionId && e.consultor && ["pendiente", "en_curso"].includes(e.estado))
@@ -51,11 +58,19 @@ export default async function PostulacionesPage() {
         titulo="Postulaciones"
         descripcion="Prepara aquí; radica en el portal de cada entidad."
         accion={
-          <LinkButton href="/convocatorias">
-            <Plus className="h-4 w-4" /> Nueva postulación
-          </LinkButton>
+          conFuncion ? (
+            <LinkButton href="/convocatorias">
+              <Plus className="h-4 w-4" /> Nueva postulación
+            </LinkButton>
+          ) : undefined
         }
       />
+      {!conFuncion && (
+        <AvisoFuncionBloqueada
+          funcion="postulaciones"
+          texto="Sus postulaciones quedan en solo lectura: puede verlas y descargar sus documentos, pero no crear nuevas ni avanzarlas"
+        />
+      )}
       {items.length === 0 ? (
         <EmptyState
           icon={ClipboardList}

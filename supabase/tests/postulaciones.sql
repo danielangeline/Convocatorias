@@ -35,6 +35,14 @@ begin
     (v_e2, 'pos2@prueba.co', '{"rol": "empresa", "nombre": "Postulaciones dos"}'),
     (v_c1, 'posc@prueba.co', '{"rol": "consultor", "nombre": "Consultor postulaciones"}');
 
+  -- Sesión 042 (RN-41): toda empresa nace en Gratis, sin funciones de pago. Esta
+  -- suite prueba otra cosa, así que sus empresas de prueba pasan a Pro (se revierte).
+  update public.suscripciones s
+     set plan_id = (select id from public.planes where nombre = 'Empresa Pro'),
+         modalidad = 'mensual', estado = 'activa', fecha_vencimiento = privado.hoy_colombia() + 30
+    from public.perfiles p
+   where p.id = s.usuario_id and p.rol = 'empresa' and s.usuario_id::text like '00000000-0000-0000-0000-%';
+
   insert into public.convocatorias (id, nombre, entidad_convocante, cobertura_nacional, fecha_cierre, estado, url_postulacion) values
     (a, 'A · vigente',  'Prueba', true, privado.hoy_colombia() + 20, 'publicada', 'https://prueba.gov.co/a'),
     (d, 'D · vencida',  'Prueba', true, privado.hoy_colombia() - 1,  'publicada', 'https://prueba.gov.co/d'),
@@ -265,7 +273,7 @@ begin
     v_obtenido := 'ok';
   exception when others then get stacked diagnostics v_obtenido = pg_exception_hint; end;
   v_res := v_res || format(E'\n%s CU-11 1b: sin suscripción vigente -> %s',
-    case when v_obtenido = 'sin_suscripcion' then 'OK   ' else 'FALLA' end, v_obtenido);
+    case when v_obtenido = 'funcion_no_incluida' then 'OK   ' else 'FALLA' end, v_obtenido);
   execute 'reset role';
 
   raise exception 'RESULTADO (todo se revierte):%', v_res;

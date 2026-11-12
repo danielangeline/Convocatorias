@@ -26,7 +26,7 @@ export function ModalSuscripcion() {
   if (!abierto) return null;
 
   const rolPlan = rol === "consultor" ? "consultor" : "empresa";
-  const planesRol = planes.filter((p) => p.rol === rolPlan && !p.esTrial && p.activo !== false);
+  const planesRol = planes.filter((p) => p.rol === rolPlan && !p.esGratuito && p.activo !== false);
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-overlay p-4">

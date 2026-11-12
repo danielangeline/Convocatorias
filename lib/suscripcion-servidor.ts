@@ -1,6 +1,7 @@
 import "server-only";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { TARIFAS_POR_DEFECTO, type Pago, type Plan, type RolPlan, type TarifasIA } from "@/lib/types";
+import { COLUMNAS_PLAN, aPlan, type FilaPlan } from "@/lib/planes";
 
 /**
  * CU-28, CU-30 · RF-41, RF-82 · Lo que el suscriptor lee de su plan (docs/05
@@ -8,26 +9,21 @@ import { TARIFAS_POR_DEFECTO, type Pago, type Plan, type RolPlan, type TarifasIA
  * pagos de su propia suscripción.
  */
 
-/** Planes activos del rol, sin el trial (no se compra): el comparador (RF-82). */
+/**
+ * Planes activos del rol, del más barato al más caro: el comparador (RF-82).
+ * Desde la sesión 042 incluye el plan Gratis (RN-11), que no se contrata pero
+ * se compara: es el punto de partida de toda empresa.
+ */
 export async function listarPlanesDelRol(rol: RolPlan): Promise<Plan[]> {
   const supabase = await crearClienteServidor();
   const { data, error } = await supabase
     .from("planes")
-    .select("id, nombre, rol, precio_mensual, precio_anual, creditos_ia_mensuales, es_trial, activo")
+    .select(COLUMNAS_PLAN)
     .eq("rol", rol)
-    .eq("es_trial", false)
+    .eq("activo", true)
     .order("precio_mensual");
   if (error) throw new Error(`Planes: listar del rol falló (${error.code})`);
-  return (data ?? []).map((f) => ({
-    id: f.id,
-    nombre: f.nombre,
-    rol: f.rol as RolPlan,
-    precioMensual: Number(f.precio_mensual),
-    precioAnual: Number(f.precio_anual),
-    creditosIaMensuales: f.creditos_ia_mensuales,
-    esTrial: false,
-    activo: f.activo,
-  }));
+  return ((data ?? []) as FilaPlan[]).map(aPlan);
 }
 
 /** CU-30 paso 3 · Historial de pagos de la propia suscripción, el más reciente primero. */

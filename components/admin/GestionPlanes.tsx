@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Info, Layers, Pencil, Plus, X } from "lucide-react";
-import type { Plan, RolPlan } from "@/lib/types";
+import { SIN_FUNCIONES, type FuncionesPlan, type Plan, type RolPlan } from "@/lib/types";
+import { FUNCIONES, ORDEN_FUNCIONES } from "@/lib/planes";
 import { peticionAdmin } from "@/lib/admin/peticion";
 import { formatearMontoCOP } from "@/lib/montos";
 import { formatCOP } from "@/lib/utils";
@@ -19,17 +20,18 @@ type Formulario = {
   precioMensual: string;
   precioAnual: string;
   creditosIaMensuales: string;
-  diasTrial: string;
+  funciones: FuncionesPlan;
   activo: boolean;
 };
 
-const vacio: Formulario = { nombre: "", rol: "empresa", precioMensual: "", precioAnual: "", creditosIaMensuales: "0", diasTrial: "", activo: true };
+const vacio: Formulario = { nombre: "", rol: "empresa", precioMensual: "", precioAnual: "", creditosIaMensuales: "0", funciones: { ...SIN_FUNCIONES }, activo: true };
 
 /**
  * CU-31 paso 1 · RF-36 · Planes administrables sin despliegue (docs/05 §9.28).
  *
  * Un plan no se borra —tiene suscripciones y pagos que lo citan—: se desactiva
- * y sale del comparador. El plan de prueba solo cambia nombre, créditos y días.
+ * y sale del comparador. El plan Gratis sigue siendo de empresa, gratis y activo.
+ * Sesión 042 (RN-41): cada plan de empresa marca qué funciones incluye.
  * Quien decide es el servidor; la pantalla muestra su respuesta (RNF-20).
  */
 export function GestionPlanes({ planes }: { planes: Plan[] }) {
@@ -52,7 +54,7 @@ export function GestionPlanes({ planes }: { planes: Plan[] }) {
             precioMensual: formatearMontoCOP(p.precioMensual),
             precioAnual: formatearMontoCOP(p.precioAnual),
             creditosIaMensuales: String(p.creditosIaMensuales),
-            diasTrial: p.diasTrial ? String(p.diasTrial) : "",
+            funciones: { ...SIN_FUNCIONES, ...(p.funciones ?? {}) },
             activo: p.activo !== false,
           }
         : vacio
@@ -73,7 +75,7 @@ export function GestionPlanes({ planes }: { planes: Plan[] }) {
       precioAnual: datos.precioAnual,
       creditosIaMensuales: datos.creditosIaMensuales,
       activo: datos.activo,
-      diasTrial: plan?.esTrial ? datos.diasTrial : null,
+      funciones: datos.rol === "empresa" ? datos.funciones : SIN_FUNCIONES,
     });
     setOcupado(false);
     return r;
@@ -98,7 +100,7 @@ export function GestionPlanes({ planes }: { planes: Plan[] }) {
         precioMensual: String(p.precioMensual),
         precioAnual: String(p.precioAnual),
         creditosIaMensuales: String(p.creditosIaMensuales),
-        diasTrial: "",
+        funciones: { ...SIN_FUNCIONES, ...(p.funciones ?? {}) },
         activo: activar,
       },
       p
@@ -110,7 +112,7 @@ export function GestionPlanes({ planes }: { planes: Plan[] }) {
 
   const campo = "w-full rounded-[4px] border border-line px-3 py-2 text-sm outline-none focus:border-pri disabled:bg-surface-2 disabled:text-ink-3";
   const etiqueta = "mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-3";
-  const esTrial = editando?.esTrial === true;
+  const esGratuito = editando?.esGratuito === true;
 
   return (
     <div>
@@ -127,8 +129,9 @@ export function GestionPlanes({ planes }: { planes: Plan[] }) {
       <div className="mb-6 flex items-start gap-2 rounded-md border border-line-2 bg-surface-2 px-4 py-3 text-xs text-ink-3">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
         Los cambios rigen sin desplegar: un cambio de créditos alcanza desde ya a todos los suscriptores del plan. Un plan
-        no se borra; al desactivarlo sale del comparador y sus suscripciones actuales siguen igual. El plan de consultor no
-        incluye créditos de IA (RN-28).
+        no se borra; al desactivarlo sale del comparador y sus suscripciones actuales siguen igual. Las funciones de cada plan
+        de empresa (RN-41) también rigen desde ya: lo que un plan no incluye se ve bloqueado en el portal. El plan de consultor
+        no incluye créditos de IA ni funciones (RN-28).
       </div>
 
       {(error || aviso) && <div className="mb-4">{error ? <Aviso tipo="error">{error}</Aviso> : <Aviso tipo="exito">{aviso}</Aviso>}</div>}
@@ -146,6 +149,7 @@ export function GestionPlanes({ planes }: { planes: Plan[] }) {
                 <th className="px-5 py-3">Precio mensual</th>
                 <th className="px-5 py-3">Precio anual</th>
                 <th className="px-5 py-3">Créditos IA/mes</th>
+                <th className="px-5 py-3">Funciones</th>
                 <th className="px-5 py-3">Estado</th>
                 <th className="px-5 py-3" />
               </tr>
@@ -155,16 +159,21 @@ export function GestionPlanes({ planes }: { planes: Plan[] }) {
                 <tr key={p.id} className={p.activo === false ? "opacity-60" : undefined}>
                   <td className="px-5 py-3 font-medium text-ink">
                     {p.nombre}
-                    {p.esTrial && <span className="ml-2 text-xs font-normal text-ink-3">{p.diasTrial} días · al registrarse</span>}
+                    {p.esGratuito && <span className="ml-2 text-xs font-normal text-ink-3">al registrarse · sin vencimiento</span>}
                   </td>
                   <td className="px-5 py-3">
                     <Badge className={p.rol === "empresa" ? "bg-pri-soft text-pri-text ring-pri-soft" : "bg-pri-soft text-pri-text ring-pri/30"}>
                       {p.rol === "empresa" ? "Empresa" : "Consultor"}
                     </Badge>
                   </td>
-                  <td className="px-5 py-3 font-tabular text-ink-2">{p.esTrial ? "Gratis" : formatCOP(p.precioMensual)}</td>
-                  <td className="px-5 py-3 font-tabular text-ink-2">{p.esTrial ? "—" : formatCOP(p.precioAnual)}</td>
+                  <td className="px-5 py-3 font-tabular text-ink-2">{p.esGratuito ? "Gratis" : formatCOP(p.precioMensual)}</td>
+                  <td className="px-5 py-3 font-tabular text-ink-2">{p.esGratuito ? "—" : formatCOP(p.precioAnual)}</td>
                   <td className="px-5 py-3 font-tabular text-pri-text">{p.rol === "consultor" ? "—" : p.creditosIaMensuales}</td>
+                  <td className="px-5 py-3 text-xs text-ink-2">
+                    {p.rol === "consultor"
+                      ? "—"
+                      : ORDEN_FUNCIONES.filter((f) => p.funciones?.[f]).map((f) => FUNCIONES[f].titulo).join(" · ") || "Solo catálogo y proyectos a mano"}
+                  </td>
                   <td className="px-5 py-3">
                     {p.activo === false ? (
                       <Badge className="bg-surface-2 text-ink-3 ring-line">Inactivo</Badge>
@@ -174,7 +183,7 @@ export function GestionPlanes({ planes }: { planes: Plan[] }) {
                   </td>
                   <td className="px-5 py-3">
                     <div className="flex justify-end gap-1">
-                      {!p.esTrial && (
+                      {!p.esGratuito && (
                         <Button variant="ghost" size="sm" onClick={() => alternarActivo(p)} disabled={ocupado}>
                           {p.activo === false ? "Activar" : "Desactivar"}
                         </Button>
@@ -199,7 +208,7 @@ export function GestionPlanes({ planes }: { planes: Plan[] }) {
             role="dialog"
             aria-modal="true"
             aria-labelledby="titulo-plan"
-            className="w-full max-w-md rounded-md border border-line bg-surface p-6 shadow-card"
+            className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-md border border-line bg-surface p-6 shadow-card"
           >
             <div className="mb-4 flex items-center justify-between">
               <h3 id="titulo-plan" className="font-display text-lg font-semibold text-ink">
@@ -220,10 +229,15 @@ export function GestionPlanes({ planes }: { planes: Plan[] }) {
                 <select
                   id="plan-rol"
                   value={form.rol}
-                  disabled={esTrial}
+                  disabled={esGratuito}
                   onChange={(e) => {
                     const rol = e.target.value as RolPlan;
-                    setForm({ ...form, rol, creditosIaMensuales: rol === "consultor" ? "0" : form.creditosIaMensuales });
+                    setForm({
+                      ...form,
+                      rol,
+                      creditosIaMensuales: rol === "consultor" ? "0" : form.creditosIaMensuales,
+                      funciones: rol === "consultor" ? { ...SIN_FUNCIONES } : form.funciones,
+                    });
                   }}
                   className={campo}
                 >
@@ -231,7 +245,7 @@ export function GestionPlanes({ planes }: { planes: Plan[] }) {
                   <option value="consultor">Consultor</option>
                 </select>
               </div>
-              {!esTrial && (
+              {!esGratuito && (
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="plan-mensual" className={etiqueta}>Precio mensual (COP)</label>
@@ -243,27 +257,38 @@ export function GestionPlanes({ planes }: { planes: Plan[] }) {
                   </div>
                 </div>
               )}
-              <div className={esTrial ? "grid grid-cols-2 gap-4" : undefined}>
-                <div>
-                  <label htmlFor="plan-creditos" className={etiqueta}>Créditos de IA por mes</label>
-                  <input
-                    id="plan-creditos"
-                    inputMode="numeric"
-                    value={form.creditosIaMensuales}
-                    disabled={form.rol === "consultor"}
-                    onChange={(e) => setForm({ ...form, creditosIaMensuales: e.target.value })}
-                    className={campo}
-                  />
-                  {form.rol === "consultor" && <p className="mt-1 text-xs text-ink-3">El consultor no tiene cupo de IA (RN-28).</p>}
-                </div>
-                {esTrial && (
-                  <div>
-                    <label htmlFor="plan-dias" className={etiqueta}>Días de prueba</label>
-                    <input id="plan-dias" inputMode="numeric" value={form.diasTrial} onChange={(e) => setForm({ ...form, diasTrial: e.target.value })} className={campo} />
-                  </div>
-                )}
+              <div>
+                <label htmlFor="plan-creditos" className={etiqueta}>Créditos de IA por mes</label>
+                <input
+                  id="plan-creditos"
+                  inputMode="numeric"
+                  value={form.creditosIaMensuales}
+                  disabled={form.rol === "consultor"}
+                  onChange={(e) => setForm({ ...form, creditosIaMensuales: e.target.value })}
+                  className={campo}
+                />
+                {form.rol === "consultor" && <p className="mt-1 text-xs text-ink-3">El consultor no tiene cupo de IA (RN-28).</p>}
               </div>
-              {esTrial && <p className="text-xs text-ink-3">El plan de prueba es gratis, de empresa y siempre activo: sin él no se pueden registrar empresas.</p>}
+              {form.rol === "empresa" && (
+                <fieldset>
+                  <legend className={etiqueta}>Funciones que incluye (RN-41)</legend>
+                  <div className="space-y-2">
+                    {ORDEN_FUNCIONES.map((f) => (
+                      <label key={f} className="flex items-start gap-2.5 text-sm text-ink-2">
+                        <input
+                          type="checkbox"
+                          checked={form.funciones[f]}
+                          onChange={(e) => setForm({ ...form, funciones: { ...form.funciones, [f]: e.target.checked } })}
+                          className="mt-0.5 h-4 w-4 accent-[var(--pri)]"
+                        />
+                        <span>{FUNCIONES[f].beneficio}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="mt-2 text-xs text-ink-3">Catálogo, guardadas y proyectos a mano están en todos los planes.</p>
+                </fieldset>
+              )}
+              {esGratuito && <p className="text-xs text-ink-3">El plan Gratis es de empresa, sin costo, sin vencimiento y siempre activo: sin él no se pueden registrar empresas.</p>}
             </div>
 
             {errorModal && <div className="mt-4"><Aviso tipo="error">{errorModal}</Aviso></div>}

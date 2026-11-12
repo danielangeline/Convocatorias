@@ -1,4 +1,5 @@
 import "server-only";
+import { rechazoFuncion } from "@/lib/plan-servidor";
 import type { PostgrestError } from "@supabase/supabase-js";
 import { crearClienteServicio } from "@/lib/supabase/servidor";
 import { costo } from "@/lib/documentos-servidor";
@@ -46,6 +47,8 @@ const SIN_COBRO = " No se descontó ningún crédito. Puedes intentarlo de nuevo
 const RECHAZOS: Record<string, { status: number; error: string }> = {
   no_es_empresa: { status: 403, error: "Solo una cuenta de empresa puede crear proyectos." },
   sin_suscripcion: { status: 402, error: "Necesitas una suscripción vigente para crear el proyecto con IA. Puedes llenar el formulario a mano." },
+  // RN-41 (sesión 042): el plan no incluye el proyecto con IA.
+  funcion_no_incluida: rechazoFuncion("proyecto_ia"),
   sin_creditos: {
     status: 402,
     error: "No te quedan créditos de IA. Puedes llenar el formulario a mano o pedir un paquete adicional.",
@@ -239,6 +242,7 @@ const RECHAZOS_EDICION: Record<string, { status: number; error: string }> = {
   ...RECHAZOS,
   no_existe: { status: 404, error: "El proyecto no existe." },
   sin_suscripcion: { status: 402, error: "Necesitas una suscripción vigente para editar con IA. Puedes editarlo a mano." },
+  funcion_no_incluida: rechazoFuncion("proyecto_ia"),
   sin_creditos: { status: 402, error: "No te quedan créditos de IA. Puedes editar el apartado a mano o pedir un paquete adicional." },
   edicion_no_encontrada: { status: 409, error: "La edición con IA se interrumpió. Intenta de nuevo." },
 };

@@ -91,6 +91,8 @@ interface AppState {
 
   // Sesión real de Supabase Auth, entregada por el layout del servidor
   sesion: DatosSesion["sesion"] | null;
+  /** RN-41, RF-120: el plan que rige las funciones de la empresa (lo decide la base). */
+  planEfectivo: DatosSesion["planEfectivo"];
   hidratarSesion: (datos: DatosSesion) => void;
   /** Sprint 2 paso 4: el catálogo real, ya autorizado en el servidor (RN-33). */
   hidratarCatalogo: (convocatorias: Convocatoria[], categorias: Categoria[]) => void;
@@ -193,6 +195,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   eventosSeguridad: eventosSeguridadIniciales,
 
   sesion: null,
+  planEfectivo: null,
   // Mientras las demás entidades sigan en datos de ejemplo, la suscripción, el
   // plan y el perfil de consultor reales se integran a esas listas para que el
   // resto de la interfaz los encuentre por el id de la sesión.
@@ -216,7 +219,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const consultores = datos.consultor
         ? [...s.consultores.filter((c) => c.id !== datos.consultor!.id), datos.consultor]
         : s.consultores;
-      return { sesion: datos.sesion, planes, suscripciones, consultores };
+      return { sesion: datos.sesion, planEfectivo: datos.planEfectivo ?? null, planes, suscripciones, consultores };
     });
   },
 

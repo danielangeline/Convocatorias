@@ -21,6 +21,8 @@ import { DEPARTAMENTOS, REGIONES, esCodigoDepartamento, nombreDepartamento, type
 import type { Categoria, Convocatoria, OrigenConvocatoria, TipoConvocatoria, TipoDocumento } from "@/lib/types";
 import { ConvocatoriaCard } from "@/components/ConvocatoriaCard";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { PantallaBloqueada } from "@/components/plan/FuncionBloqueada";
+import { usePlanEfectivo } from "@/lib/hooks";
 import { Button, LinkButton } from "@/components/ui/Button";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Tabs } from "@/components/ui/Tabs";
@@ -232,6 +234,9 @@ export function CatalogoEmpresa({
 
   // RF-43: derivados de lo vigente, así que ninguno lleva a un resultado vacío.
   // Los chips salen solo de lo vigente: una sugerencia que lleva a cerradas no ayuda.
+  // RN-41, RF-120: sin la función, la pestaña sigue y explica en qué plan está.
+  const { incluye } = usePlanEfectivo();
+  const conSugerencias = incluye("sugerencias");
   const sugeridas = useMemo(
     () => chipsSugeridos(todas.filter((c) => c.estado !== "cerrada"), categorias),
     [todas, categorias]
@@ -443,7 +448,7 @@ export function CatalogoEmpresa({
           onChange={cambiarTab}
           pestanas={[
             { valor: "todas", etiqueta: "Todas", conteo: convocatorias.length },
-            { valor: "sugeridas", etiqueta: "Sugeridas para ti", conteo: sugeridasLista.length },
+            { valor: "sugeridas", etiqueta: "Sugeridas para ti", conteo: conSugerencias ? sugeridasLista.length : undefined },
             { valor: "guardadas", etiqueta: "Guardadas", conteo: guardadasLista.length },
           ]}
         />
@@ -538,7 +543,9 @@ export function CatalogoEmpresa({
         </>
       )}
 
-      {tab === "sugeridas" &&
+      {tab === "sugeridas" && !conSugerencias && <PantallaBloqueada funcion="sugerencias" titulo="Sugeridas para ti" />}
+
+      {tab === "sugeridas" && conSugerencias &&
         (sugeridasLista.length === 0 ? (
           <EmptyState
             icon={WandSparkles}

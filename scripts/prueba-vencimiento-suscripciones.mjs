@@ -50,11 +50,15 @@ try {
   const e = sesion();
   await e.cliente.auth.signInWithPassword({ email: data.user.email, password: clave });
 
-  const { data: sus } = await svc.from("suscripciones").select("id, fecha_inicio, fecha_vencimiento, estado").eq("usuario_id", cuenta).single();
-  ok(sus.fecha_inicio === hoy && sus.fecha_vencimiento === dia(7) && sus.estado === "trial", `el trial empieza hoy en Colombia (${sus.fecha_inicio} a ${sus.fecha_vencimiento})`);
+  // Sesión 042 (RN-11): la empresa nace en Gratis, sin vencimiento ni franja.
+  const { data: sus } = await svc.from("suscripciones").select("id, fecha_inicio, fecha_vencimiento, estado, modalidad").eq("usuario_id", cuenta).single();
+  ok(sus.fecha_inicio === hoy && sus.fecha_vencimiento === null && sus.estado === "gratis" && sus.modalidad === "gratis",
+    `la empresa entra hoy a Gratis, sin vencimiento (${sus.fecha_inicio}, ${sus.fecha_vencimiento})`);
   const { data: proyecto } = await svc.from("proyectos").insert({ usuario_id: cuenta, nombre: `Proyecto vencimiento ${sufijo}` }).select("id").single();
+  const { data: esencial } = await svc.from("planes").select("id").eq("nombre", "Empresa Esencial").single();
 
-  const fijar = (estado, vence) => svc.from("suscripciones").update({ estado, fecha_inicio: dia(-30), fecha_vencimiento: vence }).eq("id", sus.id);
+  const fijar = (estado, vence) =>
+    svc.from("suscripciones").update({ plan_id: esencial.id, modalidad: "mensual", estado, fecha_inicio: dia(-30), fecha_vencimiento: vence }).eq("id", sus.id);
   const franja = async () => {
     const r = await api(e, "GET", "/proyectos");
     const m = r.texto.match(/role="status"[^>]*>.*?<p class="flex-1">([^<]*)</s);
@@ -62,36 +66,45 @@ try {
   };
   const sugerencias = async () => (await api(e, "GET", `/api/proyectos/${proyecto.id}/sugerencias`)).status;
 
-  ok((await franja()) === null, "con 7 días por delante no hay franja");
+  ok((await franja()) === null && (await sugerencias()) === 402, "en Gratis no hay franja y las sugerencias responden 402 (RN-41)");
 
-  await fijar("trial", dia(1));
+  await fijar("activa", dia(10));
+  ok((await franja()) === null && (await sugerencias()) === 200, "con Esencial y 10 días por delante: sin franja y con sugerencias");
+
+  await fijar("activa", dia(1));
   let f = await franja();
   ok(/vence mañana/.test(f ?? "") && /5 días de gracia/.test(f ?? ""), `a un día: "${f}"`);
 
-  await fijar("trial", hoy);
+  await fijar("activa", hoy);
   f = await franja();
   ok(/vence hoy/.test(f ?? "") && (await sugerencias()) === 200, `el día del vencimiento todavía tiene acceso: "${f}"`);
 
-  // El job todavía no corrió: estado trial con la fecha ya pasada.
-  await fijar("trial", dia(-2));
+  // El job todavía no corrió: estado activa con la fecha ya pasada.
+  await fijar("activa", dia(-2));
   f = await franja();
-  ok(/periodo de gracia: te quedan 3 días/.test(f ?? "") && (await sugerencias()) === 200, `en gracia aunque el job no haya corrido: "${f}"`);
+  ok(/periodo de gracia: le quedan 3 días/.test(f ?? "") && /plan Gratis/.test(f ?? "") && (await sugerencias()) === 200,
+    `en gracia aunque el job no haya corrido, avisa que pasará a Gratis: "${f}"`);
 
   await fijar("en_gracia", dia(-5));
   f = await franja();
   ok(/hoy es el último día/.test(f ?? "") && (await sugerencias()) === 200, `último día de gracia: "${f}"`);
 
+  // RN-16: pasada la gracia, el plan efectivo es Gratis aunque el job no haya corrido.
   await fijar("en_gracia", dia(-6));
   f = await franja();
   const bloqueo = await sugerencias();
-  ok(/terminó el periodo de gracia/.test(f ?? "") && bloqueo === 402, `pasada la gracia, la franja y el servidor coinciden (402: ${bloqueo}): "${f}"`);
+  ok(/terminó el periodo de gracia/.test(f ?? "") && /plan Gratis/.test(f ?? "") && bloqueo === 402,
+    `pasada la gracia, la franja y el servidor coinciden (402: ${bloqueo}): "${f}"`);
   const solicitar = await api(e, "POST", "/api/encargos", { proyectoId: proyecto.id, tipoAyuda: "buscar_convocatoria", titulo: "Ayuda" });
-  ok(solicitar.status === 402, `sin suscripción no solicita consultor (${solicitar.status})`);
+  ok(solicitar.status === 402, `en Gratis no solicita consultor (${solicitar.status})`);
   ok((await api(e, "GET", "/convocatorias")).status === 200, "el catálogo sigue disponible (CU-32 paso 2)");
+  const proyectos = await api(e, "GET", "/api/proyectos");
+  ok(proyectos.status === 200 && JSON.stringify(proyectos.json).includes(proyecto.id), "sus proyectos siguen ahí (RN-16: no se borra nada)");
 
-  await fijar("vencida", dia(-20));
-  f = await franja();
-  ok(/terminó el periodo de gracia/.test(f ?? "") && /el catálogo sigue disponible/.test(f ?? ""), `vencida: "${f}"`);
+  // El job la baja a Gratis: sin vencimiento, sin franja, y el proyecto intacto.
+  await svc.from("suscripciones").update({ plan_id: (await svc.from("planes").select("id").eq("es_gratuito", true).single()).data.id,
+    modalidad: "gratis", estado: "gratis", fecha_inicio: hoy, fecha_vencimiento: null }).eq("id", sus.id);
+  ok((await franja()) === null && (await sugerencias()) === 402, "ya en Gratis (lo que hace el job): sin franja y sin sugerencias");
 } catch (err) {
   fallas++;
   console.error("FALLA inesperada:", err);

@@ -448,16 +448,38 @@ export interface Plan {
   precioMensual: number;
   precioAnual: number;
   creditosIaMensuales: number;
-  // Plan del trial (RF-37): no aparece en el comparador.
-  esTrial?: boolean;
+  // RN-11 (sesión 042): el plan Gratis, de empresa y sin vencimiento. No se contrata.
+  esGratuito?: boolean;
+  // RN-41 (sesión 042): qué funciones abre el plan, leídas de `planes.incluye_*`.
+  funciones?: FuncionesPlan;
   // Panel (docs/05 §9.28): un plan no se borra, se desactiva.
   activo?: boolean;
-  diasTrial?: number | null;
 }
 
-export type ModalidadSuscripcion = "trial" | "mensual" | "anual";
+/** RN-41 · Las funciones que un plan de empresa puede incluir (docs/05 §9.38). */
+export type FuncionPlan = "proyecto_ia" | "sugerencias" | "documento_ia" | "postulaciones" | "consultores";
 
-export type EstadoSuscripcion = "trial" | "activa" | "en_gracia" | "vencida" | "suspendida";
+export type FuncionesPlan = Record<FuncionPlan, boolean>;
+
+export const SIN_FUNCIONES: FuncionesPlan = {
+  proyecto_ia: false,
+  sugerencias: false,
+  documento_ia: false,
+  postulaciones: false,
+  consultores: false,
+};
+
+/** RN-41, RF-120 · El plan que rige lo que la sesión puede hacer (`mi_plan_efectivo()`). */
+export interface PlanEfectivo {
+  planId: string;
+  nombre: string;
+  esGratuito: boolean;
+  funciones: FuncionesPlan;
+}
+
+export type ModalidadSuscripcion = "gratis" | "mensual" | "anual";
+
+export type EstadoSuscripcion = "gratis" | "activa" | "en_gracia" | "vencida" | "suspendida";
 
 export interface Pago {
   id: string;
@@ -491,7 +513,7 @@ export interface CuentaSuscripcion {
 
 /** RF-42 / CU-31 paso 5 · Estados y consumo de IA del mes en curso (Colombia). */
 export interface TableroSuscripciones {
-  trial: number;
+  gratis: number;
   activas: number;
   enGracia: number;
   vencidas: number;
@@ -510,7 +532,7 @@ export interface Suscripcion {
   modalidad: ModalidadSuscripcion;
   estado: EstadoSuscripcion;
   fechaInicio: string; // ISO date
-  fechaVencimiento: string; // ISO date
+  fechaVencimiento: string | null; // ISO date; nula en el plan Gratis (sesión 042)
 
   // Créditos de IA
   creditosUsadosPeriodo: number;
@@ -803,6 +825,8 @@ export interface DatosSesion {
   sesion: SesionUsuario;
   suscripcion: Suscripcion | null;
   plan: Plan | null;
+  /** RN-41: solo para empresas; null para los demás roles. */
+  planEfectivo: PlanEfectivo | null;
   consultor: PerfilConsultor | null;
 }
 

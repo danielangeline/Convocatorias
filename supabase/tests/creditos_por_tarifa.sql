@@ -3,8 +3,8 @@
 --
 --   npx supabase db query --linked -f supabase/tests/creditos_por_tarifa.sql
 --
--- Con las tarifas y el trial reales: documento 100, proyecto 50, ajuste 10 y un
--- trial de 125. Termina SIEMPRE con un error "RESULTADO …" que revierte todo.
+-- Con las tarifas reales: documento 100, proyecto 50, ajuste 10, y un plan con
+-- 125 créditos (sesión 042: el Trial se retiró; la prueba fija 125 en Pro). Termina SIEMPRE con un error "RESULTADO …" que revierte todo.
 do $$
 declare
   v_res text := '';
@@ -21,10 +21,19 @@ begin
   -- RN-39 (sesión 033): las convocatorias de prueba admiten a todos los países;
   -- se revierte con el resto al final.
   alter table public.convocatorias alter column todos_los_paises set default true;
+  update public.planes set creditos_ia_mensuales = 125 where nombre = 'Empresa Pro';
   insert into auth.users (id, email, raw_user_meta_data) values
     (v_e1, 'te1@prueba.co', '{"rol": "empresa", "nombre": "Ana", "nombre_empresa": "Empresa Tarifas", "consentimiento_datos": "true"}'),
     (v_ad, 'tad@prueba.co', '{"rol": "empresa", "nombre": "Admin"}');
   update public.perfiles set rol = 'administrador' where id = v_ad;
+
+  -- Sesión 042 (RN-41): toda empresa nace en Gratis, sin funciones de pago. Esta
+  -- suite prueba otra cosa, así que sus empresas de prueba pasan a Pro (se revierte).
+  update public.suscripciones s
+     set plan_id = (select id from public.planes where nombre = 'Empresa Pro'),
+         modalidad = 'mensual', estado = 'activa', fecha_vencimiento = privado.hoy_colombia() + 30
+    from public.perfiles p
+   where p.id = s.usuario_id and p.rol = 'empresa' and s.usuario_id::text like '00000000-0000-0000-0000-%';
   select id into v_sus from public.suscripciones where usuario_id = v_e1;
   insert into public.convocatorias (id, nombre, entidad_convocante, cobertura_nacional, fecha_cierre, estado, url_postulacion) values
     (v_va, 'A · vigente', 'Prueba', true, privado.hoy_colombia() + 20, 'publicada', 'https://prueba.gov.co/a'),
@@ -32,7 +41,7 @@ begin
   insert into public.proyectos (id, usuario_id, nombre, problema) values (v_p1, v_e1, 'Proyecto Tarifas', 'Problema');
 
   select privado.creditos_disponibles(v_sus) into v_n;
-  v_res := v_res || format(E'\n%s §9.32: el trial trae 125 créditos -> %s', case when v_n = 125 then 'OK   ' else 'FALLA' end, v_n);
+  v_res := v_res || format(E'\n%s §9.32: el plan de la prueba trae 125 créditos -> %s', case when v_n = 125 then 'OK   ' else 'FALLA' end, v_n);
 
   -- ================================================================ generar: 100
   select documento_id into v_d1 from public.iniciar_generacion(v_e1, v_p1, v_va);

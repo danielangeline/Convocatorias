@@ -1,4 +1,5 @@
 import "server-only";
+import { rechazoFuncion } from "@/lib/plan-servidor";
 import { cache } from "react";
 import type { PostgrestError } from "@supabase/supabase-js";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
@@ -102,6 +103,8 @@ export const encargoDeBusqueda = cache(async (id: string): Promise<EncargoDeBusq
 
 const RECHAZOS: Record<string, { status: number; error: string }> = {
   no_existe: { status: 404, error: "No encontrado." },
+  // RN-41 (sesión 042): elegir una propuesta es trabajo con consultores (Pro).
+  funcion_no_incluida: rechazoFuncion("consultores"),
   encargo_no_admite_propuestas: {
     status: 409,
     error: "Este encargo ya no admite propuestas: la empresa ya eligió una convocatoria o el encargo terminó.",

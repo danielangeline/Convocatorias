@@ -197,7 +197,7 @@ export const ESTADO_ENCARGO_ESTILO: Record<EstadoEncargo, string> = {
 };
 
 export const ESTADO_SUSCRIPCION_LABEL: Record<EstadoSuscripcion, string> = {
-  trial: "Trial",
+  gratis: "Gratis",
   activa: "Activa",
   en_gracia: "En gracia",
   vencida: "Vencida",
@@ -205,7 +205,7 @@ export const ESTADO_SUSCRIPCION_LABEL: Record<EstadoSuscripcion, string> = {
 };
 
 export const ESTADO_SUSCRIPCION_ESTILO: Record<EstadoSuscripcion, string> = {
-  trial: TONO_PRI,
+  gratis: TONO_NEUTRO,
   activa: TONO_PRI,
   en_gracia: TONO_AMBER,
   vencida: TONO_ROSE,

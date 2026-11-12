@@ -9,7 +9,7 @@ import { Aviso, Campo } from "./Campo";
 import { SelectorPuerta } from "./SelectorPuerta";
 
 const DETALLE: Record<Puerta, string> = {
-  empresa: "Busque convocatorias y prepare postulaciones. Prueba gratis 7 días con créditos de IA incluidos.",
+  empresa: "Busque convocatorias y registre sus proyectos gratis, sin vencimiento. Cuando lo necesite, mejore a Esencial o Pro.",
   consultor: "Ofrezca sus servicios. Su perfil pasa por revisión antes de publicarse.",
 };
 
@@ -88,7 +88,7 @@ export function FormularioRegistro({ puertaInicial }: { puertaInicial: Puerta })
         {enviando ? "Creando cuenta…" : rol === "empresa" ? "Crear cuenta y empezar la prueba" : "Crear cuenta de consultor"}
       </Button>
       {rol === "empresa" && (
-        <p className="text-center text-[13px] text-ink-3">Prueba gratuita de 7 días. Sin tarjeta de crédito.</p>
+        <p className="text-center text-[13px] text-ink-3">Plan Gratis sin vencimiento. Sin tarjeta de crédito.</p>
       )}
     </form>
   );

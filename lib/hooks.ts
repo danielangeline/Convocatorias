@@ -1,12 +1,14 @@
 "use client";
 
-import { useMemo } from "react";
+import { useContext, useMemo } from "react";
+import { ContextoPlan } from "./contexto-plan";
 import { useAppStore } from "./store";
 import { agregarMeses, diasRestantesHasta } from "./utils";
 import { diasEntre, hoyColombia } from "./fechas";
-import type { Suscripcion } from "./types";
+import { planQueIncluye } from "./planes";
+import type { FuncionPlan, Plan, Suscripcion } from "./types";
 
-const ESTADOS_CON_ACCESO = new Set(["trial", "activa", "en_gracia"]);
+const ESTADOS_CON_ACCESO = new Set(["gratis", "activa", "en_gracia"]);
 const DIAS_GRACIA = 5;
 
 /**
@@ -15,7 +17,32 @@ const DIAS_GRACIA = 5;
  * gracia, en hora de Colombia. Solo informa a la pantalla; decide el servidor.
  */
 export function suscripcionVigente(s: Suscripcion | undefined | null): boolean {
-  return !!s && ESTADOS_CON_ACCESO.has(s.estado) && diasEntre(hoyColombia(), s.fechaVencimiento) + DIAS_GRACIA >= 0;
+  if (!s || !ESTADOS_CON_ACCESO.has(s.estado)) return false;
+  // El plan Gratis no vence (RN-11, sesión 042).
+  if (s.estado === "gratis" || !s.fechaVencimiento) return s.estado === "gratis";
+  return diasEntre(hoyColombia(), s.fechaVencimiento) + DIAS_GRACIA >= 0;
+}
+
+/**
+ * RN-41, RF-120 · Las funciones del plan efectivo de la sesión, como las decide
+ * `mi_plan_efectivo()` en la base. Solo informa a la pantalla (candados y
+ * pantallas bloqueadas); el servidor rechaza con `funcion_no_incluida`.
+ * Para quien no es empresa no aplica: devuelve todo abierto.
+ */
+export function usePlanEfectivo() {
+  // Dentro del portal Empresa, el contexto de la petición (lib/contexto-plan.tsx);
+  // fuera de él (consultor, panel), no hay plan de empresa y todo queda abierto.
+  const contexto = useContext(ContextoPlan);
+  const sesion = useAppStore((s) => s.sesion);
+  const planEfectivoStore = useAppStore((s) => s.planEfectivo);
+  const planesStore = useAppStore((s) => s.planes);
+  const planEfectivo = contexto ? contexto.planEfectivo : planEfectivoStore;
+  const planes = contexto ? contexto.planes : planesStore;
+  const esEmpresa = contexto ? true : sesion?.rol === "empresa";
+  const incluye = (f: FuncionPlan) => !esEmpresa || planEfectivo?.funciones[f] === true;
+  /** El plan de pago más barato que incluye la función («Disponible en el plan Esencial»). */
+  const planPara = (f: FuncionPlan): Plan | null => planQueIncluye(f, planes);
+  return { planEfectivo, incluye, planPara, esEmpresa, planes: contexto ? contexto.planes : null };
 }
 
 /**
@@ -33,7 +60,7 @@ export function useAccesoSuscripcion() {
   const rol = sesion?.rol ?? null;
   const suscripcion = suscripciones.find((s) => s.usuarioId === usuarioId);
   const tieneAcceso = rol === "administrador" || !suscripcion || suscripcionVigente(suscripcion);
-  const diasRestantes = suscripcion ? diasRestantesHasta(suscripcion.fechaVencimiento) : null;
+  const diasRestantes = suscripcion?.fechaVencimiento ? diasRestantesHasta(suscripcion.fechaVencimiento) : null;
 
   function requerirAcceso(motivo?: string): boolean {
     if (tieneAcceso) return true;

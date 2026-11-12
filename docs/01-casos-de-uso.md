@@ -136,7 +136,7 @@
 |---|---|
 | **Actor** | Usuario Empresa, con apoyo del Servicio de IA |
 | **Descripción** | Atajo opcional de CU-09: la empresa cuenta su proyecto con sus palabras —escribiendo o dictando— y la IA lo convierte en un **proyecto** con los datos de clasificación (los que usan los filtros y las sugerencias) y los de contenido. **El proyecto se guarda en cuanto llega la propuesta y se abre su ficha, donde la empresa revisa y edita cada parte** *(mod. sesión 031, decisión del Product Owner)* |
-| **Precondiciones** | Sesión de empresa; suscripción vigente o trial; saldo de créditos suficiente para la tarifa de crear un proyecto (RN-17) |
+| **Precondiciones** | Sesión de empresa; **un plan que incluya el proyecto con IA (RN-41: Esencial o Pro)** *(mod. sesión 042)*; saldo de créditos suficiente para la tarifa de crear un proyecto (RN-17) |
 | **Flujo principal** | 1. En "Nuevo proyecto", antes del formulario, ve la opción "Cuéntanos tu proyecto". 2. Escribe la explicación o pulsa el **micrófono**: si el navegador lo permite, las palabras aparecen en el cuadro mientras habla (dictado en vivo, *mod. sesión 031*); si no, graba y, al detener, el audio se transcribe. En los dos casos el texto queda en el cuadro, donde se puede corregir (RF-97). 3. Pulsa "Crear con IA". 4. El sistema envía la explicación junto con la lista oficial de departamentos y las categorías activas, y recibe una propuesta: nombre, descripción, monto buscado, departamento, municipio, categorías y los nueve campos de contenido, más la lista de lo que la explicación no dice (RF-96). 5. Se descuenta la tarifa. 6. El sistema guarda la propuesta como proyecto (CU-09, con las mismas validaciones de `guardar_proyecto`). 7. Se abre la **ficha del proyecto** con el aviso «Creado con IA», la lista de lo que la explicación no dijo y cada parte —datos, clasificación y los nueve campos de contenido— con su botón para editarla. 8. Desde el aviso, la empresa va a las **sugerencias del proyecto (CU-10)**, ordenadas por compatibilidad (RF-98) |
 | **Flujos alternos** | 1a. Prefiere llenarlo a mano → "Llenar el formulario" abre CU-09 vacío, sin costo. 2a. El navegador no graba o el permiso del micrófono se niega → se avisa y se puede escribir. 2b. La grabación llega a 5 minutos → se detiene sola y se transcribe lo grabado. 2c. Falla la transcripción → se avisa, el texto ya escrito se conserva y no se cobra. 3a. Explicación de menos de 80 caracteres → se pide más detalle, sin llamar a la IA. 3b. Sin crédito o sin suscripción vigente → se explica y se ofrecen el formulario manual y la compra de créditos. 4a. La IA falla o no responde a tiempo → se avisa, **no se cobra** (RN-17) y la explicación se conserva para reintentar. 6a. El guardado falla (p. ej., se corta la conexión) → la propuesta no se pierde: se abre el formulario de CU-09 lleno con ella para guardarlo a mano; el crédito ya se consumió, porque la propuesta se entregó, y se advierte antes de cerrar |
 | **Postcondiciones** | Proyecto creado como en CU-09, con categorías y departamento; consumo de IA registrado con su crédito (RF-52). **Ni la explicación ni el audio se guardan** |
@@ -205,7 +205,7 @@
 
 | Campo | Contenido |
 |---|---|
-| **Precondiciones** | Proyecto registrado + suscripción activa o trial |
+| **Precondiciones** | Proyecto registrado + **un plan que incluya las sugerencias (RN-41: Esencial o Pro)** *(mod. sesión 042)* |
 | **Flujo principal** | 1. Abre "Sugerencias" desde su proyecto. 2. El sistema cruza categorías proyecto × convocatoria vigente, más monto y ubicación. **La ubicación coincide si la convocatoria es de cobertura nacional o si incluye el departamento del proyecto; el monto, si el monto buscado cae dentro del rango (un extremo que la entidad no informó no pone límite). Un criterio sobre el que el proyecto no tiene dato no coincide** *(mod. v6, sesión 019)*. 3. Presenta cada resultado con un **porcentaje de compatibilidad** (criterios coincidentes sobre criterios evaluados) y el desglose de qué coincide y qué no. 4. Ordena de mayor a menor compatibilidad. 5. Responde en < 3 s |
 | **Flujos alternos** | 2a. Sin coincidencias → indica qué atributo restringe más: **primero, los datos que le faltan al proyecto (categoría de algún tipo, monto o departamento), con el enlace para completarlos (RF-81); después, las convocatorias vigentes más cercanas —hasta 5, las que cierran antes— en 0 % y con su desglose, para que se vea por qué no coinciden. Si al proyecto no le falta nada, lo dice así: ninguna vigente coincide en ningún criterio** *(mod. v6, sesión 019)*. *Se descartó "el criterio que menos vigentes cumplen": sin ninguna coincidencia los cinco empatan en cero (decisión del Product Owner, sesión 019).* 2b. Sin suscripción vigente → no se calculan; se ofrece suscribirse |
 | **Nota** | El porcentaje es presentación del mismo cálculo determinístico de coincidencias: **no interviene IA** y así se comunica al usuario (RN-05). **Solo se sugieren convocatorias a las que el país de la empresa puede postularse (RN-39); el monto en otra moneda se compara con la tasa de referencia (RN-40)** *(sesión 032)* |
@@ -225,7 +225,7 @@
 
 | Campo | Contenido |
 |---|---|
-| **Precondiciones** | Convocatoria publicada y vigente + suscripción activa o trial |
+| **Precondiciones** | Convocatoria publicada y vigente + **un plan que incluya las postulaciones (RN-41: Esencial o Pro)** *(mod. sesión 042)* |
 | **Flujo principal** | 1. "Postular" desde la ficha. 2. Opcionalmente vincula un proyecto. 3. Se crea la postulación **en preparación** —siempre en ese estado, lo fija el servidor— y se **copian** los requisitos como checklist |
 | **Flujos alternos** | 1a. Cerrada o despublicada → bloqueado. 1b. Sin suscripción → modal de suscripción. **1c. Ya existe una postulación en curso (no cerrada) de la empresa para ese mismo par proyecto-convocatoria —o sin proyecto, si no eligió ninguno— → no se crea otra: se abre la existente (RN-35)** |
 | **Nota** | La postulación es un **expediente de preparación**: la radicación se hace en el portal de la entidad (RN-19) |
@@ -295,7 +295,7 @@
 
 | Campo | Contenido |
 |---|---|
-| **Precondiciones** | Proyecto registrado + suscripción activa o trial |
+| **Precondiciones** | Proyecto registrado + **un plan que incluya los consultores (RN-41: Pro)** *(mod. sesión 042)* |
 | **Flujo principal** | 1. "Solicitar consultor" en la ficha del proyecto. **2. Elige el tipo de ayuda: (a) ayuda con una convocatoria específica — busca por nombre y selecciona de su catálogo o postulaciones la convocatoria a la que quiere aplicar (RF-75); o (b) ayuda para encontrar una convocatoria — no selecciona ninguna.** 3. Describe la tarea (título y descripción, complementaria al contexto ya adjunto). **4. El sistema adjunta automáticamente los datos de contenido del proyecto y, si aplica, los de la convocatoria elegida y sus requisitos (RF-68).** 5. Elige camino: directorio (CU-20) o **pedir ayuda al equipo de la plataforma (CU-23)** *(sesión 023: antes "asignación interna")* |
 | **Flujos alternos** | **1a.** También se abre directo desde la tarjeta del proyecto en el listado (`/proyectos`), sin entrar a la ficha completa — mismo modal, mismo resultado (RF-28). **2a.** Si elige "convocatoria específica" y ya existe una postulación en curso de ese proyecto a esa convocatoria, se vincula automáticamente — el consultor verá también el checklist. **2b.** Iniciado desde el detalle de una postulación (CU-13): el proyecto y la convocatoria quedan preseleccionados (tipo de ayuda fijo en "convocatoria específica"); si la postulación no tiene proyecto vinculado, primero pide vincular uno |
 
@@ -371,20 +371,21 @@
 
 ### Módulo H — Suscripciones y créditos
 
-#### CU-28 · Elegir plan y suscribirse *(mod. v4)*
+#### CU-28 · Elegir plan y suscribirse *(mod. v4; mod. v6, sesión 042)*
 
 | Campo | Contenido |
 |---|---|
-| **Descripción** | Planes por rol, modalidad mensual o anual (con descuento), **diferenciados por volumen de créditos de IA** |
-| **Precondiciones** | Empresa: cuenta creada. Consultor: perfil aprobado (nunca paga antes) |
-| **Flujo principal** | 1. Ve los planes de su rol con precios y créditos incluidos. 2. Elige plan y modalidad. 3. **Piloto:** pago acordado por fuera y activación por el administrador. **Con pasarela:** pago en línea y activación automática |
-| **Postcondiciones** | Suscripción `activa` con fechas y cupo de créditos del periodo |
+| **Descripción** | Planes por rol, modalidad mensual o anual (con descuento). Los de empresa se diferencian **por las funciones que incluyen y por el volumen de créditos de IA** (RN-41): **Gratis**, **Esencial** y **Pro** |
+| **Precondiciones** | Empresa: cuenta creada (ya está en Gratis desde el registro, RN-11). Consultor: perfil aprobado (nunca paga antes) |
+| **Flujo principal** | 1. Ve los planes de su rol con precios, créditos incluidos y **qué funciones abre cada uno**, leídos del dato del plan (RF-82). 2. Elige plan de pago y modalidad. 3. **Piloto:** pago acordado por fuera y activación por el administrador (`CONTRATAR_EN_PILOTO`). **Con pasarela:** pago en línea y activación automática |
+| **Flujos alternos** *(nuevo, sesión 042)* | **1a.** La empresa llega desde una función bloqueada (RF-120) con «Mejorar plan»: la pantalla de su plan señala el plan que la incluye. **2a.** El plan Gratis no se contrata: es el de toda empresa sin plan de pago vigente |
+| **Postcondiciones** | Suscripción `activa` con fechas, cupo de créditos del periodo y las funciones del plan |
 
 #### CU-29 · Renovar suscripción
 
 | Campo | Contenido |
 |---|---|
-| **Flujo principal** | 1. Avisos al acercarse el vencimiento. 2. Vencida → `en_gracia` por 5 días. 3. Renovada → nueva fecha de vencimiento y cupo. 4. No renovada tras la gracia → `vencida` y se restringe el acceso |
+| **Flujo principal** | 1. Avisos al acercarse el vencimiento. 2. Vencida → `en_gracia` por 5 días. 3. Renovada → nueva fecha de vencimiento y cupo. 4. No renovada tras la gracia → **empresa: baja a Gratis** sin borrar nada (RN-16, sesión 042); **consultor:** `vencida` y se restringe el acceso |
 
 #### CU-30 · Consultar estado de suscripción y consumo *(mod. v4)*
 
@@ -396,14 +397,14 @@
 
 | Campo | Contenido |
 |---|---|
-| **Flujo principal** | 1. Crea o edita planes: nombre, rol, precio mensual y anual, **créditos de IA mensuales**, activo — sin despliegue. 2. Activa suscripciones manualmente registrando el pago. 3. **Otorga paquetes de créditos adicionales.** 4. Suspende por falta de pago. 5. Tablero: activas, trial, en gracia, vencidas, suspendidas, y **consumo de IA del periodo** |
+| **Flujo principal** | 1. Crea o edita planes: nombre, rol, precio mensual y anual, **créditos de IA mensuales**, activo — sin despliegue. 2. Activa suscripciones manualmente registrando el pago. 3. **Otorga paquetes de créditos adicionales.** 4. Suspende por falta de pago. 5. Tablero: **en Gratis** *(antes "trial", sesión 042)*, activas, en gracia, vencidas, suspendidas, y **consumo de IA del periodo**. **6. Funciones de cada plan** *(nuevo, sesión 042)*: marca qué incluye cada plan de empresa —proyecto con IA, sugerencias, documento con IA, postulaciones, consultores (RN-41)— sin despliegue; el plan Gratis sigue siendo de empresa, gratis y activo |
 
 #### CU-32 · Restringir acceso por suscripción (Sistema)
 
 | Campo | Contenido |
 |---|---|
-| **Flujo principal** | 1. Verificación en cada acción restringida, **en servidor y en RLS**. 2. Empresa sin suscripción: no postula, no ve sugerencias, no solicita consultor, no genera documentos (catálogo sí navegable). 3. Consultor sin suscripción: no aparece en directorio ni acepta nuevos encargos. 4. Job diario: `activa → en_gracia → vencida`. **5. Al pasar a `vencida`, los encargos `en_curso` del consultor se cancelan (RN-29) y con ellos se revocan en cascada sus autorizaciones de documento (RF-76) — mismo efecto que CU-27, con el job como disparador en vez del administrador** *(ampliado en v6)* |
-| **Detalle** *(mod. v6, sesión 023, Sprint 4 paso 4 — decisiones del Product Owner)* | **"Hoy" es el día en Colombia** (`privado.hoy_colombia()`), igual que el cierre de convocatorias. La fecha de vencimiento es el último día con acceso. 4. El job corre a medianoche de Colombia: `trial` o `activa` con la fecha ya pasada → `en_gracia`; `en_gracia` (o una que el job no alcanzó a mover) con más de 5 días pasados → `vencida`. **El trial también tiene los 5 días de gracia.** La verificación de las acciones no depende de que el job haya corrido: compara también la fecha (RF-40). 5. Al vencer la de un consultor se cancelan sus encargos `en_curso` y `pendiente`, con el motivo "Suscripción del consultor vencida", como en la suspensión (RN-29); mientras los consultores no tengan suscripción (RN-11 transitorio) no ocurre. **6. Aviso (RN-16):** una franja en todas las pantallas del portal desde 3 días antes del vencimiento ("vence en N días"), durante la gracia ("te quedan N días") y ya vencida (qué queda restringido y que el catálogo sigue disponible). El aviso por correo llega con el SMTP propio |
+| **Flujo principal** | 1. Verificación en cada acción restringida, **en servidor y en RLS**. 2. ~~Empresa sin suscripción: no postula, no ve sugerencias, no solicita consultor, no genera documentos (catálogo sí navegable).~~ **Empresa (mod. sesión 042): cada acción exige que su plan efectivo incluya la función (RN-41, `privado.plan_incluye`)**; si no, se rechaza con `funcion_no_incluida` y la pantalla la muestra bloqueada (RF-120). Catálogo, ficha, guardadas y proyectos a mano están siempre abiertos. 3. Consultor sin suscripción: no aparece en directorio ni acepta nuevos encargos. 4. Job diario: `activa → en_gracia → vencida`. **5. Al pasar a `vencida`, los encargos `en_curso` del consultor se cancelan (RN-29) y con ellos se revocan en cascada sus autorizaciones de documento (RF-76) — mismo efecto que CU-27, con el job como disparador en vez del administrador** *(ampliado en v6)* |
+| **Detalle** *(mod. v6, sesión 023, Sprint 4 paso 4 — decisiones del Product Owner)* | **"Hoy" es el día en Colombia** (`privado.hoy_colombia()`), igual que el cierre de convocatorias. La fecha de vencimiento es el último día con acceso. 4. El job corre a medianoche de Colombia: `activa` con la fecha ya pasada → `en_gracia`; `en_gracia` (o una que el job no alcanzó a mover) con más de 5 días pasados → **empresa: `gratis` con el plan Gratis, sin vencimiento, conservando sus créditos de paquete** *(sesión 042)*; **consultor: `vencida`**. ~~El trial también tiene los 5 días de gracia.~~ (El Trial se retiró en la sesión 042; el plan Gratis no vence.) La verificación de las acciones no depende de que el job haya corrido: compara también la fecha (RF-40). 5. Al vencer la de un consultor se cancelan sus encargos `en_curso` y `pendiente`, con el motivo "Suscripción del consultor vencida", como en la suspensión (RN-29); mientras los consultores no tengan suscripción (RN-11 transitorio) no ocurre. **6. Aviso (RN-16):** una franja en todas las pantallas del portal desde 3 días antes del vencimiento ("vence en N días"), durante la gracia ("te quedan N días") y ya vencida (qué queda restringido y que el catálogo sigue disponible). El aviso por correo llega con el SMTP propio |
 | **Flujos alternos** *(nuevo v6, sesión 023)* | **4a.** Hasta que existan planes con precio y la renovación (Sprint 5), una suscripción vencida solo la reactiva el equipo, directamente en la base (decisión del Product Owner); no hay pantalla |
 
 #### CU-35 · Gestionar cupo de créditos de IA (Sistema) *(nuevo v4)*
@@ -424,7 +425,7 @@
 |---|---|
 | **Actor** | Usuario Empresa, con apoyo del Servicio de IA. **El consultor no genera documentos**: no tiene proyectos propios (los proyectos son de la empresa, CU-09) y su plan no incluye cupo de créditos (RN-28). Su intervención sobre un documento se limita a CU-34, previa autorización explícita *(precisado en v6 — hasta v5 la línea de actor lo incluía sin darle flujo ni precondición viable)* |
 | **Descripción** | Producir el borrador del documento de postulación adaptando un proyecto de la empresa a la convocatoria elegida |
-| **Precondiciones** | Convocatoria publicada y vigente —**verificado en el servidor al generar, no solo al pintar el botón (RF-78)**— · al menos un proyecto propio registrado · suscripción activa o trial · **cupo de créditos disponible** (CU-35) |
+| **Precondiciones** | Convocatoria publicada y vigente —**verificado en el servidor al generar, no solo al pintar el botón (RF-78)**— · al menos un proyecto propio registrado · **un plan que incluya el documento con IA (RN-41: Esencial o Pro)** *(mod. sesión 042)* · **cupo de créditos disponible** (CU-35) |
 | **Flujo principal** | 1. Desde la ficha de la convocatoria pulsa **"Generar documento con IA"**. 2. El sistema muestra la lista de sus proyectos con su indicador de completitud y el **cupo de créditos restante**. 3. Selecciona el proyecto con el que quiere aplicar. 4. El sistema arma el contexto: datos de contenido del proyecto + datos estructurados de la convocatoria + requisitos definidos por el admin (CU-04) + texto del TDR adjunto (CU-03). 5. Confirma la generación (se le advierte que consumirá un crédito). 6. El servicio de IA redacta el documento con la estructura derivada de los requisitos de la convocatoria; los datos sin fuente se marcan como pendientes. 7. Se descuenta el crédito, se guarda el documento y se muestra la vista previa (CU-34) |
 | **Flujos alternos** | 1a. **Entrada simétrica:** desde la ficha del proyecto → "Generar documento para..." → selecciona convocatoria. 2a. Proyecto con baja completitud → advertencia de que el resultado será pobre y ofrecimiento de completarlo antes. 2b. Sin proyectos → invitación a crear uno. 3a. Sin cupo → bloqueo con opciones de mejora de plan o paquete adicional. 6a. **Falla la generación** (timeout o error del servicio) → mensaje claro, **sin descontar crédito**, con opción de reintentar. 7a. Si ya existe una postulación de ese proyecto a esa convocatoria, el documento queda vinculado a ella |
 | **Postcondiciones** | Documento base guardado, asociado al par proyecto-convocatoria, con su lista de pendientes y su consumo registrado |
@@ -530,7 +531,7 @@
 | Postulación | `en_preparacion → presentada → en_evaluacion → aprobada / rechazada → cerrada` |
 | Perfil de consultor | `incompleto → en_revision → aprobado / rechazado → suspendido / reactivado` |
 | Encargo | `pendiente → en_curso / rechazado → completado → calificado` · variante `esperando_asignacion` · `cancelado` |
-| Suscripción | `trial → activa → en_gracia (5 días) → vencida → suspendida` |
+| Suscripción | Empresa *(mod. sesión 042)*: `gratis ⇄ activa → en_gracia (5 días) → gratis` · `suspendida`. Consultor: `activa → en_gracia (5 días) → vencida → suspendida` |
 | **Documento generado** | `generando → generado → editado → exportado` · `error` (no consume crédito) |
 | **Bloqueo por límite de tasa** *(nuevo v5)* | `activo → liberado (manual)` / `expirado (automático)` |
 

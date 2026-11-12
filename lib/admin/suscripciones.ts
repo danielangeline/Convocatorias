@@ -3,7 +3,8 @@ import type { PostgrestError } from "@supabase/supabase-js";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { leerMontoCOP } from "@/lib/montos";
 import { hoyColombia } from "@/lib/fechas";
-import type { CuentaSuscripcion, EstadoSuscripcion, ModalidadSuscripcion, Plan, RolPlan, TableroSuscripciones } from "@/lib/types";
+import type { CuentaSuscripcion, EstadoSuscripcion, FuncionPlan, ModalidadSuscripcion, Plan, RolPlan, TableroSuscripciones } from "@/lib/types";
+import { COLUMNAS_PLAN, ORDEN_FUNCIONES, aPlan, type FilaPlan } from "@/lib/planes";
 import type { Resultado } from "./administradores";
 
 // CU-28..31 · RF-36, RF-38, RF-42, RF-51 · Planes y suscripciones en el panel
@@ -16,7 +17,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const FECHA = /^\d{4}-\d{2}-\d{2}$/;
 
 // Sesión 030: los créditos se cuentan por tarifa (RN-17), así que los topes suben.
-export const LIMITES_PLAN = { nombreMax: 80, precioMax: 100_000_000, creditosMax: 1_000_000, diasTrialMax: 60, paqueteMax: 100_000 } as const;
+export const LIMITES_PLAN = { nombreMax: 80, precioMax: 100_000_000, creditosMax: 1_000_000, paqueteMax: 100_000 } as const;
 
 const MENSAJES: Record<string, { status: number; error: string }> = {
   no_es_admin: { status: 404, error: "No encontrado." },
@@ -24,7 +25,8 @@ const MENSAJES: Record<string, { status: number; error: string }> = {
   suscripcion_no_existe: { status: 404, error: "La suscripción no existe." },
   nombre_repetido: { status: 409, error: "Ya hay un plan con ese nombre para ese rol." },
   plan_en_uso: { status: 409, error: "El plan tiene suscripciones: no puede cambiar de rol." },
-  trial_fijo: { status: 409, error: "El plan de prueba sigue siendo de empresa, gratis y activo: solo cambian su nombre, créditos y días." },
+  gratuito_fijo: { status: 409, error: "El plan Gratis sigue siendo de empresa, gratis y activo: cambian su nombre, sus créditos y sus funciones." },
+  funciones_de_empresa: { status: 400, error: "Las funciones son de los planes de empresa: el de consultor no las lleva (RN-41)." },
   cuenta_invalida: { status: 404, error: "La cuenta no existe o no es de empresa ni de consultor." },
   plan_invalido: { status: 409, error: "Ese plan no está activo o no es del rol de la cuenta." },
   consultor_no_aprobado: { status: 409, error: "El perfil del consultor aún no está aprobado: no puede suscribirse (CU-28)." },
@@ -53,32 +55,18 @@ function pesos(v: unknown, max: number): number | null {
   return lectura.valor;
 }
 
-function planDeFila(f: Record<string, unknown>): Plan {
-  return {
-    id: f.id as string,
-    nombre: f.nombre as string,
-    rol: f.rol as RolPlan,
-    precioMensual: Number(f.precio_mensual),
-    precioAnual: Number(f.precio_anual),
-    creditosIaMensuales: Number(f.creditos_ia_mensuales),
-    esTrial: f.es_trial === true,
-    activo: f.activo === true,
-    diasTrial: (f.dias_trial as number | null) ?? null,
-  };
-}
-
 export async function listarPlanesAdmin(): Promise<Plan[]> {
   const supabase = await crearClienteServidor();
   const { data, error } = await supabase
     .from("planes")
-    .select("id, nombre, rol, precio_mensual, precio_anual, creditos_ia_mensuales, es_trial, activo, dias_trial")
+    .select(COLUMNAS_PLAN)
     .order("rol")
     .order("precio_mensual");
   if (error) throw new Error(`Planes: listar falló (${error.code})`);
-  return (data ?? []).map(planDeFila);
+  return ((data ?? []) as FilaPlan[]).map((f) => ({ ...aPlan(f), activo: f.activo === true }));
 }
 
-/** Cuerpo: { nombre, rol, precioMensual, precioAnual, creditosIaMensuales, activo, diasTrial? }. id nulo crea. */
+/** Cuerpo: { nombre, rol, precioMensual, precioAnual, creditosIaMensuales, activo, funciones }. id nulo crea. RF-36, RN-41. */
 export async function guardarPlan(id: string | null, cuerpo: Cuerpo): Promise<Resultado<{ id: string }>> {
   const L = LIMITES_PLAN;
   const nombre = typeof cuerpo?.nombre === "string" ? cuerpo.nombre.trim() : "";
@@ -94,10 +82,12 @@ export async function guardarPlan(id: string | null, cuerpo: Cuerpo): Promise<Re
   if (creditos === null) return invalido(`Los créditos de IA son un entero de 0 a ${L.creditosMax}.`);
   if (rol === "consultor" && creditos > 0) return invalido("El plan de consultor no incluye créditos de IA (RN-28).");
   const activo = cuerpo?.activo !== false;
-  let diasTrial: number | null = null;
-  if (cuerpo?.diasTrial !== undefined && cuerpo?.diasTrial !== null) {
-    diasTrial = enteroEn(cuerpo.diasTrial, 1, L.diasTrialMax);
-    if (diasTrial === null) return invalido(`Los días de prueba son un entero de 1 a ${L.diasTrialMax}.`);
+  // RN-41: las funciones del plan, una bandera por función; ausentes = no incluida.
+  const enviadas = (cuerpo?.funciones ?? {}) as Record<string, unknown>;
+  if (typeof enviadas !== "object" || Array.isArray(enviadas)) return invalido("Las funciones del plan no son válidas.");
+  const funciones = Object.fromEntries(ORDEN_FUNCIONES.map((f) => [f, enviadas[f] === true])) as Record<FuncionPlan, boolean>;
+  if (rol === "consultor" && ORDEN_FUNCIONES.some((f) => funciones[f])) {
+    return invalido("Las funciones son de los planes de empresa: el de consultor no las lleva (RN-41).");
   }
 
   const supabase = await crearClienteServidor();
@@ -109,14 +99,18 @@ export async function guardarPlan(id: string | null, cuerpo: Cuerpo): Promise<Re
     p_precio_anual: anual,
     p_creditos: creditos,
     p_activo: activo,
-    p_dias_trial: diasTrial,
+    p_incluye_proyecto_ia: funciones.proyecto_ia,
+    p_incluye_sugerencias: funciones.sugerencias,
+    p_incluye_documento_ia: funciones.documento_ia,
+    p_incluye_postulaciones: funciones.postulaciones,
+    p_incluye_consultores: funciones.consultores,
   });
   if (error) return rechazo(error, "guardar plan");
   return {
     ok: true,
     datos: { id: data as string },
     aviso: id
-      ? "Plan actualizado. Los cambios de créditos rigen desde ya para todos sus suscriptores."
+      ? "Plan actualizado. Los cambios de créditos y de funciones rigen desde ya para todos sus suscriptores."
       : "Plan creado.",
   };
 }
@@ -150,7 +144,7 @@ export async function listarCuentasYTablero(): Promise<{ cuentas: CuentaSuscripc
       creditosExtra: n(c.creditos_extra),
     })),
     tablero: {
-      trial: n(t.trial),
+      gratis: n(t.gratis),
       activas: n(t.activas),
       enGracia: n(t.en_gracia),
       vencidas: n(t.vencidas),

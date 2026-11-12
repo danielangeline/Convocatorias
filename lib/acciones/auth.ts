@@ -46,7 +46,7 @@ async function registrarEvento(
 
 // ---------------------------------------------------------------------------
 // Registro (CU-14, RF-01): el rol viaja en los metadatos y el trigger de la
-// base crea perfil, trial o perfil de consultor. Pedir "administrador" no sirve
+// base crea perfil, suscripción Gratis (sesión 042) o perfil de consultor. Pedir "administrador" no sirve
 // de nada: la base lo convierte en empresa (RN-06).
 // ---------------------------------------------------------------------------
 

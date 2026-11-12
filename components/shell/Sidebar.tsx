@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { LogOut } from "lucide-react";
+import { Lock, LogOut } from "lucide-react";
 import { useAppStore } from "@/lib/store";
-import { useCreditos, useTarifas } from "@/lib/hooks";
+import { useCreditos, usePlanEfectivo, useTarifas } from "@/lib/hooks";
+import { nombreCortoPlan } from "@/lib/planes";
 import { cerrarSesion } from "@/lib/acciones/auth";
 import { cn } from "@/lib/utils";
 import { Logo } from "./Logo";
@@ -32,7 +33,27 @@ function PieEmpresa() {
   const { disponibles, incluidos, extra, suscripcion } = useCreditos();
   const tarifaDocumento = useTarifas().generacion;
   const abrir = useAppStore((s) => s.abrirModalCreditos);
+  const { planEfectivo, planPara } = usePlanEfectivo();
   if (!suscripcion) return null;
+  // RN-41: sin IA en el plan (Gratis), la tarjeta invita a mejorar en lugar de contar créditos.
+  if (planEfectivo && !planEfectivo.funciones.documento_ia && !planEfectivo.funciones.proyecto_ia) {
+    const plan = planPara("documento_ia");
+    return (
+      <Link
+        href={plan ? `/suscripcion?plan=${plan.id}` : "/suscripcion"}
+        data-recorrido="creditos"
+        className="block w-full rounded-md border border-line bg-surface-2 p-3 text-left hover:border-pri"
+      >
+        <div className="flex items-center justify-between gap-2 text-xs font-semibold text-ink-2">
+          <span>Plan {planEfectivo.nombre}</span>
+          <Lock className="h-3.5 w-3.5 text-ink-3" aria-hidden />
+        </div>
+        <p className="mt-2 text-xs text-ink-3">
+          La IA está disponible desde el plan {plan ? nombreCortoPlan(plan.nombre) : "de pago"}. <span className="font-semibold text-pri-text">Mejorar plan</span>
+        </p>
+      </Link>
+    );
+  }
   const total = Math.max(incluidos + extra, disponibles);
   const pct = total > 0 ? Math.min(100, (disponibles / total) * 100) : 0;
   const documentos = tarifaDocumento > 0 ? Math.floor(disponibles / tarifaDocumento) : 0;
@@ -76,6 +97,7 @@ export function Sidebar({
   alNavegar: () => void;
 }) {
   const sesion = useAppStore((s) => s.sesion);
+  const { incluye, planPara } = usePlanEfectivo();
   const activo = itemActivo(grupos, pathname, consulta);
 
   const titulo = sesion ? (sesion.nombreEmpresa ?? sesion.nombre) : "";
@@ -103,6 +125,9 @@ export function Sidebar({
             {g.items.map((it) => {
               const esActivo = activo?.item.href === it.href;
               const Icono = it.icono;
+              // RF-120: bloqueada pero visible, con candado y el plan que la incluye.
+              const bloqueado = !!it.funcion && !incluye(it.funcion);
+              const planDe = bloqueado && it.funcion ? planPara(it.funcion) : null;
               return (
                 <Link
                   key={it.href}
@@ -110,6 +135,7 @@ export function Sidebar({
                   onClick={alNavegar}
                   data-recorrido={it.href}
                   aria-current={esActivo ? "page" : undefined}
+                  title={bloqueado ? `Disponible en el plan ${planDe ? nombreCortoPlan(planDe.nombre) : "de pago"}` : undefined}
                   className={cn(
                     "flex h-10 items-center gap-2.5 rounded-[4px] px-2.5 text-sm transition-colors",
                     esActivo
@@ -119,7 +145,11 @@ export function Sidebar({
                 >
                   <Icono className="h-[18px] w-[18px] flex-none" aria-hidden />
                   <span className="flex-1 truncate">{it.label}</span>
-                  <Contador n={contadores[it.href] ?? 0} />
+                  {bloqueado ? (
+                    <Lock className="h-3.5 w-3.5 flex-none text-ink-3" aria-label="Función bloqueada en su plan" />
+                  ) : (
+                    <Contador n={contadores[it.href] ?? 0} />
+                  )}
                 </Link>
               );
             })}

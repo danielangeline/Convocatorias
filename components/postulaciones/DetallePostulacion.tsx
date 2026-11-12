@@ -7,7 +7,8 @@ import { ArrowLeft, Check, ExternalLink, FileText, Info, Pencil, Sparkles, UserP
 import { useAppStore } from "@/lib/store";
 import type { EstadoPostulacion, PostulacionConConvocatoria, Proyecto } from "@/lib/types";
 import { documentoParaProyectoConv, ESTADO_DOCUMENTO_LABEL, ESTADO_DOCUMENTO_ESTILO } from "@/lib/documentos";
-import { useAccesoSuscripcion, useDocumentosPropios } from "@/lib/hooks";
+import { useAccesoSuscripcion, useDocumentosPropios, usePlanEfectivo } from "@/lib/hooks";
+import { AvisoFuncionBloqueada } from "@/components/plan/FuncionBloqueada";
 import { cn, diasRestantes, formatFecha, ESTADO_POSTULACION_LABEL, ESTADO_POSTULACION_ESTILO, estadosAlcanzables, ESTADOS_POSTULACION_TERMINALES } from "@/lib/utils";
 import { ETAPA_LABEL, etapaDe, type EtapaPostulacion } from "@/lib/etapas-postulacion";
 import { Badge } from "@/components/ui/Badge";
@@ -62,6 +63,8 @@ export function DetallePostulacion({
   const setProyectoParaGenerar = useAppStore((s) => s.setProyectoParaGenerar);
   const documentos = useDocumentosPropios();
   const { requerirAcceso } = useAccesoSuscripcion();
+  // RN-41, RF-120 (sesión 042): sin la función, la postulación queda en solo lectura.
+  const soloLectura = !usePlanEfectivo().incluye("postulaciones");
   const [proyectoParaVincular, setProyectoParaVincular] = useState("");
   const [modalConsultorAbierto, setModalConsultorAbierto] = useState(false);
   // RF-83: los estados terminales se confirman antes de aplicarse.
@@ -209,6 +212,13 @@ export function DetallePostulacion({
         </div>
       </div>
 
+      {soloLectura && (
+        <AvisoFuncionBloqueada
+          funcion="postulaciones"
+          texto="Esta postulación queda en solo lectura: puede verla y descargar sus documentos, pero no marcar el checklist ni cambiar su estado"
+        />
+      )}
+
       {/* Stepper horizontal: hecha = relleno con ✓, actual = borde y número, futura = borde suave. */}
       <ol aria-label="Etapas de la postulación" className="m-0 flex list-none items-start rounded-md border border-line bg-surface p-4 sm:px-6">
         {ETAPAS_STEPPER.map((e, i) => {
@@ -268,7 +278,7 @@ export function DetallePostulacion({
                     role="checkbox"
                     aria-checked={item.completado}
                     onClick={() => marcar(item.id, !item.completado)}
-                    disabled={cerrada}
+                    disabled={cerrada || soloLectura}
                     className="flex min-h-[52px] w-full cursor-pointer items-center gap-3 py-2 text-left transition-colors enabled:hover:bg-surface-2 disabled:cursor-default"
                   >
                     <span
@@ -402,7 +412,7 @@ export function DetallePostulacion({
               id="cambiar-estado"
               value={postulacion.estado}
               onChange={(e) => pedirCambioEstado(e.target.value as EstadoPostulacion)}
-              disabled={alcanzables.length === 0 || ocupado}
+              disabled={alcanzables.length === 0 || ocupado || soloLectura}
               className="mt-1.5 min-h-11 w-full rounded-[4px] border border-line-strong bg-surface px-3 text-sm text-ink outline-none focus:border-pri disabled:bg-surface-2 disabled:text-ink-3"
             >
               {/* RF-83: solo los estados alcanzables desde el actual. */}

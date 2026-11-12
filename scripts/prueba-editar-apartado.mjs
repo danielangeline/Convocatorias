@@ -9,6 +9,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import crypto from "node:crypto";
+import { prepararPlanes } from "./plan-prueba.mjs";
 
 const URL_ = process.env.NEXT_PUBLIC_SUPABASE_URL, ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const APP = process.env.PRUEBA_URL ?? "http://localhost:3100";
@@ -32,6 +33,10 @@ async function api(s, metodo, ruta, cuerpo, { origen = APP } = {}) {
 }
 
 const sufijo = crypto.randomBytes(3).toString("hex");
+
+// Sesión 042 (RN-41): las empresas de esta prueba usan un plan temporal con todas las funciones.
+
+const planesPrueba = await prepararPlanes(svc, sufijo);
 const cuentas = [];
 const saldo = async (id) => {
   const { data } = await svc.from("suscripciones").select("creditos_usados_periodo, creditos_extra").eq("usuario_id", id).single();
@@ -47,6 +52,7 @@ try {
     });
     if (error) throw error;
     cuentas.push(data.user.id);
+    if (rol === "empresa") await planesPrueba.pasarA(data.user.id);
     const s = sesion();
     const { error: e } = await s.cliente.auth.signInWithPassword({ email: data.user.email, password: clave });
     if (e) throw e;
@@ -101,6 +107,7 @@ try {
   fallas++;
 } finally {
   for (const id of cuentas) await svc.auth.admin.deleteUser(id);
+  await planesPrueba.limpiar();
   console.log(fallas === 0 ? "\nTODO EN VERDE" : `\n${fallas} FALLAS`);
   process.exit(fallas === 0 ? 0 : 1);
 }

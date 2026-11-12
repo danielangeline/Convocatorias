@@ -30,6 +30,14 @@ begin
 
   insert into auth.users (id, email, raw_user_meta_data)
     values (v_emp, 'paises033@prueba.co', '{"rol": "empresa", "nombre": "Empresa países"}');
+
+  -- Sesión 042 (RN-41): toda empresa nace en Gratis, sin funciones de pago. Esta
+  -- suite prueba otra cosa, así que sus empresas de prueba pasan a Pro (se revierte).
+  update public.suscripciones s
+     set plan_id = (select id from public.planes where nombre = 'Empresa Pro'),
+         modalidad = 'mensual', estado = 'activa', fecha_vencimiento = privado.hoy_colombia() + 30
+    from public.perfiles p
+   where p.id = s.usuario_id and p.rol = 'empresa' and s.usuario_id::text like '00000000-0000-0000-0000-%';
   insert into public.fuentes (nombre, activa) values ('Fuente países 033 ' || gen_random_uuid(), true) returning id into v_fuente;
   insert into public.categorias (tipo, nombre, activa) values ('sector', 'Sector países 033 ' || gen_random_uuid(), true) returning id into v_cat;
 

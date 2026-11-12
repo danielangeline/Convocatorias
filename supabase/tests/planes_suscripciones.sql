@@ -15,7 +15,7 @@ declare
   v_c2 uuid := '00000000-0000-0000-0000-0000000028c2';
   v_pr uuid := '00000000-0000-0000-0000-0000000028a1';
   v_hoy date := privado.hoy_colombia();
-  v_trial uuid; v_esencial uuid; v_pro uuid; v_cons uuid; v_nuevo uuid;
+  v_gratis uuid; v_esencial uuid; v_pro uuid; v_cons uuid; v_nuevo uuid;
   v_sus_e1 uuid; v_sus_c1 uuid; v_id uuid;
   v_quien text;
   v_msg text;
@@ -46,7 +46,7 @@ begin
   values (v_pr, v_e1, v_c1, 'Tarea en curso', 'directorio', 'pendiente', 'buscar_convocatoria');
   update public.encargos set estado = 'en_curso' where consultor_id = v_c1 and titulo_tarea = 'Tarea en curso';
 
-  select id into v_trial from public.planes where es_trial;
+  select id into v_gratis from public.planes where es_gratuito;
   select id into v_esencial from public.planes where nombre = 'Empresa Esencial';
   select id into v_pro from public.planes where nombre = 'Empresa Pro';
   select id into v_cons from public.planes where nombre = 'Consultor' and rol = 'consultor';
@@ -114,8 +114,9 @@ begin
   -- RF-36: crear y editar planes.
   v_nuevo := public.guardar_plan(null, '  Empresa Plus ', 'empresa', 120000, 1200000, 20, true);
   select * into v_fila from public.planes where id = v_nuevo;
-  v_res := v_res || format(E'\n%s RF-36: crea un plan con precio, anual y créditos',
-    case when v_fila.nombre = 'Empresa Plus' and v_fila.creditos_ia_mensuales = 20 and v_fila.activo and not v_fila.es_trial then 'OK   ' else 'FALLA' end);
+  v_res := v_res || format(E'\n%s RF-36: crea un plan con precio, anual y créditos (sin funciones si no se dicen, RN-41)',
+    case when v_fila.nombre = 'Empresa Plus' and v_fila.creditos_ia_mensuales = 20 and v_fila.activo and not v_fila.es_gratuito
+              and not v_fila.incluye_consultores and not v_fila.incluye_documento_ia then 'OK   ' else 'FALLA' end);
   perform public.guardar_plan(v_nuevo, 'Empresa Plus', 'empresa', 125000, 1250000, 25, false);
   select * into v_fila from public.planes where id = v_nuevo;
   v_res := v_res || format(E'\n%s RF-36: lo edita y lo desactiva sin borrarlo',
@@ -129,28 +130,29 @@ begin
   begin perform public.guardar_plan(null, 'Muchos', 'empresa', 1, 1, 1000001, true); exception when check_violation then v_n := v_n + 1; end;
   begin perform public.guardar_plan(null, 'Negativo', 'empresa', -1, 1, 1, true); exception when check_violation then v_n := v_n + 1; end;
   begin perform public.guardar_plan(null, '   ', 'empresa', 1, 1, 1, true); exception when check_violation then v_n := v_n + 1; end;
-  begin perform public.guardar_plan(v_trial, 'Trial', 'empresa', 1000, 0, 3, true, 7); exception when others then
-    get stacked diagnostics v_msg = pg_exception_hint; if v_msg = 'trial_fijo' then v_n := v_n + 1; end if; end;
-  begin perform public.guardar_plan(v_trial, 'Trial', 'empresa', 0, 0, 3, false, 7); exception when others then
-    get stacked diagnostics v_msg = pg_exception_hint; if v_msg = 'trial_fijo' then v_n := v_n + 1; end if; end;
-  begin perform public.guardar_plan(v_trial, 'Trial', 'empresa', 0, 0, 3, true, 61); exception when check_violation then v_n := v_n + 1; end;
-  v_res := v_res || format(E'\n%s §9.28: nombre repetido, consultor con créditos (RN-28), topes y trial fijo -> %s de 9 rechazos',
+  begin perform public.guardar_plan(v_gratis, 'Gratis', 'empresa', 1000, 0, 0, true); exception when others then
+    get stacked diagnostics v_msg = pg_exception_hint; if v_msg = 'gratuito_fijo' then v_n := v_n + 1; end if; end;
+  begin perform public.guardar_plan(v_gratis, 'Gratis', 'empresa', 0, 0, 0, false); exception when others then
+    get stacked diagnostics v_msg = pg_exception_hint; if v_msg = 'gratuito_fijo' then v_n := v_n + 1; end if; end;
+  begin perform public.guardar_plan(null, 'Consultor IA', 'consultor', 1, 1, 0, true, p_incluye_documento_ia => true); exception when others then
+    get stacked diagnostics v_msg = pg_exception_hint; if v_msg = 'funciones_de_empresa' then v_n := v_n + 1; end if; end;
+  v_res := v_res || format(E'\n%s §9.28, §9.38: nombre repetido, consultor con créditos (RN-28), topes, Gratis fijo y consultor con funciones (RN-41) -> %s de 9 rechazos',
     case when v_n = 9 then 'OK   ' else 'FALLA' end, v_n);
 
-  -- El trial sí ajusta créditos y días.
-  perform public.guardar_plan(v_trial, 'Trial', 'empresa', 0, 0, 4, true, 10);
-  select * into v_fila from public.planes where id = v_trial;
-  v_res := v_res || format(E'\n%s RF-37: el trial ajusta créditos y días sin migración',
-    case when v_fila.creditos_ia_mensuales = 4 and v_fila.dias_trial = 10 then 'OK   ' else 'FALLA' end);
-  perform public.guardar_plan(v_trial, 'Trial', 'empresa', 0, 0, 3, true, 7);
+  -- RF-36, RN-41: el plan Gratis sí ajusta nombre, créditos y funciones sin migración.
+  perform public.guardar_plan(v_gratis, 'Gratis', 'empresa', 0, 0, 4, true, p_incluye_sugerencias => true);
+  select * into v_fila from public.planes where id = v_gratis;
+  v_res := v_res || format(E'\n%s RF-36, RN-41: Gratis ajusta créditos y funciones sin migración; las no dichas se conservan',
+    case when v_fila.creditos_ia_mensuales = 4 and v_fila.incluye_sugerencias and not v_fila.incluye_consultores then 'OK   ' else 'FALLA' end);
+  perform public.guardar_plan(v_gratis, 'Gratis', 'empresa', 0, 0, 0, true, p_incluye_sugerencias => false);
 
-  -- RF-38: activar desde el trial. Empieza hoy, vence el último día del mes, cupo en cero.
+  -- RF-38: activar desde Gratis. Empieza hoy, vence el último día del mes, cupo en cero.
   execute 'reset role';
   update public.suscripciones set creditos_usados_periodo = 2, creditos_extra = 4 where id = v_sus_e1;
   execute 'set local role authenticated';
   v_id := public.activar_suscripcion(v_e1, v_esencial, 'mensual', 89000, v_hoy);
   select * into v_fila from public.suscripciones where id = v_sus_e1;
-  v_res := v_res || format(E'\n%s RF-38: activar convierte la fila del trial (misma suscripción), activa, mensual, hoy -> %s',
+  v_res := v_res || format(E'\n%s RF-38: activar convierte la fila de Gratis (misma suscripción), activa, mensual, hoy -> %s',
     case when v_id = v_sus_e1 and v_fila.estado = 'activa' and v_fila.plan_id = v_esencial and v_fila.modalidad = 'mensual'
               and v_fila.fecha_inicio = v_hoy and v_fila.fecha_vencimiento = (v_hoy + interval '1 month')::date - 1
               and v_fila.activada_por = v_ad then 'OK   ' else 'FALLA' end, v_fila.fecha_vencimiento);
@@ -194,7 +196,7 @@ begin
   v_n := 0;
   begin perform public.activar_suscripcion(v_e2, v_cons, 'mensual', 69000, v_hoy); exception when others then
     get stacked diagnostics v_msg = pg_exception_hint; if v_msg = 'plan_invalido' then v_n := v_n + 1; end if; end;
-  begin perform public.activar_suscripcion(v_e2, v_trial, 'mensual', 1, v_hoy); exception when others then
+  begin perform public.activar_suscripcion(v_e2, v_gratis, 'mensual', 1, v_hoy); exception when others then
     get stacked diagnostics v_msg = pg_exception_hint; if v_msg = 'plan_invalido' then v_n := v_n + 1; end if; end;
   begin perform public.activar_suscripcion(v_e2, v_nuevo, 'mensual', 1, v_hoy); exception when others then
     get stacked diagnostics v_msg = pg_exception_hint; if v_msg = 'plan_invalido' then v_n := v_n + 1; end if; end;
@@ -202,13 +204,13 @@ begin
     get stacked diagnostics v_msg = pg_exception_hint; if v_msg = 'consultor_no_aprobado' then v_n := v_n + 1; end if; end;
   begin perform public.activar_suscripcion(v_ad, v_pro, 'mensual', 1, v_hoy); exception when others then
     get stacked diagnostics v_msg = pg_exception_hint; if v_msg = 'cuenta_invalida' then v_n := v_n + 1; end if; end;
-  begin perform public.activar_suscripcion(v_e2, v_pro, 'trial', 1, v_hoy); exception when others then
+  begin perform public.activar_suscripcion(v_e2, v_pro, 'gratis', 1, v_hoy); exception when others then
     get stacked diagnostics v_msg = pg_exception_hint; if v_msg = 'dato_invalido' then v_n := v_n + 1; end if; end;
   begin perform public.activar_suscripcion(v_e2, v_pro, 'mensual', 0, v_hoy); exception when others then
     get stacked diagnostics v_msg = pg_exception_hint; if v_msg = 'dato_invalido' then v_n := v_n + 1; end if; end;
   begin perform public.activar_suscripcion(v_e2, v_pro, 'mensual', 1, v_hoy + 1); exception when others then
     get stacked diagnostics v_msg = pg_exception_hint; if v_msg = 'dato_invalido' then v_n := v_n + 1; end if; end;
-  v_res := v_res || format(E'\n%s RF-38: plan de otro rol, trial, inactivo, consultor sin aprobar, admin, modalidad, monto 0 y fecha futura -> %s de 8 rechazos',
+  v_res := v_res || format(E'\n%s RF-38: plan de otro rol, Gratis, inactivo, consultor sin aprobar, admin, modalidad, monto 0 y fecha futura -> %s de 8 rechazos',
     case when v_n = 8 then 'OK   ' else 'FALLA' end, v_n);
 
   -- El consultor aprobado sin fila: se crea la suya, sin créditos.
@@ -246,9 +248,9 @@ begin
     case when v_n = 3 and v_fila.nombre = 'Empresa Uno' and v_fila.correo = 'se1@prueba.co' and v_fila.plan_nombre = 'Empresa Pro'
               and v_fila.creditos_incluidos = 800 and v_fila.creditos_extra = 16 then 'OK   ' else 'FALLA' end, v_n);
   select * into v_fila from public.tablero_suscripciones();
-  v_res := v_res || format(E'\n%s RF-42: el tablero cuenta por estado (activas %s, trial %s) y trae el consumo del mes',
-    case when v_fila.activas >= 2 and v_fila.trial >= 1 and v_fila.costo_usd is not null then 'OK   ' else 'FALLA' end,
-    v_fila.activas, v_fila.trial);
+  v_res := v_res || format(E'\n%s RF-42: el tablero cuenta por estado (activas %s, en Gratis %s) y trae el consumo del mes',
+    case when v_fila.activas >= 2 and v_fila.gratis >= 1 and v_fila.costo_usd is not null then 'OK   ' else 'FALLA' end,
+    v_fila.activas, v_fila.gratis);
 
   -- CU-31 paso 4: suspender. El consultor pierde sus encargos en curso (RN-29).
   v_n := public.suspender_suscripcion(v_sus_c1);

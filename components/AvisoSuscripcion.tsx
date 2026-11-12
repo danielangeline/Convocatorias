@@ -13,29 +13,34 @@ const plural = (n: number, uno: string, varios: string) => (n === 1 ? `1 ${uno}`
  * RN-16, CU-32 paso 6 · Franja de aviso de la suscripción en el portal: desde 3
  * días antes del vencimiento, durante los 5 días de gracia y ya vencida. Se
  * calcula en el servidor con la fecha de Colombia, igual que la base
- * (`tiene_suscripcion_vigente`), así que no depende de que el job haya corrido.
+ * (`plan_efectivo`), así que no depende de que el job haya corrido.
  * Solo informa: lo que se restringe lo decide el servidor (RF-40).
+ *
+ * Sesión 042: el plan Gratis no vence y no lleva franja. Al terminar la gracia
+ * de un plan de pago, la empresa baja a Gratis sin perder nada (RN-16).
  */
-export function AvisoSuscripcion({ suscripcion }: { suscripcion: Suscripcion | null }) {
-  if (!suscripcion || suscripcion.estado === "suspendida") return null;
+export function AvisoSuscripcion({ suscripcion, rol = "empresa" }: { suscripcion: Suscripcion | null; rol?: "empresa" | "consultor" }) {
+  if (!suscripcion || suscripcion.estado === "suspendida" || suscripcion.estado === "gratis" || !suscripcion.fechaVencimiento) return null;
   const dias = diasEntre(hoyColombia(), suscripcion.fechaVencimiento);
-  const trial = suscripcion.modalidad === "trial";
-  const que = trial ? "Tu prueba gratuita" : "Tu suscripción";
+  const que = "Su plan";
   const vence = formatFecha(suscripcion.fechaVencimiento);
+  const empresa = rol === "empresa";
 
   let mensaje: string;
   let urgente = false;
   if (suscripcion.estado === "vencida" || dias + DIAS_GRACIA < 0) {
     urgente = true;
-    mensaje = `${que} venció el ${vence} y terminó el periodo de gracia. No puedes postular, ver sugerencias, solicitar consultores ni generar documentos con IA; el catálogo sigue disponible.`;
+    mensaje = empresa
+      ? `${que} venció el ${vence} y terminó el periodo de gracia: su cuenta pasa al plan Gratis. Todo lo que creó sigue aquí; la IA, las sugerencias, las postulaciones y los consultores quedan bloqueados hasta que renueve.`
+      : `${que} venció el ${vence} y terminó el periodo de gracia.`;
   } else if (dias < 0) {
     urgente = true;
     const quedan = DIAS_GRACIA + dias;
-    mensaje = `${que} venció el ${vence}. Estás en periodo de gracia: ${
-      quedan === 0 ? "hoy es el último día" : `te quedan ${plural(quedan, "día", "días")}`
-    } antes de que se restrinja el acceso.`;
+    mensaje = `${que} venció el ${vence}. Está en periodo de gracia: ${
+      quedan === 0 ? "hoy es el último día" : `le quedan ${plural(quedan, "día", "días")}`
+    }${empresa ? " antes de pasar al plan Gratis. No se borra nada, pero las funciones de pago quedarán bloqueadas." : " antes de que se restrinja el acceso."}`;
   } else if (dias <= AVISAR_DESDE) {
-    mensaje = `${que} vence ${dias === 0 ? "hoy" : dias === 1 ? "mañana" : `en ${dias} días`} (${vence}). Después tendrás ${DIAS_GRACIA} días de gracia.`;
+    mensaje = `${que} vence ${dias === 0 ? "hoy" : dias === 1 ? "mañana" : `en ${dias} días`} (${vence}). Después tendrá ${DIAS_GRACIA} días de gracia.`;
   } else {
     return null;
   }
@@ -53,7 +58,7 @@ export function AvisoSuscripcion({ suscripcion }: { suscripcion: Suscripcion | n
       <Icono className="h-4 w-4 shrink-0" aria-hidden />
       <p className="flex-1">{mensaje}</p>
       <Link href="/suscripcion" className="font-semibold underline underline-offset-2">
-        Ver mi suscripción
+        Ver mi plan
       </Link>
     </div>
   );

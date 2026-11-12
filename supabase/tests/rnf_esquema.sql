@@ -93,6 +93,14 @@ begin
     (v_e, 're1@prueba.co', '{"rol": "empresa", "nombre": "E", "nombre_empresa": "E", "consentimiento_datos": "true"}'),
     (v_x, 're2@prueba.co', '{"rol": "empresa", "nombre": "X", "nombre_empresa": "X", "consentimiento_datos": "true"}'),
     (v_c, 'rc1@prueba.co', '{"rol": "consultor", "nombre": "C", "consentimiento_datos": "true"}');
+
+  -- Sesión 042 (RN-41): toda empresa nace en Gratis, sin funciones de pago. Esta
+  -- suite prueba otra cosa, así que sus empresas de prueba pasan a Pro (se revierte).
+  update public.suscripciones s
+     set plan_id = (select id from public.planes where nombre = 'Empresa Pro'),
+         modalidad = 'mensual', estado = 'activa', fecha_vencimiento = privado.hoy_colombia() + 30
+    from public.perfiles p
+   where p.id = s.usuario_id and p.rol = 'empresa' and s.usuario_id::text like '00000000-0000-0000-0000-%';
   update public.consultor_perfiles set nombre_profesional = 'C', estado_perfil = 'aprobado' where id = v_c;
   insert into public.proyectos (id, usuario_id, nombre) values (v_p, v_e, 'P');
 

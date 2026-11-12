@@ -67,7 +67,7 @@ export async function datosTablero(): Promise<DatosTablero> {
   );
 
   const conSuscripcion = suscripciones.cuentas.filter((c) => c.suscripcionId);
-  const pagadas = conSuscripcion.filter((c) => c.modalidad && c.modalidad !== "trial");
+  const pagadas = conSuscripcion.filter((c) => c.modalidad && c.modalidad !== "gratis");
 
   return {
     publicadas: vigentes.length,

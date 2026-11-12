@@ -37,9 +37,9 @@
 | CU-19..23 Contratación *(v5: contexto, tipo de ayuda, contacto, solicitud directa, buscador; v6: visibilidad por pareja empresa-consultor; sesión 022: contacto solo tras aceptar, sin equipo interno en el directorio; sesión 023: retirar, una abierta por par, CU-23 pasa a pedir ayuda al equipo; sesión 024: CU-22 elige una propuesta del consultor)* | RF-26, **27**, 28..31, 68, 69, 70, 74, 75, **80, 89, 92, 93**, 17, 78 | RN-08, 12, 25, 26, **36**, **RN-35**, RNF-19, **RNF-16, 30** |
 | CU-24 Calificar *(v6: contador al completar; sesión 023: en la base)* | RF-33 | RN-09, RNF-17 |
 | CU-25..27 Gestión consultores *(CU-26 v5: contacto; CU-27 v5: cancela encargos en curso; v6: revoca autorizaciones en cascada; sesión 022: motivo de suspensión y cancelación de las solicitudes pendientes; sesión 023: CU-26 pasa a atender por correo)* | RF-34, 35, **76**, **80**, **90** | RN-08, 13, 15, 26, 29, RNF-11, **16**, **RN-27** |
-| CU-28..30 Suscripción *(v6: comparador con atributos reales)* | RF-37, 38, 41, **82** | RN-11, 16, **RNF-14** |
-| CU-31 Planes y suscripciones | RF-36, 42, 51, **108** | RNF-14, 20 |
-| CU-32 Enforcement *(v6: revocación en cascada al vencer; sesión 023: fecha de Colombia, gracia también en el trial, aviso en el portal)* | RF-40, 39, **76** | RNF-20, RN-08, 10, **16**, **RN-27, 29** |
+| CU-28..30 Suscripción *(v6: comparador con atributos reales; sesión 042: Gratis, Esencial y Pro con funciones)* | RF-37, 38, 41, **82**, **120** | RN-11, 16, **RN-41**, **RNF-14** |
+| CU-31 Planes y suscripciones *(sesión 042: funciones de cada plan)* | RF-36, 42, 51, **108** | RNF-14, 20, **RN-41** |
+| CU-32 Enforcement *(v6: revocación en cascada al vencer; sesión 023: fecha de Colombia, aviso en el portal; sesión 042: verificación por función del plan y bajada a Gratis)* | RF-40, 39, **76**, **120** | RNF-20, RN-08, 10, **16**, **RN-27, 29**, **RN-41** |
 | **CU-33 Generar documento** *(v6: actor solo empresa; vigencia verificada en servidor)* | RF-53..57, 62, 48, **78** | RN-17, 19, 20, 21, RNF-21, 23, 24, **RN-28, RNF-30** |
 | **CU-34 Revisar y exportar** *(v5: acceso del consultor; v6: autorización derivada, cupo y traza)* | RF-58..61, 71, 72, **76, 77, 79** | RN-20, 22, 27, 28, RNF-23, **RNF-11, 20** |
 | **CU-35 Cupo de créditos** *(sesión 030: tarifas por uso)* | **RF-48, 49, 50, 52, 100** | **RN-17, 18, RNF-20, 24** |

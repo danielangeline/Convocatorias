@@ -22,9 +22,24 @@
 
 | Plan | Rol | Mensual | Anual | Créditos IA/mes | Incluye |
 |---|---|---|---|---|---|
-| **Trial** | Empresa | Gratis 7 días *(mod. v6)* | — | **125** | Todo el producto |
-| **Empresa Esencial** | Empresa | COP $89.000 | COP $890.000 (2 meses gratis) | **350** | Catálogo, sugerencias, postulaciones, encargos |
-| **Empresa Pro** | Empresa | COP $189.000 | COP $1.890.000 | **800** | Lo anterior + soporte prioritario y más usuarios |
+| **Gratis** *(nuevo, sesión 042)* | Empresa | $0, sin vencimiento | — | **0** | Catálogo, filtros, ficha y guardadas; proyectos con el formulario manual |
+| **Empresa Esencial** | Empresa | COP $89.000 | COP $890.000 (2 meses gratis) | **350** | Lo de Gratis + proyecto con IA y editar apartado con IA, sugerencias por compatibilidad, documento base con IA y ajustes, postulaciones |
+| **Empresa Pro** | Empresa | COP $189.000 | COP $1.890.000 | **800** | Lo de Esencial + directorio de consultores, encargos, calificaciones y compartir documentos con consultor; soporte prioritario y más usuarios |
+
+> **Funciones por plan** *(sesión 042, decisión del Product Owner; RN-41)*. **El Trial de 7 días desaparece**: todo registro de empresa entra al plan **Gratis**, sin vencimiento, y las empresas que tenían Trial pasan a Gratis. Qué abre cada plan:
+>
+> | Funcionalidad | Gratis | Esencial | Pro |
+> |---|---|---|---|
+> | Ver catálogo, filtros, ficha, guardar convocatorias | ✅ | ✅ | ✅ |
+> | Crear y editar proyectos con el formulario manual | ✅ | ✅ | ✅ |
+> | Crear proyecto con IA (texto o audio) y editar apartado con IA | 🔒 | ✅ | ✅ |
+> | Sugerencias por compatibilidad | 🔒 | ✅ | ✅ |
+> | Generar documento base con IA y ajustes | 🔒 | ✅ | ✅ |
+> | Postulaciones (checklist, avance, seguimiento) | 🔒 | ✅ | ✅ |
+> | Directorio de consultores, encargos, calificar, compartir documentos con consultor | 🔒 | 🔒 | ✅ |
+> | Soporte prioritario y más usuarios | — | — | ✅ |
+>
+> 🔒 es **bloqueado pero visible**: la opción sigue en el menú y la pantalla explica qué hace y en qué plan está («Disponible en el plan Esencial» o «Pro» → «Mejorar plan»). Las funciones son **datos del plan** (`planes.incluye_*`, docs/05 §9.28) que el administrador cambia desde el panel (RF-36). El bloqueo vive en el servidor y en RLS (RNF-20). **Al vencer un plan de pago la empresa baja a Gratis y no se borra nada** (RN-16): sigue viendo y descargando sus documentos, postulaciones y encargos, y editando sus proyectos a mano; la IA y las demás funciones de pago quedan bloqueadas. El pago sigue por fuera durante el piloto (`CONTRATAR_EN_PILOTO`).
 | **Consultor** | Consultor | COP $69.000 | COP $690.000 | — | Perfil en directorio, recepción de encargos, acceso a los documentos que la empresa le autorice (RF-71) |
 | **Paquete adicional** | Empresa | COP $39.000 | — | [COMPLETAR: créditos del paquete, p. ej. +150] (no expiran) | Compra puntual |
 
@@ -32,7 +47,7 @@ En dólares, los planes de empresa quedan alrededor de USD $22 y $47 mensuales: 
 
 > **Por qué el plan de consultor no lleva créditos** *(decidido en v6)*. Ninguna operación puede consumir un cupo propio del consultor: generar exige un proyecto propio, y los proyectos son de la empresa (CU-09, CU-33); los ajustes con IA sobre un documento autorizado los paga siempre la empresa dueña (RN-28). A ello se suma un argumento comercial: mientras el acceso del consultor a la IA dependa de que la empresa lo autorice documento a documento (RF-71), un cupo **mensual y no acumulable** (RN-18) le haría pagar cada mes por una capacidad que no controla. Lo que el plan de consultor vende es generación de demanda —estar en el directorio y recibir encargos—, no volumen de IA. Si más adelante se quiere dar IA al consultor, el instrumento correcto es atarla al encargo (una bolsa de ajustes que viaje con la autorización) o a paquetes de compra puntual que no expiren, no un cupo periódico. **El precio de COP $69.000 queda sin cambio y pendiente de validación con los pilotos**, como el resto de la tabla.
 
-> **Créditos por tarifa** *(sesión 030, decisión del Product Owner)*. Cada uso cuesta su tarifa (RN-17): **documento 100, proyecto con IA 50, ajuste desde el cuarto 10, dictar 0**, y los planes traen **Trial 125, Esencial 350 y Pro 800** al mes. **Qué alcanza cada plan**, por ejemplo: **Trial** 1 documento y 2 ajustes de pago, o 2 proyectos con IA y 2 ajustes; **Esencial** 1 proyecto con IA y 3 documentos (o 3 documentos y 5 ajustes de pago); **Pro** 4 proyectos con IA y 6 documentos (o 8 documentos). Los proyectos llenados a mano no cuestan y no tienen límite. Con el costo medido (USD 0,016 por documento, 0,0025 por proyecto), la IA del plan Pro gastado entero cuesta unos USD 0,15. Las tarifas y los créditos de cada plan se cambian desde el panel sin desplegar (RF-36, RF-100).
+> **Créditos por tarifa** *(sesión 030, decisión del Product Owner)*. Cada uso cuesta su tarifa (RN-17): **documento 100, proyecto con IA 50, ajuste desde el cuarto 10, dictar 0**, y los planes traen **Esencial 350 y Pro 800** al mes (el plan Gratis, desde la sesión 042, no trae créditos ni IA; el Trial de 125 se retiró). **Qué alcanza cada plan**, por ejemplo: **Esencial** 1 proyecto con IA y 3 documentos (o 3 documentos y 5 ajustes de pago); **Pro** 4 proyectos con IA y 6 documentos (o 8 documentos). Los proyectos llenados a mano no cuestan y no tienen límite. Con el costo medido (USD 0,016 por documento, 0,0025 por proyecto), la IA del plan Pro gastado entero cuesta unos USD 0,15. Las tarifas y los créditos de cada plan se cambian desde el panel sin desplegar (RF-36, RF-100).
 
 ### 10.3 Sostenibilidad del costo de IA
 

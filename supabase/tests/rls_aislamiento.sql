@@ -64,8 +64,9 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000000c2', 'c2@prueba.co', '{"rol": "consultor", "nombre": "Consultor dos"}'),
   ('00000000-0000-0000-0000-0000000000ad', 'ad@prueba.co', '{"rol": "administrador", "nombre": "Admin"}');
 
-select pg_temp.ok((select count(*) from public.planes where es_trial and activo and dias_trial = 7 and creditos_ia_mensuales = 125) = 1,
-  'Registro: existe un único plan trial activo de 7 días y 125 créditos (RF-37, §9.32)');
+select pg_temp.ok((select count(*) from public.planes where es_gratuito and activo and creditos_ia_mensuales = 0
+                     and not (incluye_proyecto_ia or incluye_sugerencias or incluye_documento_ia or incluye_postulaciones or incluye_consultores)) = 1,
+  'Registro: existe un único plan Gratis activo, sin créditos ni funciones de pago (RF-37, RN-41, sesión 042)');
 select pg_temp.ok((select rol from public.perfiles where id = '00000000-0000-0000-0000-0000000000e1') = 'empresa'
   and (select nombre_empresa from public.perfiles where id = '00000000-0000-0000-0000-0000000000e1') = 'Uno SAS',
   'Registro: la empresa nace con su perfil y nombre de empresa');
@@ -74,24 +75,35 @@ select pg_temp.ok((select rol from public.perfiles where id = '00000000-0000-000
 select pg_temp.ok((select rol from public.perfiles where id = '00000000-0000-0000-0000-0000000000ad') = 'empresa',
   'Registro: pedir rol administrador produce empresa (RN-06)');
 select pg_temp.ok((select count(*) from public.suscripciones s join public.planes p on p.id = s.plan_id
-                   where s.usuario_id = '00000000-0000-0000-0000-0000000000e1' and s.modalidad = 'trial' and s.estado = 'trial'
-                     and p.es_trial and s.fecha_vencimiento = privado.hoy_colombia() + 7) = 1,  -- sesión 023: fecha de Colombia
-  'Registro: la empresa recibe el trial de 7 días contra el plan trial (RF-37)');
+                   where s.usuario_id = '00000000-0000-0000-0000-0000000000e1' and s.modalidad = 'gratis' and s.estado = 'gratis'
+                     and p.es_gratuito and s.fecha_vencimiento is null and s.fecha_inicio = privado.hoy_colombia()) = 1,
+  'Registro: la empresa entra al plan Gratis, sin vencimiento (RF-37, RN-11, sesión 042)');
 select pg_temp.ok((select count(*) from public.suscripciones where usuario_id = '00000000-0000-0000-0000-0000000000c1') = 0,
-  'Registro: el consultor no recibe trial (RN-11)');
+  'Registro: el consultor no recibe plan Gratis (RN-11)');
 select pg_temp.ok((select estado_perfil from public.consultor_perfiles where id = '00000000-0000-0000-0000-0000000000c1') = 'incompleto',
   'Registro: el consultor nace con perfil incompleto (CU-14)');
 select pg_temp.rechaza($$insert into public.suscripciones (usuario_id, plan_id, modalidad, estado, fecha_vencimiento)
-  select '00000000-0000-0000-0000-0000000000e1', id, 'trial', 'trial', current_date + 7 from public.planes where es_trial$$,
-  'Un segundo trial para la misma cuenta (RN-11)');
-select pg_temp.rechaza($$insert into public.planes (nombre, rol, precio_mensual, precio_anual, es_trial, dias_trial) values ('Otro trial', 'empresa', 0, 0, true, 30)$$,
-  'Un segundo plan trial');
+  select '00000000-0000-0000-0000-0000000000e1', id, 'gratis', 'gratis', null from public.planes where es_gratuito$$,
+  'Una segunda suscripción Gratis para la misma cuenta (RN-11)');
+select pg_temp.rechaza($$insert into public.planes (nombre, rol, precio_mensual, precio_anual, es_gratuito) values ('Otro gratis', 'empresa', 0, 0, true)$$,
+  'Un segundo plan gratuito');
+select pg_temp.rechaza($$insert into public.suscripciones (usuario_id, plan_id, modalidad, estado, fecha_vencimiento)
+  select '00000000-0000-0000-0000-0000000000e2', id, 'mensual', 'activa', null from public.planes where nombre = 'Empresa Pro'$$,
+  'Un plan de pago sin vencimiento (sesión 042: solo Gratis no vence)');
 
 -- Ajustes de los datos de prueba (como postgres, que es lo que haría el servidor).
 update public.perfiles set rol = 'administrador' where id = '00000000-0000-0000-0000-0000000000ad';
 delete from public.suscripciones where usuario_id = '00000000-0000-0000-0000-0000000000ad';
-update public.suscripciones set estado = 'vencida', fecha_inicio = current_date - 40, fecha_vencimiento = current_date - 33
-where usuario_id = '00000000-0000-0000-0000-0000000000e2';
+-- Sesión 042 (RN-41): E1 opera con Pro (postula, marca y califica); E2 tuvo
+-- Esencial y venció, así que su plan efectivo es Gratis.
+update public.suscripciones
+   set plan_id = (select id from public.planes where nombre = 'Empresa Pro'), modalidad = 'mensual', estado = 'activa',
+       fecha_vencimiento = privado.hoy_colombia() + 30
+ where usuario_id = '00000000-0000-0000-0000-0000000000e1';
+update public.suscripciones
+   set plan_id = (select id from public.planes where nombre = 'Empresa Esencial'), modalidad = 'mensual', estado = 'vencida',
+       fecha_inicio = current_date - 40, fecha_vencimiento = current_date - 33
+ where usuario_id = '00000000-0000-0000-0000-0000000000e2';
 
 -- Fechas en hora de Colombia, como la vigencia (sesión 017): con current_date,
 -- que va en UTC, la "vencida" seguía vigente desde las 7 p. m. de Colombia.

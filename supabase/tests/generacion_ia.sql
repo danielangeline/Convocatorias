@@ -32,11 +32,19 @@ begin
   -- cobro; con tarifa 1 y un trial de 3 dicen lo mismo que antes. Las tarifas
   -- reales se prueban en creditos_por_tarifa.sql. Todo se revierte al final.
   update public.tarifas_ia set creditos = 1;
-  update public.planes set creditos_ia_mensuales = 3 where es_trial;
+  update public.planes set creditos_ia_mensuales = 3 where nombre = 'Empresa Pro';
   insert into auth.users (id, email, raw_user_meta_data) values
     (v_e1, 'ge1@prueba.co', '{"rol": "empresa", "nombre": "Ana", "nombre_empresa": "Empresa Uno", "consentimiento_datos": "true"}'),
     (v_e2, 'ge2@prueba.co', '{"rol": "empresa", "nombre": "Beto", "nombre_empresa": "Empresa Dos", "consentimiento_datos": "true"}'),
     (v_c1, 'gc1@prueba.co', '{"rol": "consultor", "nombre": "Cata", "consentimiento_datos": "true"}');
+
+  -- Sesión 042 (RN-41): toda empresa nace en Gratis, sin funciones de pago. Esta
+  -- suite prueba otra cosa, así que sus empresas de prueba pasan a Pro (se revierte).
+  update public.suscripciones s
+     set plan_id = (select id from public.planes where nombre = 'Empresa Pro'),
+         modalidad = 'mensual', estado = 'activa', fecha_vencimiento = privado.hoy_colombia() + 30
+    from public.perfiles p
+   where p.id = s.usuario_id and p.rol = 'empresa' and s.usuario_id::text like '00000000-0000-0000-0000-%';
   update public.consultor_perfiles set nombre_profesional = 'Consultora', estado_perfil = 'aprobado' where id = v_c1;
   select id into v_sus from public.suscripciones where usuario_id = v_e1;
 
@@ -339,11 +347,11 @@ begin
     fecha_vencimiento = privado.hoy_colombia() - 10 where id = v_sus;
   begin perform * from public.iniciar_generacion(v_e1, v_p1, v_va); v_o := 'ok';
   exception when others then get stacked diagnostics v_o = pg_exception_hint; end;
-  v_res := v_res || format(E'\n%s RF-40: vencida, no genera aunque tenga créditos -> %s',
-    case when v_o = 'sin_suscripcion' then 'OK   ' else 'FALLA' end, v_o);
+  v_res := v_res || format(E'\n%s RF-40, RN-16: vencida baja a Gratis y no genera aunque tenga créditos -> %s',
+    case when v_o = 'funcion_no_incluida' then 'OK   ' else 'FALLA' end, v_o);
   begin perform * from public.preparar_ajuste(v_e1, v_d1); v_o := 'ok';
   exception when others then get stacked diagnostics v_o = pg_exception_hint; end;
-  v_res := v_res || format(E'\n%s RF-40: ni ajusta -> %s', case when v_o = 'sin_suscripcion' then 'OK   ' else 'FALLA' end, v_o);
+  v_res := v_res || format(E'\n%s RF-40, RN-41: ni ajusta -> %s', case when v_o = 'funcion_no_incluida' then 'OK   ' else 'FALLA' end, v_o);
 
   raise exception 'RESULTADO%', v_res;
 end;

@@ -1,4 +1,5 @@
 import "server-only";
+import { exigirFuncion, rechazoFuncion } from "@/lib/plan-servidor";
 import { cache } from "react";
 import type { PostgrestError } from "@supabase/supabase-js";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
@@ -90,6 +91,8 @@ export const obtenerPostulacion = cache(async (id: string): Promise<PostulacionC
 
 const RECHAZOS: Record<string, { status: number; error: string }> = {
   sin_suscripcion: { status: 402, error: "Necesitas una suscripción vigente para postular." },
+  // RN-41 (sesión 042): el plan no incluye las postulaciones.
+  funcion_no_incluida: rechazoFuncion("postulaciones"),
   no_es_empresa: { status: 403, error: "Solo una cuenta de empresa puede postular." },
   convocatoria_no_existe: { status: 404, error: "La convocatoria no existe." },
   proyecto_no_existe: { status: 404, error: "El proyecto no existe." },
@@ -160,6 +163,10 @@ export async function vincularProyecto(id: string, cuerpo: Cuerpo): Promise<Resu
   if (postulacion.proyectoId === proyectoId) return { ok: true, datos: postulacion };
   if (postulacion.proyectoId) return { ok: false, ...RECHAZOS.proyecto_fijo };
 
+  // RN-41: sin la función, la postulación se lee pero no cambia (la RLS también lo impide).
+  const sinFuncion = await exigirFuncion("postulaciones");
+  if (sinFuncion) return sinFuncion;
+
   const supabase = await crearClienteServidor();
   // La RLS no deja vincular un proyecto ajeno; se pregunta antes para responder 404.
   const { data: proyecto } = await supabase.from("proyectos").select("id").eq("id", proyectoId).maybeSingle();
@@ -175,6 +182,8 @@ export async function marcarItem(itemId: string, cuerpo: Cuerpo): Promise<Result
   if (!UUID.test(itemId)) return { ok: false, status: 404, error: "El ítem no existe." };
   const completado = cuerpo?.completado;
   if (typeof completado !== "boolean") return { ok: false, status: 400, error: "Indica si el ítem está completado." };
+  const sinFuncion = await exigirFuncion("postulaciones");
+  if (sinFuncion) return sinFuncion;
 
   const supabase = await crearClienteServidor();
   const { data, error } = await supabase
@@ -206,6 +215,8 @@ export async function cambiarEstado(id: string, cuerpo: Cuerpo): Promise<Resulta
   if (ESTADOS_POSTULACION_TERMINALES.includes(nuevo) && cuerpo?.confirmado !== true) {
     return { ok: false, status: 400, error: "Confirma el cierre de la postulación: no se podrá reabrir." };
   }
+  const sinFuncion = await exigirFuncion("postulaciones");
+  if (sinFuncion) return sinFuncion;
 
   const supabase = await crearClienteServidor();
   const { error } = await supabase.from("postulaciones").update({ estado: nuevo }).eq("id", id);

@@ -13,6 +13,7 @@ import { AvisoPuerta } from "@/components/identidad/AvisoPuerta";
 import { AvisoSuscripcion } from "@/components/AvisoSuscripcion";
 import { AvisoConsentimiento } from "@/components/AvisoConsentimiento";
 import { RecorridoBienvenida } from "@/components/recorrido/RecorridoBienvenida";
+import { ProveedorPlan } from "@/lib/contexto-plan";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
 import { exigirRol } from "@/lib/auth";
 import { listarCatalogo, listarCategoriasActivas } from "@/lib/catalogo";
@@ -64,7 +65,8 @@ export default async function PortalLayout({ children }: { children: React.React
   ).length;
 
   return (
-    <>
+    // RN-41, RF-120: el plan efectivo y los planes, por petición (no el store global).
+    <ProveedorPlan valor={{ planEfectivo: datos.planEfectivo, planes }}>
       <SincronizarSesion datos={datos} />
       <SincronizarPlanes planes={planes} tarifas={tarifas} />
       <SincronizarCatalogo convocatorias={convocatorias} categorias={categorias} />
@@ -85,12 +87,12 @@ export default async function PortalLayout({ children }: { children: React.React
         </Suspense>
         {faltaConsentimiento && <AvisoConsentimiento />}
         {/* RN-16: aviso de vencimiento y gracia */}
-        <AvisoSuscripcion suscripcion={datos.suscripcion} />
+        <AvisoSuscripcion suscripcion={datos.suscripcion} rol="empresa" />
         <main className="flex-1">{children}</main>
       </AppShell>
       <ModalSuscripcion />
       <ModalCreditos />
       <RecorridoBienvenida abrirAlInicio={faltaRecorrido} />
-    </>
+    </ProveedorPlan>
   );
 }

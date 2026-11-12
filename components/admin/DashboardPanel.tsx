@@ -98,7 +98,7 @@ export function DashboardPanel({ datos, solicitudesEquipo }: { datos: DatosTable
             etiquetaAccesible="Suscripciones por estado"
             segmentos={[
               { etiqueta: "Activa", valor: s.activas, tono: "pri" },
-              { etiqueta: "Prueba", valor: s.trial, tono: "pri" },
+              { etiqueta: "Gratis", valor: s.gratis, tono: "neutro" },
               { etiqueta: "En gracia", valor: s.enGracia, tono: "amber" },
               { etiqueta: "Vencida", valor: s.vencidas, tono: "rose" },
               { etiqueta: "Suspendida", valor: s.suspendidas, tono: "neutro" },

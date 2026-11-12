@@ -1,4 +1,5 @@
 import "server-only";
+import { rechazoFuncion } from "@/lib/plan-servidor";
 import { cache } from "react";
 import type { PostgrestError } from "@supabase/supabase-js";
 import { crearClienteServidor } from "@/lib/supabase/servidor";
@@ -319,6 +320,8 @@ export async function contarSolicitudesEquipo(): Promise<number> {
 const RECHAZOS: Record<string, { status: number; error: string }> = {
   no_es_empresa: { status: 403, error: "Solo una cuenta de empresa puede solicitar consultores." },
   sin_suscripcion: { status: 402, error: "Necesitas una suscripción vigente para solicitar un consultor." },
+  // RN-41 (sesión 042): el plan no incluye los consultores.
+  funcion_no_incluida: rechazoFuncion("consultores"),
   proyecto_no_existe: { status: 404, error: "El proyecto no existe." },
   titulo_vacio: { status: 400, error: "Escribe el título de la tarea." },
   tipo_ayuda_invalido: { status: 400, error: "Elige el tipo de ayuda." },

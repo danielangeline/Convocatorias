@@ -42,6 +42,14 @@ begin
     (v_e2, 'sug2@prueba.co', '{"rol": "empresa", "nombre": "Sugerencias dos"}'),
     (v_c1, 'sugc@prueba.co', '{"rol": "consultor", "nombre": "Consultor sugerencias"}');
 
+  -- Sesión 042 (RN-41): toda empresa nace en Gratis, sin funciones de pago. Esta
+  -- suite prueba otra cosa, así que sus empresas de prueba pasan a Pro (se revierte).
+  update public.suscripciones s
+     set plan_id = (select id from public.planes where nombre = 'Empresa Pro'),
+         modalidad = 'mensual', estado = 'activa', fecha_vencimiento = privado.hoy_colombia() + 30
+    from public.perfiles p
+   where p.id = s.usuario_id and p.rol = 'empresa' and s.usuario_id::text like '00000000-0000-0000-0000-%';
+
   insert into public.categorias (tipo, nombre, activa) values ('tipo_proyecto', 'Sug s019 tp ' || gen_random_uuid(), true) returning id into v_tp;
   insert into public.categorias (tipo, nombre, activa) values ('sector', 'Sug s019 se ' || gen_random_uuid(), true) returning id into v_se;
   insert into public.categorias (tipo, nombre, activa) values ('tipo_entidad', 'Sug s019 te ' || gen_random_uuid(), true) returning id into v_te;
@@ -161,8 +169,8 @@ begin
   exception when others then
     get stacked diagnostics v_obtenido = pg_exception_hint;
   end;
-  v_res := v_res || format(E'\n%s E2 con la suscripción vencida (CU-10 2b) -> %s',
-    case when v_obtenido = 'sin_suscripcion' then 'OK   ' else 'FALLA' end, v_obtenido);
+  v_res := v_res || format(E'\n%s E2 con la suscripción vencida, en Gratis (CU-10 2b, RN-41) -> %s',
+    case when v_obtenido = 'funcion_no_incluida' then 'OK   ' else 'FALLA' end, v_obtenido);
   execute 'reset role';
 
   perform set_config('request.jwt.claims', json_build_object('sub', v_c1, 'role', 'authenticated', 'aal', 'aal1')::text, true);
@@ -174,7 +182,7 @@ begin
     get stacked diagnostics v_obtenido = pg_exception_hint;
   end;
   v_res := v_res || format(E'\n%s un consultor (sin suscripción de empresa) -> %s',
-    case when v_obtenido in ('sin_suscripcion', 'no_existe') then 'OK   ' else 'FALLA' end, v_obtenido);
+    case when v_obtenido in ('funcion_no_incluida', 'no_existe') then 'OK   ' else 'FALLA' end, v_obtenido);
   execute 'reset role';
 
   -- ---------------------------------------------------------------- cobertura desde el panel

@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Loader2, Sparkles, X } from "lucide-react";
-import { textoCreditos, useCreditos, useTarifas } from "@/lib/hooks";
+import { Check, Loader2, Lock, Sparkles, X } from "lucide-react";
+import { textoCreditos, useCreditos, usePlanEfectivo, useTarifas } from "@/lib/hooks";
+import { DialogoFuncionBloqueada } from "@/components/plan/FuncionBloqueada";
 import { Button } from "@/components/ui/Button";
 import { BotonDictado } from "./BotonDictado";
 
@@ -27,6 +28,8 @@ export function EditarConIA({
   const router = useRouter();
   const { disponibles, vigente } = useCreditos();
   const costo = useTarifas().edicion_apartado;
+  // RN-41, RF-120 (sesión 042): editar con IA es de Esencial y Pro.
+  const conFuncion = usePlanEfectivo().incluye("proyecto_ia");
   const [abierto, setAbierto] = useState(false);
   const [instruccion, setInstruccion] = useState("");
   const [parcial, setParcial] = useState("");
@@ -64,6 +67,17 @@ export function EditarConIA({
     setError(null);
     setParcial("");
   };
+
+  if (!conFuncion) {
+    return (
+      <>
+        <Button type="button" variant="secondary" size="sm" onClick={() => setAbierto(true)}>
+          <Lock className="h-3.5 w-3.5" /> Editar con IA
+        </Button>
+        {abierto && <DialogoFuncionBloqueada funcion="proyecto_ia" onCerrar={() => setAbierto(false)} />}
+      </>
+    );
+  }
 
   if (!abierto) {
     return (
