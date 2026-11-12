@@ -174,7 +174,7 @@ export function GestionFuentes({ fuentes }: { fuentes: FuenteAdmin[] }) {
       )}
 
       {modalAbierto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
           <form
             onSubmit={guardar}
             role="dialog"

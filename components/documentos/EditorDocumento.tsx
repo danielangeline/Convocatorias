@@ -349,7 +349,7 @@ export function EditorDocumento({
       </div>
 
       {confirmandoRegenerar && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
           <div role="dialog" aria-modal="true" aria-labelledby="titulo-regenerar" className="w-full max-w-md rounded-md border border-line bg-surface p-6 shadow-card">
             <div className="mb-4 flex items-center justify-between">
               <h3 id="titulo-regenerar" className="font-display text-lg font-semibold text-ink">Regenerar documento</h3>

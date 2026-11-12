@@ -197,7 +197,7 @@ export function SolicitudesEquipo({ esperando, atendidas }: { esperando: Solicit
       )}
 
       {aMarcar && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-overlay p-4">
           <div role="dialog" aria-modal="true" aria-labelledby="titulo-marcar" className="w-full max-w-md rounded-md border border-line bg-surface p-6 shadow-card">
             <div className="mb-3 flex items-center justify-between">
               <h3 id="titulo-marcar" className="font-display text-lg font-semibold text-ink">
