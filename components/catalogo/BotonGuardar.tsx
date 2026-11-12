@@ -51,7 +51,7 @@ export function BotonGuardar({
       aria-label={soloIcono ? (guardada ? "Quitar de guardadas" : "Guardar convocatoria") : undefined}
       className={className}
     >
-      <Bookmark className={guardada ? "h-4 w-4 fill-current text-pri-text" : "h-4 w-4"} />
+      <Bookmark className={`${soloIcono ? "h-5 w-5" : "h-4 w-4"} ${guardada ? "fill-current text-pri-text" : ""}`} />
       {!soloIcono && etiqueta}
     </Button>
   );

@@ -33,7 +33,7 @@ export default async function ConsultorLayout({ children }: { children: React.Re
         </Suspense>
         <main className="flex-1">{children}</main>
         <footer className="mt-10 border-t border-line-2 pt-5 text-center text-xs text-ink-3">
-          FundRadar — portal de consultores; la cuenta es real, el resto, datos de ejemplo.
+          FundRadar — portal de consultores.
         </footer>
       </AppShell>
       <ModalSuscripcion />
